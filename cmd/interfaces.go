@@ -134,12 +134,12 @@ func generateRepositoryInterfaceFile(dir, entity string) {
 
 	// Query operations
 	content.WriteString(fmt.Sprintf("\tFindBy%sName(name string) ([]domain.%s, error)\n", entity, entity))
-	content.WriteString(fmt.Sprintf("\tCount() (int, error)\n"))
-	content.WriteString(fmt.Sprintf("\tExists(id int) (bool, error)\n"))
+	content.WriteString("\tCount() (int, error)\n")
+	content.WriteString("\tExists(id int) (bool, error)\n")
 
 	// Batch operations
 	content.WriteString(fmt.Sprintf("\tSaveBatch(%ss []domain.%s) error\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tDeleteBatch(ids []int) error\n"))
+	content.WriteString("\tDeleteBatch(ids []int) error\n")
 
 	// Transaction operations
 	content.WriteString(fmt.Sprintf("\tSaveWithTx(tx interface{}, %s *domain.%s) error\n", entityLower, entity))

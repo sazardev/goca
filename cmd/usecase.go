@@ -79,7 +79,7 @@ func generateDTOFile(dir, entity string, operations []string, validation bool) {
 
 	if validation {
 		content.WriteString("import (\n")
-		content.WriteString(fmt.Sprintf("\t\"myproject/domain\"\n"))
+		content.WriteString("\t\"myproject/domain\"\n")
 		content.WriteString(")\n\n")
 	}
 
