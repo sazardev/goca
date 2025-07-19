@@ -1,3 +1,28 @@
+/*
+Package cmd provides the command-line interface for the Goca CLI tool.
+
+This package contains all the CLI commands and their implementations for
+generating Go Clean Architecture projects. It uses the Cobra library for
+command-line parsing and organization.
+
+# Available Commands
+
+The cmd package provides these main commands:
+
+- init: Initialize a new Clean Architecture project
+- feature: Generate complete feature with all layers
+- entity: Generate domain entities with validation
+- usecase: Generate use cases and business logic
+- repository: Generate data access layer
+- handler: Generate interface adapters
+- di: Generate dependency injection container
+- interfaces: Generate interfaces for TDD
+- messages: Generate error messages and responses
+- version: Show version information
+
+Each command is implemented in its own file and provides specific functionality
+for code generation following Clean Architecture principles.
+*/
 package cmd
 
 import (
