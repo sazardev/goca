@@ -1,0 +1,43 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+
+    - name: Test CLI Commands
+      run: |
+        # Build the binary
+        go build -o goca
+        
+        # Test basic commands
+        ./goca help
+        ./goca version
+        
+        # Test init command
+        mkdir test-project
+        cd test-project
+        ../goca init testapp --module github.com/test/app
+        
+        # Verify structure was created
+        [ -d "testapp" ] || exit 1
+        [ -f "testapp/go.mod" ] || exit 1
+        [ -d "testapp/internal" ] || exit 1

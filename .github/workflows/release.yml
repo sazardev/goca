@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Build for multiple platforms
+      run: |
+        # Build for Windows
+        GOOS=windows GOARCH=amd64 go build -o goca-windows-amd64.exe
+        
+        # Build for Linux
+        GOOS=linux GOARCH=amd64 go build -o goca-linux-amd64
+        
+        # Build for macOS
+        GOOS=darwin GOARCH=amd64 go build -o goca-darwin-amd64
+        GOOS=darwin GOARCH=arm64 go build -o goca-darwin-arm64
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          goca-windows-amd64.exe
+          goca-linux-amd64
+          goca-darwin-amd64
+          goca-darwin-arm64
+        body: |
+          ## Goca v${{ github.ref_name }}
+          
+          Go Clean Architecture Code Generator
+          
+          ### Installation
+          
+          **Windows:**
+          ```bash
+          # Download goca-windows-amd64.exe and rename to goca.exe
+          ```
+          
+          **Linux:**
+          ```bash
+          # Download goca-linux-amd64 and make executable
+          chmod +x goca-linux-amd64
+          sudo mv goca-linux-amd64 /usr/local/bin/goca
+          ```
+          
+          **macOS:**
+          ```bash
+          # Intel Macs: Download goca-darwin-amd64
+          # Apple Silicon Macs: Download goca-darwin-arm64
+          chmod +x goca-darwin-*
+          sudo mv goca-darwin-* /usr/local/bin/goca
+          ```
+          
+          **Using Go Install:**
+          ```bash
+          go install github.com/sazardev/goca@${{ github.ref_name }}
+          ```
+          
+          ### What's New
+          See [CHANGELOG.md](https://github.com/sazardev/goca/blob/main/CHANGELOG.md) for details.
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
