@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -19,60 +25,108 @@ jobs:
       with:
         go-version: '1.21'
     
+    - name: Set version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Build for multiple platforms
       run: |
-        # Build for Windows
-        GOOS=windows GOARCH=amd64 go build -o goca-windows-amd64.exe
+        # Build for Windows 64-bit
+        GOOS=windows GOARCH=amd64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-windows-amd64.exe
         
-        # Build for Linux
-        GOOS=linux GOARCH=amd64 go build -o goca-linux-amd64
+        # Build for Linux 64-bit
+        GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-linux-amd64
         
-        # Build for macOS
-        GOOS=darwin GOARCH=amd64 go build -o goca-darwin-amd64
-        GOOS=darwin GOARCH=arm64 go build -o goca-darwin-arm64
+        # Build for macOS Intel
+        GOOS=darwin GOARCH=amd64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-darwin-amd64
+        
+        # Build for macOS Apple Silicon
+        GOOS=darwin GOARCH=arm64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-darwin-arm64
+        
+        # Create checksums
+        sha256sum goca-* > checksums.txt
     
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: "Goca ${{ steps.version.outputs.version }}"
         files: |
           goca-windows-amd64.exe
           goca-linux-amd64
           goca-darwin-amd64
           goca-darwin-arm64
+          checksums.txt
         body: |
-          ## Goca v${{ github.ref_name }}
+          ## 🎉 Goca ${{ steps.version.outputs.version }}
           
-          Go Clean Architecture Code Generator
+          **Go Clean Architecture Code Generator**
           
-          ### Installation
+          ### 🚀 Quick Installation
           
-          **Windows:**
+          **Using Go install:**
           ```bash
-          # Download goca-windows-amd64.exe and rename to goca.exe
+          go install github.com/sazardev/goca@${{ steps.version.outputs.version }}
           ```
           
-          **Linux:**
+          **Download Binary:**
+          
+          **Windows (64-bit):**
+          - Download `goca-windows-amd64.exe`
+          - Rename to `goca.exe` and add to your PATH
+          
+          **Linux (64-bit):**
           ```bash
-          # Download goca-linux-amd64 and make executable
+          wget https://github.com/sazardev/goca/releases/download/${{ steps.version.outputs.version }}/goca-linux-amd64
           chmod +x goca-linux-amd64
           sudo mv goca-linux-amd64 /usr/local/bin/goca
           ```
           
           **macOS:**
           ```bash
-          # Intel Macs: Download goca-darwin-amd64
-          # Apple Silicon Macs: Download goca-darwin-arm64
-          chmod +x goca-darwin-*
-          sudo mv goca-darwin-* /usr/local/bin/goca
+          # Intel Macs
+          wget https://github.com/sazardev/goca/releases/download/${{ steps.version.outputs.version }}/goca-darwin-amd64
+          chmod +x goca-darwin-amd64
+          sudo mv goca-darwin-amd64 /usr/local/bin/goca
+          
+          # Apple Silicon Macs
+          wget https://github.com/sazardev/goca/releases/download/${{ steps.version.outputs.version }}/goca-darwin-arm64
+          chmod +x goca-darwin-arm64
+          sudo mv goca-darwin-arm64 /usr/local/bin/goca
           ```
           
-          **Using Go Install:**
+          ### 🛠️ Quick Start
           ```bash
-          go install github.com/sazardev/goca@${{ github.ref_name }}
+          # Initialize a new project
+          goca init myproject --module github.com/user/myproject
+          
+          # Generate a complete feature
+          goca feature User --fields "name:string,email:string,age:int"
+          
+          # Check version
+          goca version
           ```
           
-          ### What's New
-          See [CHANGELOG.md](https://github.com/sazardev/goca/blob/main/CHANGELOG.md) for details.
+          ### 📋 What's Included
+          - ✅ Project initialization with Clean Architecture
+          - ✅ Entity, UseCase, Repository, Handler generation
+          - ✅ Multi-protocol support (HTTP, gRPC, CLI, Worker, SOAP)
+          - ✅ Multi-database support (PostgreSQL, MySQL, MongoDB)
+          - ✅ Complete feature generation
+          - ✅ Dependency injection setup
+          
+          ### 🔗 Links
+          - [Documentation](https://github.com/sazardev/goca/blob/main/README.md)
+          - [Complete Guide](https://github.com/sazardev/goca/blob/main/GUIDE.md)
+          - [Architecture Rules](https://github.com/sazardev/goca/blob/main/rules.md)
+          
+          **Verify your download:**
+          Check the `checksums.txt` file to verify the integrity of your download.
         draft: false
         prerelease: false
       env:

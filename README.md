@@ -64,9 +64,39 @@ Goca garantiza que cada archivo generado cumple con:
 
 ## 📦 Instalación
 
-### Usando Go Install
+### Usando Go Install (Recomendado)
 ```bash
 go install github.com/sazardev/goca@latest
+```
+
+### Descarga de Binarios
+Descarga el binario directamente desde [GitHub Releases](https://github.com/sazardev/goca/releases):
+
+**Windows:**
+```bash
+# Descargar goca-windows-amd64.exe desde releases
+# Renombrar a goca.exe y agregar al PATH
+```
+
+**Linux:**
+```bash
+# Descargar y hacer ejecutable
+wget https://github.com/sazardev/goca/releases/latest/download/goca-linux-amd64
+chmod +x goca-linux-amd64
+sudo mv goca-linux-amd64 /usr/local/bin/goca
+```
+
+**macOS:**
+```bash
+# Intel Macs
+wget https://github.com/sazardev/goca/releases/latest/download/goca-darwin-amd64
+chmod +x goca-darwin-amd64
+sudo mv goca-darwin-amd64 /usr/local/bin/goca
+
+# Apple Silicon Macs  
+wget https://github.com/sazardev/goca/releases/latest/download/goca-darwin-arm64
+chmod +x goca-darwin-arm64
+sudo mv goca-darwin-arm64 /usr/local/bin/goca
 ```
 
 ### Desde Código Fuente
@@ -75,9 +105,6 @@ git clone https://github.com/sazardev/goca.git
 cd goca
 go build -o goca
 ```
-
-### Download Binary
-Descarga el binario directamente desde [GitHub Releases](https://github.com/sazardev/goca/releases)
 
 ## 🛠️ Inicio Rápido
 

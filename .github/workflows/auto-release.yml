@@ -1,0 +1,67 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [master, main]
+    paths-ignore:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'docs/**'
+      - '.github/**'
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      new_version: ${{ steps.check.outputs.new_version }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check if version changed
+      id: check
+      run: |
+        # Get current version from version.go
+        CURRENT_VERSION=$(grep 'Version.*=' cmd/version.go | sed 's/.*"\(.*\)"/\1/')
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Get latest tag
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        LATEST_VERSION=${LATEST_TAG#v}
+        echo "Latest tag version: $LATEST_VERSION"
+        
+        # Compare versions
+        if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+          echo "Version changed from $LATEST_VERSION to $CURRENT_VERSION"
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          echo "new_version=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        else
+          echo "Version unchanged"
+          echo "should_release=false" >> $GITHUB_OUTPUT
+        fi
+
+  auto-release:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create and push tag
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        NEW_VERSION="${{ needs.check-version.outputs.new_version }}"
+        echo "Creating tag: $NEW_VERSION"
+        
+        git tag "$NEW_VERSION"
+        git push origin "$NEW_VERSION"
+    
+    - name: Trigger release workflow
+      run: |
+        echo "Tag created successfully. Release workflow will be triggered automatically."
