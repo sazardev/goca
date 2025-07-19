@@ -1,0 +1,71 @@
+project_name: goca
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: goca
+    main: ./main.go
+    binary: goca
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: goca
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+release:
+  github:
+    owner: sazardev
+    name: goca
+  name_template: "v{{ .Version }}"
+  body: |
+    ## Goca v{{ .Version }}
+    
+    Go Clean Architecture Code Generator
+    
+    ### Installation
+    
+    **Using Go install:**
+    ```bash
+    go install github.com/sazardev/goca@{{ .Tag }}
+    ```
+    
+    **Download binary:**
+    Download the appropriate binary for your platform from the attachments below.
+    
+    ### Changes
+    {{ .Changelog }}
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+brews:
+  - name: goca
+    homepage: https://github.com/sazardev/goca
+    description: "Go Clean Architecture Code Generator"
+    tap:
+      owner: sazardev
+      name: homebrew-tools
+    install: |
+      bin.install "goca"

@@ -76,12 +76,15 @@ cd goca
 go build -o goca
 ```
 
+### Download Binary
+Descarga el binario directamente desde [GitHub Releases](https://github.com/sazardev/goca/releases)
+
 ## 🛠️ Inicio Rápido
 
 ### Inicializar Proyecto Clean Architecture
 ```bash
 # Crear nuevo proyecto con estructura Clean Architecture
-goca init myproject --module github.com/yourname/myproject
+goca init myproject --module github.com/sazardev/myproject
 
 # Navegar al proyecto
 cd myproject

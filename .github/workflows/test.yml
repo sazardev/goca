@@ -35,7 +35,7 @@ jobs:
         # Test init command
         mkdir test-project
         cd test-project
-        ../goca init testapp --module github.com/test/app
+        ../goca init testapp --module github.com/sazardev/testapp
         
         # Verify structure was created
         [ -d "testapp" ] || exit 1

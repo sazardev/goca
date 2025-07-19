@@ -426,134 +426,130 @@ func generateProtoFile(dir, entity string) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+".proto")
 
-	content := fmt.Sprintf(`syntax = "proto3";
+	var content strings.Builder
+	content.WriteString("syntax = \"proto3\";\n\n")
+	content.WriteString(fmt.Sprintf("package %s;\n\n", entityLower))
+	content.WriteString(fmt.Sprintf("option go_package = \"./%s\";\n\n", entityLower))
 
-package %s;
+	content.WriteString(fmt.Sprintf("service %sService {\n", entity))
+	content.WriteString(fmt.Sprintf("  rpc Create%s(Create%sRequest) returns (Create%sResponse);\n", entity, entity, entity))
+	content.WriteString(fmt.Sprintf("  rpc Get%s(Get%sRequest) returns (%sResponse);\n", entity, entity, entity))
+	content.WriteString(fmt.Sprintf("  rpc Update%s(Update%sRequest) returns (Update%sResponse);\n", entity, entity, entity))
+	content.WriteString(fmt.Sprintf("  rpc Delete%s(Delete%sRequest) returns (Delete%sResponse);\n", entity, entity, entity))
+	content.WriteString(fmt.Sprintf("  rpc List%ss(List%ssRequest) returns (List%ssResponse);\n", entity, entity, entity))
+	content.WriteString("}\n\n")
 
-option go_package = "./%s";
+	content.WriteString(fmt.Sprintf("message %s {\n", entity))
+	content.WriteString("  int32 id = 1;\n")
+	content.WriteString("  string name = 2;\n")
+	content.WriteString("  string email = 3;\n")
+	content.WriteString("}\n\n")
 
-service %sService {
-  rpc Create%s(Create%sRequest) returns (Create%sResponse);
-  rpc Get%s(Get%sRequest) returns (%sResponse);
-  rpc Update%s(Update%sRequest) returns (Update%sResponse);
-  rpc Delete%s(Delete%sRequest) returns (Delete%sResponse);
-  rpc List%ss(List%ssRequest) returns (List%ssResponse);
-}
+	content.WriteString(fmt.Sprintf("message Create%sRequest {\n", entity))
+	content.WriteString("  string name = 1;\n")
+	content.WriteString("  string email = 2;\n")
+	content.WriteString("}\n\n")
 
-message %s {
-  int32 id = 1;
-  string name = 2;
-  string email = 3;
-}
+	content.WriteString(fmt.Sprintf("message Create%sResponse {\n", entity))
+	content.WriteString(fmt.Sprintf("  %s %s = 1;\n", entity, entityLower))
+	content.WriteString("  string message = 2;\n")
+	content.WriteString("}\n\n")
 
-message Create%sRequest {
-  string name = 1;
-  string email = 2;
-}
+	content.WriteString(fmt.Sprintf("message Get%sRequest {\n", entity))
+	content.WriteString("  int32 id = 1;\n")
+	content.WriteString("}\n\n")
 
-message Create%sResponse {
-  %s %s = 1;
-  string message = 2;
-}
+	content.WriteString(fmt.Sprintf("message %sResponse {\n", entity))
+	content.WriteString(fmt.Sprintf("  %s %s = 1;\n", entity, entityLower))
+	content.WriteString("}\n\n")
 
-message Get%sRequest {
-  int32 id = 1;
-}
+	content.WriteString(fmt.Sprintf("message Update%sRequest {\n", entity))
+	content.WriteString("  int32 id = 1;\n")
+	content.WriteString("  string name = 2;\n")
+	content.WriteString("  string email = 3;\n")
+	content.WriteString("}\n\n")
 
-message %sResponse {
-  %s %s = 1;
-}
+	content.WriteString(fmt.Sprintf("message Update%sResponse {\n", entity))
+	content.WriteString("  string message = 1;\n")
+	content.WriteString("}\n\n")
 
-message Update%sRequest {
-  int32 id = 1;
-  string name = 2;
-  string email = 3;
-}
+	content.WriteString(fmt.Sprintf("message Delete%sRequest {\n", entity))
+	content.WriteString("  int32 id = 1;\n")
+	content.WriteString("}\n\n")
 
-message Update%sResponse {
-  string message = 1;
-}
+	content.WriteString(fmt.Sprintf("message Delete%sResponse {\n", entity))
+	content.WriteString("  string message = 1;\n")
+	content.WriteString("}\n\n")
 
-message Delete%sRequest {
-  int32 id = 1;
-}
+	content.WriteString(fmt.Sprintf("message List%ssRequest {\n", entity))
+	content.WriteString("}\n\n")
 
-message Delete%sResponse {
-  string message = 1;
-}
+	content.WriteString(fmt.Sprintf("message List%ssResponse {\n", entity))
+	content.WriteString(fmt.Sprintf("  repeated %s %ss = 1;\n", entity, entityLower))
+	content.WriteString("  int32 total = 2;\n")
+	content.WriteString("}\n")
 
-message List%ssRequest {
-}
-
-message List%ssResponse {
-  repeated %s %ss = 1;
-  int32 total = 2;
-}
-`, entityLower, entityLower, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entityLower, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entityLower)
-
-	writeFile(filename, content)
+	writeFile(filename, content.String())
 }
 
 func generateGRPCServerFile(dir, entity string) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_server.go")
 
-	content := fmt.Sprintf(`package grpc
+	var content strings.Builder
+	content.WriteString("package grpc\n\n")
+	content.WriteString("import (\n")
+	content.WriteString("\t\"context\"\n\n")
+	content.WriteString("\t\"github.com/sazardev/goca/usecase\"\n")
+	content.WriteString(fmt.Sprintf("\tpb \"github.com/sazardev/goca/internal/handler/grpc/%s\"\n", entityLower))
+	content.WriteString(")\n\n")
 
-import (
-	"context"
-	
-	"myproject/usecase"
-	pb "myproject/internal/handler/grpc/%s"
-)
+	content.WriteString(fmt.Sprintf("type %sServer struct {\n", entity))
+	content.WriteString(fmt.Sprintf("\tpb.Unimplemented%sServiceServer\n", entity))
+	content.WriteString(fmt.Sprintf("\tusecase usecase.%sUseCase\n", entity))
+	content.WriteString("}\n\n")
 
-type %sServer struct {
-	pb.Unimplemented%sServiceServer
-	usecase usecase.%sUseCase
-}
+	content.WriteString(fmt.Sprintf("func New%sServer(uc usecase.%sUseCase) *%sServer {\n", entity, entity, entity))
+	content.WriteString(fmt.Sprintf("\treturn &%sServer{usecase: uc}\n", entity))
+	content.WriteString("}\n\n")
 
-func New%sServer(uc usecase.%sUseCase) *%sServer {
-	return &%sServer{usecase: uc}
-}
+	content.WriteString(fmt.Sprintf("func (s *%sServer) Create%s(ctx context.Context, req *pb.Create%sRequest) (*pb.Create%sResponse, error) {\n", entity, entity, entity, entity))
+	content.WriteString(fmt.Sprintf("\tinput := usecase.Create%sInput{\n", entity))
+	content.WriteString("\t\tName:  req.Name,\n")
+	content.WriteString("\t\tEmail: req.Email,\n")
+	content.WriteString("\t}\n\n")
 
-func (s *%sServer) Create%s(ctx context.Context, req *pb.Create%sRequest) (*pb.Create%sResponse, error) {
-	input := usecase.Create%sInput{
-		Name:  req.Name,
-		Email: req.Email,
-	}
-	
-	output, err := s.usecase.Create%s(input)
-	if err != nil {
-		return nil, err
-	}
-	
-	return &pb.Create%sResponse{
-		%s: &pb.%s{
-			Id:    int32(output.%s.ID),
-			Name:  output.%s.Name,
-			Email: output.%s.Email,
-		},
-		Message: output.Message,
-	}, nil
-}
+	content.WriteString(fmt.Sprintf("\toutput, err := s.usecase.Create%s(input)\n", entity))
+	content.WriteString("\tif err != nil {\n")
+	content.WriteString("\t\treturn nil, err\n")
+	content.WriteString("\t}\n\n")
 
-func (s *%sServer) Get%s(ctx context.Context, req *pb.Get%sRequest) (*pb.%sResponse, error) {
-	%s, err := s.usecase.Get%s(int(req.Id))
-	if err != nil {
-		return nil, err
-	}
-	
-	return &pb.%sResponse{
-		%s: &pb.%s{
-			Id:    int32(%s.ID),
-			Name:  %s.Name,
-			Email: %s.Email,
-		},
-	}, nil
-}
-`, entityLower, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entity, entityLower, entityLower, entityLower)
+	content.WriteString(fmt.Sprintf("\treturn &pb.Create%sResponse{\n", entity))
+	content.WriteString(fmt.Sprintf("\t\t%s: &pb.%s{\n", entity, entity))
+	content.WriteString(fmt.Sprintf("\t\t\tId:    int32(output.%s.ID),\n", entity))
+	content.WriteString(fmt.Sprintf("\t\t\tName:  output.%s.Name,\n", entity))
+	content.WriteString(fmt.Sprintf("\t\t\tEmail: output.%s.Email,\n", entity))
+	content.WriteString("\t\t},\n")
+	content.WriteString("\t\tMessage: output.Message,\n")
+	content.WriteString("\t}, nil\n")
+	content.WriteString("}\n\n")
 
-	writeFile(filename, content)
+	content.WriteString(fmt.Sprintf("func (s *%sServer) Get%s(ctx context.Context, req *pb.Get%sRequest) (*pb.%sResponse, error) {\n", entity, entity, entity, entity))
+	content.WriteString(fmt.Sprintf("\t%s, err := s.usecase.Get%s(int(req.Id))\n", entityLower, entity))
+	content.WriteString("\tif err != nil {\n")
+	content.WriteString("\t\treturn nil, err\n")
+	content.WriteString("\t}\n\n")
+
+	content.WriteString(fmt.Sprintf("\treturn &pb.%sResponse{\n", entity))
+	content.WriteString(fmt.Sprintf("\t\t%s: &pb.%s{\n", entity, entity))
+	content.WriteString(fmt.Sprintf("\t\t\tId:    int32(%s.ID),\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\t\tName:  %s.Name,\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\t\tEmail: %s.Email,\n", entityLower))
+	content.WriteString("\t\t},\n")
+	content.WriteString("\t}, nil\n")
+	content.WriteString("}\n")
+
+	writeFile(filename, content.String())
 }
 
 func generateCLIHandler(entity string) {
@@ -635,7 +631,7 @@ func (c *%sCLI) Get%sCommand() *cobra.Command {
 		},
 	}
 }
-`, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entityLower, entityLower, entity, entity, entity, entityLower, entityLower, entity, entity, entity, entity)
+`, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entityLower, entityLower, entity, entity, entity, entityLower, entity, entity, entityLower)
 
 	writeFile(filename, content)
 }
