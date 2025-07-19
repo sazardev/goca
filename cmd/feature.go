@@ -58,11 +58,11 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 1. Generate Entity (Domain layer)
 	fmt.Println("1️⃣  Generando entidad de dominio...")
-	generateEntity(featureName, fields, validation, businessRules, false, false)
+	generateEntity(featureName, fields, true, businessRules, false, false)
 
 	// 2. Generate Use Case
 	fmt.Println("2️⃣  Generando casos de uso...")
-	generateUseCase(featureName+"Service", featureName, "create,read,update,delete,list", validation, false)
+	generateUseCase(featureName+"UseCase", featureName, "create,read,update,delete,list", validation, false)
 
 	// 3. Generate Repository
 	fmt.Println("3️⃣  Generando repositorio...")

@@ -230,11 +230,10 @@ func generateErrorsFile(dir, entityName string) {
 		fmt.Printf("⚠️  Archivo errors.go ya existe, agregando nuevos errores para %s\n", entityName)
 	}
 
+	// Generate specific validation errors for common fields
 	content.WriteString(fmt.Sprintf("\tErrInvalid%sName = errors.New(\"%s name is required\")\n",
 		entityName, strings.ToLower(entityName)))
 	content.WriteString(fmt.Sprintf("\tErrInvalid%sEmail = errors.New(\"%s email is required\")\n",
-		entityName, strings.ToLower(entityName)))
-	content.WriteString(fmt.Sprintf("\tErrInvalid%sAge = errors.New(\"%s age must be positive\")\n",
 		entityName, strings.ToLower(entityName)))
 	content.WriteString(")\n")
 

@@ -80,11 +80,10 @@ func generateDTOFile(dir, entity string, operations []string, validation bool) {
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
 
-	if validation {
-		content.WriteString("import (\n")
-		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
-		content.WriteString(")\n\n")
-	}
+	// Always import domain package since DTOs reference it
+	content.WriteString("import (\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	content.WriteString(")\n\n")
 
 	// Generate DTOs for each operation
 	for _, op := range operations {
@@ -206,7 +205,7 @@ func generateUseCaseService(dir, usecaseName, entity string, operations []string
 	// Constructor
 	interfaceName := strings.Replace(usecaseName, "Service", "UseCase", 1)
 	content.WriteString(fmt.Sprintf("func New%s(repo %sRepository) %s {\n",
-		strings.Title(serviceName), entity, interfaceName))
+		strings.ToUpper(string(serviceName[0]))+serviceName[1:], entity, interfaceName))
 	content.WriteString(fmt.Sprintf("\treturn &%s{repo: repo}\n", serviceName))
 	content.WriteString("}\n\n")
 
