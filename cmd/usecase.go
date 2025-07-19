@@ -159,6 +159,8 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 	content.WriteString("package usecase\n\n")
 	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
 
+	// DEBUG: Print what interface name is being used
+	fmt.Printf("DEBUG: Generating interface with name: %s\n", usecaseName)
 	content.WriteString(fmt.Sprintf("type %s interface {\n", usecaseName))
 
 	for _, op := range operations {
@@ -322,11 +324,12 @@ func generateUseCaseInterfaces(dir, entity string) {
 	content.WriteString("package usecase\n\n")
 	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
 
+	entityLower := strings.ToLower(entity)
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
-	content.WriteString(fmt.Sprintf("\tSave(user *domain.%s) error\n", entity))
+	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", entityLower, entity))
 	content.WriteString(fmt.Sprintf("\tFindByID(id int) (*domain.%s, error)\n", entity))
 	content.WriteString(fmt.Sprintf("\tFindByEmail(email string) (*domain.%s, error)\n", entity))
-	content.WriteString(fmt.Sprintf("\tUpdate(user *domain.%s) error\n", entity))
+	content.WriteString(fmt.Sprintf("\tUpdate(%s *domain.%s) error\n", entityLower, entity))
 	content.WriteString("\tDelete(id int) error\n")
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 	content.WriteString("}\n")
