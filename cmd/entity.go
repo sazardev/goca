@@ -74,7 +74,7 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 
 	// Generate errors file if validation is enabled
 	if validation {
-		generateErrorsFile(domainDir, entityName)
+		generateErrorsFile(domainDir, entityName, fieldsList)
 	}
 }
 
@@ -122,11 +122,8 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 	// Package and imports
 	content.WriteString("package domain\n\n")
 
-	if validation || timestamps || softDelete {
+	if timestamps || softDelete {
 		content.WriteString("import (\n")
-		if validation {
-			content.WriteString("\t\"errors\"\n")
-		}
 		if timestamps || softDelete {
 			content.WriteString("\t\"time\"\n")
 		}
@@ -214,30 +211,70 @@ func generateBusinessRules(content *strings.Builder, entityName string, fields [
 	}
 }
 
-func generateErrorsFile(dir, entityName string) {
+func generateErrorsFile(dir, entityName string, fields []Field) {
 	filename := filepath.Join(dir, "errors.go")
 
 	var content strings.Builder
-	content.WriteString("package domain\n\n")
-	content.WriteString("import \"errors\"\n\n")
-	content.WriteString("var (\n")
-	content.WriteString(fmt.Sprintf("\tErrInvalid%sData = errors.New(\"invalid %s data\")\n",
-		entityName, strings.ToLower(entityName)))
+	var existingErrors []string
 
 	// Check if file exists and read existing errors
 	if _, err := os.Stat(filename); err == nil {
-		// File exists, we should append only new errors
+		// File exists, read existing content
 		fmt.Printf("⚠️  Archivo errors.go ya existe, agregando nuevos errores para %s\n", entityName)
+
+		if existingContent, err := os.ReadFile(filename); err == nil {
+			// Extract existing error declarations
+			lines := strings.Split(string(existingContent), "\n")
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if strings.HasPrefix(line, "ErrInvalid") && strings.Contains(line, "errors.New") {
+					existingErrors = append(existingErrors, "\t"+line)
+				}
+			}
+		}
 	}
 
-	// Generate specific validation errors for common fields
-	content.WriteString(fmt.Sprintf("\tErrInvalid%sName = errors.New(\"%s name is required\")\n",
-		entityName, strings.ToLower(entityName)))
-	content.WriteString(fmt.Sprintf("\tErrInvalid%sEmail = errors.New(\"%s email is required\")\n",
-		entityName, strings.ToLower(entityName)))
+	content.WriteString("package domain\n\n")
+	content.WriteString("import \"errors\"\n\n")
+	content.WriteString("var (\n")
+
+	// Add general error if not exists
+	generalError := fmt.Sprintf("\tErrInvalid%sData = errors.New(\"invalid %s data\")",
+		entityName, strings.ToLower(entityName))
+	if !contains(existingErrors, generalError) {
+		content.WriteString(generalError + "\n")
+	}
+
+	// Add existing errors
+	for _, err := range existingErrors {
+		content.WriteString(err + "\n")
+	}
+
+	// Generate specific validation errors for all fields
+	for _, field := range fields {
+		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
+			continue
+		}
+		newError := fmt.Sprintf("\tErrInvalid%s%s = errors.New(\"%s %s is invalid\")",
+			entityName, field.Name, strings.ToLower(entityName), strings.ToLower(field.Name))
+
+		if !contains(existingErrors, newError) {
+			content.WriteString(newError + "\n")
+		}
+	}
 	content.WriteString(")\n")
 
 	writeFile(filename, content.String())
+}
+
+// Helper function to check if a slice contains a string
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if strings.TrimSpace(s) == strings.TrimSpace(item) {
+			return true
+		}
+	}
+	return false
 }
 
 func init() {
