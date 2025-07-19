@@ -367,20 +367,6 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	writeFile(filepath.Join(projectName, "pkg", "auth", "jwt.go"), content)
 }
 
-func writeFile(path, content string) {
-	file, err := os.Create(path)
-	if err != nil {
-		fmt.Printf("Error creating file %s: %v\n", path, err)
-		return
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(content)
-	if err != nil {
-		fmt.Printf("Error writing to file %s: %v\n", path, err)
-	}
-}
-
 func init() {
 	initCmd.Flags().StringP("module", "m", "", "Nombre del módulo Go (requerido)")
 	initCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")

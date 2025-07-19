@@ -74,12 +74,15 @@ func parseOperations(operations string) []string {
 func generateDTOFile(dir, entity string, operations []string, validation bool) {
 	filename := filepath.Join(dir, "dto.go")
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
 
 	if validation {
 		content.WriteString("import (\n")
-		content.WriteString("\t\"myproject/domain\"\n")
+		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
 		content.WriteString(")\n\n")
 	}
 
@@ -147,12 +150,15 @@ func generateListDTO(content *strings.Builder, entity string) {
 }
 
 func generateUseCaseInterface(dir, usecaseName, entity string, operations []string) {
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_usecase.go")
 
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
-	content.WriteString("import \"myproject/domain\"\n\n")
+	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
 
 	content.WriteString(fmt.Sprintf("type %s interface {\n", usecaseName))
 
@@ -178,14 +184,17 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 }
 
 func generateUseCaseService(dir, usecaseName, entity string, operations []string, async bool) {
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_service.go")
 
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
 	content.WriteString("import (\n")
-	content.WriteString("\t\"myproject/domain\"\n")
-	content.WriteString("\t\"myproject/messages\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/messages\"\n", moduleName))
 	content.WriteString(")\n\n")
 
 	// Service struct
@@ -305,11 +314,14 @@ func generateListMethod(content *strings.Builder, serviceName, entity string) {
 }
 
 func generateUseCaseInterfaces(dir, entity string) {
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	filename := filepath.Join(dir, "interfaces.go")
 
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
-	content.WriteString("import \"myproject/domain\"\n\n")
+	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
 
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
 	content.WriteString(fmt.Sprintf("\tSave(user *domain.%s) error\n", entity))

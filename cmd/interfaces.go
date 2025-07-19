@@ -73,12 +73,15 @@ func generateInterfaces(entity string, usecase, repository, handler bool) {
 }
 
 func generateUseCaseInterfaceFile(dir, entity string) {
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_usecase.go")
 
 	var content strings.Builder
 	content.WriteString("package interfaces\n\n")
-	content.WriteString("import \"myproject/domain\"\n\n")
+	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
 
 	// DTO interfaces
 	content.WriteString(fmt.Sprintf("// %s UseCase DTOs\n", entity))
@@ -114,12 +117,15 @@ func generateUseCaseInterfaceFile(dir, entity string) {
 }
 
 func generateRepositoryInterfaceFile(dir, entity string) {
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_repository.go")
 
 	var content strings.Builder
 	content.WriteString("package interfaces\n\n")
-	content.WriteString("import \"myproject/domain\"\n\n")
+	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
 
 	content.WriteString(fmt.Sprintf("// %s Repository interface\n", entity))
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))

@@ -66,9 +66,12 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 func generateRepositoryInterface(dir, entity string, transactions bool) {
 	filename := filepath.Join(dir, "interfaces.go")
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
-	content.WriteString("import \"myproject/domain\"\n\n")
+	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
 
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
 	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", strings.ToLower(entity), entity))
@@ -107,11 +110,14 @@ func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_"+entityLower+"_repository.go")
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString("\t\"myproject/domain\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
 	if cache {
 		content.WriteString("\t\"time\"\n")
 		content.WriteString("\t\"encoding/json\"\n")
@@ -333,11 +339,14 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "mysql_"+entityLower+"_repository.go")
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString("\t\"myproject/domain\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
 	content.WriteString("\n\t_ \"github.com/go-sql-driver/mysql\"\n")
 	content.WriteString(")\n\n")
 
@@ -374,12 +383,15 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "mongo_"+entityLower+"_repository.go")
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"context\"\n")
 	content.WriteString("\t\"time\"\n")
-	content.WriteString("\t\"myproject/domain\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
 	content.WriteString("\n\t\"go.mongodb.org/mongo-driver/mongo\"\n")
 	content.WriteString("\t\"go.mongodb.org/mongo-driver/bson\"\n")
 	content.WriteString("\t\"go.mongodb.org/mongo-driver/bson/primitive\"\n")

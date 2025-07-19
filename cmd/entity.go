@@ -98,7 +98,7 @@ func parseFields(fields string) []Field {
 	for _, part := range parts {
 		fieldParts := strings.Split(strings.TrimSpace(part), ":")
 		if len(fieldParts) == 2 {
-			fieldName := strings.Title(strings.TrimSpace(fieldParts[0]))
+			fieldName := strings.ToUpper(string(fieldParts[0][0])) + strings.ToLower(fieldParts[0][1:])
 			fieldType := strings.TrimSpace(fieldParts[1])
 			tag := fmt.Sprintf("`json:\"%s\"`", strings.ToLower(fieldName))
 

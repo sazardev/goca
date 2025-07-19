@@ -83,6 +83,9 @@ func generateHTTPHandler(entity string, middleware, validation, swagger bool) {
 func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	filename := filepath.Join(dir, strings.ToLower(entity)+"_handler.go")
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package http\n\n")
 	content.WriteString("import (\n")
@@ -90,7 +93,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	content.WriteString("\t\"net/http\"\n")
 	content.WriteString("\t\"strconv\"\n\n")
 	content.WriteString("\t\"github.com/gorilla/mux\"\n")
-	content.WriteString("\t\"myproject/usecase\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
 	content.WriteString(")\n\n")
 
 	// Handler struct
@@ -229,11 +232,18 @@ func generateListHandlerMethod(content *strings.Builder, entity, handlerName str
 func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 	filename := filepath.Join(dir, "routes.go")
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package http\n\n")
 	content.WriteString("import (\n")
+	if middleware {
+		content.WriteString("\t\"log\"\n")
+		content.WriteString("\t\"net/http\"\n\n")
+	}
 	content.WriteString("\t\"github.com/gorilla/mux\"\n")
-	content.WriteString("\t\"myproject/usecase\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
 	content.WriteString(")\n\n")
 
 	entityLower := strings.ToLower(entity)
@@ -493,6 +503,9 @@ func generateProtoFile(dir, entity string) {
 }
 
 func generateGRPCServerFile(dir, entity string) {
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_server.go")
 
@@ -500,8 +513,8 @@ func generateGRPCServerFile(dir, entity string) {
 	content.WriteString("package grpc\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"context\"\n\n")
-	content.WriteString("\t\"github.com/sazardev/goca/usecase\"\n")
-	content.WriteString(fmt.Sprintf("\tpb \"github.com/sazardev/goca/internal/handler/grpc/%s\"\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\tpb \"%s/internal/handler/grpc/%s\"\n", moduleName, entityLower))
 	content.WriteString(")\n\n")
 
 	content.WriteString(fmt.Sprintf("type %sServer struct {\n", entity))
@@ -557,6 +570,9 @@ func generateCLIHandler(entity string) {
 	cliDir := filepath.Join("internal", "handler", "cli")
 	os.MkdirAll(cliDir, 0755)
 
+	// Get the module name from go.mod
+	moduleName := getModuleName()
+
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(cliDir, entityLower+"_commands.go")
 
@@ -567,7 +583,7 @@ import (
 	"strconv"
 	
 	"github.com/spf13/cobra"
-	"myproject/usecase"
+	"%s/internal/usecase"
 )
 
 type %sCLI struct {
@@ -631,7 +647,7 @@ func (c *%sCLI) Get%sCommand() *cobra.Command {
 		},
 	}
 }
-`, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entityLower, entityLower, entity, entity, entity, entityLower, entity, entity, entityLower)
+`, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entityLower, entityLower, entity, entity, entity, entityLower, entity, entity, entityLower)
 
 	writeFile(filename, content)
 }
@@ -640,6 +656,9 @@ func generateWorkerHandler(entity string) {
 	// Create worker directory
 	workerDir := filepath.Join("internal", "handler", "worker")
 	os.MkdirAll(workerDir, 0755)
+
+	// Get the module name from go.mod
+	moduleName := getModuleName()
 
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(workerDir, entityLower+"_worker.go")
@@ -650,7 +669,7 @@ import (
 	"encoding/json"
 	"log"
 	
-	"myproject/usecase"
+	"%s/internal/usecase"
 )
 
 type %sWorker struct {
@@ -697,7 +716,7 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 	log.Printf("Batch %s job completed")
 	return nil
 }
-`, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entity, entityLower, entity)
+`, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entity, entityLower, entity)
 
 	writeFile(filename, content)
 }
@@ -706,6 +725,9 @@ func generateSOAPHandler(entity string) {
 	// Create SOAP directory
 	soapDir := filepath.Join("internal", "handler", "soap")
 	os.MkdirAll(soapDir, 0755)
+
+	// Get the module name from go.mod
+	moduleName := getModuleName()
 
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(soapDir, entityLower+"_client.go")
@@ -718,7 +740,7 @@ import (
 	"net/http"
 	"strings"
 	
-	"myproject/usecase"
+	"%s/internal/usecase"
 )
 
 type %sSOAPClient struct {
@@ -793,7 +815,7 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 	
 	return &createResponse, nil
 }
-`, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity)
+`, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity)
 
 	writeFile(filename, content)
 }
