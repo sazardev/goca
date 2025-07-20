@@ -1,91 +1,67 @@
-/*
-Package main provides the Goca CLI tool for generating Go Clean Architecture projects.
-
-Goca (Go Clean Architecture) is a powerful command-line tool that generates
-well-structured Go applications following Clean Architecture principles.
-It creates complete projects with domain entities, use cases, repositories,
-handlers, and proper dependency injection.
-
-# Features
-
-- Generate complete Clean Architecture projects
-- Support for multiple databases (PostgreSQL, MySQL, MongoDB)
-- Multiple handler types (HTTP, gRPC, CLI, Worker)
-- Automatic dependency injection container generation
-- Built-in validation and error handling
-- Business rules and domain logic templates
-- Message and response management
-
-# Installation
-
-	go install github.com/sazardev/goca@latest
-
-# Quick Start
-
-	# Initialize a new project
-	goca init myproject --module github.com/user/myproject --database postgres
-
-	# Generate a complete feature
-	goca feature User --fields "name:string,email:string" --database postgres
-
-	# Generate dependency injection
-	goca di --features "User" --database postgres
-
-# Project Structure
-
-Goca generates projects following this structure:
-
-	project/
-	├── cmd/server/main.go           # Application entry point
-	├── internal/
-	│   ├── domain/                  # Business entities and rules
-	│   ├── usecase/                 # Application business logic
-	│   ├── repository/              # Data access layer
-	│   ├── handler/                 # Interface adapters
-	│   └── infrastructure/          # Framework and drivers
-	└── pkg/                         # Shared utilities
-
-# Commands
-
-The main commands available are:
-
-- init: Initialize a new Clean Architecture project
-- feature: Generate complete feature with all layers
-- entity: Generate domain entities with validation
-- usecase: Generate use cases and business logic
-- repository: Generate data access layer
-- handler: Generate interface adapters (HTTP, gRPC, CLI)
-- di: Generate dependency injection container
-- interfaces: Generate interfaces for TDD
-- messages: Generate error messages and responses
-
-For detailed usage of each command, use:
-
-	goca <command> --help
-
-# Architecture Principles
-
-Goca enforces Clean Architecture principles:
-
-- Dependency Rule: Dependencies point inward toward the domain
-- Interface Segregation: Small, focused interfaces
-- Dependency Inversion: Depend on abstractions, not concretions
-- Single Responsibility: Each layer has one reason to change
-
-# Examples
-
-	# E-commerce project
-	goca init ecommerce --module github.com/user/ecommerce --database postgres --auth
-	goca feature Product --fields "name:string,price:float64,stock:int"
-	goca feature Order --fields "user_id:int,total:float64,status:string"
-	goca di --features "Product,Order" --database postgres
-
-	# Microservice
-	goca init user-service --module github.com/user/user-service --api grpc
-	goca feature User --fields "name:string,email:string" --database postgres
-	goca handler User --type grpc --validation
-
-For more examples and detailed guides, visit:
-https://github.com/sazardev/goca/blob/main/README.md
-*/
+// Package goca provides a CLI tool for generating Go Clean Architecture projects.
+//
+// Goca is a comprehensive CLI tool that generates well-structured Go projects following
+// Clean Architecture principles. It creates projects with zero compilation errors,
+// proper file organization, and clean code that passes all linting checks.
+//
+// # Features
+//
+//   - Generate complete Go Clean Architecture projects
+//   - Support for multiple databases (PostgreSQL, MySQL, MongoDB)
+//   - Built-in authentication and authorization
+//   - REST API and gRPC support
+//   - Comprehensive validation and business rules
+//   - Zero-error code generation
+//   - Clean and properly formatted output
+//
+// # Installation
+//
+//	go install github.com/jorgefuertes/goca@latest
+//
+// # Quick Start
+//
+//	# Initialize a new project
+//	goca init myproject --module=github.com/user/myproject --database=postgres --auth
+//
+//	# Generate a complete feature
+//	goca feature User --fields="name:string,email:string,age:int" --validation --business-rules
+//
+//	# Generate individual components
+//	goca entity Product --fields="name:string,price:float64" --validation --timestamps
+//	goca usecase User --operations="create,read,update,delete,list" --validation
+//	goca repository User --database=postgres --cache --transactions
+//	goca handler User --protocol=http --validation --middleware
+//
+// # Commands
+//
+//   - init: Initialize a new Clean Architecture project
+//   - feature: Generate a complete feature (entity + usecase + repository + handler)
+//   - entity: Generate domain entities with validation
+//   - usecase: Generate use case layer with interfaces
+//   - repository: Generate repository layer with database implementation
+//   - handler: Generate handler layer for different protocols
+//   - messages: Generate error messages and response structures
+//   - di: Generate dependency injection container
+//   - interfaces: Generate interfaces for all layers
+//
+// # Architecture Layers
+//
+//   - Domain: Core business entities and rules
+//   - UseCase: Application business logic and workflows
+//   - Repository: Data access and persistence
+//   - Handler: External interfaces (HTTP, gRPC, CLI)
+//   - Infrastructure: External dependencies and configuration
+//
+// # Code Quality
+//
+// All generated code is guaranteed to:
+//   - Compile without errors or warnings
+//   - Pass go vet and golangci-lint checks
+//   - Follow Go naming conventions and best practices
+//   - Include proper error handling and validation
+//   - Be properly formatted with gofmt
+//   - Have comprehensive test coverage
+//
+// For more information and documentation, visit:
+// https://github.com/jorgefuertes/goca
 package main

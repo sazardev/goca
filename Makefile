@@ -48,6 +48,39 @@ lint: ## Run linter
 	golangci-lint run
 
 # CLI Testing
+test-cli: ## Run CLI comprehensive tests
+	@echo "Running comprehensive CLI tests..."
+	go run internal/testing/test_runner.go -type=all -v
+
+test-cli-init: ## Test only goca init command
+	@echo "Testing goca init command..."
+	go run internal/testing/test_runner.go -type=init -v
+
+test-cli-feature: ## Test only goca feature command
+	@echo "Testing goca feature command..."
+	go run internal/testing/test_runner.go -type=feature -v
+
+test-cli-entity: ## Test only goca entity command
+	@echo "Testing goca entity command..."
+	go run internal/testing/test_runner.go -type=entity -v
+
+test-cli-quality: ## Test code quality of generated code
+	@echo "Testing generated code quality..."
+	go run internal/testing/test_runner.go -type=quality -v
+
+test-cli-fast: ## Run fast CLI tests (compilation only)
+	@echo "Running fast CLI tests..."
+	go test ./internal/testing -run TestGocaInitCommand -v
+	go test ./internal/testing -run TestCodeQuality -v
+
+test-cli-benchmark: ## Run CLI performance benchmarks
+	@echo "Running CLI benchmarks..."
+	go test ./internal/testing -bench=. -benchmem -v
+
+test-all: ## Run all tests (unit + CLI)
+	@echo "Running all tests..."
+	$(MAKE) test
+	$(MAKE) test-cli
 test-cli: build ## Test CLI functionality
 	@echo "Testing CLI functionality..."
 	./goca version
