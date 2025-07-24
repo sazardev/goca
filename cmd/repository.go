@@ -108,7 +108,7 @@ func generateRepositoryInterface(dir, entity string, transactions bool) {
 
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateRepositoryImplementation(dir, entity, database string, cache, transactions bool) {
@@ -183,7 +183,7 @@ func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 		generatePostgresTransactionMethods(&content, entity, repoName)
 	}
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generatePostgresSaveMethod(content *strings.Builder, entity, repoName string, cache bool) {
@@ -410,7 +410,7 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateMongoRepository(dir, entity string, cache, transactions bool) {
@@ -464,7 +464,7 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func init() {

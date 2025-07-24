@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -52,8 +53,8 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 		filepath.Join(projectName, "cmd", "server"),
 		filepath.Join(projectName, "internal", "domain"),
 		filepath.Join(projectName, "internal", "usecase"),
-		filepath.Join(projectName, "internal", "repository"),
-		filepath.Join(projectName, "internal", "handler"),
+		filepath.Join(projectName, "internal", "infrastructure", "repository"),
+		filepath.Join(projectName, "internal", "infrastructure", "handler"),
 		filepath.Join(projectName, "pkg", "config"),
 		filepath.Join(projectName, "pkg", "logger"),
 	}
@@ -67,7 +68,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 
 	// Create go.mod
-	createGoMod(projectName, module, database)
+	createGoMod(projectName, module, database, auth)
 
 	// Create main.go
 	createMainGo(projectName, module, api)
@@ -87,28 +88,41 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	if auth {
 		createAuth(projectName, module)
 	}
+
+	// Download dependencies after creating go.mod
+	if err := downloadDependencies(projectName); err != nil {
+		fmt.Printf("⚠️  Warning: Failed to download dependencies: %v\n", err)
+		fmt.Printf("💡 Run 'go mod download' manually in the project directory\n")
+	}
 }
 
-func createGoMod(projectName, module, database string) {
+func createGoMod(projectName, module, database string, auth bool) {
 	var dependencies string
+
+	// Base dependencies
+	baseDeps := `github.com/gorilla/mux v1.8.0`
 
 	switch database {
 	case "mysql":
-		dependencies = `require (
-	github.com/gorilla/mux v1.8.0
-	github.com/go-sql-driver/mysql v1.7.1
-)`
+		baseDeps += `
+	github.com/go-sql-driver/mysql v1.7.1`
 	case "mongodb":
-		dependencies = `require (
-	github.com/gorilla/mux v1.8.0
-	go.mongodb.org/mongo-driver v1.12.1
-)`
+		baseDeps += `
+	go.mongodb.org/mongo-driver v1.12.1`
 	default: // postgres
-		dependencies = `require (
-	github.com/gorilla/mux v1.8.0
-	github.com/lib/pq v1.10.9
-)`
+		baseDeps += `
+	github.com/lib/pq v1.10.9`
 	}
+
+	// Add JWT dependency if auth is enabled
+	if auth {
+		baseDeps += `
+	github.com/golang-jwt/jwt/v4 v4.5.2`
+	}
+
+	dependencies = fmt.Sprintf(`require (
+	%s
+)`, baseDeps)
 
 	content := fmt.Sprintf(`module %s
 
@@ -118,6 +132,23 @@ go 1.21
 `, module, dependencies)
 
 	writeFile(filepath.Join(projectName, "go.mod"), content)
+} // downloadDependencies downloads Go module dependencies for the project
+func downloadDependencies(projectName string) error {
+	// First run go mod tidy to resolve dependencies and create go.sum
+	cmd := exec.Command("go", "mod", "tidy")
+	cmd.Dir = projectName
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("go mod tidy failed: %v", err)
+	}
+
+	// Then download the dependencies
+	cmd = exec.Command("go", "mod", "download")
+	cmd.Dir = projectName
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("go mod download failed: %v", err)
+	}
+
+	return nil
 }
 
 func createMainGo(projectName, module, _ string) {
@@ -163,7 +194,7 @@ func main() {
 }
 `, module, module)
 
-	writeFile(filepath.Join(projectName, "cmd", "server", "main.go"), content)
+	writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content)
 }
 
 func createGitignore(projectName string) {
@@ -302,7 +333,7 @@ func getEnv(key, defaultValue string) string {
 }
 `, projectName)
 
-	writeFile(filepath.Join(projectName, "pkg", "config", "config.go"), content)
+	writeGoFile(filepath.Join(projectName, "pkg", "config", "config.go"), content)
 }
 
 func createLogger(projectName, _ string) {
@@ -331,7 +362,7 @@ func Error(v ...interface{}) {
 	ErrorLogger.Println(v...)
 }
 `
-	writeFile(filepath.Join(projectName, "pkg", "logger", "logger.go"), content)
+	writeGoFile(filepath.Join(projectName, "pkg", "logger", "logger.go"), content)
 }
 
 func createAuth(projectName, module string) {
@@ -382,7 +413,7 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	return nil, errors.New("invalid token")
 }
 `
-	writeFile(filepath.Join(projectName, "pkg", "auth", "jwt.go"), content)
+	writeGoFile(filepath.Join(projectName, "pkg", "auth", "jwt.go"), content)
 }
 
 func init() {

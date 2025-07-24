@@ -120,7 +120,7 @@ func generateManualDI(dir string, features []string, database string) {
 	// Getters
 	generateGetters(&content, features)
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateSetupRepositories(content *strings.Builder, features []string, database string) {
@@ -283,7 +283,7 @@ func generateWireFile(dir string, features []string, database string) {
 	content.WriteString("\treturn &Container{}\n")
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateWireGenTemplate(dir string, features []string) {
@@ -330,7 +330,7 @@ func generateWireGenTemplate(dir string, features []string) {
 		content.WriteString("}\n\n")
 	}
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func init() {

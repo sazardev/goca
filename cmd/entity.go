@@ -53,7 +53,9 @@ sin dependencias externas y con validaciones de negocio.`,
 func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete bool) {
 	// Crear directorio domain/entity si no existe
 	domainDir := "internal/domain/entity"
-	_ = os.MkdirAll(domainDir, 0755) // Parse fields
+	_ = os.MkdirAll(domainDir, 0755)
+
+	// Parse fields
 	fieldsList := parseFields(fields)
 
 	// Add timestamps if requested
@@ -194,7 +196,7 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 		content.WriteString("}\n\n")
 	}
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateBusinessRules(content *strings.Builder, entityName string, fields []Field) {
@@ -279,7 +281,7 @@ func generateErrorsFile(dir, entityName string, fields []Field) {
 	}
 	content.WriteString(")\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 // Helper function to check if a slice contains a string

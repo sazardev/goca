@@ -331,8 +331,8 @@ func (ts *TestSuite) verifyProjectStructure() {
 		"cmd/server",
 		"internal/domain",
 		"internal/usecase",
-		"internal/repository",
-		"internal/handler",
+		"internal/infrastructure/repository",
+		"internal/infrastructure/handler",
 		"pkg/config",
 		"pkg/logger",
 		"pkg/auth",
@@ -370,16 +370,16 @@ func (ts *TestSuite) verifyFeatureStructure(entity string) {
 	entityLower := strings.ToLower(entity)
 
 	expectedFiles := []string{
-		fmt.Sprintf("internal/domain/%s.go", entityLower),
-		"internal/domain/errors.go",
+		fmt.Sprintf("internal/domain/entity/%s.go", entityLower),
+		"internal/domain/entity/errors.go",
 		fmt.Sprintf("internal/usecase/%s_usecase.go", entityLower),
 		fmt.Sprintf("internal/usecase/%s_service.go", entityLower),
 		"internal/usecase/dto.go",
 		"internal/usecase/interfaces.go",
-		"internal/repository/interfaces.go",
-		fmt.Sprintf("internal/repository/postgres_%s_repo.go", entityLower),
-		fmt.Sprintf("internal/handler/http/%s_handler.go", entityLower),
-		"internal/handler/http/routes.go",
+		"internal/infrastructure/repository/interfaces.go",
+		fmt.Sprintf("internal/infrastructure/repository/postgres_%s_repo.go", entityLower),
+		fmt.Sprintf("internal/infrastructure/handler/%s_handler.go", entityLower),
+		"internal/infrastructure/handler/routes.go",
 		"internal/messages/errors.go",
 		"internal/messages/responses.go",
 	}
@@ -397,7 +397,7 @@ func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 	ts.t.Logf("Verifying domain entity %s...", entity)
 
 	entityLower := strings.ToLower(entity)
-	filePath := filepath.Join(ts.projectPath, "internal/domain", entityLower+".go")
+	filePath := filepath.Join(ts.projectPath, "internal/domain/entity", entityLower+".go")
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -427,8 +427,10 @@ func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 			fieldName := caser.String(strings.TrimSpace(parts[0]))
 			fieldType := strings.TrimSpace(parts[1])
 
-			fieldPattern := fmt.Sprintf(`%s %s`, fieldName, fieldType)
-			if !strings.Contains(contentStr, fieldPattern) {
+			// Use regex to handle Go formatting with multiple spaces
+			fieldPattern := fmt.Sprintf(`%s\s+%s`, fieldName, fieldType)
+			matched, _ := regexp.MatchString(fieldPattern, contentStr)
+			if !matched {
 				ts.addError(fmt.Sprintf("Entity %s missing field %s of type %s", entity, fieldName, fieldType))
 			}
 		}
@@ -477,12 +479,12 @@ func (ts *TestSuite) verifyRepositories(entity string) {
 	entityLower := strings.ToLower(entity)
 
 	// Verify repository interface
-	interfaceFile := filepath.Join(ts.projectPath, "internal/repository", "interfaces.go")
+	interfaceFile := filepath.Join(ts.projectPath, "internal/infrastructure/repository", "interfaces.go")
 	ts.verifyFileExists(interfaceFile)
 	ts.verifyGoSyntax(interfaceFile)
 
 	// Verify postgres repository
-	repoFile := filepath.Join(ts.projectPath, "internal/repository", "postgres_"+entityLower+"_repo.go")
+	repoFile := filepath.Join(ts.projectPath, "internal/infrastructure/repository", "postgres_"+entityLower+"_repo.go")
 	ts.verifyFileExists(repoFile)
 	ts.verifyGoSyntax(repoFile)
 }
@@ -494,12 +496,12 @@ func (ts *TestSuite) verifyHandlers(entity string) {
 	entityLower := strings.ToLower(entity)
 
 	// Verify HTTP handler
-	handlerFile := filepath.Join(ts.projectPath, "internal/handler/http", entityLower+"_handler.go")
+	handlerFile := filepath.Join(ts.projectPath, "internal/infrastructure/handler", entityLower+"_handler.go")
 	ts.verifyFileExists(handlerFile)
 	ts.verifyGoSyntax(handlerFile)
 
 	// Verify routes
-	routesFile := filepath.Join(ts.projectPath, "internal/handler/http", "routes.go")
+	routesFile := filepath.Join(ts.projectPath, "internal/infrastructure/handler", "routes.go")
 	ts.verifyFileExists(routesFile)
 	ts.verifyGoSyntax(routesFile)
 }
@@ -509,7 +511,7 @@ func (ts *TestSuite) verifyEntityFile(entity, fields string, flags []string) {
 	ts.t.Logf("Verifying entity file %s with flags %v...", entity, flags)
 
 	entityLower := strings.ToLower(entity)
-	filePath := filepath.Join(ts.projectPath, "internal/domain", entityLower+".go")
+	filePath := filepath.Join(ts.projectPath, "internal/domain/entity", entityLower+".go")
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -612,28 +614,55 @@ func contains(slice []string, item string) bool {
 func (ts *TestSuite) TestCodeCompilation() {
 	ts.t.Log("Testing code compilation...")
 
-	// Run go mod tidy
-	cmd := exec.Command("go", "mod", "tidy")
+	// Run go mod download first to ensure dependencies are available
+	cmd := exec.Command("go", "mod", "download")
 	cmd.Dir = ts.projectPath
 	if err := cmd.Run(); err != nil {
-		ts.addError(fmt.Sprintf("go mod tidy failed: %v", err))
-		return
+		ts.addWarning(fmt.Sprintf("go mod download warning: %v", err))
+		// Continue anyway, as this might not be critical
 	}
 
-	// Test compilation
+	// Try to build the code without running go mod tidy first
+	// Since local imports in generated code can cause go mod tidy to fail
 	cmd = exec.Command("go", "build", "./...")
 	cmd.Dir = ts.projectPath
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	if err := cmd.Run(); err != nil {
-		ts.addError(fmt.Sprintf("Code compilation failed: %v\nStdout: %s\nStderr: %s",
-			err, stdout.String(), stderr.String()))
+	buildErr := cmd.Run()
+	if buildErr == nil {
+		ts.t.Log("✅ Code compilation passed")
 		return
 	}
 
-	ts.t.Log("✅ Code compilation passed")
+	// If build fails, try go mod tidy as last resort
+	for attempts := 0; attempts < 2; attempts++ {
+		cmd = exec.Command("go", "mod", "tidy")
+		cmd.Dir = ts.projectPath
+		var tidyOut, tidyErrBuf bytes.Buffer
+		cmd.Stdout = &tidyOut
+		cmd.Stderr = &tidyErrBuf
+
+		tidyErr := cmd.Run()
+		if tidyErr == nil {
+			// Try building again after successful tidy
+			cmd = exec.Command("go", "build", "./...")
+			cmd.Dir = ts.projectPath
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+
+			if err := cmd.Run(); err == nil {
+				ts.t.Log("✅ Code compilation passed after go mod tidy")
+				return
+			}
+			break
+		}
+	}
+
+	// If everything fails, report the original build error
+	ts.addError(fmt.Sprintf("Code compilation failed: %v\nStdout: %s\nStderr: %s",
+		buildErr, stdout.String(), stderr.String()))
 }
 
 // TestCodeLinting tests that all generated code passes go vet

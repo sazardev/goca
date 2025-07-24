@@ -116,7 +116,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	generateDeleteHandlerMethod(&content, entity, handlerName)
 	generateListHandlerMethod(&content, entity, handlerName)
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName string) {
@@ -290,7 +290,7 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 		generateMiddlewareFunctions(&content)
 	}
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateMiddlewareFunctions(content *strings.Builder) {
@@ -338,7 +338,7 @@ func generateHTTPDTOFile(dir, entity string) {
 	content.WriteString("\tMessage string `json:\"message,omitempty\"`\n")
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateSwaggerFile(dir, entity string) {
@@ -500,7 +500,7 @@ func generateProtoFile(dir, entity string) {
 	content.WriteString("  int32 total = 2;\n")
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateGRPCServerFile(dir, entity string) {
@@ -563,7 +563,7 @@ func generateGRPCServerFile(dir, entity string) {
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateCLIHandler(entity string) {
@@ -655,7 +655,7 @@ func generateCLIHandler(entity string) {
 	content.WriteString("\t}\n")
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateWorkerHandler(entity string) {

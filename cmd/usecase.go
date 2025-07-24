@@ -125,7 +125,7 @@ func generateDTOFile(dir, entity string, operations []string, validation bool) {
 		}
 	}
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateCreateDTO(content *strings.Builder, entity string, validation bool) {
@@ -199,7 +199,7 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateUseCaseService(dir, usecaseName, entity string, operations []string, async bool) {
@@ -249,7 +249,7 @@ func generateUseCaseService(dir, usecaseName, entity string, operations []string
 		}
 	}
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateCreateMethod(content *strings.Builder, serviceName, entity string) {
@@ -354,7 +354,7 @@ func generateUseCaseInterfaces(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func init() {

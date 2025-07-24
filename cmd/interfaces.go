@@ -113,7 +113,7 @@ func generateUseCaseInterfaceFile(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\tList%ss() ([]domain.%s, error)\n", entity, entity))
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateRepositoryInterfaceFile(dir, entity string) {
@@ -154,7 +154,7 @@ func generateRepositoryInterfaceFile(dir, entity string) {
 
 	content.WriteString("}\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateHandlerInterfaceFile(dir, entity string) {
@@ -207,7 +207,7 @@ func generateHandlerInterfaceFile(dir, entity string) {
 	content.WriteString("// gRPC Request/Response interfaces\n")
 	generateGRPCRequestResponseInterfaces(&content, entity)
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func generateGRPCRequestResponseInterfaces(content *strings.Builder, entity string) {

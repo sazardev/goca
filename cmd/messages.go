@@ -122,7 +122,7 @@ func generateErrorMessages(dir, entity string) {
 	// Close the const block
 	existingContent.WriteString(")\n")
 
-	writeFile(filename, existingContent.String())
+	writeGoFile(filename, existingContent.String())
 }
 
 func generateResponseMessages(dir, entity string) {
@@ -168,7 +168,7 @@ func generateResponseMessages(dir, entity string) {
 	// Close the const block
 	existingContent.WriteString(")\n")
 
-	writeFile(filename, existingContent.String())
+	writeGoFile(filename, existingContent.String())
 }
 
 func generateConstants(dir, entity string) {
@@ -215,7 +215,7 @@ func generateConstants(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\t%sStatusDeleted  = \"deleted\"\n", entity))
 	content.WriteString(")\n")
 
-	writeFile(filename, content.String())
+	writeGoFile(filename, content.String())
 }
 
 func init() {
