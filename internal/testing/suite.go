@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -53,7 +54,21 @@ func (ts *TestSuite) Cleanup() {
 
 // runGocaCommand executes a goca CLI command and captures output
 func (ts *TestSuite) runGocaCommand(args ...string) (string, string, error) {
-	cmd := exec.Command("goca", args...)
+	// Use local executable on Windows, or goca from PATH on other systems
+	gocaCmd := "goca"
+	if runtime.GOOS == "windows" {
+		// Get the current working directory and build path to goca.exe
+		if wd, err := os.Getwd(); err == nil {
+			// If we're in the testing directory, go up two levels
+			if strings.Contains(wd, "internal") {
+				gocaCmd = filepath.Join(wd, "..", "..", "goca.exe")
+			} else {
+				gocaCmd = filepath.Join(wd, "goca.exe")
+			}
+		}
+	}
+
+	cmd := exec.Command(gocaCmd, args...)
 	cmd.Dir = ts.workingDir
 
 	var stdout, stderr bytes.Buffer
@@ -417,7 +432,7 @@ func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 	}
 
 	// Verify Validate method
-	validatePattern := fmt.Sprintf(`func \(%s \*%s\) Validate\(\) error`, strings.ToLower(entity[:1]), entity)
+	validatePattern := fmt.Sprintf(`func (%s *%s) Validate() error`, strings.ToLower(entity[:1]), entity)
 	if !strings.Contains(contentStr, validatePattern) {
 		ts.addError(fmt.Sprintf("Entity %s missing Validate method", entity))
 	}

@@ -52,8 +52,8 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 	repoDir := filepath.Join("internal", "repository")
 	os.MkdirAll(repoDir, 0755)
 
-	// Generate interface if not implementation-only
-	if !implementation {
+	// Generate interface if not interface-only
+	if !interfaceOnly {
 		generateRepositoryInterface(repoDir, entity, transactions)
 	}
 
@@ -70,8 +70,29 @@ func generateRepositoryInterface(dir, entity string, transactions bool) {
 	moduleName := getModuleName()
 
 	var content strings.Builder
-	content.WriteString("package repository\n\n")
-	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
+
+	// Check if interfaces.go already exists
+	if _, err := os.Stat(filename); err == nil {
+		// File exists, read its content
+		existingContent, err := os.ReadFile(filename)
+		if err == nil {
+			existingStr := string(existingContent)
+			// Check if the interface already exists
+			interfaceName := fmt.Sprintf("type %sRepository interface", entity)
+			if strings.Contains(existingStr, interfaceName) {
+				// Interface already exists, don't regenerate
+				return
+			}
+
+			// Add the existing content without the final newline
+			content.WriteString(strings.TrimSuffix(existingStr, "\n"))
+			content.WriteString("\n\n")
+		}
+	} else {
+		// File doesn't exist, create header
+		content.WriteString("package repository\n\n")
+		content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
+	}
 
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
 	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", strings.ToLower(entity), entity))
@@ -108,7 +129,7 @@ func generateRepositoryImplementation(dir, entity, database string, cache, trans
 
 func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
-	filename := filepath.Join(dir, "postgres_"+entityLower+"_repository.go")
+	filename := filepath.Join(dir, "postgres_"+entityLower+"_repo.go")
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -173,10 +194,10 @@ func generatePostgresSaveMethod(content *strings.Builder, entity, repoName strin
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Save(%s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
-	content.WriteString("\tquery := `INSERT INTO ")
-	content.WriteString(fmt.Sprintf("%ss (name, email) VALUES ($1, $2) RETURNING id`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query, %s.Name, %s.Email).Scan(&%s.ID)\n",
-		repoVar, entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss DEFAULT VALUES RETURNING id`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query).Scan(&%s.ID)\n",
+		repoVar, entityLower))
 
 	if cache {
 		content.WriteString("\tif err == nil {\n")
@@ -204,9 +225,10 @@ func generatePostgresFindByIDMethod(content *strings.Builder, entity, repoName s
 	}
 
 	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tquery := `SELECT id, name, email FROM %ss WHERE id = $1`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query, id).Scan(&%s.ID, &%s.Name, &%s.Email)\n",
-		repoVar, entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `SELECT id FROM %ss WHERE id = $1`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query, id).Scan(&%s.ID)\n",
+		repoVar, entityLower))
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn nil, err\n")
 	content.WriteString("\t}\n\n")
@@ -226,9 +248,10 @@ func generatePostgresFindByEmailMethod(content *strings.Builder, entity, repoNam
 	content.WriteString(fmt.Sprintf("func (%s *%s) FindByEmail(email string) (*domain.%s, error) {\n",
 		repoVar, repoName, entity))
 	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tquery := `SELECT id, name, email FROM %ss WHERE email = $1`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query, email).Scan(&%s.ID, &%s.Name, &%s.Email)\n",
-		repoVar, entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `SELECT id FROM %ss WHERE id = $1 LIMIT 1`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query, email).Scan(&%s.ID)\n",
+		repoVar, entityLower))
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn nil, err\n")
 	content.WriteString("\t}\n")
@@ -242,9 +265,10 @@ func generatePostgresUpdateMethod(content *strings.Builder, entity, repoName str
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Update(%s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tquery := `UPDATE %ss SET name = $1, email = $2 WHERE id = $3`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t_, err := %s.db.Exec(query, %s.Name, %s.Email, %s.ID)\n",
-		repoVar, entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `UPDATE %ss SET id = $1 WHERE id = $2`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t_, err := %s.db.Exec(query, %s.ID, %s.ID)\n",
+		repoVar, entityLower, entityLower))
 
 	if cache {
 		content.WriteString("\tif err == nil {\n")
@@ -281,7 +305,8 @@ func generatePostgresFindAllMethod(content *strings.Builder, entity, repoName st
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) FindAll() ([]domain.%s, error) {\n",
 		repoVar, repoName, entity))
-	content.WriteString(fmt.Sprintf("\tquery := `SELECT id, name, email FROM %ss`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `SELECT id FROM %ss`\n", entityLower))
 	content.WriteString(fmt.Sprintf("\trows, err := %s.db.Query(query)\n", repoVar))
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn nil, err\n")
@@ -291,8 +316,8 @@ func generatePostgresFindAllMethod(content *strings.Builder, entity, repoName st
 	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
 	content.WriteString("\tfor rows.Next() {\n")
 	content.WriteString(fmt.Sprintf("\t\tvar %s domain.%s\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\t\tif err := rows.Scan(&%s.ID, &%s.Name, &%s.Email); err != nil {\n",
-		entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t\t// TODO: Scan all fields of your %s entity\n", entity))
+	content.WriteString(fmt.Sprintf("\t\tif err := rows.Scan(&%s.ID); err != nil {\n", entityLower))
 	content.WriteString("\t\t\treturn nil, err\n")
 	content.WriteString("\t\t}\n")
 	content.WriteString(fmt.Sprintf("\t\t%ss = append(%ss, %s)\n", entityLower, entityLower, entityLower))
@@ -310,18 +335,18 @@ func generatePostgresTransactionMethods(content *strings.Builder, entity, repoNa
 	content.WriteString(fmt.Sprintf("func (%s *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
 	content.WriteString("\tsqlTx := tx.(*sql.Tx)\n")
-	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss (name, email) VALUES ($1, $2) RETURNING id`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\treturn sqlTx.QueryRow(query, %s.Name, %s.Email).Scan(&%s.ID)\n",
-		entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss DEFAULT VALUES RETURNING id`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\treturn sqlTx.QueryRow(query).Scan(&%s.ID)\n", entityLower))
 	content.WriteString("}\n\n")
 
 	// UpdateWithTx
 	content.WriteString(fmt.Sprintf("func (%s *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
 	content.WriteString("\tsqlTx := tx.(*sql.Tx)\n")
-	content.WriteString(fmt.Sprintf("\tquery := `UPDATE %ss SET name = $1, email = $2 WHERE id = $3`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t_, err := sqlTx.Exec(query, %s.Name, %s.Email, %s.ID)\n",
-		entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `UPDATE %ss SET updated_at = NOW() WHERE id = $1`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t_, err := sqlTx.Exec(query, %s.ID)\n", entityLower))
 	content.WriteString("\treturn err\n")
 	content.WriteString("}\n\n")
 
@@ -363,8 +388,9 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	// Basic Save method for MySQL
 	content.WriteString(fmt.Sprintf("func (r *%s) Save(%s *domain.%s) error {\n",
 		repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss (name, email) VALUES (?, ?)`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\tresult, err := r.db.Exec(query, %s.Name, %s.Email)\n", entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss () VALUES ()`\n", entityLower))
+	content.WriteString("\tresult, err := r.db.Exec(query)\n")
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n")

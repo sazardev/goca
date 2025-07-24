@@ -576,80 +576,85 @@ func generateCLIHandler(entity string) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(cliDir, entityLower+"_commands.go")
 
-	content := fmt.Sprintf(`package cli
+	var content strings.Builder
+	content.WriteString("package cli\n\n")
+	content.WriteString("import (\n")
+	content.WriteString("\t\"fmt\"\n")
+	content.WriteString("\t\"strconv\"\n\n")
+	content.WriteString("\t\"github.com/spf13/cobra\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
+	content.WriteString(")\n\n")
 
-import (
-	"fmt"
-	"strconv"
-	
-	"github.com/spf13/cobra"
-	"%s/internal/usecase"
-)
+	// CLI struct
+	content.WriteString(fmt.Sprintf("type %sCLI struct {\n", entity))
+	content.WriteString(fmt.Sprintf("\tusecase usecase.%sUseCase\n", entity))
+	content.WriteString("}\n\n")
 
-type %sCLI struct {
-	usecase usecase.%sUseCase
-}
+	// Constructor
+	content.WriteString(fmt.Sprintf("func New%sCLI(uc usecase.%sUseCase) *%sCLI {\n", entity, entity, entity))
+	content.WriteString(fmt.Sprintf("\treturn &%sCLI{usecase: uc}\n", entity))
+	content.WriteString("}\n\n")
 
-func New%sCLI(uc usecase.%sUseCase) *%sCLI {
-	return &%sCLI{usecase: uc}
-}
+	// Create command
+	content.WriteString(fmt.Sprintf("func (c *%sCLI) Create%sCommand() *cobra.Command {\n", entity, entity))
+	content.WriteString("\tcmd := &cobra.Command{\n")
+	content.WriteString("\t\tUse:   \"create\",\n")
+	content.WriteString(fmt.Sprintf("\t\tShort: \"Create a new %s\",\n", entityLower))
+	content.WriteString("\t\tRun: func(cmd *cobra.Command, args []string) {\n")
+	content.WriteString("\t\t\tname, _ := cmd.Flags().GetString(\"name\")\n")
+	content.WriteString("\t\t\temail, _ := cmd.Flags().GetString(\"email\")\n\n")
 
-func (c *%sCLI) Create%sCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create a new %s",
-		Run: func(cmd *cobra.Command, args []string) {
-			name, _ := cmd.Flags().GetString("name")
-			email, _ := cmd.Flags().GetString("email")
-			
-			input := usecase.Create%sInput{
-				Name:  name,
-				Email: email,
-			}
-			
-			output, err := c.usecase.Create%s(input)
-			if err != nil {
-				fmt.Printf("Error: %%v\n", err)
-				return
-			}
-			
-			fmt.Printf("%s created: %%+v\n", output.%s)
-		},
-	}
-	
-	cmd.Flags().StringP("name", "n", "", "Name of the %s")
-	cmd.Flags().StringP("email", "e", "", "Email of the %s")
-	cmd.MarkFlagRequired("name")
-	cmd.MarkFlagRequired("email")
-	
-	return cmd
-}
+	content.WriteString(fmt.Sprintf("\t\t\tinput := usecase.Create%sInput{\n", entity))
+	content.WriteString("\t\t\t\tName:  name,\n")
+	content.WriteString("\t\t\t\tEmail: email,\n")
+	content.WriteString("\t\t\t}\n\n")
 
-func (c *%sCLI) Get%sCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "get [id]",
-		Short: "Get %s by ID",
-		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			id, err := strconv.Atoi(args[0])
-			if err != nil {
-				fmt.Printf("Invalid ID: %%v\n", err)
-				return
-			}
-			
-			%s, err := c.usecase.Get%s(id)
-			if err != nil {
-				fmt.Printf("Error: %%v\n", err)
-				return
-			}
-			
-			fmt.Printf("%s: %%+v\n", %s)
-		},
-	}
-}
-`, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entityLower, entityLower, entity, entity, entity, entityLower, entity, entity, entityLower)
+	content.WriteString(fmt.Sprintf("\t\t\toutput, err := c.usecase.Create%s(input)\n", entity))
+	content.WriteString("\t\t\tif err != nil {\n")
+	content.WriteString("\t\t\t\tfmt.Printf(\"Error: %v\\n\", err)\n")
+	content.WriteString("\t\t\t\treturn\n")
+	content.WriteString("\t\t\t}\n\n")
 
-	writeFile(filename, content)
+	content.WriteString(fmt.Sprintf("\t\t\tfmt.Printf(\"%s created: %%+v\\n\", output.%s)\n", entity, entity))
+	content.WriteString("\t\t},\n")
+	content.WriteString("\t}\n\n")
+
+	content.WriteString("\tcmd.Flags().StringP(\"name\", \"n\", \"\", \"Name of the ")
+	content.WriteString(entityLower)
+	content.WriteString("\")\n")
+	content.WriteString("\tcmd.Flags().StringP(\"email\", \"e\", \"\", \"Email of the ")
+	content.WriteString(entityLower)
+	content.WriteString("\")\n")
+	content.WriteString("\tcmd.MarkFlagRequired(\"name\")\n")
+	content.WriteString("\tcmd.MarkFlagRequired(\"email\")\n\n")
+	content.WriteString("\treturn cmd\n")
+	content.WriteString("}\n\n")
+
+	// Get command
+	content.WriteString(fmt.Sprintf("func (c *%sCLI) Get%sCommand() *cobra.Command {\n", entity, entity))
+	content.WriteString("\treturn &cobra.Command{\n")
+	content.WriteString("\t\tUse:   \"get [id]\",\n")
+	content.WriteString(fmt.Sprintf("\t\tShort: \"Get %s by ID\",\n", entityLower))
+	content.WriteString("\t\tArgs:  cobra.ExactArgs(1),\n")
+	content.WriteString("\t\tRun: func(cmd *cobra.Command, args []string) {\n")
+	content.WriteString("\t\t\tid, err := strconv.Atoi(args[0])\n")
+	content.WriteString("\t\t\tif err != nil {\n")
+	content.WriteString("\t\t\t\tfmt.Printf(\"Invalid ID: %v\\n\", err)\n")
+	content.WriteString("\t\t\t\treturn\n")
+	content.WriteString("\t\t\t}\n\n")
+
+	content.WriteString(fmt.Sprintf("\t\t\t%s, err := c.usecase.Get%s(id)\n", entityLower, entity))
+	content.WriteString("\t\t\tif err != nil {\n")
+	content.WriteString("\t\t\t\tfmt.Printf(\"Error: %v\\n\", err)\n")
+	content.WriteString("\t\t\t\treturn\n")
+	content.WriteString("\t\t\t}\n\n")
+
+	content.WriteString(fmt.Sprintf("\t\t\tfmt.Printf(\"%s: %%+v\\n\", %s)\n", entity, entityLower))
+	content.WriteString("\t\t},\n")
+	content.WriteString("\t}\n")
+	content.WriteString("}\n")
+
+	writeFile(filename, content.String())
 }
 
 func generateWorkerHandler(entity string) {

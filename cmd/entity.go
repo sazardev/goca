@@ -113,6 +113,16 @@ func parseFields(fields string) []Field {
 	return fieldsList
 }
 
+// hasStringBusinessRules checks if any field will require the strings package for business rules
+func hasStringBusinessRules(fields []Field) bool {
+	for _, field := range fields {
+		if field.Name == "Email" {
+			return true
+		}
+	}
+	return false
+}
+
 func generateEntityFile(dir, entityName string, fields []Field, validation, businessRules, timestamps, softDelete bool) {
 	entityLower := strings.ToLower(entityName)
 	filename := filepath.Join(dir, entityLower+".go")
@@ -122,9 +132,16 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 	// Package and imports
 	content.WriteString("package domain\n\n")
 
-	if timestamps || softDelete {
+	// Determine which imports are needed
+	needsTime := timestamps || softDelete
+	needsStrings := businessRules && hasStringBusinessRules(fields)
+
+	if needsTime || needsStrings {
 		content.WriteString("import (\n")
-		if timestamps || softDelete {
+		if needsStrings {
+			content.WriteString("\t\"strings\"\n")
+		}
+		if needsTime {
 			content.WriteString("\t\"time\"\n")
 		}
 		content.WriteString(")\n\n")

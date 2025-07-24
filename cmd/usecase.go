@@ -78,12 +78,31 @@ func generateDTOFile(dir, entity string, operations []string, validation bool) {
 	moduleName := getModuleName()
 
 	var content strings.Builder
-	content.WriteString("package usecase\n\n")
 
-	// Always import domain package since DTOs reference it
-	content.WriteString("import (\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
-	content.WriteString(")\n\n")
+	// Check if dto.go already exists
+	if _, err := os.Stat(filename); err == nil {
+		// File exists, read its content
+		existingContent, err := os.ReadFile(filename)
+		if err == nil {
+			existingStr := string(existingContent)
+			// Check if DTOs for this entity already exist
+			createDTOName := fmt.Sprintf("type Create%sInput struct", entity)
+			if strings.Contains(existingStr, createDTOName) {
+				// DTOs already exist, don't regenerate
+				return
+			}
+
+			// Add the existing content without the final newline
+			content.WriteString(strings.TrimSuffix(existingStr, "\n"))
+			content.WriteString("\n\n")
+		}
+	} else {
+		// File doesn't exist, create header
+		content.WriteString("package usecase\n\n")
+		content.WriteString("import (\n")
+		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+		content.WriteString(")\n\n")
+	}
 
 	// Generate DTOs for each operation
 	for _, op := range operations {
@@ -106,14 +125,10 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 	entityLower := strings.ToLower(entity)
 
 	content.WriteString(fmt.Sprintf("type Create%sInput struct {\n", entity))
-	content.WriteString("\tName  string `json:\"name\"")
+	content.WriteString(fmt.Sprintf("\t// TODO: Add specific fields for your %s entity\n", entity))
+	content.WriteString("\t// Example: Name string `json:\"name\"")
 	if validation {
 		content.WriteString(" validate:\"required,min=2\"")
-	}
-	content.WriteString("`\n")
-	content.WriteString("\tEmail string `json:\"email\"")
-	if validation {
-		content.WriteString(" validate:\"required,email\"")
 	}
 	content.WriteString("`\n")
 	content.WriteString("}\n\n")
@@ -126,14 +141,10 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 
 func generateUpdateDTO(content *strings.Builder, entity string, validation bool) {
 	content.WriteString(fmt.Sprintf("type Update%sInput struct {\n", entity))
-	content.WriteString("\tName  string `json:\"name,omitempty\"")
+	content.WriteString(fmt.Sprintf("\t// TODO: Add specific fields for your %s entity\n", entity))
+	content.WriteString("\t// Example: Name string `json:\"name,omitempty\"")
 	if validation {
 		content.WriteString(" validate:\"omitempty,min=2\"")
-	}
-	content.WriteString("`\n")
-	content.WriteString("\tEmail string `json:\"email,omitempty\"")
-	if validation {
-		content.WriteString(" validate:\"omitempty,email\"")
 	}
 	content.WriteString("`\n")
 	content.WriteString("}\n\n")
@@ -196,17 +207,18 @@ func generateUseCaseService(dir, usecaseName, entity string, operations []string
 	content.WriteString("import (\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/messages\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", moduleName))
 	content.WriteString(")\n\n")
 
 	// Service struct
 	serviceName := fmt.Sprintf("%sService", entityLower)
 	content.WriteString(fmt.Sprintf("type %s struct {\n", serviceName))
-	content.WriteString(fmt.Sprintf("\trepo %sRepository\n", entity))
+	content.WriteString(fmt.Sprintf("\trepo repository.%sRepository\n", entity))
 	content.WriteString("}\n\n")
 
 	// Constructor
 	interfaceName := strings.Replace(usecaseName, "Service", "UseCase", 1)
-	content.WriteString(fmt.Sprintf("func New%s(repo %sRepository) %s {\n",
+	content.WriteString(fmt.Sprintf("func New%s(repo repository.%sRepository) %s {\n",
 		strings.ToUpper(string(serviceName[0]))+serviceName[1:], entity, interfaceName))
 	content.WriteString(fmt.Sprintf("\treturn &%s{repo: repo}\n", serviceName))
 	content.WriteString("}\n\n")
@@ -237,8 +249,8 @@ func generateCreateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
 		serviceVar, serviceName, entity, entity, entity))
 	content.WriteString(fmt.Sprintf("\t%s := domain.%s{\n", entityLower, entity))
-	content.WriteString("\t\tName:  input.Name,\n")
-	content.WriteString("\t\tEmail: input.Email,\n")
+	content.WriteString("\t\t// TODO: Map fields from input to entity\n")
+	content.WriteString("\t\t// Example: Name: input.Name,\n")
 	content.WriteString("\t}\n\n")
 
 	content.WriteString(fmt.Sprintf("\tif err := %s.Validate(); err != nil {\n", entityLower))
@@ -275,12 +287,10 @@ func generateUpdateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString("\tif input.Name != \"\" {\n")
-	content.WriteString(fmt.Sprintf("\t\t%s.Name = input.Name\n", strings.ToLower(entity)))
-	content.WriteString("\t}\n")
-	content.WriteString("\tif input.Email != \"\" {\n")
-	content.WriteString(fmt.Sprintf("\t\t%s.Email = input.Email\n", strings.ToLower(entity)))
-	content.WriteString("\t}\n\n")
+	content.WriteString("\t// TODO: Update fields based on your entity\n")
+	content.WriteString("\t// Example: if input.Name != \"\" {\n")
+	content.WriteString("\t//     entity.Name = input.Name\n")
+	content.WriteString("\t// }\n\n")
 
 	content.WriteString(fmt.Sprintf("\treturn %s.repo.Update(%s)\n", serviceVar, strings.ToLower(entity)))
 	content.WriteString("}\n\n")

@@ -66,7 +66,7 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 3. Generate Repository
 	fmt.Println("3️⃣  Generando repositorio...")
-	generateRepository(featureName, database, false, false, false, false)
+	generateRepository(featureName, database, false, true, false, false)
 
 	// 4. Generate Handlers
 	fmt.Println("4️⃣  Generando handlers...")

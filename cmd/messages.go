@@ -80,55 +80,95 @@ func generateErrorMessages(dir, entity string) {
 	filename := filepath.Join(dir, "errors.go")
 	entityLower := strings.ToLower(entity)
 
-	var content strings.Builder
-	content.WriteString("package messages\n\n")
-	content.WriteString("const (\n")
+	// Check if file exists and read existing content
+	var existingContent strings.Builder
+	if _, err := os.Stat(filename); err == nil {
+		// File exists, read it
+		if content, err := os.ReadFile(filename); err == nil {
+			existing := string(content)
+			// Remove the closing parenthesis and const block end
+			if strings.Contains(existing, ")\n") {
+				existing = strings.Replace(existing, ")\n", "", -1)
+				existingContent.WriteString(existing)
+			} else {
+				// Start fresh if format is unexpected
+				existingContent.WriteString("package messages\n\nconst (\n")
+			}
+		} else {
+			// Error reading, start fresh
+			existingContent.WriteString("package messages\n\nconst (\n")
+		}
+	} else {
+		// File doesn't exist, start fresh
+		existingContent.WriteString("package messages\n\nconst (\n")
+	}
 
-	// General errors
-	content.WriteString(fmt.Sprintf("\t// %s errors\n", entity))
-	content.WriteString(fmt.Sprintf("\tErr%sNotFound        = \"%s not found\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\tErr%sAlreadyExists   = \"%s already exists\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\tErrInvalid%sData     = \"invalid %s data\"\n", entity, entityLower))
+	// Add new entity error messages
+	existingContent.WriteString(fmt.Sprintf("\t// %s errors\n", entity))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sNotFound        = \"%s not found\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sAlreadyExists   = \"%s already exists\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErrInvalid%sData     = \"invalid %s data\"\n", entity, entityLower))
 
 	// Field-specific errors
-	content.WriteString(fmt.Sprintf("\tErr%sEmailRequired   = \"%s email is required\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\tErr%sNameRequired    = \"%s name is required\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\tErr%sAgeInvalid      = \"%s age must be positive\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sEmailRequired   = \"%s email is required\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sNameRequired    = \"%s name is required\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sAgeInvalid      = \"%s age must be positive\"\n", entity, entityLower))
 
 	// Business logic errors
-	content.WriteString(fmt.Sprintf("\tErr%sAccessDenied    = \"access denied to %s\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\tErr%sUpdateFailed    = \"failed to update %s\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\tErr%sDeleteFailed    = \"failed to delete %s\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sAccessDenied    = \"access denied to %s\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sUpdateFailed    = \"failed to update %s\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sDeleteFailed    = \"failed to delete %s\"\n", entity, entityLower))
 
-	content.WriteString(")\n")
+	// Close the const block
+	existingContent.WriteString(")\n")
 
-	writeFile(filename, content.String())
+	writeFile(filename, existingContent.String())
 }
 
 func generateResponseMessages(dir, entity string) {
 	filename := filepath.Join(dir, "responses.go")
 	entityLower := strings.ToLower(entity)
 
-	var content strings.Builder
-	content.WriteString("package messages\n\n")
-	content.WriteString("const (\n")
+	// Check if file exists and read existing content
+	var existingContent strings.Builder
+	if _, err := os.Stat(filename); err == nil {
+		// File exists, read it
+		if content, err := os.ReadFile(filename); err == nil {
+			existing := string(content)
+			// Remove the closing parenthesis and const block end
+			if strings.Contains(existing, ")\n") {
+				existing = strings.Replace(existing, ")\n", "", -1)
+				existingContent.WriteString(existing)
+			} else {
+				// Start fresh if format is unexpected
+				existingContent.WriteString("package messages\n\nconst (\n")
+			}
+		} else {
+			// Error reading, start fresh
+			existingContent.WriteString("package messages\n\nconst (\n")
+		}
+	} else {
+		// File doesn't exist, start fresh
+		existingContent.WriteString("package messages\n\nconst (\n")
+	}
 
-	// Success messages
-	content.WriteString(fmt.Sprintf("\t// %s success messages\n", entity))
-	content.WriteString(fmt.Sprintf("\t%sCreatedSuccessfully = \"%s created successfully\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t%sUpdatedSuccessfully = \"%s updated successfully\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t%sDeletedSuccessfully = \"%s deleted successfully\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t%sFoundSuccessfully   = \"%s found successfully\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t%ssListedSuccessfully = \"%ss listed successfully\"\n", entity, entityLower))
+	// Add new entity messages
+	existingContent.WriteString(fmt.Sprintf("\t// %s success messages\n", entity))
+	existingContent.WriteString(fmt.Sprintf("\t%sCreatedSuccessfully = \"%s created successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sUpdatedSuccessfully = \"%s updated successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sDeletedSuccessfully = \"%s deleted successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sFoundSuccessfully   = \"%s found successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%ssListedSuccessfully = \"%ss listed successfully\"\n", entity, entityLower))
 
 	// Operation messages
-	content.WriteString(fmt.Sprintf("\t%sProcessingStarted   = \"%s processing started\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t%sProcessingCompleted = \"%s processing completed\"\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t%sValidationPassed    = \"%s validation passed\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sProcessingStarted   = \"%s processing started\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sProcessingCompleted = \"%s processing completed\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sValidationPassed    = \"%s validation passed\"\n", entity, entityLower))
 
-	content.WriteString(")\n")
+	// Close the const block
+	existingContent.WriteString(")\n")
 
-	writeFile(filename, content.String())
+	writeFile(filename, existingContent.String())
 }
 
 func generateConstants(dir, entity string) {
