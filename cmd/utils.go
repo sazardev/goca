@@ -29,7 +29,7 @@ func getModuleName() string {
 // writeFile creates a file with the given content, creating directories if needed
 func writeFile(path, content string) {
 	dir := filepath.Dir(path)
-	os.MkdirAll(dir, 0755)
+	_ = os.MkdirAll(dir, 0755)
 
 	file, err := os.Create(path)
 	if err != nil {

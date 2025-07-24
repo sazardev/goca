@@ -145,5 +145,5 @@ func init() {
 	featureCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones en todas las capas")
 	featureCmd.Flags().BoolP("business-rules", "b", false, "Incluir métodos de reglas de negocio")
 
-	featureCmd.MarkFlagRequired("fields")
+	_ = featureCmd.MarkFlagRequired("fields")
 }

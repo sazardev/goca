@@ -13,19 +13,21 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // TestSuite represents the comprehensive testing suite for Goca CLI
 type TestSuite struct {
-	t              *testing.T
-	workingDir     string
-	projectName    string
-	moduleName     string
-	tempDir        string
-	generatedFiles []string
-	projectPath    string
-	errors         []string
-	warnings       []string
+	t           *testing.T
+	workingDir  string
+	projectName string
+	moduleName  string
+	tempDir     string
+	projectPath string
+	errors      []string
+	warnings    []string
 }
 
 // NewTestSuite creates a new test suite instance
@@ -295,12 +297,12 @@ func (ts *TestSuite) GetProjectPath(relativePath string) string {
 // ChangeToProject changes to the project directory
 func (ts *TestSuite) ChangeToProject(projectName string) {
 	projectPath := filepath.Join(ts.tempDir, projectName)
-	os.Chdir(projectPath)
+	_ = os.Chdir(projectPath)
 }
 
 // ChangeToTempDir changes to the temp directory
 func (ts *TestSuite) ChangeToTempDir() {
-	os.Chdir(ts.tempDir)
+	_ = os.Chdir(ts.tempDir)
 }
 
 // FileExists checks if a file exists and returns a boolean
@@ -369,17 +371,17 @@ func (ts *TestSuite) verifyFeatureStructure(entity string) {
 
 	expectedFiles := []string{
 		fmt.Sprintf("internal/domain/%s.go", entityLower),
-		fmt.Sprintf("internal/domain/errors.go"),
+		"internal/domain/errors.go",
 		fmt.Sprintf("internal/usecase/%s_usecase.go", entityLower),
 		fmt.Sprintf("internal/usecase/%s_service.go", entityLower),
-		fmt.Sprintf("internal/usecase/dto.go"),
-		fmt.Sprintf("internal/usecase/interfaces.go"),
-		fmt.Sprintf("internal/repository/interfaces.go"),
+		"internal/usecase/dto.go",
+		"internal/usecase/interfaces.go",
+		"internal/repository/interfaces.go",
 		fmt.Sprintf("internal/repository/postgres_%s_repo.go", entityLower),
 		fmt.Sprintf("internal/handler/http/%s_handler.go", entityLower),
-		fmt.Sprintf("internal/handler/http/routes.go"),
-		fmt.Sprintf("internal/messages/errors.go"),
-		fmt.Sprintf("internal/messages/responses.go"),
+		"internal/handler/http/routes.go",
+		"internal/messages/errors.go",
+		"internal/messages/responses.go",
 	}
 
 	for _, file := range expectedFiles {
@@ -421,7 +423,8 @@ func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 	for _, fieldPair := range fieldPairs {
 		parts := strings.Split(strings.TrimSpace(fieldPair), ":")
 		if len(parts) == 2 {
-			fieldName := strings.Title(strings.TrimSpace(parts[0]))
+			caser := cases.Title(language.English)
+			fieldName := caser.String(strings.TrimSpace(parts[0]))
 			fieldType := strings.TrimSpace(parts[1])
 
 			fieldPattern := fmt.Sprintf(`%s %s`, fieldName, fieldType)
@@ -515,6 +518,14 @@ func (ts *TestSuite) verifyEntityFile(entity, fields string, flags []string) {
 	}
 
 	contentStr := string(content)
+
+	// Verify basic entity structure contains expected fields
+	if fields != "" {
+		// Basic validation that the struct exists
+		if !strings.Contains(contentStr, fmt.Sprintf("type %s struct", entity)) {
+			ts.addError(fmt.Sprintf("Entity %s missing struct definition", entity))
+		}
+	}
 
 	// Check for validation flag
 	if contains(flags, "--validation") {

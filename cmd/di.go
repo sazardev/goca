@@ -9,12 +9,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	dbPostgres = "postgres"
+	dbMySQL    = "mysql"
+	dbMongoDB  = "mongodb"
+)
+
 var diCmd = &cobra.Command{
 	Use:   "di",
 	Short: "Generar contenedor de inyección de dependencias",
 	Long: `Crea un contenedor de inyección de dependencias que conecta 
 automáticamente todas las capas del sistema.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		features, _ := cmd.Flags().GetString("features")
 		database, _ := cmd.Flags().GetString("database")
 		wire, _ := cmd.Flags().GetBool("wire")
@@ -37,9 +43,9 @@ automáticamente todas las capas del sistema.`,
 }
 
 func generateDI(features, database string, wire bool) {
-	// Create infrastructure/di directory
-	diDir := filepath.Join("internal", "infrastructure", "di")
-	os.MkdirAll(diDir, 0755)
+	diDir := "internal/di"
+	// Crear directorio di si no existe
+	_ = os.MkdirAll(diDir, 0755)
 
 	// Parse features
 	featureList := strings.Split(features, ",")
@@ -123,13 +129,13 @@ func generateSetupRepositories(content *strings.Builder, features []string, data
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
 		switch database {
-		case "postgres":
+		case dbPostgres:
 			content.WriteString(fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n",
 				featureLower, feature))
-		case "mysql":
+		case dbMySQL:
 			content.WriteString(fmt.Sprintf("\tc.%sRepo = repository.NewMySQL%sRepository(c.db)\n",
 				featureLower, feature))
-		case "mongodb":
+		case dbMongoDB:
 			content.WriteString(fmt.Sprintf("\tc.%sRepo = repository.NewMongo%sRepository(c.db)\n",
 				featureLower, feature))
 		default:
@@ -225,11 +231,11 @@ func generateWireFile(dir string, features []string, database string) {
 	content.WriteString("\tRepositorySet = wire.NewSet(\n")
 	for _, feature := range features {
 		switch database {
-		case "postgres":
+		case dbPostgres:
 			content.WriteString(fmt.Sprintf("\t\trepository.NewPostgres%sRepository,\n", feature))
-		case "mysql":
+		case dbMySQL:
 			content.WriteString(fmt.Sprintf("\t\trepository.NewMySQL%sRepository,\n", feature))
-		case "mongodb":
+		case dbMongoDB:
 			content.WriteString(fmt.Sprintf("\t\trepository.NewMongo%sRepository,\n", feature))
 		default:
 			content.WriteString(fmt.Sprintf("\t\trepository.NewPostgres%sRepository,\n", feature))
@@ -328,9 +334,8 @@ func generateWireGenTemplate(dir string, features []string) {
 }
 
 func init() {
-	diCmd.Flags().StringP("features", "f", "", "Features a incluir \"User,Product,Order\" (requerido)")
-	diCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos")
-	diCmd.Flags().BoolP("wire", "w", false, "Usar Google Wire para DI")
-
-	diCmd.MarkFlagRequired("features")
+	rootCmd.AddCommand(diCmd)
+	diCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")
+	diCmd.Flags().BoolP("wire", "w", false, "Usar Google Wire para inyección de dependencias")
+	_ = diCmd.MarkFlagRequired("features")
 }

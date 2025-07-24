@@ -1,6 +1,8 @@
 package testing
 
 import (
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"strings"
@@ -236,7 +238,7 @@ func (v *ArchitectureValidator) ValidateDependencyInjection(diFile string) []*Te
 func (v *ArchitectureValidator) findGoFiles(dir string) []string {
 	var files []string
 
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -249,17 +251,23 @@ func (v *ArchitectureValidator) findGoFiles(dir string) []string {
 	return files
 }
 
-func (v *ArchitectureValidator) hasInfrastructureImports(file, projectDir string) bool {
-	content, err := os.ReadFile(file)
+func (v *ArchitectureValidator) hasInfrastructureImports(file, _ string) bool {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
 	if err != nil {
 		return false
 	}
 
-	contentStr := string(content)
-	return strings.Contains(contentStr, "/internal/infrastructure")
+	for _, imp := range node.Imports {
+		importPath := strings.Trim(imp.Path.Value, "\"")
+		if strings.Contains(importPath, "/internal/infrastructure") {
+			return true
+		}
+	}
+	return false
 }
 
-func (v *ArchitectureValidator) hasForbiddenInfrastructureImports(file, projectDir string) bool {
+func (v *ArchitectureValidator) hasForbiddenInfrastructureImports(file, _ string) bool {
 	content, err := os.ReadFile(file)
 	if err != nil {
 		return false

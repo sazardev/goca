@@ -51,11 +51,9 @@ sin dependencias externas y con validaciones de negocio.`,
 }
 
 func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete bool) {
-	// Create domain directory
-	domainDir := filepath.Join("internal", "domain")
-	os.MkdirAll(domainDir, 0755)
-
-	// Parse fields
+	// Crear directorio domain/entity si no existe
+	domainDir := "internal/domain/entity"
+	_ = os.MkdirAll(domainDir, 0755) // Parse fields
 	fieldsList := parseFields(fields)
 
 	// Add timestamps if requested
@@ -295,11 +293,10 @@ func contains(slice []string, item string) bool {
 }
 
 func init() {
-	entityCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"name:type,email:string\" (requerido)")
-	entityCmd.Flags().BoolP("validation", "v", false, "Agregar validaciones de dominio")
-	entityCmd.Flags().BoolP("business-rules", "b", false, "Incluir métodos de reglas de negocio")
-	entityCmd.Flags().BoolP("timestamps", "t", false, "Agregar campos created_at y updated_at")
-	entityCmd.Flags().BoolP("soft-delete", "s", false, "Agregar funcionalidad de soft delete")
-
-	entityCmd.MarkFlagRequired("fields")
+	rootCmd.AddCommand(entityCmd)
+	entityCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones de negocio")
+	entityCmd.Flags().BoolP("business-rules", "b", false, "Incluir reglas de negocio avanzadas")
+	entityCmd.Flags().BoolP("timestamps", "t", false, "Incluir campos CreatedAt y UpdatedAt")
+	entityCmd.Flags().BoolP("soft-delete", "s", false, "Incluir soft delete (DeletedAt)")
+	_ = entityCmd.MarkFlagRequired("fields")
 }

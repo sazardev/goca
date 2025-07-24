@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// TestScenario represents a comprehensive test scenario for the CLI
+// TestScenario represents a comprehensive test scenario for the C			Execute: func(_ *TestSuite) error {I
 type TestScenario struct {
 	Name        string
 	Description string

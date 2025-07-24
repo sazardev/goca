@@ -57,7 +57,7 @@ var interfacesCmd = &cobra.Command{
 func generateInterfaces(entity string, usecase, repository, handler bool) {
 	// Create interfaces directory
 	interfacesDir := filepath.Join("internal", "interfaces")
-	os.MkdirAll(interfacesDir, 0755)
+	_ = os.MkdirAll(interfacesDir, 0755)
 
 	if usecase {
 		generateUseCaseInterfaceFile(interfacesDir, entity)

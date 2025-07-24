@@ -9,6 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	opCreate = "create"
+	opRead   = "read"
+	opUpdate = "update"
+	opList   = "list"
+)
+
 var usecaseCmd = &cobra.Command{
 	Use:   "usecase <name>",
 	Short: "Generar casos de uso con DTOs",
@@ -46,7 +53,7 @@ interfaces claras y lógica de negocio encapsulada.`,
 func generateUseCase(usecaseName, entity, operations string, dtoValidation, async bool) {
 	// Create usecase directory
 	usecaseDir := filepath.Join("internal", "usecase")
-	os.MkdirAll(usecaseDir, 0755)
+	_ = os.MkdirAll(usecaseDir, 0755)
 
 	// Parse operations
 	ops := parseOperations(operations)
@@ -107,13 +114,13 @@ func generateDTOFile(dir, entity string, operations []string, validation bool) {
 	// Generate DTOs for each operation
 	for _, op := range operations {
 		switch op {
-		case "create":
+		case opCreate:
 			generateCreateDTO(&content, entity, validation)
-		case "update":
+		case opUpdate:
 			generateUpdateDTO(&content, entity, validation)
-		case "read", "get":
+		case opRead, "get":
 			// Read operations typically don't need input DTOs, just output
-		case "list":
+		case opList:
 			generateListDTO(&content, entity)
 		}
 	}
@@ -214,6 +221,9 @@ func generateUseCaseService(dir, usecaseName, entity string, operations []string
 	serviceName := fmt.Sprintf("%sService", entityLower)
 	content.WriteString(fmt.Sprintf("type %s struct {\n", serviceName))
 	content.WriteString(fmt.Sprintf("\trepo repository.%sRepository\n", entity))
+	if async {
+		content.WriteString("\t// TODO: Add async processing capabilities\n")
+	}
 	content.WriteString("}\n\n")
 
 	// Constructor
@@ -353,5 +363,5 @@ func init() {
 	usecaseCmd.Flags().BoolP("dto-validation", "d", false, "DTOs con validaciones específicas")
 	usecaseCmd.Flags().BoolP("async", "a", false, "Incluir operaciones asíncronas")
 
-	usecaseCmd.MarkFlagRequired("entity")
+	_ = usecaseCmd.MarkFlagRequired("entity")
 }

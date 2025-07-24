@@ -59,11 +59,9 @@ func generateHandler(entity, handlerType string, middleware, validation, swagger
 }
 
 func generateHTTPHandler(entity string, middleware, validation, swagger bool) {
-	// Create handler directories
-	handlerDir := filepath.Join("internal", "handler", "http")
-	os.MkdirAll(handlerDir, 0755)
-
-	// Generate handler file
+	// Crear directorio handlers si no existe
+	handlerDir := "internal/infrastructure/handler"
+	_ = os.MkdirAll(handlerDir, 0755) // Generate handler file
 	generateHTTPHandlerFile(handlerDir, entity, validation)
 
 	// Generate routes file
@@ -94,6 +92,9 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	content.WriteString("\t\"strconv\"\n\n")
 	content.WriteString("\t\"github.com/gorilla/mux\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
+	if validation {
+		content.WriteString("\t// TODO: Add validation imports when needed\n")
+	}
 	content.WriteString(")\n\n")
 
 	// Handler struct
@@ -426,7 +427,7 @@ components:
 func generateGRPCHandler(entity string) {
 	// Create gRPC directory
 	grpcDir := filepath.Join("internal", "handler", "grpc")
-	os.MkdirAll(grpcDir, 0755)
+	_ = os.MkdirAll(grpcDir, 0755)
 
 	generateProtoFile(grpcDir, entity)
 	generateGRPCServerFile(grpcDir, entity)
@@ -568,7 +569,7 @@ func generateGRPCServerFile(dir, entity string) {
 func generateCLIHandler(entity string) {
 	// Create CLI directory
 	cliDir := filepath.Join("internal", "handler", "cli")
-	os.MkdirAll(cliDir, 0755)
+	_ = os.MkdirAll(cliDir, 0755)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -660,7 +661,7 @@ func generateCLIHandler(entity string) {
 func generateWorkerHandler(entity string) {
 	// Create worker directory
 	workerDir := filepath.Join("internal", "handler", "worker")
-	os.MkdirAll(workerDir, 0755)
+	_ = os.MkdirAll(workerDir, 0755)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -729,7 +730,7 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 func generateSOAPHandler(entity string) {
 	// Create SOAP directory
 	soapDir := filepath.Join("internal", "handler", "soap")
-	os.MkdirAll(soapDir, 0755)
+	_ = os.MkdirAll(soapDir, 0755)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()

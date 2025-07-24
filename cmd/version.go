@@ -17,7 +17,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Muestra la versión de Goca CLI",
 	Long:  "Muestra la versión actual de Goca CLI junto con información de compilación.",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, _ []string) {
 		short, _ := cmd.Flags().GetBool("short")
 
 		if short {

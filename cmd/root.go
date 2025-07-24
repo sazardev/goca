@@ -40,7 +40,7 @@ proyectos con Clean Architecture siguiendo las mejores prácticas.
 
 Genera código limpio y bien estructurado por capas, permitiéndote 
 enfocarte en la lógica de negocio en lugar de tareas repetitivas de configuración.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, args []string) {
 		fmt.Println(`Goca - Go Clean Architecture Code Generator
 
 USAGE:

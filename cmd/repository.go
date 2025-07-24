@@ -48,12 +48,10 @@ bien definidas e implementaciones específicas por base de datos.`,
 }
 
 func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool) {
-	// Create repository directory
-	repoDir := filepath.Join("internal", "repository")
-	os.MkdirAll(repoDir, 0755)
-
-	// Generate interface if not interface-only
-	if !interfaceOnly {
+	// Crear directorio repositories si no existe
+	repoDir := "internal/infrastructure/repository"
+	_ = os.MkdirAll(repoDir, 0755) // Generate interface if not interface-only or if implementation is requested
+	if !interfaceOnly || implementation {
 		generateRepositoryInterface(repoDir, entity, transactions)
 	}
 
@@ -372,6 +370,16 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	if cache {
+		content.WriteString("\t// TODO: Add cache imports when cache is implemented\n")
+	}
+	if transactions {
+		content.WriteString("\t// TODO: Add transaction support\n")
+	}
+	content.WriteString("package repository\n\n")
+	content.WriteString("import (\n")
+	content.WriteString("\t\"database/sql\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
 	content.WriteString("\n\t_ \"github.com/go-sql-driver/mysql\"\n")
 	content.WriteString(")\n\n")
 
@@ -418,6 +426,12 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t\"context\"\n")
 	content.WriteString("\t\"time\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	if cache {
+		content.WriteString("\t// TODO: Add cache imports when cache is implemented\n")
+	}
+	if transactions {
+		content.WriteString("\t// TODO: Add transaction support for MongoDB\n")
+	}
 	content.WriteString("\n\t\"go.mongodb.org/mongo-driver/mongo\"\n")
 	content.WriteString("\t\"go.mongodb.org/mongo-driver/bson\"\n")
 	content.WriteString("\t\"go.mongodb.org/mongo-driver/bson/primitive\"\n")

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var initCmd = &cobra.Command{
@@ -62,7 +63,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 
 	for _, dir := range dirs {
-		os.MkdirAll(dir, 0755)
+		_ = os.MkdirAll(dir, 0755)
 	}
 
 	// Create go.mod
@@ -102,7 +103,7 @@ require (
 	writeFile(filepath.Join(projectName, "go.mod"), content)
 }
 
-func createMainGo(projectName, module, api string) {
+func createMainGo(projectName, module, _ string) {
 	content := fmt.Sprintf(`package main
 
 import (
@@ -195,7 +196,7 @@ Thumbs.db
 	writeFile(filepath.Join(projectName, ".gitignore"), content)
 }
 
-func createReadme(projectName, module string) {
+func createReadme(projectName, _ string) {
 	content := fmt.Sprintf(`# %s
 
 Proyecto generado con Goca - Go Clean Architecture Code Generator
@@ -250,12 +251,12 @@ Generar un nuevo feature:
 Generar solo una entidad:
 `+"```bash\n"+`goca entity Product --fields "name:string,price:float64"
 `+"```\n"+`
-`, strings.Title(projectName), projectName)
+`, cases.Title(language.English).String(projectName), projectName)
 
 	writeFile(filepath.Join(projectName, "README.md"), content)
 }
 
-func createConfig(projectName, module, database string) {
+func createConfig(projectName, _, database string) {
 	content := fmt.Sprintf(`package config
 
 import (
@@ -287,7 +288,7 @@ func getEnv(key, defaultValue string) string {
 	writeFile(filepath.Join(projectName, "pkg", "config", "config.go"), content)
 }
 
-func createLogger(projectName, module string) {
+func createLogger(projectName, _ string) {
 	content := `package logger
 
 import (
@@ -368,10 +369,10 @@ func ValidateToken(tokenString string) (*Claims, error) {
 }
 
 func init() {
-	initCmd.Flags().StringP("module", "m", "", "Nombre del módulo Go (requerido)")
+	rootCmd.AddCommand(initCmd)
+	initCmd.Flags().StringP("module", "m", "", "Nombre del módulo Go (ej: github.com/user/project)")
 	initCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")
-	initCmd.Flags().BoolP("auth", "a", false, "Incluir boilerplate de autenticación")
-	initCmd.Flags().StringP("api", "", "rest", "Tipo de API (rest, grpc, both)")
-
-	initCmd.MarkFlagRequired("module")
+	initCmd.Flags().StringP("api", "a", "rest", "Tipo de API (rest, graphql, grpc)")
+	initCmd.Flags().Bool("auth", false, "Incluir sistema de autenticación")
+	_ = initCmd.MarkFlagRequired("module")
 }

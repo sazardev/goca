@@ -57,11 +57,11 @@ organizados por feature para mantener consistencia en la aplicación.`,
 func generateMessages(entity string, errors, responses, constants bool) {
 	// Create messages directory
 	messagesDir := filepath.Join("internal", "messages")
-	os.MkdirAll(messagesDir, 0755)
+	_ = os.MkdirAll(messagesDir, 0755)
 
 	// Create constants directory
 	constantsDir := filepath.Join("internal", "constants")
-	os.MkdirAll(constantsDir, 0755)
+	_ = os.MkdirAll(constantsDir, 0755)
 
 	if errors {
 		generateErrorMessages(messagesDir, entity)
