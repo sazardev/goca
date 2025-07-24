@@ -32,7 +32,7 @@ goca version
 
 **Salida:**
 ```
-Goca v1.0.5
+Goca v1.0.6
 Build: 2025-07-19T15:00:00Z
 Go Version: go1.24.5
 ```
@@ -46,7 +46,7 @@ goca version -s
 
 **Salida:**
 ```
-1.0.5
+1.0.6
 ```
 
 ## 🔍 Información Detallada
@@ -183,7 +183,7 @@ goca version
 ### Instalar Versión Específica
 ```bash
 # Instalar versión específica
-go install github.com/sazardev/goca@v1.0.5
+go install github.com/sazardev/goca@v1.0.6
 
 # Verificar versión instalada
 goca version
@@ -197,9 +197,9 @@ El comando `version` muestra información que se compila en tiempo de build:
 ```go
 // Definidas en cmd/version.go
 var (
-    Version   = "1.0.5"                    // Versión del software
-    BuildTime = "2025-07-19T15:00:00Z"     // Timestamp de compilación
-    GoVersion = runtime.Version()          // Versión de Go runtime
+	Version   = "1.0.6"                    // Versión del software
+	BuildTime = "2025-07-19T15:00:00Z"     // Timestamp de compilación
+	GoVersion = runtime.Version()          // Versión de Go runtime
 )
 ```
 
@@ -213,14 +213,14 @@ goca version --verbose  # (si se implementa en futuras versiones)
 
 ### Formato Normal
 ```
-Goca v1.0.5
+Goca v1.0.6
 Build: 2025-07-19T15:00:00Z
 Go Version: go1.24.5
 ```
 
 ### Formato Corto
 ```
-1.0.5
+1.0.6
 ```
 
 ### Formato JSON (Futuro)
@@ -231,7 +231,7 @@ goca version --json
 
 ```json
 {
-  "version": "1.0.5",
+  "version": "1.0.6",
   "build_time": "2025-07-19T15:00:00Z",
   "go_version": "go1.24.5",
   "git_commit": "abc123def",
@@ -299,7 +299,13 @@ go version >> bug-report.txt
 
 ### Versiones Importantes
 
-#### v1.0.5 (Actual)
+#### v1.0.6 (Actual)
+- ✅ Bugs críticos arreglados en entity, interfaces y di
+- ✅ Flag --features agregado al comando di
+- ✅ Flag --fields agregado al comando entity  
+- ✅ Conflicto de flags arreglado en interfaces
+
+#### v1.0.5 (Anterior)
 - ✅ Mejoras en generación de gRPC
 - ✅ Validaciones mejoradas
 - ✅ Correcciones de bugs

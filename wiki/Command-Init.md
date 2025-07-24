@@ -26,7 +26,7 @@ Crea la estructura base de un proyecto Go siguiendo los principios de Clean Arch
 | `--module`   | `string` | ✅ **Sí**  | -                 | Nombre del módulo Go (ej: `github.com/usuario/proyecto`) |
 | `--database` | `string` | ❌ No      | `postgres`        | Tipo de base de datos (`postgres`, `mysql`, `mongodb`)   |
 | `--auth`     | `bool`   | ❌ No      | `false`           | Incluir sistema de autenticación JWT                     |
-| `--api`      | `string` | ❌ No      | `rest`            | Tipo de API (`rest`, `grpc`, `both`)                     |
+| `--api`      | `string` | ❌ No      | `rest`            | Tipo de API (`rest`, `graphql`, `grpc`)                  |
 
 ## 📖 Ejemplos de Uso
 
