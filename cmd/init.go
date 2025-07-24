@@ -67,7 +67,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 
 	// Create go.mod
-	createGoMod(projectName, module)
+	createGoMod(projectName, module, database)
 
 	// Create main.go
 	createMainGo(projectName, module, api)
@@ -89,16 +89,33 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 }
 
-func createGoMod(projectName, module string) {
+func createGoMod(projectName, module, database string) {
+	var dependencies string
+
+	switch database {
+	case "mysql":
+		dependencies = `require (
+	github.com/gorilla/mux v1.8.0
+	github.com/go-sql-driver/mysql v1.7.1
+)`
+	case "mongodb":
+		dependencies = `require (
+	github.com/gorilla/mux v1.8.0
+	go.mongodb.org/mongo-driver v1.12.1
+)`
+	default: // postgres
+		dependencies = `require (
+	github.com/gorilla/mux v1.8.0
+	github.com/lib/pq v1.10.9
+)`
+	}
+
 	content := fmt.Sprintf(`module %s
 
 go 1.21
 
-require (
-	github.com/gorilla/mux v1.8.0
-	github.com/lib/pq v1.10.9
-)
-`, module)
+%s
+`, module, dependencies)
 
 	writeFile(filepath.Join(projectName, "go.mod"), content)
 }

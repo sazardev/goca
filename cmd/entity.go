@@ -294,6 +294,7 @@ func contains(slice []string, item string) bool {
 
 func init() {
 	rootCmd.AddCommand(entityCmd)
+	entityCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"field:type,field2:type\" (requerido)")
 	entityCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones de negocio")
 	entityCmd.Flags().BoolP("business-rules", "b", false, "Incluir reglas de negocio avanzadas")
 	entityCmd.Flags().BoolP("timestamps", "t", false, "Incluir campos CreatedAt y UpdatedAt")

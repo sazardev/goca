@@ -270,6 +270,6 @@ func generateGRPCRequestResponseInterfaces(content *strings.Builder, entity stri
 func init() {
 	interfacesCmd.Flags().BoolP("usecase", "u", false, "Generar interfaces de casos de uso")
 	interfacesCmd.Flags().BoolP("repository", "r", false, "Generar interfaces de repositorio")
-	interfacesCmd.Flags().BoolP("handler", "h", false, "Generar interfaces de handlers")
+	interfacesCmd.Flags().BoolP("handler", "", false, "Generar interfaces de handlers")
 	interfacesCmd.Flags().BoolP("all", "a", false, "Generar todas las interfaces")
 }
