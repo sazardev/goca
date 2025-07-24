@@ -53,8 +53,8 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 		filepath.Join(projectName, "cmd", "server"),
 		filepath.Join(projectName, "internal", "domain"),
 		filepath.Join(projectName, "internal", "usecase"),
-		filepath.Join(projectName, "internal", "infrastructure", "repository"),
-		filepath.Join(projectName, "internal", "infrastructure", "handler"),
+		filepath.Join(projectName, "internal", "repository"),
+		filepath.Join(projectName, "internal", "handler"),
 		filepath.Join(projectName, "pkg", "config"),
 		filepath.Join(projectName, "pkg", "logger"),
 	}

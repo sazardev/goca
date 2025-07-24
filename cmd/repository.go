@@ -49,7 +49,7 @@ bien definidas e implementaciones específicas por base de datos.`,
 
 func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool) {
 	// Crear directorio repositories si no existe
-	repoDir := "internal/infrastructure/repository"
+	repoDir := "internal/repository"
 	_ = os.MkdirAll(repoDir, 0755) // Generate interface if not interface-only or if implementation is requested
 	if !interfaceOnly || implementation {
 		generateRepositoryInterface(repoDir, entity, transactions)

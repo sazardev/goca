@@ -331,8 +331,8 @@ func (ts *TestSuite) verifyProjectStructure() {
 		"cmd/server",
 		"internal/domain",
 		"internal/usecase",
-		"internal/infrastructure/repository",
-		"internal/infrastructure/handler",
+		"internal/repository",
+		"internal/handler",
 		"pkg/config",
 		"pkg/logger",
 		"pkg/auth",
@@ -376,10 +376,10 @@ func (ts *TestSuite) verifyFeatureStructure(entity string) {
 		fmt.Sprintf("internal/usecase/%s_service.go", entityLower),
 		"internal/usecase/dto.go",
 		"internal/usecase/interfaces.go",
-		"internal/infrastructure/repository/interfaces.go",
-		fmt.Sprintf("internal/infrastructure/repository/postgres_%s_repo.go", entityLower),
-		fmt.Sprintf("internal/infrastructure/handler/%s_handler.go", entityLower),
-		"internal/infrastructure/handler/routes.go",
+		"internal/repository/interfaces.go",
+		fmt.Sprintf("internal/repository/postgres_%s_repo.go", entityLower),
+		fmt.Sprintf("internal/handler/%s_handler.go", entityLower),
+		"internal/handler/routes.go",
 		"internal/messages/errors.go",
 		"internal/messages/responses.go",
 	}
@@ -479,12 +479,12 @@ func (ts *TestSuite) verifyRepositories(entity string) {
 	entityLower := strings.ToLower(entity)
 
 	// Verify repository interface
-	interfaceFile := filepath.Join(ts.projectPath, "internal/infrastructure/repository", "interfaces.go")
+	interfaceFile := filepath.Join(ts.projectPath, "internal/repository", "interfaces.go")
 	ts.verifyFileExists(interfaceFile)
 	ts.verifyGoSyntax(interfaceFile)
 
 	// Verify postgres repository
-	repoFile := filepath.Join(ts.projectPath, "internal/infrastructure/repository", "postgres_"+entityLower+"_repo.go")
+	repoFile := filepath.Join(ts.projectPath, "internal/repository", "postgres_"+entityLower+"_repo.go")
 	ts.verifyFileExists(repoFile)
 	ts.verifyGoSyntax(repoFile)
 }
@@ -496,12 +496,12 @@ func (ts *TestSuite) verifyHandlers(entity string) {
 	entityLower := strings.ToLower(entity)
 
 	// Verify HTTP handler
-	handlerFile := filepath.Join(ts.projectPath, "internal/infrastructure/handler", entityLower+"_handler.go")
+	handlerFile := filepath.Join(ts.projectPath, "internal/handler", entityLower+"_handler.go")
 	ts.verifyFileExists(handlerFile)
 	ts.verifyGoSyntax(handlerFile)
 
 	// Verify routes
-	routesFile := filepath.Join(ts.projectPath, "internal/infrastructure/handler", "routes.go")
+	routesFile := filepath.Join(ts.projectPath, "internal/handler", "routes.go")
 	ts.verifyFileExists(routesFile)
 	ts.verifyGoSyntax(routesFile)
 }

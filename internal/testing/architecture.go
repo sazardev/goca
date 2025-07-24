@@ -24,10 +24,13 @@ func (v *ArchitectureValidator) ValidateProjectStructure(projectDir string) []*T
 
 	expectedDirs := []string{
 		"internal/domain",
+		"internal/domain/entity",
 		"internal/usecase",
-		"internal/infrastructure/repository",
-		"internal/infrastructure/handler",
-		"internal/infrastructure/di",
+		"internal/repository",
+		"internal/handler",
+		"internal/di",
+		"internal/constants",
+		"internal/messages",
 		"pkg/messages",
 		"pkg/interfaces",
 	}
@@ -135,9 +138,9 @@ func (v *ArchitectureValidator) ValidateRepositoryCompliance(repoFile string) []
 	var errors []*TestError
 
 	// Check if repository is in correct location
-	if !strings.Contains(repoFile, "internal/infrastructure/repository") {
-		errors = append(errors, NewLocationError(repoFile, "internal/infrastructure/repository",
-			"Repository should be in infrastructure layer"))
+	if !strings.Contains(repoFile, "internal/repository") {
+		errors = append(errors, NewLocationError(repoFile, "internal/repository",
+			"Repository should be in repository layer"))
 	}
 
 	// Validate repository structure
@@ -170,9 +173,9 @@ func (v *ArchitectureValidator) ValidateHandlerCompliance(handlerFile string) []
 	var errors []*TestError
 
 	// Check if handler is in correct location
-	if !strings.Contains(handlerFile, "internal/infrastructure/handler") {
-		errors = append(errors, NewLocationError(handlerFile, "internal/infrastructure/handler",
-			"Handler should be in infrastructure layer"))
+	if !strings.Contains(handlerFile, "internal/handler") {
+		errors = append(errors, NewLocationError(handlerFile, "internal/handler",
+			"Handler should be in handler layer"))
 	}
 
 	// Validate handler structure

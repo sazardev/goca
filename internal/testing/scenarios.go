@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// TestScenario represents a comprehensive test scenario for the C			Execute: func(_ *TestSuite) error {I
+// TestScenario represents a comprehensive test scenario for the CLI
 type TestScenario struct {
 	Name        string
 	Description string
@@ -169,13 +169,13 @@ func (r *ComprehensiveTestRunner) createFullFeatureScenario() TestScenario {
 
 			// Validate all expected files exist
 			expectedFiles := []string{
-				"internal/domain/user.go",
+				"internal/domain/entity/user.go",
 				"internal/usecase/user_usecase.go",
-				"internal/infrastructure/repository/user_repository.go",
-				"internal/infrastructure/handler/user_handler.go",
+				"internal/repository/user_repository.go",
+				"internal/handler/user_handler.go",
 				"pkg/messages/user_messages.go",
 				"pkg/interfaces/user_repository.go",
-				"internal/infrastructure/di/container.go",
+				"internal/di/container.go",
 			}
 
 			for _, file := range expectedFiles {
@@ -187,7 +187,7 @@ func (r *ComprehensiveTestRunner) createFullFeatureScenario() TestScenario {
 
 			// Validate architecture compliance
 			arch := NewArchitectureValidator(suite)
-			if entityFile := filepath.Join(suite.tempDir, "internal/domain/user.go"); suite.FileExists(entityFile) {
+			if entityFile := filepath.Join(suite.tempDir, "internal/domain/entity/user.go"); suite.FileExists(entityFile) {
 				errors = append(errors, arch.ValidateEntityCompliance(entityFile)...)
 			}
 
@@ -243,9 +243,9 @@ func (r *ComprehensiveTestRunner) createCustomModuleScenario() TestScenario {
 			// Check all files use the correct module
 			code := NewCodeValidator(suite)
 			files := []string{
-				"internal/domain/order.go",
+				"internal/domain/entity/order.go",
 				"internal/usecase/order_usecase.go",
-				"internal/infrastructure/repository/order_repository.go",
+				"internal/repository/order_repository.go",
 			}
 
 			for _, file := range files {
@@ -282,10 +282,10 @@ func (r *ComprehensiveTestRunner) createArchitectureValidationScenario() TestSce
 
 			// Validate individual components
 			files := map[string]func(string) []*TestError{
-				"internal/domain/payment.go":                               arch.ValidateEntityCompliance,
-				"internal/usecase/payment_usecase.go":                      arch.ValidateUseCaseCompliance,
-				"internal/infrastructure/repository/payment_repository.go": arch.ValidateRepositoryCompliance,
-				"internal/infrastructure/handler/payment_handler.go":       arch.ValidateHandlerCompliance,
+				"internal/domain/entity/payment.go":         arch.ValidateEntityCompliance,
+				"internal/usecase/payment_usecase.go":       arch.ValidateUseCaseCompliance,
+				"internal/repository/payment_repository.go": arch.ValidateRepositoryCompliance,
+				"internal/handler/payment_handler.go":       arch.ValidateHandlerCompliance,
 			}
 
 			for file, validator := range files {
@@ -391,7 +391,7 @@ func (r *ComprehensiveTestRunner) createRepositoryOnlyScenario() TestScenario {
 			return nil
 		},
 		Validate: func(suite *TestSuite) []*TestError {
-			repoFile := filepath.Join(suite.tempDir, "internal/infrastructure/repository/customer_repository.go")
+			repoFile := filepath.Join(suite.tempDir, "internal/repository/customer_repository.go")
 			if !suite.FileExists(repoFile) {
 				return []*TestError{NewFileError(repoFile, "existence", "repository file not found")}
 			}
@@ -414,7 +414,7 @@ func (r *ComprehensiveTestRunner) createHandlerOnlyScenario() TestScenario {
 			return nil
 		},
 		Validate: func(suite *TestSuite) []*TestError {
-			handlerFile := filepath.Join(suite.tempDir, "internal/infrastructure/handler/account_handler.go")
+			handlerFile := filepath.Join(suite.tempDir, "internal/handler/account_handler.go")
 			if !suite.FileExists(handlerFile) {
 				return []*TestError{NewFileError(handlerFile, "existence", "handler file not found")}
 			}
