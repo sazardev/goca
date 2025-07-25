@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	Version   = "1.0.7"
-	BuildTime = "2025-07-19T15:00:00Z"
+	Version   = "1.0.8"
+	BuildTime = "2025-07-25T15:00:00Z"
 	GoVersion = runtime.Version()
 )
 

@@ -56,17 +56,31 @@ func (ts *TestSuite) Cleanup() {
 
 // runGocaCommand executes a goca CLI command and captures output
 func (ts *TestSuite) runGocaCommand(args ...string) (string, string, error) {
-	// Use local executable on Windows, or goca from PATH on other systems
+	// Try to use local executable first, then fall back to PATH
 	gocaCmd := "goca"
-	if runtime.GOOS == "windows" {
-		// Get the current working directory and build path to goca.exe
-		if wd, err := os.Getwd(); err == nil {
-			// If we're in the testing directory, go up two levels
-			if strings.Contains(wd, "internal") {
-				gocaCmd = filepath.Join(wd, "..", "..", "goca.exe")
+
+	// Get the current working directory and build path to local executable
+	if wd, err := os.Getwd(); err == nil {
+		var localBinary string
+
+		// If we're in the testing directory, go up two levels
+		if strings.Contains(wd, "internal") {
+			if runtime.GOOS == "windows" {
+				localBinary = filepath.Join(wd, "..", "..", "goca.exe")
 			} else {
-				gocaCmd = filepath.Join(wd, "goca.exe")
+				localBinary = filepath.Join(wd, "..", "..", "goca")
 			}
+		} else {
+			if runtime.GOOS == "windows" {
+				localBinary = filepath.Join(wd, "goca.exe")
+			} else {
+				localBinary = filepath.Join(wd, "goca")
+			}
+		}
+
+		// Check if local binary exists
+		if _, err := os.Stat(localBinary); err == nil {
+			gocaCmd = localBinary
 		}
 	}
 

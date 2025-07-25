@@ -20,6 +20,11 @@ jobs:
     - name: Build
       run: go build -v ./...
 
+    - name: Build CLI Binary
+      run: |
+        go build -o goca
+        echo "$(pwd)" >> $GITHUB_PATH
+
     - name: Test
       run: go test -v ./...
 
