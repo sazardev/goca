@@ -212,8 +212,9 @@ func addFeatureToDI(featureName string) {
 	contentStr = strings.Replace(contentStr, "\n\t// Handlers", ucField+"\n\t// Handlers", 1)
 
 	// Add handler field
-	handlerField := fmt.Sprintf("\t%sHandler    *http.%sHandler\n", featureLower, featureName)
-	contentStr = strings.Replace(contentStr, "}\n\n// Constructor", handlerField+"}\n\n// Constructor", 1)
+	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
+	handlerField := fmt.Sprintf("\t%sHandler    *http.%sHandler\n", fieldName, featureName)
+	contentStr = strings.Replace(contentStr, "}\n\nfunc NewContainer", handlerField+"}\n\nfunc NewContainer", 1)
 
 	// Add repository setup
 	repoSetup := fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n", featureLower, featureName)
@@ -226,7 +227,7 @@ func addFeatureToDI(featureName string) {
 	contentStr = strings.Replace(contentStr, setupUCEnd, ucSetup+setupUCEnd, 1)
 
 	// Add handler setup
-	handlerSetup := fmt.Sprintf("\tc.%sHandler = http.New%sHandler(c.%sUC)\n", featureLower, featureName, featureLower)
+	handlerSetup := fmt.Sprintf("\tc.%sHandler = http.New%sHandler(c.%sUC)\n", fieldName, featureName, featureLower)
 	setupHandlerEnd := "}\n\n// Getters"
 	contentStr = strings.Replace(contentStr, setupHandlerEnd, handlerSetup+setupHandlerEnd, 1)
 
@@ -243,7 +244,7 @@ func (c *Container) %sRepository() repository.%sRepository {
 	return c.%sRepo
 }
 
-`, featureName, featureName, featureLower, featureName, featureName, featureLower, featureName, featureName, featureLower)
+`, featureName, featureName, fieldName, featureName, featureName, featureLower, featureName, featureName, featureLower)
 
 	// Add getters at the end
 	contentStr = contentStr + getters

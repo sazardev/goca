@@ -172,7 +172,7 @@ func (r *ComprehensiveTestRunner) createFullFeatureScenario() TestScenario {
 				"internal/domain/user.go",
 				"internal/usecase/user_usecase.go",
 				"internal/repository/user_repository.go",
-				"internal/handler/user_handler.go",
+				"internal/handler/http/user_handler.go",
 				"pkg/messages/user_messages.go",
 				"pkg/interfaces/user_repository.go",
 				"internal/di/container.go",
@@ -285,7 +285,7 @@ func (r *ComprehensiveTestRunner) createArchitectureValidationScenario() TestSce
 				"internal/domain/payment.go":                arch.ValidateEntityCompliance,
 				"internal/usecase/payment_usecase.go":       arch.ValidateUseCaseCompliance,
 				"internal/repository/payment_repository.go": arch.ValidateRepositoryCompliance,
-				"internal/handler/payment_handler.go":       arch.ValidateHandlerCompliance,
+				"internal/handler/http/payment_handler.go":  arch.ValidateHandlerCompliance,
 			}
 
 			for file, validator := range files {
@@ -414,7 +414,7 @@ func (r *ComprehensiveTestRunner) createHandlerOnlyScenario() TestScenario {
 			return nil
 		},
 		Validate: func(suite *TestSuite) []*TestError {
-			handlerFile := filepath.Join(suite.tempDir, "internal/handler/account_handler.go")
+			handlerFile := filepath.Join(suite.tempDir, "internal/handler/http/account_handler.go")
 			if !suite.FileExists(handlerFile) {
 				return []*TestError{NewFileError(handlerFile, "existence", "handler file not found")}
 			}

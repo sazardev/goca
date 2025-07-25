@@ -392,8 +392,8 @@ func (ts *TestSuite) verifyFeatureStructure(entity string) {
 		"internal/usecase/interfaces.go",
 		"internal/repository/interfaces.go",
 		fmt.Sprintf("internal/repository/postgres_%s_repo.go", entityLower),
-		fmt.Sprintf("internal/handler/%s_handler.go", entityLower),
-		"internal/handler/routes.go",
+		fmt.Sprintf("internal/handler/http/%s_handler.go", entityLower),
+		"internal/handler/http/routes.go",
 		"internal/messages/errors.go",
 		"internal/messages/responses.go",
 	}
@@ -510,12 +510,12 @@ func (ts *TestSuite) verifyHandlers(entity string) {
 	entityLower := strings.ToLower(entity)
 
 	// Verify HTTP handler
-	handlerFile := filepath.Join(ts.projectPath, "internal/handler", entityLower+"_handler.go")
+	handlerFile := filepath.Join(ts.projectPath, "internal/handler/http", entityLower+"_handler.go")
 	ts.verifyFileExists(handlerFile)
 	ts.verifyGoSyntax(handlerFile)
 
 	// Verify routes
-	routesFile := filepath.Join(ts.projectPath, "internal/handler", "routes.go")
+	routesFile := filepath.Join(ts.projectPath, "internal/handler/http", "routes.go")
 	ts.verifyFileExists(routesFile)
 	ts.verifyGoSyntax(routesFile)
 }

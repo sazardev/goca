@@ -72,8 +72,7 @@ func generateManualDI(dir string, features []string, database string) {
 	var content strings.Builder
 	content.WriteString("package di\n\n")
 	content.WriteString("import (\n")
-	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString("\t\"log\"\n\n")
+	content.WriteString("\t\"database/sql\"\n\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", importPath))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
@@ -98,8 +97,8 @@ func generateManualDI(dir string, features []string, database string) {
 	// Handlers
 	content.WriteString("\n\t// Handlers\n")
 	for _, feature := range features {
-		featureLower := strings.ToLower(feature)
-		content.WriteString(fmt.Sprintf("\t%sHandler    *http.%sHandler\n", featureLower, feature))
+		fieldName := strings.ToLower(feature[:1]) + feature[1:] // camelCase
+		content.WriteString(fmt.Sprintf("\t%sHandler    *http.%sHandler\n", fieldName, feature))
 	}
 
 	content.WriteString("}\n\n")
@@ -164,9 +163,10 @@ func generateSetupHandlers(content *strings.Builder, features []string) {
 	content.WriteString("func (c *Container) setupHandlers() {\n")
 
 	for _, feature := range features {
+		fieldName := strings.ToLower(feature[:1]) + feature[1:] // camelCase
 		featureLower := strings.ToLower(feature)
 		content.WriteString(fmt.Sprintf("\tc.%sHandler = http.New%sHandler(c.%sUC)\n",
-			featureLower, feature, featureLower))
+			fieldName, feature, featureLower))
 	}
 
 	content.WriteString("}\n\n")
@@ -176,12 +176,13 @@ func generateGetters(content *strings.Builder, features []string) {
 	content.WriteString("// Getters\n")
 
 	for _, feature := range features {
+		fieldName := strings.ToLower(feature[:1]) + feature[1:] // camelCase
 		featureLower := strings.ToLower(feature)
 
 		// Handler getter
 		content.WriteString(fmt.Sprintf("func (c *Container) %sHandler() *http.%sHandler {\n",
 			feature, feature))
-		content.WriteString(fmt.Sprintf("\treturn c.%sHandler\n", featureLower))
+		content.WriteString(fmt.Sprintf("\treturn c.%sHandler\n", fieldName))
 		content.WriteString("}\n\n")
 
 		// UseCase getter
