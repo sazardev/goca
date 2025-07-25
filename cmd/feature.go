@@ -415,10 +415,11 @@ func updateMainGoWithRoutes(mainPath, featureName, moduleName, contentStr string
 	featureLower := strings.ToLower(featureName)
 
 	// Add import for DI if not present
-	if !strings.Contains(contentStr, fmt.Sprintf("\"%s/internal/di\"", moduleName)) {
+	importPath := getImportPath(moduleName)
+	if !strings.Contains(contentStr, fmt.Sprintf("\"%s/internal/di\"", importPath)) {
 		// Try to add the import
 		importPattern := "import ("
-		diImport := fmt.Sprintf("import (\n\t\"database/sql\"\n\t\"log\"\n\t\"net/http\"\n\n\t\"github.com/gorilla/mux\"\n\t\"%s/internal/di\"\n\t\"%s/pkg/config\"\n\t\"%s/pkg/logger\"\n\n\t_ \"github.com/lib/pq\"\n)", moduleName, moduleName, moduleName)
+		diImport := fmt.Sprintf("import (\n\t\"database/sql\"\n\t\"log\"\n\t\"net/http\"\n\n\t\"github.com/gorilla/mux\"\n\t\"%s/internal/di\"\n\t\"%s/pkg/config\"\n\t\"%s/pkg/logger\"\n\n\t_ \"github.com/lib/pq\"\n)", importPath, importPath, importPath)
 
 		if strings.Contains(contentStr, importPattern) {
 			contentStr = strings.Replace(contentStr, importPattern, diImport[:len(importPattern)], 1)

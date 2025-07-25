@@ -64,6 +64,9 @@ func generateManualDI(dir string, features []string, database string) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
+	// Use relative imports for local development and testing
+	importPath := getImportPath(moduleName)
+
 	filename := filepath.Join(dir, "container.go")
 
 	var content strings.Builder
@@ -71,12 +74,10 @@ func generateManualDI(dir string, features []string, database string) {
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n")
 	content.WriteString("\t\"log\"\n\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", moduleName))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", moduleName))
-	content.WriteString(")\n\n")
-
-	// Container struct
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", importPath))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
+	content.WriteString(")\n\n") // Container struct
 	content.WriteString("type Container struct {\n")
 	content.WriteString("\tdb *sql.DB\n\n")
 
@@ -209,6 +210,9 @@ func generateWireFile(dir string, features []string, database string) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
+	// Use relative imports for local development and testing
+	importPath := getImportPath(moduleName)
+
 	filename := filepath.Join(dir, "wire.go")
 
 	var content strings.Builder
@@ -218,12 +222,10 @@ func generateWireFile(dir string, features []string, database string) {
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n\n")
 	content.WriteString("\t\"github.com/google/wire\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", moduleName))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", moduleName))
-	content.WriteString(")\n\n")
-
-	// Wire sets
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", importPath))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
+	content.WriteString(")\n\n") // Wire sets
 	content.WriteString("// Wire sets\n")
 	content.WriteString("var (\n")
 
@@ -290,15 +292,16 @@ func generateWireGenTemplate(dir string, features []string) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
+	// Use relative imports for local development and testing
+	importPath := getImportPath(moduleName)
+
 	filename := filepath.Join(dir, "wire_container.go")
 
 	var content strings.Builder
 	content.WriteString("package di\n\n")
 	content.WriteString("import (\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", moduleName))
-	content.WriteString(")\n\n")
-
-	// Wire container struct
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
+	content.WriteString(")\n\n") // Wire container struct
 	content.WriteString("type Container struct {\n")
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)

@@ -89,7 +89,7 @@ func generateRepositoryInterface(dir, entity string, transactions bool) {
 	} else {
 		// File doesn't exist, create header
 		content.WriteString("package repository\n\n")
-		content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
+		content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(getImportPath(moduleName))))
 	}
 
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
@@ -136,7 +136,7 @@ func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(getImportPath(moduleName))))
 	if cache {
 		content.WriteString("\t\"time\"\n")
 		content.WriteString("\t\"encoding/json\"\n")
@@ -369,7 +369,7 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
 		content.WriteString("\t// TODO: Add cache imports when cache is implemented\n")
 	}
@@ -379,7 +379,7 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString("\n\t_ \"github.com/go-sql-driver/mysql\"\n")
 	content.WriteString(")\n\n")
 
@@ -425,7 +425,7 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("import (\n")
 	content.WriteString("\t\"context\"\n")
 	content.WriteString("\t\"time\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
 		content.WriteString("\t// TODO: Add cache imports when cache is implemented\n")
 	}

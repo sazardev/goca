@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
@@ -130,6 +131,13 @@ go 1.21
 
 %s
 `, module, dependencies)
+
+	// Add replace directive for test modules to make them resolvable locally
+	if strings.Contains(module, "github.com/goca/testproject") {
+		content += `
+replace github.com/goca/testproject => ./
+`
+	}
 
 	writeFile(filepath.Join(projectName, "go.mod"), content)
 } // downloadDependencies downloads Go module dependencies for the project

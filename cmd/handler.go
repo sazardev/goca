@@ -83,6 +83,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
+	importPath := getImportPath(moduleName)
 
 	var content strings.Builder
 	content.WriteString("package http\n\n")
@@ -91,7 +92,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	content.WriteString("\t\"net/http\"\n")
 	content.WriteString("\t\"strconv\"\n\n")
 	content.WriteString("\t\"github.com/gorilla/mux\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	if validation {
 		content.WriteString("\t// TODO: Add validation imports when needed\n")
 	}
@@ -235,6 +236,7 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
+	importPath := getImportPath(moduleName)
 
 	var content strings.Builder
 	content.WriteString("package http\n\n")
@@ -244,7 +246,7 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 		content.WriteString("\t\"net/http\"\n\n")
 	}
 	content.WriteString("\t\"github.com/gorilla/mux\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	content.WriteString(")\n\n")
 
 	entityLower := strings.ToLower(entity)
@@ -506,6 +508,7 @@ func generateProtoFile(dir, entity string) {
 func generateGRPCServerFile(dir, entity string) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
+	importPath := getImportPath(moduleName)
 
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_server.go")
@@ -514,8 +517,8 @@ func generateGRPCServerFile(dir, entity string) {
 	content.WriteString("package grpc\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"context\"\n\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
-	content.WriteString(fmt.Sprintf("\tpb \"%s/internal/handler/grpc/%s\"\n", moduleName, entityLower))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
+	content.WriteString(fmt.Sprintf("\tpb \"%s/internal/handler/grpc/%s\"\n", importPath, entityLower))
 	content.WriteString(")\n\n")
 
 	content.WriteString(fmt.Sprintf("type %sServer struct {\n", entity))
@@ -573,6 +576,7 @@ func generateCLIHandler(entity string) {
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
+	importPath := getImportPath(moduleName)
 
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(cliDir, entityLower+"_commands.go")
@@ -583,7 +587,7 @@ func generateCLIHandler(entity string) {
 	content.WriteString("\t\"fmt\"\n")
 	content.WriteString("\t\"strconv\"\n\n")
 	content.WriteString("\t\"github.com/spf13/cobra\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	content.WriteString(")\n\n")
 
 	// CLI struct

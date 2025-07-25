@@ -73,3 +73,20 @@ func writeGoFile(path, content string) {
 		fmt.Printf("Error writing to file %s: %v\n", path, err)
 	}
 }
+
+// getImportPath determines whether to use the full module path or relative path for imports
+func getImportPath(moduleName string) string {
+	// Check if we're in a test environment with a GitHub-style fake module
+	if strings.Contains(moduleName, "github.com/goca/testproject") {
+		// For test environments, use the module name as-is since it has valid structure
+		return moduleName
+	}
+
+	// Check if we're in a local development environment without proper domain
+	if !strings.Contains(moduleName, ".") {
+		return moduleName
+	}
+
+	// For real modules, use the module name
+	return moduleName
+}

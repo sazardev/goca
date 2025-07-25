@@ -107,7 +107,7 @@ func generateDTOFile(dir, entity string, operations []string, validation bool) {
 		// File doesn't exist, create header
 		content.WriteString("package usecase\n\n")
 		content.WriteString("import (\n")
-		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
+		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 		content.WriteString(")\n\n")
 	}
 
@@ -175,7 +175,7 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
-	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
+	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
 
 	// DEBUG: Print what interface name is being used
 	fmt.Printf("DEBUG: Generating interface with name: %s\n", usecaseName)
@@ -212,9 +212,9 @@ func generateUseCaseService(dir, usecaseName, entity string, operations []string
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
 	content.WriteString("import (\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/messages\"\n", moduleName))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", moduleName))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/messages\"\n", getImportPath(moduleName)))
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", getImportPath(moduleName)))
 	content.WriteString(")\n\n")
 
 	// Service struct
@@ -342,7 +342,7 @@ func generateUseCaseInterfaces(dir, entity string) {
 
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
-	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
+	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
 
 	entityLower := strings.ToLower(entity)
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
