@@ -352,56 +352,268 @@ func updateMainGoWithCompleteSetup(mainPath, featureName, moduleName string) boo
 	newMainContent := fmt.Sprintf(`package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gorilla/mux"
 	"%s/internal/di"
 	"%s/pkg/config"
-	"%s/pkg/logger"
 
 	_ "github.com/lib/pq"
 )
+
+var db *sql.DB
 
 func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	// Initialize logger
-	logger.Init()
-
-	// Connect to database
-	db, err := sql.Open("postgres", cfg.DatabaseURL)
+	log.Printf("Starting application")
+	log.Printf("Environment: %%s", cfg.Environment)
+	
+	// Connect to database with retry
+	var err error
+	db, err = connectToDatabase(cfg)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Printf("⚠️  Database connection failed: %%v", err)
+		log.Printf("📝 Server will start in degraded mode. Check your database configuration.")
+		log.Printf("💡 To fix: Configure database environment variables in .env file")
+		db = nil // Ensure db is nil for health checks
+	} else {
+		defer db.Close()
+		log.Printf("✅ Database connected successfully")
+		
+		// Run auto-migrations if database is connected
+		if err := runAutoMigrations(db); err != nil {
+			log.Printf("⚠️  Auto-migration failed: %%v", err)
+			log.Printf("💡 You may need to run migrations manually")
+		} else {
+			log.Printf("✅ Database schema is up to date")
+		}
 	}
-	defer db.Close()
-
-	// Setup DI container
+	
+	// Setup DI container (even if db is nil, for degraded mode)
 	container := di.NewContainer(db)
 
 	// Setup router
 	router := mux.NewRouter()
-
-	// Health check endpoint
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	}).Methods("GET")
+	
+	// Health check endpoints with comprehensive checks
+	router.HandleFunc("/health", healthCheckHandler).Methods("GET")
+	router.HandleFunc("/health/ready", readinessHandler).Methods("GET")
+	router.HandleFunc("/health/live", livenessHandler).Methods("GET")
 
 	// %s routes
-	%sHandler := container.%sHandler()
-	router.HandleFunc("/api/v1/%ss", %sHandler.Create%s).Methods("POST")
-	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Get%s).Methods("GET")
-	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Update%s).Methods("PUT")
-	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Delete%s).Methods("DELETE")
-	router.HandleFunc("/api/v1/%ss", %sHandler.List%ss).Methods("GET")
-
-	log.Printf("Server starting on port %%s", cfg.Port)
-	log.Fatal(http.ListenAndServe(":"+cfg.Port, router))
+	if db != nil {
+		%sHandler := container.%sHandler()
+		router.HandleFunc("/api/v1/%ss", %sHandler.Create%s).Methods("POST")
+		router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Get%s).Methods("GET")
+		router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Update%s).Methods("PUT")
+		router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Delete%s).Methods("DELETE")
+		router.HandleFunc("/api/v1/%ss", %sHandler.List%ss).Methods("GET")
+	} else {
+		// Degraded mode routes
+		router.HandleFunc("/api/v1/%ss", func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Service temporarily unavailable - database not connected", http.StatusServiceUnavailable)
+		})
+	}
+	
+	// Setup HTTP server with timeouts
+	server := &http.Server{
+		Addr:         ":" + cfg.Port,
+		Handler:      router,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
+	}
+	
+	// Start server in goroutine
+	go func() {
+		log.Printf("Server starting on port %%s", cfg.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server startup failed: %%v", err)
+		}
+	}()
+	
+	// Wait for interrupt signal to gracefully shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	
+	log.Println("Shutting down server...")
+	
+	// Graceful shutdown with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %%v", err)
+	}
+	
+	log.Println("Server exited")
 }
-`, moduleName, moduleName, moduleName, featureName, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName)
+
+func connectToDatabase(cfg *config.Config) (*sql.DB, error) {
+	dbURL := cfg.GetDatabaseURL()
+	
+	log.Printf("Connecting to database at %%s:%%s/%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
+	
+	var db *sql.DB
+	var err error
+	
+	// Check if this is development mode without database
+	if cfg.Environment == "development" && cfg.Database.Password == "" {
+		log.Println("⚠️  Development mode detected: No database password set")
+		log.Println("📝 To connect to PostgreSQL, set environment variables:")
+		log.Println("   DB_HOST=localhost")
+		log.Println("   DB_PORT=5432") 
+		log.Println("   DB_USER=postgres")
+		log.Println("   DB_PASSWORD=your_password")
+		log.Println("   DB_NAME=your_database")
+		log.Println("🚀 Server will continue without database connection...")
+		return nil, fmt.Errorf("development mode: database not configured")
+	}
+	
+	// Retry connection up to 5 times
+	for i := 0; i < 5; i++ {
+		db, err = sql.Open("postgres", dbURL)
+		if err != nil {
+			log.Printf("Attempt %%d: Failed to open database connection: %%v", i+1, err)
+			time.Sleep(time.Duration(i+1) * time.Second)
+			continue
+		}
+		
+		// Configure connection pool
+		db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+		db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+		db.SetConnMaxLifetime(cfg.Database.MaxLifetime)
+		
+		// Test the connection
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		err = db.PingContext(ctx)
+		cancel()
+		
+		if err == nil {
+			return db, nil
+		}
+		
+		log.Printf("Attempt %%d: Database ping failed: %%v", i+1, err)
+		db.Close()
+		time.Sleep(time.Duration(i+1) * time.Second)
+	}
+	
+	return nil, fmt.Errorf("failed to connect to database after 5 attempts: %%w", err)
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	status := "healthy"
+	httpStatus := http.StatusOK
+	
+	if db == nil {
+		status = "degraded"
+		// Still return 200 for basic health check in degraded mode
+	} else if err := checkDatabase(); err != nil {
+		status = "degraded"
+		log.Printf("Database health check failed: %%v", err)
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(httpStatus)
+	fmt.Fprintf(w, "{\"status\":\"%s\",\"timestamp\":\"%s\"}", status, time.Now().Format(time.RFC3339))
+}
+
+func readinessHandler(w http.ResponseWriter, r *http.Request) {
+	if db == nil {
+		http.Error(w, "{\"status\":\"not_ready\",\"reason\":\"database_not_connected\"}", http.StatusServiceUnavailable)
+		return
+	}
+	
+	if err := checkDatabase(); err != nil {
+		http.Error(w, fmt.Sprintf("{\"status\":\"not_ready\",\"reason\":\"database_check_failed\",\"error\":\"%s\"}", err.Error()), http.StatusServiceUnavailable)
+		return
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "{\"status\":\"ready\",\"timestamp\":\"%s\"}", time.Now().Format(time.RFC3339))
+}
+
+func livenessHandler(w http.ResponseWriter, r *http.Request) {
+	// Basic liveness check
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Alive"))
+}
+
+func checkDatabase() error {
+	if db == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	
+	return db.PingContext(ctx)
+}
+
+func runAutoMigrations(database *sql.DB) error {
+	if database == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+	
+	// Check if migrations table exists
+	createMigrationsTable := "CREATE TABLE IF NOT EXISTS schema_migrations (version VARCHAR(255) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+	
+	_, err := database.Exec(createMigrationsTable)
+	if err != nil {
+		return fmt.Errorf("failed to create migrations table: %%w", err)
+	}
+	
+	// Run basic auto-migrations for generated features
+	migrations := []struct {
+		version string
+		sql     string
+	}{
+		{
+			version: "001_create_users_table",
+			sql: "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);",
+		},
+	}
+	
+	for _, migration := range migrations {
+		// Check if migration already applied
+		var count int
+		err := database.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE version = $1", migration.version).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("failed to check migration status: %%w", err)
+		}
+		
+		if count == 0 {
+			// Apply migration
+			_, err := database.Exec(migration.sql)
+			if err != nil {
+				return fmt.Errorf("failed to apply migration %%s: %%w", migration.version, err)
+			}
+			
+			// Record migration as applied
+			_, err = database.Exec("INSERT INTO schema_migrations (version) VALUES ($1)", migration.version)
+			if err != nil {
+				return fmt.Errorf("failed to record migration %%s: %%w", migration.version, err)
+			}
+			
+			log.Printf("✅ Applied migration: %%s", migration.version)
+		}
+	}
+	
+	return nil
+}
+`, moduleName, moduleName, featureName, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower)
 
 	if err := os.WriteFile(mainPath, []byte(newMainContent), 0644); err != nil {
 		fmt.Printf("   ⚠️  Could not update main.go: %v\n", err)
