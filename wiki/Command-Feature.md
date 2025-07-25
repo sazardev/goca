@@ -2,21 +2,33 @@
 
 El comando `goca feature` es la herramienta más poderosa de Goca. Genera **todas las capas** de Clean Architecture para un feature completo de una sola vez, siguiendo las mejores prácticas y convenciones establecidas.
 
-## 📋 Sintaxis
+## � Nueva Funcionalidad: Auto-Integración
+
+**¡NOVEDAD v1.1.0!** El comando `goca feature` ahora incluye **integración automática completa**:
+
+- ✅ **Auto-DI**: Crea/actualiza automáticamente el contenedor de inyección de dependencias
+- ✅ **Auto-Routes**: Registra automáticamente las rutas en `main.go`
+- ✅ **Auto-Imports**: Agrega las importaciones necesarias
+- ✅ **Ready-to-Run**: El feature queda completamente funcional inmediatamente
+
+**¡Ya no necesitas pasos manuales!** Ejecuta `goca feature` y tu API estará lista para usar.
+
+## �📋 Sintaxis
 
 ```bash
-goca feature <name> [flags]
+goca feature <nombre> [flags]
 ```
 
 ## 🎯 Propósito
 
-Genera un feature completo con **todas las capas de Clean Architecture**:
+Genera un feature completo con **todas las capas de Clean Architecture** y **lo integra automáticamente**:
 
 - 🟡 **Dominio**: Entidad con validaciones y reglas de negocio
 - 🔴 **Casos de Uso**: Servicios de aplicación con DTOs
 - 🔵 **Repositorio**: Interfaz y implementación de persistencia
 - 🟢 **Handlers**: Adaptadores para diferentes protocolos
 - 📄 **Mensajes**: Constantes y mensajes de error/éxito
+- 🔗 **Integración**: DI Container y rutas registradas automáticamente
 
 ## 🚩 Flags Disponibles
 

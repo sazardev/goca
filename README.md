@@ -120,11 +120,35 @@ cd myproject
 go mod tidy
 ```
 
-### Generar Feature Completo
+### Generar Feature Completo (NUEVO - Auto-Integrado)
 ```bash
-# Generar feature completo con todas las capas
-goca feature Employee --fields "name:string,email:string,role:string" --database postgres
+# Generar feature completo con todas las capas + integración automática
+goca feature Employee --fields "name:string,email:string,role:string"
+
+# ¡Ya está listo! El feature queda completamente funcional
+go run main.go
 ```
+
+### Integrar Features Existentes (NUEVO)
+```bash
+# Para proyectos con features sin integrar
+goca integrate --all
+
+# Detecta automáticamente todos los features y los conecta
+```
+
+## 📋 Comandos Principales
+
+| Comando              | Propósito                                       | Integración Automática           |
+| -------------------- | ----------------------------------------------- | -------------------------------- |
+| **`goca init`**      | Inicializar proyecto Clean Architecture         | ✅ Estructura completa            |
+| **`goca feature`**   | Generar feature completo (todas las capas)      | ✅ **NUEVO**: Auto-DI + Routes    |
+| **`goca integrate`** | **NUEVO**: Integrar features existentes         | ✅ Reparar/actualizar integración |
+| `goca entity`        | Generar solo entidades de dominio               | ❌ Manual                         |
+| `goca usecase`       | Generar solo casos de uso                       | ❌ Manual                         |
+| `goca repository`    | Generar solo repositorios                       | ❌ Manual                         |
+| `goca handler`       | Generar solo handlers                           | ❌ Manual                         |
+| `goca di`            | Generar contenedor de inyección de dependencias | ❌ Manual                         |
 
 ## 🔄 Flujo de Trabajo Recomendado
 
