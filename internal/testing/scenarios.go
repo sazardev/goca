@@ -169,7 +169,7 @@ func (r *ComprehensiveTestRunner) createFullFeatureScenario() TestScenario {
 
 			// Validate all expected files exist
 			expectedFiles := []string{
-				"internal/domain/entity/user.go",
+				"internal/domain/user.go",
 				"internal/usecase/user_usecase.go",
 				"internal/repository/user_repository.go",
 				"internal/handler/user_handler.go",
@@ -187,7 +187,7 @@ func (r *ComprehensiveTestRunner) createFullFeatureScenario() TestScenario {
 
 			// Validate architecture compliance
 			arch := NewArchitectureValidator(suite)
-			if entityFile := filepath.Join(suite.tempDir, "internal/domain/entity/user.go"); suite.FileExists(entityFile) {
+			if entityFile := filepath.Join(suite.tempDir, "internal/domain/user.go"); suite.FileExists(entityFile) {
 				errors = append(errors, arch.ValidateEntityCompliance(entityFile)...)
 			}
 
@@ -243,7 +243,7 @@ func (r *ComprehensiveTestRunner) createCustomModuleScenario() TestScenario {
 			// Check all files use the correct module
 			code := NewCodeValidator(suite)
 			files := []string{
-				"internal/domain/entity/order.go",
+				"internal/domain/order.go",
 				"internal/usecase/order_usecase.go",
 				"internal/repository/order_repository.go",
 			}
@@ -282,7 +282,7 @@ func (r *ComprehensiveTestRunner) createArchitectureValidationScenario() TestSce
 
 			// Validate individual components
 			files := map[string]func(string) []*TestError{
-				"internal/domain/entity/payment.go":         arch.ValidateEntityCompliance,
+				"internal/domain/payment.go":                arch.ValidateEntityCompliance,
 				"internal/usecase/payment_usecase.go":       arch.ValidateUseCaseCompliance,
 				"internal/repository/payment_repository.go": arch.ValidateRepositoryCompliance,
 				"internal/handler/payment_handler.go":       arch.ValidateHandlerCompliance,

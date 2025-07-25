@@ -384,8 +384,8 @@ func (ts *TestSuite) verifyFeatureStructure(entity string) {
 	entityLower := strings.ToLower(entity)
 
 	expectedFiles := []string{
-		fmt.Sprintf("internal/domain/entity/%s.go", entityLower),
-		"internal/domain/entity/errors.go",
+		fmt.Sprintf("internal/domain/%s.go", entityLower),
+		"internal/domain/errors.go",
 		fmt.Sprintf("internal/usecase/%s_usecase.go", entityLower),
 		fmt.Sprintf("internal/usecase/%s_service.go", entityLower),
 		"internal/usecase/dto.go",
@@ -411,7 +411,7 @@ func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 	ts.t.Logf("Verifying domain entity %s...", entity)
 
 	entityLower := strings.ToLower(entity)
-	filePath := filepath.Join(ts.projectPath, "internal/domain/entity", entityLower+".go")
+	filePath := filepath.Join(ts.projectPath, "internal/domain", entityLower+".go")
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -525,7 +525,7 @@ func (ts *TestSuite) verifyEntityFile(entity, fields string, flags []string) {
 	ts.t.Logf("Verifying entity file %s with flags %v...", entity, flags)
 
 	entityLower := strings.ToLower(entity)
-	filePath := filepath.Join(ts.projectPath, "internal/domain/entity", entityLower+".go")
+	filePath := filepath.Join(ts.projectPath, "internal/domain", entityLower+".go")
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {

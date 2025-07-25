@@ -24,7 +24,6 @@ func (v *ArchitectureValidator) ValidateProjectStructure(projectDir string) []*T
 
 	expectedDirs := []string{
 		"internal/domain",
-		"internal/domain/entity",
 		"internal/usecase",
 		"internal/repository",
 		"internal/handler",

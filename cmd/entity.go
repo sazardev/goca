@@ -51,8 +51,8 @@ sin dependencias externas y con validaciones de negocio.`,
 }
 
 func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete bool) {
-	// Crear directorio domain/entity si no existe
-	domainDir := "internal/domain/entity"
+	// Crear directorio domain si no existe
+	domainDir := "internal/domain"
 	_ = os.MkdirAll(domainDir, 0755)
 
 	// Parse fields
