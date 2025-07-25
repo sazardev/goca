@@ -82,11 +82,7 @@ func getImportPath(moduleName string) string {
 		return moduleName
 	}
 
-	// Check if we're in a local development environment without proper domain
-	if !strings.Contains(moduleName, ".") {
-		return moduleName
-	}
-
-	// For real modules, use the module name
+	// For all projects (both local and remote), use the module name as defined in go.mod
+	// Go modules handle internal imports automatically based on the module declaration
 	return moduleName
 }

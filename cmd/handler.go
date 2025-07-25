@@ -60,7 +60,7 @@ func generateHandler(entity, handlerType string, middleware, validation, swagger
 
 func generateHTTPHandler(entity string, middleware, validation, swagger bool) {
 	// Crear directorio handlers si no existe
-	handlerDir := "internal/handler"
+	handlerDir := "internal/handler/http"
 	_ = os.MkdirAll(handlerDir, 0755) // Generate handler file
 	generateHTTPHandlerFile(handlerDir, entity, validation)
 
