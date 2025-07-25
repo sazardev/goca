@@ -51,6 +51,10 @@ interfaces claras y lógica de negocio encapsulada.`,
 }
 
 func generateUseCase(usecaseName, entity, operations string, dtoValidation, async bool) {
+	generateUseCaseWithFields(usecaseName, entity, operations, dtoValidation, async, "")
+}
+
+func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValidation, async bool, fields string) {
 	// Create usecase directory
 	usecaseDir := filepath.Join("internal", "usecase")
 	_ = os.MkdirAll(usecaseDir, 0755)
@@ -59,9 +63,9 @@ func generateUseCase(usecaseName, entity, operations string, dtoValidation, asyn
 	ops := parseOperations(operations)
 
 	// Generate files
-	generateDTOFile(usecaseDir, entity, ops, dtoValidation)
+	generateDTOFileWithFields(usecaseDir, entity, ops, dtoValidation, fields)
 	generateUseCaseInterface(usecaseDir, usecaseName, entity, ops)
-	generateUseCaseService(usecaseDir, usecaseName, entity, ops, async)
+	generateUseCaseServiceWithFields(usecaseDir, usecaseName, entity, ops, async, fields)
 	generateUseCaseInterfaces(usecaseDir, entity)
 }
 
@@ -79,6 +83,10 @@ func parseOperations(operations string) []string {
 }
 
 func generateDTOFile(dir, entity string, operations []string, validation bool) {
+	generateDTOFileWithFields(dir, entity, operations, validation, "")
+}
+
+func generateDTOFileWithFields(dir, entity string, operations []string, validation bool, fields string) {
 	filename := filepath.Join(dir, "dto.go")
 
 	// Get the module name from go.mod
@@ -115,9 +123,17 @@ func generateDTOFile(dir, entity string, operations []string, validation bool) {
 	for _, op := range operations {
 		switch op {
 		case opCreate:
-			generateCreateDTO(&content, entity, validation)
+			if fields != "" {
+				generateCreateDTOWithFields(&content, entity, validation, fields)
+			} else {
+				generateCreateDTO(&content, entity, validation)
+			}
 		case opUpdate:
-			generateUpdateDTO(&content, entity, validation)
+			if fields != "" {
+				generateUpdateDTOWithFields(&content, entity, validation, fields)
+			} else {
+				generateUpdateDTO(&content, entity, validation)
+			}
 		case opRead, "get":
 			// Read operations typically don't need input DTOs, just output
 		case opList:
@@ -203,6 +219,10 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 }
 
 func generateUseCaseService(dir, usecaseName, entity string, operations []string, async bool) {
+	generateUseCaseServiceWithFields(dir, usecaseName, entity, operations, async, "")
+}
+
+func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operations []string, async bool, fields string) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -237,7 +257,11 @@ func generateUseCaseService(dir, usecaseName, entity string, operations []string
 	for _, op := range operations {
 		switch op {
 		case "create":
-			generateCreateMethod(&content, serviceName, entity)
+			if fields != "" {
+				generateCreateMethodWithFields(&content, serviceName, entity, fields)
+			} else {
+				generateCreateMethod(&content, serviceName, entity)
+			}
 		case "read", "get":
 			generateGetMethod(&content, serviceName, entity)
 		case "update":
@@ -261,6 +285,40 @@ func generateCreateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString(fmt.Sprintf("\t%s := domain.%s{\n", entityLower, entity))
 	content.WriteString("\t\t// TODO: Map fields from input to entity\n")
 	content.WriteString("\t\t// Example: Name: input.Name,\n")
+	content.WriteString("\t}\n\n")
+
+	content.WriteString(fmt.Sprintf("\tif err := %s.Validate(); err != nil {\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\treturn Create%sOutput{}, err\n", entity))
+	content.WriteString("\t}\n\n")
+
+	content.WriteString(fmt.Sprintf("\tif err := %s.repo.Save(&%s); err != nil {\n", serviceVar, entityLower))
+	content.WriteString(fmt.Sprintf("\t\treturn Create%sOutput{}, err\n", entity))
+	content.WriteString("\t}\n\n")
+
+	content.WriteString(fmt.Sprintf("\treturn Create%sOutput{\n", entity))
+	content.WriteString(fmt.Sprintf("\t\t%s:    %s,\n", entity, entityLower))
+	content.WriteString(fmt.Sprintf("\t\tMessage: messages.%sCreatedSuccessfully,\n", entity))
+	content.WriteString("\t}, nil\n")
+	content.WriteString("}\n\n")
+}
+
+func generateCreateMethodWithFields(content *strings.Builder, serviceName, entity, fields string) {
+	entityLower := strings.ToLower(entity)
+	serviceVar := string(serviceName[0])
+	fieldsList := parseFields(fields)
+
+	content.WriteString(fmt.Sprintf("func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
+		serviceVar, serviceName, entity, entity, entity))
+	content.WriteString(fmt.Sprintf("\t%s := domain.%s{\n", entityLower, entity))
+
+	// Map fields from input to entity
+	for _, field := range fieldsList {
+		if field.Name == "ID" {
+			continue // Skip ID, it's auto-generated
+		}
+		content.WriteString(fmt.Sprintf("\t\t%s: input.%s,\n", field.Name, field.Name))
+	}
+
 	content.WriteString("\t}\n\n")
 
 	content.WriteString(fmt.Sprintf("\tif err := %s.Validate(); err != nil {\n", entityLower))
@@ -355,6 +413,96 @@ func generateUseCaseInterfaces(dir, entity string) {
 	content.WriteString("}\n")
 
 	writeGoFile(filename, content.String())
+}
+
+func generateCreateDTOWithFields(content *strings.Builder, entity string, validation bool, fields string) {
+	entityLower := strings.ToLower(entity)
+	fieldsList := parseFields(fields)
+
+	// Generate Create Input DTO
+	content.WriteString(fmt.Sprintf("type Create%sInput struct {\n", entity))
+
+	for _, field := range fieldsList {
+		// Skip ID field in create input (it's auto-generated)
+		if field.Name == "ID" {
+			continue
+		}
+
+		jsonTag := fmt.Sprintf("json:\"%s\"", strings.ToLower(field.Name))
+
+		if validation {
+			validateTag := getValidationTag(field.Type)
+			content.WriteString(fmt.Sprintf("\t%s %s `%s validate:\"%s\"`\n",
+				field.Name, field.Type, jsonTag, validateTag))
+		} else {
+			content.WriteString(fmt.Sprintf("\t%s %s `%s`\n",
+				field.Name, field.Type, jsonTag))
+		}
+	}
+
+	content.WriteString("}\n\n")
+
+	// Generate Create Output DTO
+	content.WriteString(fmt.Sprintf("type Create%sOutput struct {\n", entity))
+	content.WriteString(fmt.Sprintf("\t%s    domain.%s `json:\"%s\"`\n", entity, entity, entityLower))
+	content.WriteString("\tMessage string      `json:\"message\"`\n")
+	content.WriteString("}\n\n")
+}
+
+func generateUpdateDTOWithFields(content *strings.Builder, entity string, validation bool, fields string) {
+	fieldsList := parseFields(fields)
+
+	// Generate Update Input DTO (fields are optional)
+	content.WriteString(fmt.Sprintf("type Update%sInput struct {\n", entity))
+
+	for _, field := range fieldsList {
+		// Skip ID field in update input (it's in the URL)
+		if field.Name == "ID" {
+			continue
+		}
+
+		// Make fields optional for update (pointers)
+		var fieldType string
+		if field.Type == "string" {
+			fieldType = "*string"
+		} else if field.Type == "int" {
+			fieldType = "*int"
+		} else if field.Type == "bool" {
+			fieldType = "*bool"
+		} else if field.Type == "float64" {
+			fieldType = "*float64"
+		} else {
+			fieldType = "*" + field.Type
+		}
+
+		jsonTag := fmt.Sprintf("json:\"%s,omitempty\"", strings.ToLower(field.Name))
+
+		if validation {
+			validateTag := "omitempty," + getValidationTag(field.Type)
+			content.WriteString(fmt.Sprintf("\t%s %s `%s validate:\"%s\"`\n",
+				field.Name, fieldType, jsonTag, validateTag))
+		} else {
+			content.WriteString(fmt.Sprintf("\t%s %s `%s`\n",
+				field.Name, fieldType, jsonTag))
+		}
+	}
+
+	content.WriteString("}\n\n")
+}
+
+func getValidationTag(fieldType string) string {
+	switch fieldType {
+	case "string":
+		return "required"
+	case "int":
+		return "required,min=0"
+	case "float64":
+		return "required,min=0"
+	case "bool":
+		return ""
+	default:
+		return "required"
+	}
 }
 
 func init() {

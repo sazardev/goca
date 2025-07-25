@@ -76,7 +76,7 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 2. Generate Use Case
 	fmt.Println("2️⃣  Generando casos de uso...")
-	generateUseCase(featureName+"UseCase", featureName, "create,read,update,delete,list", validation, false)
+	generateUseCaseWithFields(featureName+"UseCase", featureName, "create,read,update,delete,list", validation, false, fields)
 
 	// 3. Generate Repository
 	fmt.Println("3️⃣  Generando repositorio...")
