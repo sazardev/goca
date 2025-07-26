@@ -60,13 +60,13 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 
 	// Add timestamps if requested
 	if timestamps {
-		fieldsList = append(fieldsList, Field{Name: "CreatedAt", Type: "time.Time", Tag: "`json:\"created_at\"`"})
-		fieldsList = append(fieldsList, Field{Name: "UpdatedAt", Type: "*time.Time", Tag: "`json:\"updated_at,omitempty\"`"})
+		fieldsList = append(fieldsList, Field{Name: "CreatedAt", Type: "time.Time", Tag: "`json:\"created_at\" gorm:\"autoCreateTime\"`"})
+		fieldsList = append(fieldsList, Field{Name: "UpdatedAt", Type: "time.Time", Tag: "`json:\"updated_at\" gorm:\"autoUpdateTime\"`"})
 	}
 
 	// Add soft delete if requested
 	if softDelete {
-		fieldsList = append(fieldsList, Field{Name: "DeletedAt", Type: "*time.Time", Tag: "`json:\"deleted_at,omitempty\"`"})
+		fieldsList = append(fieldsList, Field{Name: "DeletedAt", Type: "gorm.DeletedAt", Tag: "`json:\"deleted_at,omitempty\" gorm:\"index\"`"})
 	}
 
 	// Generate entity file
@@ -87,11 +87,11 @@ type Field struct {
 func parseFields(fields string) []Field {
 	var fieldsList []Field
 
-	// Always add ID field
+	// Always add ID field with GORM tags
 	fieldsList = append(fieldsList, Field{
 		Name: "ID",
-		Type: "int",
-		Tag:  "`json:\"id\"`",
+		Type: "uint",
+		Tag:  "`json:\"id\" gorm:\"primaryKey;autoIncrement\"`",
 	})
 
 	parts := strings.Split(fields, ",")
@@ -100,7 +100,10 @@ func parseFields(fields string) []Field {
 		if len(fieldParts) == 2 {
 			fieldName := strings.ToUpper(string(fieldParts[0][0])) + strings.ToLower(fieldParts[0][1:])
 			fieldType := strings.TrimSpace(fieldParts[1])
-			tag := fmt.Sprintf("`json:\"%s\"`", strings.ToLower(fieldName))
+
+			// Generate GORM tag based on field type
+			gormTag := getGormTag(fieldName, fieldType)
+			tag := fmt.Sprintf("`json:\"%s\" gorm:\"%s\"`", strings.ToLower(fieldName), gormTag)
 
 			fieldsList = append(fieldsList, Field{
 				Name: fieldName,
@@ -111,6 +114,30 @@ func parseFields(fields string) []Field {
 	}
 
 	return fieldsList
+}
+
+func getGormTag(fieldName, fieldType string) string {
+	switch fieldType {
+	case "string":
+		if fieldName == "Email" {
+			return "type:varchar(255);uniqueIndex;not null"
+		}
+		if fieldName == "Title" || fieldName == "Name" {
+			return "type:varchar(255);not null"
+		}
+		if fieldName == "Description" {
+			return "type:text"
+		}
+		return "type:varchar(255)"
+	case "int":
+		return "type:integer;not null;default:0"
+	case "bool":
+		return "type:boolean;not null;default:false"
+	case "float64":
+		return "type:decimal(10,2);not null;default:0"
+	default:
+		return "not null"
+	}
 }
 
 // hasStringBusinessRules checks if any field will require the strings package for business rules

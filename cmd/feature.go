@@ -95,6 +95,15 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 	fmt.Println("5️⃣  Generando mensajes...")
 	generateMessages(featureName, true, true, true)
 
+	// 6. Register entity for auto-migration
+	fmt.Println("6️⃣  Registrando entidad para auto-migración...")
+	if err := addEntityToAutoMigration(featureName); err != nil {
+		fmt.Printf("   ⚠️  No se pudo registrar entidad para auto-migración: %v\n", err)
+		fmt.Printf("   💡 La entidad se creó correctamente, pero deberás configurar la migración manualmente\n")
+	} else {
+		fmt.Printf("   ✅ Entidad %s registrada para auto-migración GORM\n", featureName)
+	}
+
 	fmt.Println("✅ Todas las capas generadas exitosamente!")
 }
 
@@ -313,9 +322,8 @@ func updateMainRoutes(featureName string) {
 		return
 	}
 
-	// Check if this is a basic main.go that needs complete setup
-	needsCompleteSetup := !strings.Contains(contentStr, "di.NewContainer") &&
-		!strings.Contains(contentStr, "internal/di")
+	// Always use complete GORM setup for consistency
+	needsCompleteSetup := true
 
 	if needsCompleteSetup {
 		fmt.Println("   🔧 Configurando main.go completo con DI...")
@@ -353,7 +361,6 @@ func updateMainGoWithCompleteSetup(mainPath, featureName, moduleName string) boo
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -363,13 +370,14 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
+	"gorm.io/driver/postgres"
 	"%s/internal/di"
 	"%s/pkg/config"
-
-	_ "github.com/lib/pq"
+	"%s/internal/domain"
 )
 
-var db *sql.DB
+var db *gorm.DB
 
 func main() {
 	// Load configuration
@@ -387,7 +395,6 @@ func main() {
 		log.Printf("💡 To fix: Configure database environment variables in .env file")
 		db = nil // Ensure db is nil for health checks
 	} else {
-		defer db.Close()
 		log.Printf("✅ Database connected successfully")
 		
 		// Run auto-migrations if database is connected
@@ -460,13 +467,10 @@ func main() {
 	log.Println("Server exited")
 }
 
-func connectToDatabase(cfg *config.Config) (*sql.DB, error) {
-	dbURL := cfg.GetDatabaseURL()
+func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
+	dsn := cfg.GetDatabaseURL()
 	
 	log.Printf("Connecting to database at %%s:%%s/%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
-	
-	var db *sql.DB
-	var err error
 	
 	// Check if this is development mode without database
 	if cfg.Environment == "development" && cfg.Database.Password == "" {
@@ -483,21 +487,29 @@ func connectToDatabase(cfg *config.Config) (*sql.DB, error) {
 	
 	// Retry connection up to 5 times
 	for i := 0; i < 5; i++ {
-		db, err = sql.Open("postgres", dbURL)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Printf("Attempt %%d: Failed to open database connection: %%v", i+1, err)
 			time.Sleep(time.Duration(i+1) * time.Second)
 			continue
 		}
 		
+		// Get underlying sql.DB for connection pool configuration
+		sqlDB, err := db.DB()
+		if err != nil {
+			log.Printf("Attempt %%d: Failed to get underlying SQL DB: %%v", i+1, err)
+			time.Sleep(time.Duration(i+1) * time.Second)
+			continue
+		}
+		
 		// Configure connection pool
-		db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
-		db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
-		db.SetConnMaxLifetime(cfg.Database.MaxLifetime)
+		sqlDB.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+		sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+		sqlDB.SetConnMaxLifetime(cfg.Database.MaxLifetime)
 		
 		// Test the connection
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		err = db.PingContext(ctx)
+		err = sqlDB.PingContext(ctx)
 		cancel()
 		
 		if err == nil {
@@ -505,7 +517,10 @@ func connectToDatabase(cfg *config.Config) (*sql.DB, error) {
 		}
 		
 		log.Printf("Attempt %%d: Database ping failed: %%v", i+1, err)
-		db.Close()
+		sqlDBClose, _ := db.DB()
+		if sqlDBClose != nil {
+			sqlDBClose.Close()
+		}
 		time.Sleep(time.Duration(i+1) * time.Second)
 	}
 	
@@ -556,64 +571,42 @@ func checkDatabase() error {
 		return fmt.Errorf("database connection is nil")
 	}
 	
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying sql DB: %%w", err)
+	}
+	
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	
-	return db.PingContext(ctx)
+	return sqlDB.PingContext(ctx)
 }
 
-func runAutoMigrations(database *sql.DB) error {
+func runAutoMigrations(database *gorm.DB) error {
 	if database == nil {
 		return fmt.Errorf("database connection is nil")
 	}
 	
-	// Check if migrations table exists
-	createMigrationsTable := "CREATE TABLE IF NOT EXISTS schema_migrations (version VARCHAR(255) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+	log.Println("🔄 Running GORM auto-migrations...")
 	
-	_, err := database.Exec(createMigrationsTable)
-	if err != nil {
-		return fmt.Errorf("failed to create migrations table: %%w", err)
+	// Create a slice of all domain entities to migrate
+	entities := []interface{}{
+		// Add domain entities here as they are created
+		&domain.%s{},
 	}
 	
-	// Run basic auto-migrations for generated features
-	migrations := []struct {
-		version string
-		sql     string
-	}{
-		{
-			version: "001_create_users_table",
-			sql: "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);",
-		},
-	}
-	
-	for _, migration := range migrations {
-		// Check if migration already applied
-		var count int
-		err := database.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE version = $1", migration.version).Scan(&count)
-		if err != nil {
-			return fmt.Errorf("failed to check migration status: %%w", err)
+	// Run auto-migration for all entities
+	for _, entity := range entities {
+		if err := database.AutoMigrate(entity); err != nil {
+			return fmt.Errorf("failed to auto-migrate entity %%T: %%w", entity, err)
 		}
-		
-		if count == 0 {
-			// Apply migration
-			_, err := database.Exec(migration.sql)
-			if err != nil {
-				return fmt.Errorf("failed to apply migration %%s: %%w", migration.version, err)
-			}
-			
-			// Record migration as applied
-			_, err = database.Exec("INSERT INTO schema_migrations (version) VALUES ($1)", migration.version)
-			if err != nil {
-				return fmt.Errorf("failed to record migration %%s: %%w", migration.version, err)
-			}
-			
-			log.Printf("✅ Applied migration: %%s", migration.version)
-		}
+		log.Printf("✅ Auto-migrated entity: %%T", entity)
 	}
 	
+	log.Println("✅ GORM auto-migrations completed successfully")
 	return nil
 }
-`, moduleName, moduleName, featureName, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower)
+`, moduleName, moduleName, moduleName, featureName, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName)
 
 	if err := os.WriteFile(mainPath, []byte(newMainContent), 0644); err != nil {
 		fmt.Printf("   ⚠️  Could not update main.go: %v\n", err)
@@ -630,9 +623,9 @@ func updateMainGoWithRoutes(mainPath, featureName, moduleName, contentStr string
 	// Add import for DI if not present
 	importPath := getImportPath(moduleName)
 	if !strings.Contains(contentStr, fmt.Sprintf("\"%s/internal/di\"", importPath)) {
-		// Try to add the import
+		// Try to add the import (GORM-based)
 		importPattern := "import ("
-		diImport := fmt.Sprintf("import (\n\t\"database/sql\"\n\t\"log\"\n\t\"net/http\"\n\n\t\"github.com/gorilla/mux\"\n\t\"%s/internal/di\"\n\t\"%s/pkg/config\"\n\t\"%s/pkg/logger\"\n\n\t_ \"github.com/lib/pq\"\n)", importPath, importPath, importPath)
+		diImport := fmt.Sprintf("import (\n\t\"context\"\n\t\"fmt\"\n\t\"log\"\n\t\"net/http\"\n\t\"os\"\n\t\"os/signal\"\n\t\"syscall\"\n\t\"time\"\n\n\t\"github.com/gorilla/mux\"\n\t\"gorm.io/gorm\"\n\t\"gorm.io/driver/postgres\"\n\t\"%s/internal/di\"\n\t\"%s/pkg/config\"\n\t\"%s/internal/domain\"\n)", importPath, importPath, importPath)
 
 		if strings.Contains(contentStr, importPattern) {
 			contentStr = strings.Replace(contentStr, importPattern, diImport[:len(importPattern)], 1)

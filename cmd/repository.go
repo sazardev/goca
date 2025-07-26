@@ -135,21 +135,20 @@ func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
-	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(getImportPath(moduleName))))
+	content.WriteString("\t\"gorm.io/gorm\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
 		content.WriteString("\t\"time\"\n")
 		content.WriteString("\t\"encoding/json\"\n")
 		content.WriteString("\t\"github.com/go-redis/redis/v8\"\n")
 		content.WriteString("\t\"context\"\n")
 	}
-	content.WriteString("\n\t_ \"github.com/lib/pq\"\n")
 	content.WriteString(")\n\n")
 
 	// Repository struct
 	repoName := fmt.Sprintf("postgres%sRepository", entity)
 	content.WriteString(fmt.Sprintf("type %s struct {\n", repoName))
-	content.WriteString("\tdb *sql.DB\n")
+	content.WriteString("\tdb *gorm.DB\n")
 	if cache {
 		content.WriteString("\tcache *redis.Client\n")
 		content.WriteString("\tcacheTTL time.Duration\n")
@@ -157,7 +156,7 @@ func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("}\n\n")
 
 	// Constructor
-	content.WriteString(fmt.Sprintf("func NewPostgres%sRepository(db *sql.DB", entity))
+	content.WriteString(fmt.Sprintf("func NewPostgres%sRepository(db *gorm.DB", entity))
 	if cache {
 		content.WriteString(", cache *redis.Client")
 	}
@@ -192,18 +191,15 @@ func generatePostgresSaveMethod(content *strings.Builder, entity, repoName strin
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Save(%s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss DEFAULT VALUES RETURNING id`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query).Scan(&%s.ID)\n",
-		repoVar, entityLower))
+	content.WriteString(fmt.Sprintf("\tresult := %s.db.Create(%s)\n", repoVar, entityLower))
 
 	if cache {
-		content.WriteString("\tif err == nil {\n")
+		content.WriteString("\tif result.Error == nil {\n")
 		content.WriteString(fmt.Sprintf("\t\t%s.invalidateCache(%s.ID)\n", repoVar, entityLower))
 		content.WriteString("\t}\n")
 	}
 
-	content.WriteString("\treturn err\n")
+	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }
 
@@ -223,12 +219,9 @@ func generatePostgresFindByIDMethod(content *strings.Builder, entity, repoName s
 	}
 
 	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `SELECT id FROM %ss WHERE id = $1`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query, id).Scan(&%s.ID)\n",
-		repoVar, entityLower))
-	content.WriteString("\tif err != nil {\n")
-	content.WriteString("\t\treturn nil, err\n")
+	content.WriteString(fmt.Sprintf("\tresult := %s.db.First(%s, id)\n", repoVar, entityLower))
+	content.WriteString("\tif result.Error != nil {\n")
+	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n\n")
 
 	if cache {
@@ -246,12 +239,9 @@ func generatePostgresFindByEmailMethod(content *strings.Builder, entity, repoNam
 	content.WriteString(fmt.Sprintf("func (%s *%s) FindByEmail(email string) (*domain.%s, error) {\n",
 		repoVar, repoName, entity))
 	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `SELECT id FROM %ss WHERE id = $1 LIMIT 1`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\terr := %s.db.QueryRow(query, email).Scan(&%s.ID)\n",
-		repoVar, entityLower))
-	content.WriteString("\tif err != nil {\n")
-	content.WriteString("\t\treturn nil, err\n")
+	content.WriteString(fmt.Sprintf("\tresult := %s.db.Where(\"email = ?\", email).First(%s)\n", repoVar, entityLower))
+	content.WriteString("\tif result.Error != nil {\n")
+	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn %s, nil\n", entityLower))
 	content.WriteString("}\n\n")
@@ -263,37 +253,32 @@ func generatePostgresUpdateMethod(content *strings.Builder, entity, repoName str
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Update(%s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `UPDATE %ss SET id = $1 WHERE id = $2`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t_, err := %s.db.Exec(query, %s.ID, %s.ID)\n",
-		repoVar, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\tresult := %s.db.Save(%s)\n", repoVar, entityLower))
 
 	if cache {
-		content.WriteString("\tif err == nil {\n")
+		content.WriteString("\tif result.Error == nil {\n")
 		content.WriteString(fmt.Sprintf("\t\t%s.invalidateCache(%s.ID)\n", repoVar, entityLower))
 		content.WriteString("\t}\n")
 	}
 
-	content.WriteString("\treturn err\n")
+	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }
 
 func generatePostgresDeleteMethod(content *strings.Builder, entity, repoName string, cache bool) {
-	entityLower := strings.ToLower(entity)
 	repoVar := strings.ToLower(string(repoName[0]))
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Delete(id int) error {\n",
 		repoVar, repoName))
-	content.WriteString(fmt.Sprintf("\tquery := `DELETE FROM %ss WHERE id = $1`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t_, err := %s.db.Exec(query, id)\n", repoVar))
+	content.WriteString(fmt.Sprintf("\tresult := %s.db.Delete(&domain.%s{}, id)\n", repoVar, entity))
 
 	if cache {
-		content.WriteString("\tif err == nil {\n")
+		content.WriteString("\tif result.Error == nil {\n")
 		content.WriteString(fmt.Sprintf("\t\t%s.invalidateCache(id)\n", repoVar))
 		content.WriteString("\t}\n")
 	}
 
-	content.WriteString("\treturn err\n")
+	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }
 
@@ -303,22 +288,10 @@ func generatePostgresFindAllMethod(content *strings.Builder, entity, repoName st
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) FindAll() ([]domain.%s, error) {\n",
 		repoVar, repoName, entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `SELECT id FROM %ss`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\trows, err := %s.db.Query(query)\n", repoVar))
-	content.WriteString("\tif err != nil {\n")
-	content.WriteString("\t\treturn nil, err\n")
-	content.WriteString("\t}\n")
-	content.WriteString("\tdefer rows.Close()\n\n")
-
 	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
-	content.WriteString("\tfor rows.Next() {\n")
-	content.WriteString(fmt.Sprintf("\t\tvar %s domain.%s\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\t\t// TODO: Scan all fields of your %s entity\n", entity))
-	content.WriteString(fmt.Sprintf("\t\tif err := rows.Scan(&%s.ID); err != nil {\n", entityLower))
-	content.WriteString("\t\t\treturn nil, err\n")
-	content.WriteString("\t\t}\n")
-	content.WriteString(fmt.Sprintf("\t\t%ss = append(%ss, %s)\n", entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\tresult := %s.db.Find(&%ss)\n", repoVar, entityLower))
+	content.WriteString("\tif result.Error != nil {\n")
+	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n\n")
 
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
@@ -332,29 +305,25 @@ func generatePostgresTransactionMethods(content *strings.Builder, entity, repoNa
 	// SaveWithTx
 	content.WriteString(fmt.Sprintf("func (%s *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
-	content.WriteString("\tsqlTx := tx.(*sql.Tx)\n")
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss DEFAULT VALUES RETURNING id`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\treturn sqlTx.QueryRow(query).Scan(&%s.ID)\n", entityLower))
+	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
+	content.WriteString(fmt.Sprintf("\tresult := gormTx.Create(%s)\n", entityLower))
+	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// UpdateWithTx
 	content.WriteString(fmt.Sprintf("func (%s *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity))
-	content.WriteString("\tsqlTx := tx.(*sql.Tx)\n")
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `UPDATE %ss SET updated_at = NOW() WHERE id = $1`\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t_, err := sqlTx.Exec(query, %s.ID)\n", entityLower))
-	content.WriteString("\treturn err\n")
+	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
+	content.WriteString(fmt.Sprintf("\tresult := gormTx.Save(%s)\n", entityLower))
+	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// DeleteWithTx
 	content.WriteString(fmt.Sprintf("func (%s *%s) DeleteWithTx(tx interface{}, id int) error {\n",
 		repoVar, repoName))
-	content.WriteString("\tsqlTx := tx.(*sql.Tx)\n")
-	content.WriteString(fmt.Sprintf("\tquery := `DELETE FROM %ss WHERE id = $1`\n", entityLower))
-	content.WriteString("\t_, err := sqlTx.Exec(query, id)\n")
-	content.WriteString("\treturn err\n")
+	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
+	content.WriteString(fmt.Sprintf("\tresult := gormTx.Delete(&domain.%s{}, id)\n", entity))
+	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }
 

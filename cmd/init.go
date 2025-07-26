@@ -111,18 +111,18 @@ func createGoMod(projectName, module, database string, auth bool) {
 	var dependencies string
 
 	// Base dependencies
-	baseDeps := `github.com/gorilla/mux v1.8.0`
+	baseDeps := `github.com/gorilla/mux v1.8.0
+	gorm.io/gorm v1.25.5
+	gorm.io/driver/postgres v1.5.4`
 
 	switch database {
 	case "mysql":
 		baseDeps += `
-	github.com/go-sql-driver/mysql v1.7.1`
+	gorm.io/driver/mysql v1.5.2`
 	case "mongodb":
 		baseDeps += `
 	go.mongodb.org/mongo-driver v1.12.1`
-	default: // postgres
-		baseDeps += `
-	github.com/lib/pq v1.10.9`
+	default: // postgres - already included above
 	}
 
 	// Add JWT dependency if auth is enabled
@@ -174,7 +174,6 @@ func createMainGo(projectName, module, _ string) {
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -185,10 +184,11 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"gorm.io/gorm"
+	"gorm.io/driver/postgres"
 	"%s/pkg/config"
 	"%s/pkg/logger"
-	
-	_ "github.com/lib/pq"
+	"%s/internal/domain"
 )
 
 type HealthStatus struct {
@@ -202,7 +202,7 @@ var (
 	// Build information (set by build flags)
 	Version   = "dev"
 	BuildTime = "unknown"
-	db        *sql.DB
+	db        *gorm.DB
 )
 
 func main() {
@@ -224,7 +224,6 @@ func main() {
 		log.Printf("💡 To fix: Configure database environment variables in .env file")
 		db = nil // Ensure db is nil for health checks
 	} else {
-		defer db.Close()
 		log.Printf("✅ Database connected successfully")
 		
 		// Run auto-migrations if database is connected
@@ -279,13 +278,10 @@ func main() {
 	log.Println("Server exited")
 }
 
-func connectToDatabase(cfg *config.Config) (*sql.DB, error) {
-	dbURL := cfg.GetDatabaseURL()
+func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
+	dsn := cfg.GetDatabaseURL()
 	
 	log.Printf("Connecting to database at %%s:%%s/%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
-	
-	var db *sql.DB
-	var err error
 	
 	// Check if this is development mode without database
 	if cfg.Environment == "development" && cfg.Database.Password == "" {
@@ -302,35 +298,45 @@ func connectToDatabase(cfg *config.Config) (*sql.DB, error) {
 	
 	// Retry connection up to 5 times
 	for i := 0; i < 5; i++ {
-		db, err = sql.Open("postgres", dbURL)
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Printf("Attempt %%d: Failed to open database connection: %%v", i+1, err)
 			time.Sleep(time.Duration(i+1) * time.Second)
 			continue
 		}
 		
-		// Configure connection pool
-		db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
-		db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
-		db.SetConnMaxLifetime(cfg.Database.MaxLifetime)
-		
-		// Test connection
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		err = db.PingContext(ctx)
-		cancel()
-		
+		// Get underlying sql.DB for connection pool configuration
+		sqlDB, err := db.DB()
 		if err != nil {
-			log.Printf("Attempt %%d: Failed to ping database: %%v", i+1, err)
-			db.Close()
+			log.Printf("Attempt %%d: Failed to get underlying SQL DB: %%v", i+1, err)
 			time.Sleep(time.Duration(i+1) * time.Second)
 			continue
 		}
 		
-		// Connection successful
-		return db, nil
+		// Configure connection pool
+		sqlDB.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+		sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+		sqlDB.SetConnMaxLifetime(cfg.Database.MaxLifetime)
+		
+		// Test the connection
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		err = sqlDB.PingContext(ctx)
+		cancel()
+		
+		if err == nil {
+			return db, nil
+		}
+		
+		log.Printf("Attempt %%d: Database ping failed: %%v", i+1, err)
+		sqlDBClose, _ := db.DB()
+		if sqlDBClose != nil {
+			sqlDBClose.Close()
+		}
+		time.Sleep(time.Duration(i+1) * time.Second)
 	}
 	
-	return nil, fmt.Errorf("failed to connect to database after 5 attempts: %%w", err)
+	return nil, fmt.Errorf("failed to connect to database after 5 attempts")
+}
 }
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
@@ -378,65 +384,56 @@ func checkDatabase() error {
 		return fmt.Errorf("database connection is nil")
 	}
 	
+	sqlDB, err := db.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying sql DB: %w", err)
+	}
+	
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	
-	return db.PingContext(ctx)
+	return sqlDB.PingContext(ctx)
 }
 
-func runAutoMigrations(database *sql.DB) error {
+func runAutoMigrations(database *gorm.DB) error {
 	if database == nil {
 		return fmt.Errorf("database connection is nil")
 	}
 	
-	// Check if migrations table exists
-	createMigrationsTable := "CREATE TABLE IF NOT EXISTS schema_migrations (version VARCHAR(255) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+	// Auto-migrate domain entities using GORM
+	log.Println("🔄 Running GORM auto-migrations...")
 	
-	_, err := database.Exec(createMigrationsTable)
+	// Create a slice of all domain entities to migrate
+	entities := []interface{}{
+		// Add domain entities here as they are created
+		// Example: &domain.User{}, &domain.Product{}
+	}
+	
+	// Run auto-migration for all entities
+	for _, entity := range entities {
+		if err := database.AutoMigrate(entity); err != nil {
+			return fmt.Errorf("failed to auto-migrate entity %T: %w", entity, err)
+		}
+	}
+	
+	// For now, just ensure the connection works
+	sqlDB, err := database.DB()
 	if err != nil {
-		return fmt.Errorf("failed to create migrations table: %%w", err)
+		return fmt.Errorf("failed to get underlying SQL DB: %w", err)
 	}
 	
-	// Run basic auto-migrations for generated features
-	migrations := []struct {
-		version string
-		sql     string
-	}{
-		{
-			version: "001_create_users_table",
-			sql: "CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name VARCHAR(255) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP); CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);",
-		},
+	if err := sqlDB.Ping(); err != nil {
+		return fmt.Errorf("database ping failed: %w", err)
 	}
 	
-	for _, migration := range migrations {
-		// Check if migration already applied
-		var count int
-		err := database.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE version = $1", migration.version).Scan(&count)
-		if err != nil {
-			return fmt.Errorf("failed to check migration status: %%w", err)
-		}
-		
-		if count == 0 {
-			// Apply migration
-			_, err := database.Exec(migration.sql)
-			if err != nil {
-				return fmt.Errorf("failed to apply migration %%s: %%w", migration.version, err)
-			}
-			
-			// Record migration as applied
-			_, err = database.Exec("INSERT INTO schema_migrations (version) VALUES ($1)", migration.version)
-			if err != nil {
-				return fmt.Errorf("failed to record migration %%s: %%w", migration.version, err)
-			}
-			
-			log.Printf("✅ Applied migration: %%s", migration.version)
-		}
-	}
+	log.Println("✅ GORM auto-migrations completed successfully")
+	return nil
+}
 	
 	return nil
 }
 
-`, module, module)
+`, module, module, module)
 
 	writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content)
 }

@@ -72,13 +72,13 @@ func generateManualDI(dir string, features []string, database string) {
 	var content strings.Builder
 	content.WriteString("package di\n\n")
 	content.WriteString("import (\n")
-	content.WriteString("\t\"database/sql\"\n\n")
+	content.WriteString("\t\"gorm.io/gorm\"\n\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", importPath))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
 	content.WriteString(")\n\n") // Container struct
 	content.WriteString("type Container struct {\n")
-	content.WriteString("\tdb *sql.DB\n\n")
+	content.WriteString("\tdb *gorm.DB\n\n")
 
 	// Repositories
 	content.WriteString("\t// Repositories\n")
@@ -104,7 +104,7 @@ func generateManualDI(dir string, features []string, database string) {
 	content.WriteString("}\n\n")
 
 	// Constructor
-	content.WriteString("func NewContainer(db *sql.DB) *Container {\n")
+	content.WriteString("func NewContainer(db *gorm.DB) *Container {\n")
 	content.WriteString("\tc := &Container{db: db}\n")
 	content.WriteString("\tc.setupRepositories()\n")
 	content.WriteString("\tc.setupUseCases()\n")
