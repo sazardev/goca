@@ -54,7 +54,7 @@ func detectExistingFeatures() []string {
 	var features []string
 
 	// Look for domain entities in internal/domain
-	domainDir := filepath.Join("internal", "domain")
+	domainDir := filepath.Join(DirInternal, DirDomain)
 	if entries, err := os.ReadDir(domainDir); err == nil {
 		for _, entry := range entries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") {
@@ -71,7 +71,7 @@ func detectExistingFeatures() []string {
 	}
 
 	// Also look for handlers in internal/handler/http
-	httpDir := filepath.Join("internal", "handler", "http")
+	httpDir := filepath.Join(DirInternal, DirHandler, DirHTTP)
 	if entries, err := os.ReadDir(httpDir); err == nil {
 		for _, entry := range entries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), "_handler.go") {
@@ -119,7 +119,7 @@ func createOrUpdateDIContainer(features []string) {
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		fmt.Println("   📦 Creando contenedor DI...")
-		generateDI(strings.Join(features, ","), "postgres", false)
+		generateDI(strings.Join(features, ","), DBPostgres, false)
 	} else {
 		fmt.Println("   🔄 Actualizando contenedor DI existente...")
 		for _, feature := range features {
@@ -227,7 +227,7 @@ func main() {
 	logger.Init()
 
 	// Connect to database
-	db, err := sql.Open("postgres", cfg.DatabaseURL)
+	db, err := sql.Open(DBPostgres, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}

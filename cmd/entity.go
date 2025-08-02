@@ -24,13 +24,26 @@ sin dependencias externas y con validaciones de negocio.`,
 		timestamps, _ := cmd.Flags().GetBool("timestamps")
 		softDelete, _ := cmd.Flags().GetBool("soft-delete")
 
-		if fields == "" {
-			fmt.Println("Error: --fields flag es requerido")
+		// Validar campos con el nuevo validador robusto
+		validator := NewFieldValidator()
+
+		if err := validator.ValidateEntityName(entityName); err != nil {
+			fmt.Printf("❌ Error: %v\n", err)
 			os.Exit(1)
 		}
 
-		fmt.Printf("Generando entidad '%s'\n", entityName)
-		fmt.Printf("Campos: %s\n", fields)
+		if fields == "" {
+			fmt.Println("❌ Error: --fields flag es requerido")
+			os.Exit(1)
+		}
+
+		if err := validator.ValidateFields(fields); err != nil {
+			fmt.Printf("❌ Error en campos: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("🚀 Generando entidad '%s'\n", entityName)
+		fmt.Printf("📋 Campos: %s\n", fields)
 
 		if validation {
 			fmt.Println("✓ Incluyendo validaciones")
@@ -85,34 +98,12 @@ type Field struct {
 }
 
 func parseFields(fields string) []Field {
-	var fieldsList []Field
-
-	// Always add ID field with GORM tags
-	fieldsList = append(fieldsList, Field{
-		Name: "ID",
-		Type: "uint",
-		Tag:  "`json:\"id\" gorm:\"primaryKey;autoIncrement\"`",
-	})
-
-	parts := strings.Split(fields, ",")
-	for _, part := range parts {
-		fieldParts := strings.Split(strings.TrimSpace(part), ":")
-		if len(fieldParts) == 2 {
-			fieldName := strings.ToUpper(string(fieldParts[0][0])) + strings.ToLower(fieldParts[0][1:])
-			fieldType := strings.TrimSpace(fieldParts[1])
-
-			// Generate GORM tag based on field type
-			gormTag := getGormTag(fieldName, fieldType)
-			tag := fmt.Sprintf("`json:\"%s\" gorm:\"%s\"`", strings.ToLower(fieldName), gormTag)
-
-			fieldsList = append(fieldsList, Field{
-				Name: fieldName,
-				Type: fieldType,
-				Tag:  tag,
-			})
-		}
+	validator := NewFieldValidator()
+	fieldsList, err := validator.ParseFieldsWithValidation(fields)
+	if err != nil {
+		fmt.Printf("❌ Error en validación de campos: %v\n", err)
+		os.Exit(1)
 	}
-
 	return fieldsList
 }
 

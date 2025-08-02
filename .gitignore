@@ -32,3 +32,13 @@ testdata.json
 *.tar.bz2
 *.tar.xz
 *.backup
+goca
+goca.exe
+goca.out
+goca.test
+goca.log
+goca.tmp
+goca.cache
+goca.swp
+goca.bak
+goca.old

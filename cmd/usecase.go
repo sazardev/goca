@@ -56,7 +56,7 @@ func generateUseCase(usecaseName, entity, operations string, dtoValidation, asyn
 
 func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValidation, async bool, fields string) {
 	// Create usecase directory
-	usecaseDir := filepath.Join("internal", "usecase")
+	usecaseDir := filepath.Join(DirInternal, DirUseCase)
 	_ = os.MkdirAll(usecaseDir, 0755)
 
 	// Parse operations

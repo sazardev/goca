@@ -31,7 +31,7 @@ var handlerCmd = &cobra.Command{
 		if validation {
 			fmt.Println("✓ Incluyendo validación")
 		}
-		if swagger && handlerType == "http" {
+		if swagger && handlerType == HandlerHTTP {
 			fmt.Println("✓ Incluyendo documentación Swagger")
 		}
 
@@ -42,11 +42,11 @@ var handlerCmd = &cobra.Command{
 
 func generateHandler(entity, handlerType string, middleware, validation, swagger bool) {
 	switch handlerType {
-	case "http":
+	case HandlerHTTP:
 		generateHTTPHandler(entity, middleware, validation, swagger)
-	case "grpc":
+	case HandlerGRPC:
 		generateGRPCHandler(entity)
-	case "cli":
+	case HandlerCLI:
 		generateCLIHandler(entity)
 	case "worker":
 		generateWorkerHandler(entity)
@@ -60,7 +60,7 @@ func generateHandler(entity, handlerType string, middleware, validation, swagger
 
 func generateHTTPHandler(entity string, middleware, validation, swagger bool) {
 	// Crear directorio handlers si no existe
-	handlerDir := "internal/handler/http"
+	handlerDir := filepath.Join(DirInternal, DirHandler, DirHTTP)
 	_ = os.MkdirAll(handlerDir, 0755) // Generate handler file
 	generateHTTPHandlerFile(handlerDir, entity, validation)
 
@@ -86,7 +86,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	importPath := getImportPath(moduleName)
 
 	var content strings.Builder
-	content.WriteString("package http\n\n")
+	content.WriteString("package " + DirHTTP + "\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"encoding/json\"\n")
 	content.WriteString("\t\"net/http\"\n")
@@ -429,7 +429,7 @@ components:
 
 func generateGRPCHandler(entity string) {
 	// Create gRPC directory
-	grpcDir := filepath.Join("internal", "handler", "grpc")
+	grpcDir := filepath.Join(DirInternal, DirHandler, DirGRPC)
 	_ = os.MkdirAll(grpcDir, 0755)
 
 	generateProtoFile(grpcDir, entity)
@@ -572,7 +572,7 @@ func generateGRPCServerFile(dir, entity string) {
 
 func generateCLIHandler(entity string) {
 	// Create CLI directory
-	cliDir := filepath.Join("internal", "handler", "cli")
+	cliDir := filepath.Join(DirInternal, DirHandler, DirCLI)
 	_ = os.MkdirAll(cliDir, 0755)
 
 	// Get the module name from go.mod
@@ -665,7 +665,7 @@ func generateCLIHandler(entity string) {
 
 func generateWorkerHandler(entity string) {
 	// Create worker directory
-	workerDir := filepath.Join("internal", "handler", "worker")
+	workerDir := filepath.Join(DirInternal, DirHandler, DirWorker)
 	_ = os.MkdirAll(workerDir, 0755)
 
 	// Get the module name from go.mod
@@ -734,7 +734,7 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 
 func generateSOAPHandler(entity string) {
 	// Create SOAP directory
-	soapDir := filepath.Join("internal", "handler", "soap")
+	soapDir := filepath.Join(DirInternal, DirHandler, DirSOAP)
 	_ = os.MkdirAll(soapDir, 0755)
 
 	// Get the module name from go.mod

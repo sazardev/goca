@@ -24,8 +24,31 @@ incluyendo dominio, casos de uso, repositorio y handlers en una sola operación.
 		validation, _ := cmd.Flags().GetBool("validation")
 		businessRules, _ := cmd.Flags().GetBool("business-rules")
 
+		// Validar con el nuevo validador robusto
+		validator := NewFieldValidator()
+
+		if err := validator.ValidateEntityName(featureName); err != nil {
+			fmt.Printf("❌ Error en nombre de feature: %v\n", err)
+			return
+		}
+
 		if fields == "" {
-			fmt.Println("Error: --fields flag es requerido")
+			fmt.Println("❌ Error: --fields flag es requerido")
+			return
+		}
+
+		if err := validator.ValidateFields(fields); err != nil {
+			fmt.Printf("❌ Error en campos: %v\n", err)
+			return
+		}
+
+		if err := validator.ValidateDatabase(database); err != nil {
+			fmt.Printf("❌ Error en base de datos: %v\n", err)
+			return
+		}
+
+		if err := validator.ValidateHandlers(handlers); err != nil {
+			fmt.Printf("❌ Error en handlers: %v\n", err)
 			return
 		}
 
@@ -134,7 +157,7 @@ func printFeatureStructure(featureName, handlers string) {
 │   ├── http/
 │   │   ├── %s_handler.go   # Controlador HTTP
 │   │   └── routes.go       # Rutas HTTP`, featureLower)
-		case "grpc":
+		case HandlerGRPC:
 			fmt.Printf(`
 │   ├── grpc/
 │   │   ├── %s.proto        # Definición gRPC
@@ -345,8 +368,8 @@ func updateMainRoutes(featureName string) {
 func init() {
 	rootCmd.AddCommand(featureCmd)
 	featureCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"field:type,field2:type\" (requerido)")
-	featureCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")
-	featureCmd.Flags().StringP("handlers", "", "http", "Tipos de handlers \"http,grpc,cli\"")
+	featureCmd.Flags().StringP("database", "d", DBPostgres, fmt.Sprintf("Tipo de base de datos (%s)", strings.Join(ValidDatabases, ", ")))
+	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Tipos de handlers (%s)", strings.Join(ValidHandlers, ", ")))
 	featureCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones en todas las capas")
 	featureCmd.Flags().BoolP("business-rules", "b", false, "Incluir métodos de reglas de negocio")
 

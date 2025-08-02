@@ -217,3 +217,107 @@ func writeFileOrPanic(path, content string) {
 		// No hacer panic, solo imprimir el error y continuar
 	}
 }
+
+// generateSearchMethods genera métodos de búsqueda basados en los campos de la entidad
+func generateSearchMethods(fields []Field, entity string) []SearchMethod {
+	var methods []SearchMethod
+
+	for _, field := range fields {
+		if field.Name == "ID" {
+			continue // ID ya tiene FindByID por defecto
+		}
+
+		// Generar métodos para campos que comúnmente se usan para búsquedas
+		if isSearchableField(field.Name, field.Type) {
+			method := SearchMethod{
+				MethodName: fmt.Sprintf("FindBy%s", field.Name),
+				FieldName:  field.Name,
+				FieldType:  field.Type,
+				ReturnType: fmt.Sprintf("(*domain.%s, error)", entity),
+				IsUnique:   isUniqueField(field.Name),
+			}
+			methods = append(methods, method)
+		}
+	}
+
+	return methods
+}
+
+// isSearchableField determina si un campo debería tener un método de búsqueda
+func isSearchableField(fieldName, fieldType string) bool {
+	// Tipos que no son apropiados para búsquedas
+	if fieldType == "[]byte" || fieldType == "interface{}" {
+		return false
+	}
+
+	fieldLower := strings.ToLower(fieldName)
+
+	// Campos comunes que suelen usarse para búsquedas
+	searchableFields := []string{
+		"email", "username", "nombre", "name", "codigo", "code",
+		"sku", "slug", "telefono", "phone", "documento", "dni",
+		"cedula", "passport", "license", "titulo", "title",
+	}
+
+	for _, searchable := range searchableFields {
+		if strings.Contains(fieldLower, searchable) {
+			return true
+		}
+	}
+
+	// Solo campos string, int y uint son buenos para búsquedas
+	return fieldType == "string" || fieldType == "int" || fieldType == "uint"
+}
+
+// isUniqueField determina si un campo probablemente debería ser único
+func isUniqueField(fieldName string) bool {
+	fieldLower := strings.ToLower(fieldName)
+	uniqueFields := []string{
+		"email", "username", "codigo", "code", "sku", "slug",
+		"documento", "dni", "cedula", "passport", "license",
+	}
+
+	for _, unique := range uniqueFields {
+		if strings.Contains(fieldLower, unique) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// SearchMethod representa un método de búsqueda generado dinámicamente
+type SearchMethod struct {
+	MethodName string // FindByEmail, FindByUsername, etc.
+	FieldName  string // Email, Username, etc.
+	FieldType  string // string, int, etc.
+	ReturnType string // (*domain.User, error)
+	IsUnique   bool   // true si debería retornar un solo resultado
+}
+
+// generateSearchMethodSignature genera la firma del método de búsqueda
+func (sm SearchMethod) generateSearchMethodSignature() string {
+	paramName := strings.ToLower(sm.FieldName)
+	return fmt.Sprintf("\t%s(%s %s) %s", sm.MethodName, paramName, sm.FieldType, sm.ReturnType)
+}
+
+// generateSearchMethodImplementation genera la implementación del método de búsqueda
+func (sm SearchMethod) generateSearchMethodImplementation(receiverName, receiverType, entity string) string {
+	paramName := strings.ToLower(sm.FieldName)
+	entityVar := strings.ToLower(entity)
+
+	var implementation strings.Builder
+	implementation.WriteString(fmt.Sprintf("func (%s *%s) %s(%s %s) %s {\n",
+		receiverName, receiverType, sm.MethodName, paramName, sm.FieldType, sm.ReturnType))
+
+	implementation.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityVar, entity))
+	implementation.WriteString(fmt.Sprintf("\tresult := %s.db.Where(\"%s = ?\", %s).First(%s)\n",
+		receiverName, strings.ToLower(sm.FieldName), paramName, entityVar))
+	implementation.WriteString("\tif result.Error != nil {\n")
+	implementation.WriteString("\t\treturn nil, result.Error\n")
+	implementation.WriteString("\t}\n")
+	implementation.WriteString(fmt.Sprintf("\treturn %s, nil\n", entityVar))
+	implementation.WriteString("}\n\n")
+
+	return implementation.String()
+}

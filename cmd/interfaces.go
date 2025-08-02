@@ -117,6 +117,10 @@ func generateUseCaseInterfaceFile(dir, entity string) {
 }
 
 func generateRepositoryInterfaceFile(dir, entity string) {
+	generateRepositoryInterfaceFileWithFields(dir, entity, "")
+}
+
+func generateRepositoryInterfaceFileWithFields(dir, entity, fields string) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -133,13 +137,30 @@ func generateRepositoryInterfaceFile(dir, entity string) {
 	// Basic CRUD operations
 	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", entityLower, entity))
 	content.WriteString(fmt.Sprintf("\tFindByID(id int) (*domain.%s, error)\n", entity))
-	content.WriteString(fmt.Sprintf("\tFindByEmail(email string) (*domain.%s, error)\n", entity))
+
+	// Generate dynamic query methods based on fields
+	if fields != "" {
+		validator := NewFieldValidator()
+		fieldsList, err := validator.ParseFieldsWithValidation(fields)
+		if err == nil {
+			queryMethods := validator.GenerateQueryMethodsForFields(entity, fieldsList)
+			for _, method := range queryMethods {
+				if method.MethodName != "FindByID" { // Skip ID as it's already added
+					content.WriteString(fmt.Sprintf("\t%s(%s %s) (*domain.%s, error)\n",
+						method.MethodName, method.Field, method.Type, entity))
+				}
+			}
+		}
+	} else {
+		// Fallback to basic query method if no fields specified
+		content.WriteString(fmt.Sprintf("\tFindByEmail(email string) (*domain.%s, error)\n", entity))
+	}
+
 	content.WriteString(fmt.Sprintf("\tUpdate(%s *domain.%s) error\n", entityLower, entity))
 	content.WriteString("\tDelete(id int) error\n")
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 
 	// Query operations
-	content.WriteString(fmt.Sprintf("\tFindBy%sName(name string) ([]domain.%s, error)\n", entity, entity))
 	content.WriteString("\tCount() (int, error)\n")
 	content.WriteString("\tExists(id int) (bool, error)\n")
 
