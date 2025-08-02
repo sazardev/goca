@@ -24,25 +24,16 @@ sin dependencias externas y con validaciones de negocio.`,
 		timestamps, _ := cmd.Flags().GetBool("timestamps")
 		softDelete, _ := cmd.Flags().GetBool("soft-delete")
 
-		// Validar campos con el nuevo validador robusto
-		validator := NewFieldValidator()
+		// Usar validador centralizado
+		validator := NewCommandValidator()
 
-		if err := validator.ValidateEntityName(entityName); err != nil {
-			fmt.Printf("❌ Error: %v\n", err)
-			os.Exit(1)
+		if err := validator.ValidateEntityCommand(entityName, fields); err != nil {
+			validator.errorHandler.HandleError(err, "validación de parámetros")
 		}
 
-		if fields == "" {
-			fmt.Println("❌ Error: --fields flag es requerido")
-			os.Exit(1)
-		}
+		validator.errorHandler.ValidateRequiredFlag(fields, "fields")
 
-		if err := validator.ValidateFields(fields); err != nil {
-			fmt.Printf("❌ Error en campos: %v\n", err)
-			os.Exit(1)
-		}
-
-		fmt.Printf("🚀 Generando entidad '%s'\n", entityName)
+		fmt.Printf(MsgGeneratingEntity+"\n", entityName)
 		fmt.Printf("📋 Campos: %s\n", fields)
 
 		if validation {
@@ -59,7 +50,7 @@ sin dependencias externas y con validaciones de negocio.`,
 		}
 
 		generateEntity(entityName, fields, validation, businessRules, timestamps, softDelete)
-		fmt.Printf("\n✅ Entidad '%s' generada exitosamente!\n", entityName)
+		validator.errorHandler.HandleSuccess(fmt.Sprintf(MsgEntityGenerated, entityName))
 	},
 }
 

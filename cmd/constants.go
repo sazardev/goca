@@ -167,4 +167,27 @@ const (
 	ErrInvalidFieldSyntax = "sintaxis de campo no válida. Formato esperado: 'nombre:tipo'"
 	ErrInvalidEntityName  = "nombre de entidad no válido"
 	ErrEmptyFields        = "campos no pueden estar vacíos"
+	ErrRequiredFlag       = "flag requerido no proporcionado"
+	ErrFileNotFound       = "archivo no encontrado"
+	ErrDirectoryNotFound  = "directorio no encontrado"
+)
+
+// Success messages
+const (
+	MsgEntityGenerated     = "Entidad '%s' generada exitosamente!"
+	MsgFeatureGenerated    = "Feature '%s' generado e integrado exitosamente!"
+	MsgRepositoryGenerated = "Repositorio para '%s' generado exitosamente!"
+	MsgHandlerGenerated    = "Handler '%s' para '%s' generado exitosamente!"
+	MsgUseCaseGenerated    = "Caso de uso '%s' generado exitosamente!"
+	MsgProjectInitialized  = "Proyecto '%s' creado exitosamente!"
+)
+
+// Info messages
+const (
+	MsgGeneratingEntity     = "Generando entidad '%s'"
+	MsgGeneratingFeature    = "Generando feature completo '%s'"
+	MsgGeneratingRepository = "Generando repositorio para entidad '%s'"
+	MsgGeneratingHandler    = "Generando handler '%s' para entidad '%s'"
+	MsgGeneratingUseCase    = "Generando caso de uso '%s' para entidad '%s'"
+	MsgGeneratingLayers     = "Generando capas..."
 )

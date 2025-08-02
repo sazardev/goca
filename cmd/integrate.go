@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var integrateCmd = &cobra.Command{
@@ -63,7 +65,8 @@ func detectExistingFeatures() []string {
 				if name != "errors" && name != "validations" && name != "common" {
 					// Capitalize first letter to match feature naming
 					if len(name) > 0 {
-						features = append(features, strings.Title(name))
+						caser := cases.Title(language.English)
+						features = append(features, caser.String(name))
 					}
 				}
 			}
@@ -76,7 +79,8 @@ func detectExistingFeatures() []string {
 		for _, entry := range entries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), "_handler.go") {
 				name := strings.TrimSuffix(entry.Name(), "_handler.go")
-				featureName := strings.Title(name)
+				caser := cases.Title(language.English)
+				featureName := caser.String(name)
 
 				// Only add if not already in the list
 				found := false
