@@ -105,19 +105,19 @@ func generateErrorMessages(dir, entity string) {
 
 	// Add new entity error messages
 	existingContent.WriteString(fmt.Sprintf("\t// %s errors\n", entity))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sNotFound        = \"%s not found\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sAlreadyExists   = \"%s already exists\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErrInvalid%sData     = \"invalid %s data\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sNotFound        = \"%s no encontrado\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sAlreadyExists   = \"%s ya existe\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErrInvalid%sData     = \"datos de %s inválidos\"\n", entity, entityLower))
 
 	// Field-specific errors
-	existingContent.WriteString(fmt.Sprintf("\tErr%sEmailRequired   = \"%s email is required\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sNameRequired    = \"%s name is required\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sAgeInvalid      = \"%s age must be positive\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sEmailRequired   = \"email de %s es requerido\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sNameRequired    = \"nombre de %s es requerido\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sAgeInvalid      = \"edad de %s debe ser positiva\"\n", entity, entityLower))
 
 	// Business logic errors
-	existingContent.WriteString(fmt.Sprintf("\tErr%sAccessDenied    = \"access denied to %s\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sUpdateFailed    = \"failed to update %s\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sDeleteFailed    = \"failed to delete %s\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sAccessDenied    = \"acceso denegado a %s\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sUpdateFailed    = \"falló al actualizar %s\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\tErr%sDeleteFailed    = \"falló al eliminar %s\"\n", entity, entityLower))
 
 	// Close the const block
 	existingContent.WriteString(")\n")
@@ -154,16 +154,16 @@ func generateResponseMessages(dir, entity string) {
 
 	// Add new entity messages
 	existingContent.WriteString(fmt.Sprintf("\t// %s success messages\n", entity))
-	existingContent.WriteString(fmt.Sprintf("\t%sCreatedSuccessfully = \"%s created successfully\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sUpdatedSuccessfully = \"%s updated successfully\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sDeletedSuccessfully = \"%s deleted successfully\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sFoundSuccessfully   = \"%s found successfully\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%ssListedSuccessfully = \"%ss listed successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sCreatedSuccessfully = \"%s creado exitosamente\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sUpdatedSuccessfully = \"%s actualizado exitosamente\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sDeletedSuccessfully = \"%s eliminado exitosamente\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sFoundSuccessfully   = \"%s encontrado exitosamente\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%ssListedSuccessfully = \"%ss listados exitosamente\"\n", entity, entityLower))
 
 	// Operation messages
-	existingContent.WriteString(fmt.Sprintf("\t%sProcessingStarted   = \"%s processing started\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sProcessingCompleted = \"%s processing completed\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sValidationPassed    = \"%s validation passed\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sProcessingStarted   = \"procesamiento de %s iniciado\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sProcessingCompleted = \"procesamiento de %s completado\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sValidationPassed    = \"validación de %s exitosa\"\n", entity, entityLower))
 
 	// Close the const block
 	existingContent.WriteString(")\n")

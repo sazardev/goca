@@ -89,7 +89,7 @@ func generateRepositoryInterface(dir, entity string, transactions bool) {
 	} else {
 		// File doesn't exist, create header
 		content.WriteString("package repository\n\n")
-		content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(getImportPath(moduleName))))
+		content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
 	}
 
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
@@ -340,19 +340,17 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t\"database/sql\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
-		content.WriteString("\t// TODO: Add cache imports when cache is implemented\n")
+		content.WriteString("\t// Imports para cache (Redis, etc.)\n")
+		content.WriteString("\t// \"github.com/go-redis/redis/v8\"\n")
 	}
 	if transactions {
-		content.WriteString("\t// TODO: Add transaction support\n")
+		content.WriteString("\t// Soporte para transacciones SQL\n")
+		content.WriteString("\t// \"database/sql/driver\"\n")
 	}
-	content.WriteString("package repository\n\n")
-	content.WriteString("import (\n")
-	content.WriteString("\t\"database/sql\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString("\n\t_ \"github.com/go-sql-driver/mysql\"\n")
 	content.WriteString(")\n\n")
 
-	// Similar structure to Postgres but with MySQL syntax
+	// MySQL repository structure
 	repoName := fmt.Sprintf("mysql%sRepository", entity)
 	content.WriteString(fmt.Sprintf("type %s struct {\n", repoName))
 	content.WriteString("\tdb *sql.DB\n")
@@ -365,9 +363,9 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	// Basic Save method for MySQL
 	content.WriteString(fmt.Sprintf("func (r *%s) Save(%s *domain.%s) error {\n",
 		repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Customize this query based on your %s entity fields\n", entity))
-	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss () VALUES ()`\n", entityLower))
-	content.WriteString("\tresult, err := r.db.Exec(query)\n")
+	content.WriteString(fmt.Sprintf("\t// Query personalizada para tu entidad %s\n", entity))
+	content.WriteString(fmt.Sprintf("\tquery := `INSERT INTO %ss (nombre, email, edad, created_at) VALUES (?, ?, ?, NOW())`\n", entityLower))
+	content.WriteString(fmt.Sprintf("\tresult, err := r.db.Exec(query, %s.Nombre, %s.Email, %s.Edad)\n", entityLower, entityLower, entityLower))
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n")
@@ -375,7 +373,7 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n")
-	content.WriteString(fmt.Sprintf("\t%s.ID = int(id)\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t%s.ID = uint(id)\n", entityLower))
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
 
@@ -396,10 +394,13 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t\"time\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
-		content.WriteString("\t// TODO: Add cache imports when cache is implemented\n")
+		content.WriteString("\t// Imports para cache de MongoDB\n")
+		content.WriteString("\t// \"github.com/go-redis/redis/v8\"\n")
 	}
 	if transactions {
-		content.WriteString("\t// TODO: Add transaction support for MongoDB\n")
+		content.WriteString("\t// Soporte para transacciones de MongoDB\n")
+		content.WriteString("\t// \"go.mongodb.org/mongo-driver/mongo/options\"\n")
+		content.WriteString("\t// \"go.mongodb.org/mongo-driver/mongo/writeconcern\"\n")
 	}
 	content.WriteString("\n\t\"go.mongodb.org/mongo-driver/mongo\"\n")
 	content.WriteString("\t\"go.mongodb.org/mongo-driver/bson\"\n")

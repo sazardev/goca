@@ -148,10 +148,15 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 	entityLower := strings.ToLower(entity)
 
 	content.WriteString(fmt.Sprintf("type Create%sInput struct {\n", entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Add specific fields for your %s entity\n", entity))
-	content.WriteString("\t// Example: Name string `json:\"name\"")
+	// Campos básicos de ejemplo cuando no hay fields específicos
+	content.WriteString(fmt.Sprintf("\tName        string `json:\"name\""))
 	if validation {
 		content.WriteString(" validate:\"required,min=2\"")
+	}
+	content.WriteString("`\n")
+	content.WriteString(fmt.Sprintf("\tDescription string `json:\"description\""))
+	if validation {
+		content.WriteString(" validate:\"required,min=5\"")
 	}
 	content.WriteString("`\n")
 	content.WriteString("}\n\n")
@@ -164,8 +169,10 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 
 func generateUpdateDTO(content *strings.Builder, entity string, validation bool) {
 	content.WriteString(fmt.Sprintf("type Update%sInput struct {\n", entity))
-	content.WriteString(fmt.Sprintf("\t// TODO: Add specific fields for your %s entity\n", entity))
-	content.WriteString("\t// Example: Name string `json:\"name,omitempty\"")
+
+	// Generar campos de ejemplo cuando no se especifican fields
+	content.WriteString("\t// Campos de ejemplo - personalizar según tu entidad\n")
+	content.WriteString("\tNombre string `json:\"nombre,omitempty\"")
 	if validation {
 		content.WriteString(" validate:\"omitempty,min=2\"")
 	}
@@ -242,7 +249,10 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 	content.WriteString(fmt.Sprintf("type %s struct {\n", serviceName))
 	content.WriteString(fmt.Sprintf("\trepo repository.%sRepository\n", entity))
 	if async {
-		content.WriteString("\t// TODO: Add async processing capabilities\n")
+		content.WriteString("\t// Canal para procesamiento asíncrono\n")
+		content.WriteString("\tasyncChannel chan AsyncTask\n")
+		content.WriteString("\t// Logger para operaciones asíncronas\n")
+		content.WriteString("\tlogger       Logger\n")
 	}
 	content.WriteString("}\n\n")
 
@@ -283,8 +293,10 @@ func generateCreateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
 		serviceVar, serviceName, entity, entity, entity))
 	content.WriteString(fmt.Sprintf("\t%s := domain.%s{\n", entityLower, entity))
-	content.WriteString("\t\t// TODO: Map fields from input to entity\n")
-	content.WriteString("\t\t// Example: Name: input.Name,\n")
+	content.WriteString("\t\t// Mapeo automático de campos - ajustar según tu entidad\n")
+	content.WriteString("\t\t// Nombre: input.Nombre,\n")
+	content.WriteString("\t\t// Email: input.Email,\n")
+	content.WriteString("\t\t// Edad: input.Edad,\n")
 	content.WriteString("\t}\n\n")
 
 	content.WriteString(fmt.Sprintf("\tif err := %s.Validate(); err != nil {\n", entityLower))
@@ -347,20 +359,25 @@ func generateGetMethod(content *strings.Builder, serviceName, entity string) {
 
 func generateUpdateMethod(content *strings.Builder, serviceName, entity string) {
 	serviceVar := string(serviceName[0])
+	entityVar := strings.ToLower(entity)
 
 	content.WriteString(fmt.Sprintf("func (%s *%s) Update%s(id int, input Update%sInput) error {\n",
 		serviceVar, serviceName, entity, entity))
-	content.WriteString(fmt.Sprintf("\t%s, err := %s.repo.FindByID(id)\n", strings.ToLower(entity), serviceVar))
+	content.WriteString(fmt.Sprintf("\t%s, err := %s.repo.FindByID(id)\n", entityVar, serviceVar))
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString("\t// TODO: Update fields based on your entity\n")
-	content.WriteString("\t// Example: if input.Name != \"\" {\n")
-	content.WriteString("\t//     entity.Name = input.Name\n")
-	content.WriteString("\t// }\n\n")
+	content.WriteString("\t// Actualizar campos según tu entidad\n")
+	content.WriteString("\tif input.Nombre != \"\" {\n")
+	content.WriteString(fmt.Sprintf("\t\t%s.Nombre = input.Nombre\n", entityVar))
+	content.WriteString("\t}\n")
+	content.WriteString("\tif input.Email != \"\" {\n")
+	content.WriteString(fmt.Sprintf("\t\t%s.Email = input.Email\n", entityVar))
+	content.WriteString("\t}\n")
+	content.WriteString("\t// Agregar más campos según necesites\n\n")
 
-	content.WriteString(fmt.Sprintf("\treturn %s.repo.Update(%s)\n", serviceVar, strings.ToLower(entity)))
+	content.WriteString(fmt.Sprintf("\treturn %s.repo.Update(%s)\n", serviceVar, entityVar))
 	content.WriteString("}\n\n")
 }
 
@@ -493,13 +510,15 @@ func generateUpdateDTOWithFields(content *strings.Builder, entity string, valida
 func getValidationTag(fieldType string) string {
 	switch fieldType {
 	case "string":
-		return "required"
-	case "int":
-		return "required,min=0"
-	case "float64":
+		return "required,min=1"
+	case "int", "int64", "uint", "uint64":
+		return "required,min=1"
+	case "float64", "float32":
 		return "required,min=0"
 	case "bool":
 		return ""
+	case "time.Time":
+		return "required"
 	default:
 		return "required"
 	}

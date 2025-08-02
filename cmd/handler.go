@@ -94,7 +94,8 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	content.WriteString("\t\"github.com/gorilla/mux\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	if validation {
-		content.WriteString("\t// TODO: Add validation imports when needed\n")
+		content.WriteString("\t\"github.com/go-playground/validator/v10\"\n")
+		content.WriteString(fmt.Sprintf("\t\"%s/internal/messages\"\n", importPath))
 	}
 	content.WriteString(")\n\n")
 
@@ -376,7 +377,7 @@ paths:
               $ref: '#/components/schemas/Create%sRequest'
       responses:
         '201':
-          description: %s created successfully
+          description: %s creado exitosamente
           content:
             application/json:
               schema:
@@ -603,8 +604,8 @@ func generateCLIHandler(entity string) {
 	// Create command
 	content.WriteString(fmt.Sprintf("func (c *%sCLI) Create%sCommand() *cobra.Command {\n", entity, entity))
 	content.WriteString("\tcmd := &cobra.Command{\n")
-	content.WriteString("\t\tUse:   \"create\",\n")
-	content.WriteString(fmt.Sprintf("\t\tShort: \"Create a new %s\",\n", entityLower))
+	content.WriteString("\t\tUse:   \"crear\",\n")
+	content.WriteString(fmt.Sprintf("\t\tShort: \"Crear un nuevo %s\",\n", entityLower))
 	content.WriteString("\t\tRun: func(cmd *cobra.Command, args []string) {\n")
 	content.WriteString("\t\t\tname, _ := cmd.Flags().GetString(\"name\")\n")
 	content.WriteString("\t\t\temail, _ := cmd.Flags().GetString(\"email\")\n\n")
@@ -638,8 +639,8 @@ func generateCLIHandler(entity string) {
 	// Get command
 	content.WriteString(fmt.Sprintf("func (c *%sCLI) Get%sCommand() *cobra.Command {\n", entity, entity))
 	content.WriteString("\treturn &cobra.Command{\n")
-	content.WriteString("\t\tUse:   \"get [id]\",\n")
-	content.WriteString(fmt.Sprintf("\t\tShort: \"Get %s by ID\",\n", entityLower))
+	content.WriteString("\t\tUse:   \"obtener [id]\",\n")
+	content.WriteString(fmt.Sprintf("\t\tShort: \"Obtener %s por ID\",\n", entityLower))
 	content.WriteString("\t\tArgs:  cobra.ExactArgs(1),\n")
 	content.WriteString("\t\tRun: func(cmd *cobra.Command, args []string) {\n")
 	content.WriteString("\t\t\tid, err := strconv.Atoi(args[0])\n")

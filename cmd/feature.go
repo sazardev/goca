@@ -289,7 +289,7 @@ func updateMainRoutes(featureName string) {
 	}
 
 	if !found {
-		fmt.Println("   ⚠️  main.go not found in any expected location, skipping route registration")
+		fmt.Println("   ⚠️  main.go no encontrado en ninguna ubicación esperada, omitiendo registro de rutas")
 		fmt.Println("   💡 You can manually add the routes to your main.go file")
 		printManualIntegrationInstructions(featureName)
 		return

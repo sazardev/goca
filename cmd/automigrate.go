@@ -28,7 +28,7 @@ func addEntityToAutoMigration(entity string) error {
 	}
 
 	if !found {
-		return fmt.Errorf("main.go not found in any expected location")
+		return fmt.Errorf("main.go no encontrado en ninguna ubicación esperada")
 	}
 
 	// Read existing content
