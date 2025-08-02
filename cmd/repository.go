@@ -98,11 +98,9 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 
 func generateRepositoryInterface(dir, entity string, transactions bool) {
 	filename := filepath.Join(dir, "interfaces.go")
-	fmt.Printf("🔍 Generando interface en: %s\n", filename)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
-	fmt.Printf("🔍 Módulo detectado: %s\n", moduleName)
 
 	var content strings.Builder
 
