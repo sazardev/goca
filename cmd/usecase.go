@@ -148,13 +148,13 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 	entityLower := strings.ToLower(entity)
 
 	content.WriteString(fmt.Sprintf("type Create%sInput struct {\n", entity))
-	// Campos básicos de ejemplo cuando no hay fields específicos
-	content.WriteString(fmt.Sprintf("\tName        string `json:\"name\""))
+	// Campos estándar cuando no se especifican fields personalizados
+	content.WriteString(fmt.Sprintf("\tNombre      string `json:\"nombre\""))
 	if validation {
 		content.WriteString(" validate:\"required,min=2\"")
 	}
 	content.WriteString("`\n")
-	content.WriteString(fmt.Sprintf("\tDescription string `json:\"description\""))
+	content.WriteString(fmt.Sprintf("\tDescripcion string `json:\"descripcion\""))
 	if validation {
 		content.WriteString(" validate:\"required,min=5\"")
 	}
@@ -170,11 +170,15 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 func generateUpdateDTO(content *strings.Builder, entity string, validation bool) {
 	content.WriteString(fmt.Sprintf("type Update%sInput struct {\n", entity))
 
-	// Generar campos de ejemplo cuando no se especifican fields
-	content.WriteString("\t// Campos de ejemplo - personalizar según tu entidad\n")
-	content.WriteString("\tNombre string `json:\"nombre,omitempty\"")
+	// Generar campos estándar en español para cuando no se especifican fields personalizados
+	content.WriteString("\tNombre      *string `json:\"nombre,omitempty\"")
 	if validation {
 		content.WriteString(" validate:\"omitempty,min=2\"")
+	}
+	content.WriteString("`\n")
+	content.WriteString("\tDescripcion *string `json:\"descripcion,omitempty\"")
+	if validation {
+		content.WriteString(" validate:\"omitempty,min=5\"")
 	}
 	content.WriteString("`\n")
 	content.WriteString("}\n\n")
@@ -433,15 +437,15 @@ func generateUseCaseInterfaces(dir, entity string) {
 }
 
 func generateCreateDTOWithFields(content *strings.Builder, entity string, validation bool, fields string) {
-	entityLower := strings.ToLower(entity)
 	fieldsList := parseFields(fields)
 
-	// Generate Create Input DTO
-	content.WriteString(fmt.Sprintf("type Create%sInput struct {\n", entity))
+	// Generate Create Request DTO
+	content.WriteString(fmt.Sprintf("// Create%sRequest DTO para crear un nuevo %s\n", entity, strings.ToLower(entity)))
+	content.WriteString(fmt.Sprintf("type Create%sRequest struct {\n", entity))
 
 	for _, field := range fieldsList {
-		// Skip ID field in create input (it's auto-generated)
-		if field.Name == "ID" {
+		// Skip auto-managed fields in create request
+		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
 			continue
 		}
 
@@ -459,10 +463,60 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 
 	content.WriteString("}\n\n")
 
-	// Generate Create Output DTO
-	content.WriteString(fmt.Sprintf("type Create%sOutput struct {\n", entity))
-	content.WriteString(fmt.Sprintf("\t%s    domain.%s `json:\"%s\"`\n", entity, entity, entityLower))
-	content.WriteString("\tMessage string      `json:\"message\"`\n")
+	// Generate validation method for the DTO
+	if validation {
+		content.WriteString(fmt.Sprintf("// Validate valida los datos del DTO Create%sRequest\n", entity))
+		content.WriteString(fmt.Sprintf("func (r *Create%sRequest) Validate() error {\n", entity))
+
+		for _, field := range fieldsList {
+			if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
+				continue
+			}
+
+			switch field.Type {
+			case "string":
+				if strings.Contains(strings.ToLower(field.Name), "email") {
+					content.WriteString(fmt.Sprintf("\tif r.%s == \"\" {\n", field.Name))
+					content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+					content.WriteString("\t}\n")
+					content.WriteString(fmt.Sprintf("\tif !strings.Contains(r.%s, \"@\") {\n", field.Name))
+					content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"formato de %s inválido\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+					content.WriteString("\t}\n")
+				} else {
+					content.WriteString(fmt.Sprintf("\tif strings.TrimSpace(r.%s) == \"\" {\n", field.Name))
+					content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+					content.WriteString("\t}\n")
+				}
+			case "int", "int64", "uint", "uint64":
+				content.WriteString(fmt.Sprintf("\tif r.%s < 0 {\n", field.Name))
+				content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+				content.WriteString("\t}\n")
+			case "float64", "float32":
+				content.WriteString(fmt.Sprintf("\tif r.%s < 0 {\n", field.Name))
+				content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+				content.WriteString("\t}\n")
+			}
+		}
+
+		content.WriteString("\treturn nil\n")
+		content.WriteString("}\n\n")
+	}
+
+	// Generate Create Response DTO
+	content.WriteString(fmt.Sprintf("// Create%sResponse DTO para la respuesta de creación\n", entity))
+	content.WriteString(fmt.Sprintf("type Create%sResponse struct {\n", entity))
+	content.WriteString("\tID      uint   `json:\"id\"`\n")
+
+	// Add actual fields to response
+	for _, field := range fieldsList {
+		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
+			continue
+		}
+		jsonTag := fmt.Sprintf("json:\"%s\"", strings.ToLower(field.Name))
+		content.WriteString(fmt.Sprintf("\t%s %s `%s`\n", field.Name, field.Type, jsonTag))
+	}
+
+	content.WriteString("\tMessage string `json:\"message\"`\n")
 	content.WriteString("}\n\n")
 }
 

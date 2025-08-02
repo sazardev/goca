@@ -65,3 +65,9 @@
 // For more information and documentation, visit:
 // https://github.com/jorgefuertes/goca
 package main
+
+import "github.com/sazardev/goca/cmd"
+
+func main() {
+	cmd.Execute()
+}

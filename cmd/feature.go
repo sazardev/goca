@@ -57,15 +57,16 @@ incluyendo dominio, casos de uso, repositorio y handlers en una sola operación.
 		fmt.Println("   🔗 Conectado en el contenedor DI")
 		fmt.Println("   🛣️  Rutas registradas en el servidor")
 		fmt.Println("   ⚡ Listo para usar inmediatamente")
+		fmt.Println("   🌱 Con datos de semilla incluidos")
 
-		fmt.Println("\n� Próximos pasos:")
+		fmt.Println("\n🚀 Próximos pasos:")
 		fmt.Println("   1. Ejecutar: go mod tidy")
-		fmt.Printf("   2. Iniciar servidor: go run main.go\n")
+		fmt.Printf("   2. Iniciar servidor: go run cmd/server/main.go\n")
 		fmt.Printf("   3. Probar endpoints: curl http://localhost:8080/api/v1/%ss\n", strings.ToLower(featureName))
 
 		fmt.Println("\n💡 Comandos útiles adicionales:")
 		fmt.Println("   goca integrate --all     # Integrar features existentes")
-		fmt.Printf("   goca feature Product --fields \"name:string,price:float64\"  # Agregar otro feature\n")
+		fmt.Printf("   goca feature Producto --fields \"nombre:string,precio:float64\"  # Agregar otro feature\n")
 	},
 }
 
@@ -82,7 +83,7 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 3. Generate Repository
 	fmt.Println("3️⃣  Generando repositorio...")
-	generateRepository(featureName, database, false, true, false, false)
+	generateRepository(featureName, database, false, true, false, false, fields)
 
 	// 4. Generate Handlers
 	fmt.Println("4️⃣  Generando handlers...")
@@ -346,7 +347,7 @@ func updateMainRoutes(featureName string) {
 
 func init() {
 	rootCmd.AddCommand(featureCmd)
-	featureCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"field:type,field2:type\" (requerido)")
+	featureCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"campo:tipo,campo2:tipo\" (requerido)")
 	featureCmd.Flags().StringP("database", "d", DBPostgres, fmt.Sprintf("Tipo de base de datos (%s)", strings.Join(ValidDatabases, ", ")))
 	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Tipos de handlers (%s)", strings.Join(ValidHandlers, ", ")))
 	featureCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones en todas las capas")

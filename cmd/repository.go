@@ -23,6 +23,7 @@ bien definidas e implementaciones específicas por base de datos.`,
 		implementation, _ := cmd.Flags().GetBool(ImplementationFlag)
 		cache, _ := cmd.Flags().GetBool(CacheFlag)
 		transactions, _ := cmd.Flags().GetBool(TransactionsFlag)
+		fields, _ := cmd.Flags().GetString("fields")
 
 		// Validar con el nuevo validador robusto
 		validator := NewFieldValidator()
@@ -56,31 +57,52 @@ bien definidas e implementaciones específicas por base de datos.`,
 		if transactions {
 			fmt.Println("✓ Incluyendo transacciones")
 		}
+		if fields != "" {
+			fmt.Printf("✓ Campos personalizados: %s\n", fields)
+		}
 
-		generateRepository(entity, database, interfaceOnly, implementation, cache, transactions)
+		generateRepository(entity, database, interfaceOnly, implementation, cache, transactions, fields)
 		fmt.Printf("\n✅ Repositorio para '%s' generado exitosamente!\n", entity)
 	},
 }
 
-func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool) {
+func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool, fields string) {
 	// Crear directorio repositories si no existe
 	repoDir := "internal/repository"
-	_ = os.MkdirAll(repoDir, 0755) // Generate interface if not interface-only or if implementation is requested
-	if !interfaceOnly || implementation {
-		generateRepositoryInterface(repoDir, entity, transactions)
+	_ = os.MkdirAll(repoDir, 0755)
+
+	// Parse fields if provided
+	var parsedFields []Field
+	if fields != "" {
+		parsedFields = parseFields(fields)
+	}
+
+	// Generate interface if not implementation-only
+	if !implementation || interfaceOnly {
+		if fields != "" {
+			generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions)
+		} else {
+			generateRepositoryInterface(repoDir, entity, transactions)
+		}
 	}
 
 	// Generate implementation if not interface-only and database is specified
 	if !interfaceOnly && database != "" {
-		generateRepositoryImplementation(repoDir, entity, database, cache, transactions)
+		if fields != "" {
+			generateRepositoryImplementationWithFields(repoDir, entity, database, parsedFields, cache, transactions)
+		} else {
+			generateRepositoryImplementation(repoDir, entity, database, cache, transactions)
+		}
 	}
 }
 
 func generateRepositoryInterface(dir, entity string, transactions bool) {
 	filename := filepath.Join(dir, "interfaces.go")
+	fmt.Printf("🔍 Generando interface en: %s\n", filename)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
+	fmt.Printf("🔍 Módulo detectado: %s\n", moduleName)
 
 	var content strings.Builder
 
@@ -123,7 +145,9 @@ func generateRepositoryInterface(dir, entity string, transactions bool) {
 
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("❌ Error escribiendo archivo %s: %v\n", filename, err)
+	}
 }
 
 func generateRepositoryImplementation(dir, entity, database string, cache, transactions bool) {
@@ -501,7 +525,9 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 
 	content.WriteString("}\n\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("❌ Error escribiendo archivo %s: %v\n", filename, err)
+	}
 }
 
 // generateRepositoryImplementationWithFields genera implementaciones de repository con métodos dinámicos
@@ -755,4 +781,5 @@ func init() {
 	repositoryCmd.Flags().BoolP(ImplementationFlag, "", false, ImplementationFlagUsage)
 	repositoryCmd.Flags().BoolP(CacheFlag, "c", false, CacheFlagUsage)
 	repositoryCmd.Flags().BoolP(TransactionsFlag, "t", false, TransactionsFlagUsage)
+	repositoryCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"field:type,field2:type\"")
 }

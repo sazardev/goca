@@ -42,3 +42,12 @@ goca.cache
 goca.swp
 goca.bak
 goca.old
+test/*
+*.testdata
+/test*
+test/
+test-repository/
+test-repository/*
+test-repository.go
+test-repository_test.go
+test-repo/*
