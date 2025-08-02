@@ -18,12 +18,12 @@ func NewFieldValidator() *FieldValidator {
 // ValidateFields validates the complete fields string
 func (v *FieldValidator) ValidateFields(fields string) error {
 	if fields == "" {
-		return fmt.Errorf(ErrEmptyFields)
+		return fmt.Errorf("%s", ErrEmptyFields)
 	}
 
 	fieldParts := strings.Split(fields, ",")
 	if len(fieldParts) == 0 {
-		return fmt.Errorf(ErrEmptyFields)
+		return fmt.Errorf("%s", ErrEmptyFields)
 	}
 
 	fieldNames := make(map[string]bool)
