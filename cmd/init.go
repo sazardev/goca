@@ -1323,7 +1323,6 @@ func getDatabaseHealthCheck(database string) string {
 }
 
 func init() {
-	rootCmd.AddCommand(initCmd)
 	initCmd.Flags().StringP("module", "m", "", "Nombre del módulo Go (ej: github.com/user/project)")
 	initCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")
 	initCmd.Flags().StringP("api", "a", "rest", "Tipo de API (rest, graphql, grpc)")

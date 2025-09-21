@@ -49,37 +49,37 @@ find internal/ -name "*user*" -type f
 ## 🔌 Step 3: Configure Dependencies (30 seconds)
 
 ```bash
-# Generar inyección de dependencias
+# Generate dependency injection
 goca di --features "User" --database postgres
 
-# Instalar dependencias Go
+# Install Go dependencies
 go mod tidy
 ```
 
-**✅ Resultado:** Contenedor DI configurado y dependencias instaladas
+**✅ Result:** DI container configured and dependencies installed
 
-## 🏃‍♂️ Paso 4: Ejecutar el Proyecto (30 segundos)
+## 🏃‍♂️ Step 4: Run the Project (30 seconds)
 
 ```bash
-# Ejecutar el servidor
+# Run the server
 go run cmd/server/main.go
 ```
 
-**✅ Resultado:** Servidor corriendo en http://localhost:8080
+**✅ Result:** Server running at http://localhost:8080
 
-## 🧪 Paso 5: Probar la API (3 minutos)
+## 🧪 Step 5: Test the API (3 minutes)
 
 ### Health Check
 ```bash
 curl http://localhost:8080/health
 ```
 
-**Respuesta:**
+**Response:**
 ```json
 {"status": "ok"}
 ```
 
-### Crear Usuario
+### Create User
 ```bash
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
@@ -90,7 +90,7 @@ curl -X POST http://localhost:8080/api/v1/users \
   }'
 ```
 
-**Respuesta:**
+**Response:**
 ```json
 {
   "id": 1,
@@ -102,9 +102,30 @@ curl -X POST http://localhost:8080/api/v1/users \
 }
 ```
 
-### Obtener Usuario
+### Get User
 ```bash
 curl http://localhost:8080/api/v1/users/1
+```
+
+### List Users
+```bash
+curl http://localhost:8080/api/v1/users
+```
+
+### Update User
+```bash
+curl -X PUT http://localhost:8080/api/v1/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ana García Updated",
+    "email": "ana.updated@example.com",
+    "age": 29
+  }'
+```
+
+### Delete User
+```bash
+curl -X DELETE http://localhost:8080/api/v1/users/1
 ```
 
 ### Listar Usuarios
@@ -147,11 +168,11 @@ mi-api/
 ```
 
 ### ✅ API REST Funcional
-- `POST /api/v1/users` - Crear usuario
-- `GET /api/v1/users` - Listar usuarios  
-- `GET /api/v1/users/:id` - Obtener usuario
-- `PUT /api/v1/users/:id` - Actualizar usuario
-- `DELETE /api/v1/users/:id` - Eliminar usuario
+- `POST /api/v1/users` - Create user
+- `GET /api/v1/users` - List users  
+- `GET /api/v1/users/:id` - Get user
+- `PUT /api/v1/users/:id` - Update user
+- `DELETE /api/v1/users/:id` - Delete user
 
 ### ✅ Clean Architecture
 - **🟡 Dominio**: Entidad `User` con validaciones

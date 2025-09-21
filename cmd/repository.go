@@ -11,9 +11,9 @@ import (
 
 var repositoryCmd = &cobra.Command{
 	Use:   "repository <entity>",
-	Short: "Generar repositorios con interfaces",
-	Long: `Crea repositorios que implementan el patrón Repository con interfaces 
-bien definidas e implementaciones específicas por base de datos.`,
+	Short: "Generate repositories with interfaces",
+	Long: `Creates repositories that implement the Repository pattern with 
+well-defined interfaces and database-specific implementations.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		entity := args[0]

@@ -738,7 +738,6 @@ func generateSQLSampleValue(field Field, index int) string {
 }
 
 func init() {
-	rootCmd.AddCommand(entityCmd)
 	entityCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"campo:tipo,campo2:tipo\" (requerido)")
 	entityCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones de negocio")
 	entityCmd.Flags().BoolP("business-rules", "b", false, "Incluir reglas de negocio avanzadas")

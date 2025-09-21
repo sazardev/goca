@@ -19,6 +19,7 @@ Goca is a powerful CLI code generator for Go that helps you create projects foll
 - [**goca repository**](Command-Repository) - Create repositories
 - [**goca handler**](Command-Handler) - Generate input adapters
 - [**goca di**](Command-DI) - Dependency injection
+- [**goca integrate**](Command-Integrate) - Integrate existing features
 - [**goca interfaces**](Command-Interfaces) - Generate interfaces for TDD
 - [**goca messages**](Command-Messages) - Messages and constants
 - [**goca version**](Command-Version) - Version information

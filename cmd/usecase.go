@@ -18,9 +18,9 @@ const (
 
 var usecaseCmd = &cobra.Command{
 	Use:   "usecase <name>",
-	Short: "Generar casos de uso con DTOs",
-	Long: `Crea servicios de aplicación con DTOs bien definidos, 
-interfaces claras y lógica de negocio encapsulada.`,
+	Short: "Generate use cases with DTOs",
+	Long: `Creates application services with well-defined DTOs, 
+clear interfaces and encapsulated business logic.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		usecaseName := args[0]

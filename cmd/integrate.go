@@ -13,10 +13,10 @@ import (
 
 var integrateCmd = &cobra.Command{
 	Use:   "integrate",
-	Short: "Integra features existentes con DI y main.go",
-	Long: `Detecta automáticamente features existentes y los integra 
-completamente con el contenedor de inyección de dependencias y main.go.
-Útil para proyectos que tienen features sin integrar.`,
+	Short: "Integrate existing features with DI and main.go",
+	Long: `Automatically detects existing features and integrates them 
+completely with the dependency injection container and main.go.
+Useful for projects that have unintegrated features.`,
 	Run: func(cmd *cobra.Command, _ []string) {
 		all, _ := cmd.Flags().GetBool("all")
 		features, _ := cmd.Flags().GetString("features")
@@ -409,7 +409,6 @@ func verifyIntegration(features []string) {
 }
 
 func init() {
-	rootCmd.AddCommand(integrateCmd)
 	integrateCmd.Flags().BoolP("all", "a", false, "Integrar todos los features detectados automáticamente")
 	integrateCmd.Flags().StringP("features", "f", "", "Features específicos a integrar \"User,Product,Order\"")
 }

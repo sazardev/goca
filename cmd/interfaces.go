@@ -11,9 +11,9 @@ import (
 
 var interfacesCmd = &cobra.Command{
 	Use:   "interfaces <entity>",
-	Short: "Generar solo interfaces para TDD",
-	Long: `Genera únicamente las interfaces de contratos entre capas, 
-útil para desarrollo dirigido por pruebas (TDD).`,
+	Short: "Generate interfaces only for TDD",
+	Long: `Generates only the contract interfaces between layers, 
+useful for Test-Driven Development (TDD).`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		entity := args[0]

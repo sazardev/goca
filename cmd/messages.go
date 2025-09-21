@@ -11,9 +11,9 @@ import (
 
 var messagesCmd = &cobra.Command{
 	Use:   "messages <entity>",
-	Short: "Generar mensajes y constantes",
-	Long: `Crea archivos de mensajes de error, respuestas y constantes 
-organizados por feature para mantener consistencia en la aplicación.`,
+	Short: "Generate messages and constants",
+	Long: `Creates error message, response and constant files 
+organized by feature to maintain consistency in the application.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		entity := args[0]

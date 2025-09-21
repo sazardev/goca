@@ -360,7 +360,6 @@ func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
 }
 
 func init() {
-	rootCmd.AddCommand(featureCmd)
 	featureCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"campo:tipo,campo2:tipo\" (requerido)")
 	featureCmd.Flags().StringP("database", "d", DBPostgres, fmt.Sprintf("Tipo de base de datos (%s)", strings.Join(ValidDatabases, ", ")))
 	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Tipos de handlers (%s)", strings.Join(ValidHandlers, ", ")))

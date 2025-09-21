@@ -40,27 +40,6 @@ Clean Architecture projects following best practices.
 
 It generates clean, well-structured layered code, allowing you to 
 focus on business logic instead of repetitive configuration tasks.`,
-	Run: func(_ *cobra.Command, args []string) {
-		fmt.Println(`Goca - Go Clean Architecture Code Generator
-
-USAGE:
-  goca [command]
-
-AVAILABLE COMMANDS:
-  help        Ayuda sobre cualquier comando
-  version     Muestra la versión de Goca
-  init        Inicializa un nuevo proyecto con Clean Architecture
-  feature     Genera un feature completo con todas las capas
-  entity      Genera entidades de dominio puras
-  usecase     Genera casos de uso con DTOs
-  handler     Genera handlers para diferentes protocolos
-  repository  Genera repositorios con interfaces
-  messages    Genera mensajes y constantes
-  di          Genera contenedor de inyección de dependencias
-  interfaces  Genera solo interfaces para TDD
-
-Use "goca [command] --help" para más información sobre un comando.`)
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -83,5 +62,6 @@ func init() {
 	rootCmd.AddCommand(repositoryCmd)
 	rootCmd.AddCommand(messagesCmd)
 	rootCmd.AddCommand(diCmd)
+	rootCmd.AddCommand(integrateCmd)
 	rootCmd.AddCommand(interfacesCmd)
 }

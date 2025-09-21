@@ -18,8 +18,8 @@ const (
 var diCmd = &cobra.Command{
 	Use:   "di",
 	Short: "Generate dependency injection container",
-	Long: `Crea un contenedor de inyección de dependencias que conecta 
-automáticamente todas las capas del sistema.`,
+	Long: `Creates a dependency injection container that automatically connects 
+all layers of the system using Google Wire.`,
 	Run: func(cmd *cobra.Command, _ []string) {
 		features, _ := cmd.Flags().GetString("features")
 		database, _ := cmd.Flags().GetString("database")
@@ -374,7 +374,6 @@ func generateWireGenTemplate(dir string, features []string) {
 }
 
 func init() {
-	rootCmd.AddCommand(diCmd)
 	diCmd.Flags().StringP("features", "f", "", "Características del proyecto (crud,auth,validation,etc)")
 	diCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")
 	diCmd.Flags().BoolP("wire", "w", false, "Usar Google Wire para inyección de dependencias")
