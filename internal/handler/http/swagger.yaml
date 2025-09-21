@@ -1,0 +1,74 @@
+openapi: 3.0.0
+info:
+  title: TestPerf API
+  version: 1.0.0
+  description: API for managing testperf entities
+
+paths:
+  /testperfs:
+    get:
+      summary: List all testperfs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestPerf'
+    post:
+      summary: Create a new testperf
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTestPerfRequest'
+      responses:
+        '201':
+          description: TestPerf creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestPerf'
+
+  /testperfs/{id}:
+    get:
+      summary: Get testperf by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestPerf'
+
+components:
+  schemas:
+    TestPerf:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+    
+    CreateTestPerfRequest:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+        email:
+          type: string
