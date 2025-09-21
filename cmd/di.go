@@ -1,9 +1,8 @@
 package cmd
 
 import (
-	"fmt	if features == "" {
-		fmt.Println("Error: --features flag is required")
-		os.Exit(1)"os"
+	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
