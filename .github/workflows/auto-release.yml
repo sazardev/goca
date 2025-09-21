@@ -7,7 +7,6 @@ on:
       - 'README.md'
       - 'CHANGELOG.md'
       - 'docs/**'
-      - '.github/**'
       - 'scripts/**'
       - 'wiki/**'
 
