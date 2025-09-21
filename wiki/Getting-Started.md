@@ -1,52 +1,52 @@
-# Primeros Pasos con Goca
+# Getting Started with Goca
 
-Esta guía te ayudará a crear tu primer proyecto con Goca en **menos de 5 minutos**. Al final tendrás una API funcional con Clean Architecture.
+This guide will help you create your first project with Goca in **less than 5 minutes**. By the end, you'll have a functional API with Clean Architecture.
 
-## 🎯 Lo que Construiremos
+## 🎯 What We'll Build
 
-En esta guía crearemos:
-- ✅ Un proyecto básico con estructura Clean Architecture
-- ✅ Una entidad `User` completa
-- ✅ API REST funcional con CRUD
-- ✅ Base de datos PostgreSQL configurada
+In this guide we'll create:
+- ✅ A basic project with Clean Architecture structure
+- ✅ A complete `User` entity
+- ✅ Functional REST API with CRUD
+- ✅ PostgreSQL database configured
 
-## ⏱️ Tiempo Estimado: 5 minutos
+## ⏱️ Estimated Time: 5 minutes
 
-## 📋 Prerrequisitos
+## 📋 Prerequisites
 
-- ✅ **Go 1.21+** - [Descargar aquí](https://golang.org/dl/)
-- ✅ **Goca instalado** - [Ver guía de instalación](Installation)
-- ✅ **PostgreSQL** (opcional para este tutorial)
+- ✅ **Go 1.21+** - [Download here](https://golang.org/dl/)
+- ✅ **Goca installed** - [See installation guide](Installation)
+- ✅ **PostgreSQL** (optional for this tutorial)
 
-## 🚀 Paso 1: Crear el Proyecto (30 segundos)
+## 🚀 Step 1: Create the Project (30 seconds)
 
 ```bash
-# Crear y entrar en directorio
-mkdir mi-primer-proyecto
-cd mi-primer-proyecto
+# Create and enter directory
+mkdir my-first-project
+cd my-first-project
 
-# Inicializar con Goca
-goca init mi-api --module github.com/usuario/mi-api --database postgres
+# Initialize with Goca
+goca init my-api --module github.com/user/my-api --database postgres
 
-# Entrar al directorio generado
-cd mi-api
+# Enter generated directory
+cd my-api
 ```
 
-**✅ Resultado:** Estructura de proyecto completa creada
+**✅ Result:** Complete project structure created
 
-## 👤 Paso 2: Crear Feature de Usuario (30 segundos)
+## 👤 Step 2: Create User Feature (30 seconds)
 
 ```bash
-# Generar feature completo de usuario
+# Generate complete user feature
 goca feature User --fields "name:string,email:string,age:int" --validation
 
-# Ver lo que se generó
+# See what was generated
 find internal/ -name "*user*" -type f
 ```
 
-**✅ Resultado:** 8+ archivos generados con todas las capas de Clean Architecture
+**✅ Result:** 8+ files generated with all Clean Architecture layers
 
-## 🔌 Paso 3: Configurar Dependencias (30 segundos)
+## 🔌 Step 3: Configure Dependencies (30 seconds)
 
 ```bash
 # Generar inyección de dependencias

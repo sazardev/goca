@@ -13,17 +13,17 @@ const (
 	GraphQLFlag        = "graphql"
 )
 
-// Flag usage messages - Mensajes de uso de flags
+// Flag usage messages - Flag usage messages
 const (
-	DatabaseFlagUsage       = "Tipo de base de datos (postgres, mysql, mongodb)"
-	FieldsFlagUsage         = "Lista de campos separados por comas (ej: name:string,age:int)"
-	InterfaceOnlyFlagUsage  = "Solo generar interfaces"
-	ImplementationFlagUsage = "Solo generar implementación"
-	CacheFlagUsage          = "Incluir capa de caché"
-	TransactionsFlagUsage   = "Incluir soporte para transacciones"
-	HTTPFlagUsage           = "Incluir handlers HTTP"
-	GRPCFlagUsage           = "Incluir handlers gRPC"
-	GraphQLFlagUsage        = "Incluir handlers GraphQL"
+	DatabaseFlagUsage       = "Database type (postgres, mysql, mongodb)"
+	FieldsFlagUsage         = "Comma-separated list of fields (ex: name:string,age:int)"
+	InterfaceOnlyFlagUsage  = "Generate interfaces only"
+	ImplementationFlagUsage = "Generate implementation only"
+	CacheFlagUsage          = "Include cache layer"
+	TransactionsFlagUsage   = "Include transaction support"
+	HTTPFlagUsage           = "Include HTTP handlers"
+	GRPCFlagUsage           = "Include gRPC handlers"
+	GraphQLFlagUsage        = "Include GraphQL handlers"
 )
 
 // Database constants
@@ -160,34 +160,34 @@ const (
 
 // Error messages
 const (
-	ErrInvalidDatabase    = "base de datos no válida. Opciones: postgres, mysql, mongodb, sqlite"
-	ErrInvalidHandler     = "handler no válido. Opciones: http, grpc, cli, worker"
-	ErrInvalidOperation   = "operación no válida. Opciones: create, read, update, delete, list"
-	ErrInvalidFieldType   = "tipo de campo no válido"
-	ErrInvalidFieldSyntax = "sintaxis de campo no válida. Formato esperado: 'nombre:tipo'"
-	ErrInvalidEntityName  = "nombre de entidad no válido"
-	ErrEmptyFields        = "campos no pueden estar vacíos"
-	ErrRequiredFlag       = "flag requerido no proporcionado"
-	ErrFileNotFound       = "archivo no encontrado"
-	ErrDirectoryNotFound  = "directorio no encontrado"
+	ErrInvalidDatabase    = "invalid database. Options: postgres, mysql, mongodb, sqlite"
+	ErrInvalidHandler     = "invalid handler. Options: http, grpc, cli, worker"
+	ErrInvalidOperation   = "invalid operation. Options: create, read, update, delete, list"
+	ErrInvalidFieldType   = "invalid field type"
+	ErrInvalidFieldSyntax = "invalid field syntax. Expected format: 'name:type'"
+	ErrInvalidEntityName  = "invalid entity name"
+	ErrEmptyFields        = "fields cannot be empty"
+	ErrRequiredFlag       = "required flag not provided"
+	ErrFileNotFound       = "file not found"
+	ErrDirectoryNotFound  = "directory not found"
 )
 
 // Success messages
 const (
-	MsgEntityGenerated     = "Entidad '%s' generada exitosamente!"
-	MsgFeatureGenerated    = "Feature '%s' generado e integrado exitosamente!"
-	MsgRepositoryGenerated = "Repositorio para '%s' generado exitosamente!"
-	MsgHandlerGenerated    = "Handler '%s' para '%s' generado exitosamente!"
-	MsgUseCaseGenerated    = "Caso de uso '%s' generado exitosamente!"
-	MsgProjectInitialized  = "Proyecto '%s' creado exitosamente!"
+	MsgEntityGenerated     = "Entity '%s' generated successfully!"
+	MsgFeatureGenerated    = "Feature '%s' generated and integrated successfully!"
+	MsgRepositoryGenerated = "Repository for '%s' generated successfully!"
+	MsgHandlerGenerated    = "Handler '%s' for '%s' generated successfully!"
+	MsgUseCaseGenerated    = "Use case '%s' generated successfully!"
+	MsgProjectInitialized  = "Project '%s' created successfully!"
 )
 
 // Info messages
 const (
-	MsgGeneratingEntity     = "Generando entidad '%s'"
-	MsgGeneratingFeature    = "Generando feature completo '%s'"
-	MsgGeneratingRepository = "Generando repositorio para entidad '%s'"
-	MsgGeneratingHandler    = "Generando handler '%s' para entidad '%s'"
-	MsgGeneratingUseCase    = "Generando caso de uso '%s' para entidad '%s'"
-	MsgGeneratingLayers     = "Generando capas..."
+	MsgGeneratingEntity     = "Generating entity '%s'"
+	MsgGeneratingFeature    = "Generating complete feature '%s'"
+	MsgGeneratingRepository = "Generating repository for entity '%s'"
+	MsgGeneratingHandler    = "Generating handler '%s' for entity '%s'"
+	MsgGeneratingUseCase    = "Generating use case '%s' for entity '%s'"
+	MsgGeneratingLayers     = "Generating layers..."
 )

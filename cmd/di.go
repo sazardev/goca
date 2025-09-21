@@ -17,7 +17,7 @@ const (
 
 var diCmd = &cobra.Command{
 	Use:   "di",
-	Short: "Generar contenedor de inyección de dependencias",
+	Short: "Generate dependency injection container",
 	Long: `Crea un contenedor de inyección de dependencias que conecta 
 automáticamente todas las capas del sistema.`,
 	Run: func(cmd *cobra.Command, _ []string) {

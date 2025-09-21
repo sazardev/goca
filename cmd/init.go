@@ -14,9 +14,9 @@ import (
 
 var initCmd = &cobra.Command{
 	Use:   "init <project-name>",
-	Short: "Inicializar proyecto Clean Architecture",
-	Long: `Crea la estructura base de un proyecto Go siguiendo los principios de Clean Architecture, 
-incluyendo directorios, archivos de configuración y estructura de capas.`,
+	Short: "Initialize Clean Architecture project",
+	Long: `Creates the base structure of a Go project following Clean Architecture principles, 
+including directories, configuration files and layer structure.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
@@ -27,7 +27,7 @@ incluyendo directorios, archivos de configuración y estructura de capas.`,
 		api, _ := cmd.Flags().GetString("api")
 
 		if module == "" {
-			fmt.Println("Error: --module flag es requerido")
+			fmt.Println("Error: --module flag is required")
 			os.Exit(1)
 		}
 
@@ -39,9 +39,9 @@ incluyendo directorios, archivos de configuración y estructura de capas.`,
 		}
 
 		createProjectStructure(projectName, module, database, auth, api)
-		fmt.Printf("\n✅ Proyecto '%s' creado exitosamente!\n", projectName)
-		fmt.Printf("📁 Directorio: ./%s\n", projectName)
-		fmt.Println("\nPróximos pasos:")
+		fmt.Printf("\n✅ Project '%s' created successfully!\n", projectName)
+		fmt.Printf("📁 Directory: ./%s\n", projectName)
+		fmt.Println("\nNext steps:")
 		fmt.Printf("  cd %s\n", projectName)
 		fmt.Println("  go mod tidy")
 		fmt.Println("  goca feature User --fields \"name:string,email:string\"")

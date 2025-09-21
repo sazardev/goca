@@ -1,36 +1,36 @@
-# Sistema de Release Automatizado
+# Automated Release System
 
-Este documento describe el sistema de release completamente automatizado para Goca CLI.
+This document describes the fully automated release system for Goca CLI.
 
-## 🎯 Características del Sistema
+## 🎯 System Features
 
-### 1. **Versiones Dinámicas**
-- ✅ La versión se inyecta en tiempo de compilación desde git tags
-- ✅ No más versiones hardcodeadas en el código
-- ✅ Información de build (timestamp, commit) automática
+### 1. **Dynamic Versions**
+- ✅ Version injected at compile time from git tags
+- ✅ No more hardcoded versions in code
+- ✅ Automatic build information (timestamp, commit)
 
-### 2. **Release Automático por Commits**
-- ✅ Detección automática del tipo de release basado en [Conventional Commits](https://www.conventionalcommits.org/)
-- ✅ Auto-incremento de versión semántica
-- ✅ Generación automática de tags y releases
+### 2. **Automatic Release by Commits**
+- ✅ Automatic release type detection based on [Conventional Commits](https://www.conventionalcommits.org/)
+- ✅ Automatic semantic version increment
+- ✅ Automatic tag and release generation
 
-### 3. **Workflows GitHub Actions**
-- ✅ Tests automáticos antes de cada release
-- ✅ Build multiplataforma automático
-- ✅ Publicación automática en GitHub Releases
+### 3. **GitHub Actions Workflows**
+- ✅ Automatic tests before each release
+- ✅ Automatic multi-platform build
+- ✅ Automatic publishing on GitHub Releases
 
-## 📋 Tipos de Release
+## 📋 Release Types
 
-### Detección Automática por Commits
+### Automatic Detection by Commits
 
-| Patrón de Commit            | Tipo Release | Incremento |
-| --------------------------- | ------------ | ---------- |
-| `feat!:`                    | **major**    | `x.0.0`    |
-| `feat:`                     | **minor**    | `x.y.0`    |
-| `fix:`                      | **patch**    | `x.y.z`    |
-| `chore:`, `docs:`, `style:` | **patch**    | `x.y.z`    |
+| Commit Pattern              | Release Type | Increment |
+| --------------------------- | ------------ | --------- |
+| `feat!:`                    | **major**    | `x.0.0`   |
+| `feat:`                     | **minor**    | `x.y.0`   |
+| `fix:`                      | **patch**    | `x.y.z`   |
+| `chore:`, `docs:`, `style:` | **patch**    | `x.y.z`   |
 
-### Ejemplos de Commits
+### Commit Examples
 
 ```bash
 # Major release (breaking changes)

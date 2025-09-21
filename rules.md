@@ -1,30 +1,30 @@
-# Guía Definitiva de Clean Architecture en Go
+# Definitive Guide to Clean Architecture in Go
 
-## 📌 Introducción
+## 📌 Introduction
 
-Este documento tiene como propósito ofrecer una referencia completa y exhaustiva al equipo técnico para la implementación precisa y efectiva de Clean Architecture en proyectos desarrollados en Go. El estándar aquí descrito está diseñado para ser accesible y útil tanto para desarrolladores novatos como experimentados.
-
----
-
-## 🔖 Principios Fundamentales de Clean Architecture
-
-### ✅ Buenas Prácticas:
-
-* Orientar dependencias exclusivamente hacia el núcleo del sistema.
-* Establecer interfaces y contratos claros y explícitos.
-* Encapsular la lógica de negocio exclusivamente en capas internas.
-* Segregar claramente responsabilidades en diferentes capas.
-* Utilizar la inyección de dependencias para optimizar la testabilidad y modularidad.
-
-### 🚫 Malas Prácticas:
-
-* Combinar lógica técnica y lógica de negocio en una misma capa.
-* Permitir que entidades tengan dependencia directa de infraestructura externa.
-* Mantener paquetes excesivamente grandes o mal estructurados.
+This document aims to provide a complete and comprehensive reference for the technical team for precise and effective implementation of Clean Architecture in Go projects. The standard described here is designed to be accessible and useful for both novice and experienced developers.
 
 ---
 
-## 📂 Estructura Completa del Proyecto (Feature: Employee)
+## 🔖 Fundamental Principles of Clean Architecture
+
+### ✅ Best Practices:
+
+* Orient dependencies exclusively towards the system core.
+* Establish clear and explicit interfaces and contracts.
+* Encapsulate business logic exclusively in internal layers.
+* Clearly segregate responsibilities in different layers.
+* Use dependency injection to optimize testability and modularity.
+
+### 🚫 Bad Practices:
+
+* Combine technical logic and business logic in the same layer.
+* Allow entities to have direct dependency on external infrastructure.
+* Maintain excessively large or poorly structured packages.
+
+---
+
+## 📂 Complete Project Structure (Feature: Employee)
 
 ```
 employee/
@@ -64,19 +64,19 @@ employee/
 
 ---
 
-## 🧩 Capas, Reglas y Ejemplos
+## 🧩 Layers, Rules and Examples
 
-### 🟡 Capa de Dominio (Entities)
+### 🟡 Domain Layer (Entities)
 
-* **SÍ:**
+* **DO:**
 
-  * Mantener entidades puras.
-  * Validar invariantes y reglas básicas esenciales.
-* **NO:**
+  * Keep entities pure.
+  * Validate invariants and essential basic rules.
+* **DON'T:**
 
-  * Incluir dependencias externas o técnicas.
+  * Include external or technical dependencies.
 
-### Ejemplo Avanzado:
+### Advanced Example:
 
 ```go
 package domain
@@ -96,18 +96,18 @@ func (e *Employee) Validate() error {
 }
 ```
 
-### 🔴 Capa de Casos de Uso (Application)
+### 🔴 Use Case Layer (Application)
 
-* **SÍ:**
+* **DO:**
 
-  * Definir casos de uso únicos y específicos.
-  * Validaciones concretas de negocio.
-  * DTOs bien estructurados.
-* **NO:**
+  * Define unique and specific use cases.
+  * Concrete business validations.
+  * Well-structured DTOs.
+* **DON'T:**
 
-  * Incorporar lógica técnica o de persistencia directa.
+  * Incorporate technical logic or direct persistence.
 
-### Ejemplo Completo:
+### Complete Example:
 
 ```go
 package usecase
@@ -142,17 +142,17 @@ func (svc *EmployeeService) CreateEmployee(input CreateEmployeeInput) (CreateEmp
 }
 ```
 
-### 🟢 Capa de Adaptadores (Interface Adapters)
+### 🟢 Adapter Layer (Interface Adapters)
 
-* **SÍ:**
+* **DO:**
 
-  * Adaptar DTOs externos a internos.
-  * Mantener manejadores específicos para cada tipo de interfaz.
-* **NO:**
+  * Adapt external DTOs to internal ones.
+  * Maintain specific handlers for each interface type.
+* **DON'T:**
 
-  * Añadir lógica de negocio o acoplar directamente persistencia.
+  * Add business logic or directly couple persistence.
 
-### Ejemplo HTTP Completo:
+### Complete HTTP Example:
 
 ```go
 package http
@@ -172,17 +172,17 @@ func (h *EmployeeHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### 🔵 Capa de Repositorio e Infraestructura
+### 🔵 Repository and Infrastructure Layer
 
-* **SÍ:**
+* **DO:**
 
-  * Implementar interfaces definidas.
-  * Gestionar detalles específicos del almacenamiento.
-* **NO:**
+  * Implement defined interfaces.
+  * Manage storage-specific details.
+* **DON'T:**
 
-  * Exponer tipos específicos de DB en otras capas.
+  * Expose specific DB types in other layers.
 
-### Ejemplo Repositorio Avanzado:
+### Advanced Repository Example:
 
 ```go
 package repository
@@ -199,15 +199,15 @@ func (r *PostgresRepo) Save(emp *domain.Employee) error {
 
 ---
 
-## 🧠 Patrones y Anti-Patrones
+## 🧠 Patterns and Anti-Patterns
 
-### Patrones:
+### Patterns:
 
 * **Repository Pattern**
 * **CQRS**
 * **Dependency Injection**
 
-### Anti-Patrones:
+### Anti-Patterns:
 
 * **Fat Controller**
 * **God Object**
@@ -215,21 +215,21 @@ func (r *PostgresRepo) Save(emp *domain.Employee) error {
 
 ---
 
-## 🛠️ Consejos Esenciales
+## 🛠️ Essential Tips
 
-* Implementa pruebas unitarias para cada capa.
-* Asegura interfaces concisas y bien documentadas.
-* Maneja explícitamente errores claros y específicos.
-* Mantiene un sistema robusto de mensajes y constantes.
+* Implement unit tests for each layer.
+* Ensure concise and well-documented interfaces.
+* Handle errors explicitly with clear and specific messages.
+* Maintain a robust system of messages and constants.
 
 ---
 
-## 📚 Recursos Externos
+## 📚 External Resources
 
-* [Clean Architecture en Go](https://github.com/bxcodec/go-clean-arch)
+* [Clean Architecture in Go](https://github.com/bxcodec/go-clean-arch)
 * [Clean Code by Robert C. Martin](https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882)
 * [Golang Project Layout](https://github.com/golang-standards/project-layout)
 
 ---
 
-Esta guía representa un estándar completo y riguroso para el desarrollo de aplicaciones en Go, alineado con los principios fundamentales de Clean Architecture.
+This guide represents a complete and rigorous standard for developing applications in Go, aligned with the fundamental principles of Clean Architecture.

@@ -31,12 +31,12 @@ func getModuleName() string {
 func writeFile(path, content string) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("error creando directorio %s: %w", dir, err)
+		return fmt.Errorf("error creating directory %s: %w", dir, err)
 	}
 
 	file, err := os.Create(path)
 	if err != nil {
-		return fmt.Errorf("error creando archivo %s: %w", path, err)
+		return fmt.Errorf("error creating file %s: %w", path, err)
 	}
 	defer file.Close()
 
@@ -63,7 +63,7 @@ func writeGoFile(path, content string) error {
 
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("error creando directorio %s: %w", dir, err)
+		return fmt.Errorf("error creating directory %s: %w", dir, err)
 	}
 
 	file, err := os.Create(path)

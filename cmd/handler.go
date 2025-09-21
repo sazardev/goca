@@ -11,7 +11,7 @@ import (
 
 var handlerCmd = &cobra.Command{
 	Use:   "handler <entity>",
-	Short: "Generar handlers para diferentes protocolos",
+	Short: "Generate handlers for different protocols",
 	Long: `Crea adaptadores de entrega que manejan diferentes protocolos 
 (HTTP, gRPC, CLI) manteniendo la separación de capas.`,
 	Args: cobra.ExactArgs(1),

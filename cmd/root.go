@@ -35,11 +35,11 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "goca",
 	Short: "Go Clean Architecture Code Generator",
-	Long: `Goca es un potente generador de código CLI para Go que te ayuda a crear 
-proyectos con Clean Architecture siguiendo las mejores prácticas.
+	Long: `Goca is a powerful CLI code generator for Go that helps you create 
+Clean Architecture projects following best practices.
 
-Genera código limpio y bien estructurado por capas, permitiéndote 
-enfocarte en la lógica de negocio en lugar de tareas repetitivas de configuración.`,
+It generates clean, well-structured layered code, allowing you to 
+focus on business logic instead of repetitive configuration tasks.`,
 	Run: func(_ *cobra.Command, args []string) {
 		fmt.Println(`Goca - Go Clean Architecture Code Generator
 

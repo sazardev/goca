@@ -11,9 +11,9 @@ import (
 
 var featureCmd = &cobra.Command{
 	Use:   "feature <name>",
-	Short: "Generar feature completo con Clean Architecture",
-	Long: `Genera todas las capas necesarias para un feature completo, 
-incluyendo dominio, casos de uso, repositorio y handlers en una sola operación.`,
+	Short: "Generate complete feature with Clean Architecture",
+	Long: `Generates all necessary layers for a complete feature, 
+including domain, use cases, repository and handlers in a single operation.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		featureName := args[0]

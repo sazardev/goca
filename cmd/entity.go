@@ -10,10 +10,10 @@ import (
 )
 
 var entityCmd = &cobra.Command{
-	Use:   "entity <nombre>",
-	Short: "Generar entidad de dominio pura",
-	Long: `Crea entidades de dominio siguiendo los principios DDD, 
-sin dependencias externas y con validaciones de negocio completas.`,
+	Use:   "entity <name>",
+	Short: "Generate pure domain entity",
+	Long: `Creates domain entities following DDD principles, 
+without external dependencies and with complete business validations.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		entityName := args[0]

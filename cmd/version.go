@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	// Version se inyecta en tiempo de compilación a través de -ldflags
+	// Version is injected at compile time through -ldflags
 	Version   = "dev"
 	BuildTime = "unknown"
 	GoVersion = runtime.Version()
@@ -17,8 +17,8 @@ var (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Muestra la versión de Goca CLI",
-	Long:  "Muestra la versión actual de Goca CLI junto con información de compilación.",
+	Short: "Display Goca CLI version",
+	Long:  "Display the current version of Goca CLI along with build information.",
 	Run: func(cmd *cobra.Command, _ []string) {
 		short, _ := cmd.Flags().GetBool("short")
 
@@ -34,5 +34,5 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	versionCmd.Flags().BoolP("short", "s", false, "Muestra solo el número de versión")
+	versionCmd.Flags().BoolP("short", "s", false, "Display only the version number")
 }
