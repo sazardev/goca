@@ -8,9 +8,11 @@ import (
 )
 
 var (
-	Version   = "1.2.4"
-	BuildTime = "2025-01-25T15:00:00Z"
+	// Version se inyecta en tiempo de compilación a través de -ldflags
+	Version   = "dev"
+	BuildTime = "unknown"
 	GoVersion = runtime.Version()
+	GitCommit = "unknown"
 )
 
 var versionCmd = &cobra.Command{
@@ -26,6 +28,7 @@ var versionCmd = &cobra.Command{
 			fmt.Printf("Goca v%s\n", Version)
 			fmt.Printf("Build: %s\n", BuildTime)
 			fmt.Printf("Go Version: %s\n", GoVersion)
+			fmt.Printf("Git Commit: %s\n", GitCommit)
 		}
 	},
 }

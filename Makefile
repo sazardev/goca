@@ -1,6 +1,12 @@
 # Goca Makefile
 
-.PHONY: help build test clean install release dev-setup lint fmt
+.PHONY: help build test clean install release dev-setup lint fmt version
+
+# Variables
+VERSION ?= $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "dev")
+BUILD_TIME := $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+LDFLAGS := -X github.com/sazardev/goca/cmd.Version=$(VERSION) -X github.com/sazardev/goca/cmd.BuildTime=$(BUILD_TIME) -X github.com/sazardev/goca/cmd.GitCommit=$(GIT_COMMIT)
 
 # Default target
 help: ## Show this help message
@@ -8,17 +14,24 @@ help: ## Show this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 # Build
-build: ## Build the CLI binary
-	@echo "Building Goca CLI..."
-	go build -o goca .
+build: ## Build the CLI binary with version info
+	@echo "Building Goca CLI v$(VERSION)..."
+	go build -ldflags "$(LDFLAGS)" -o goca .
 
-build-all: ## Build for all platforms
+build-all: ## Build for all platforms with version info
 	@echo "Building for all platforms..."
-	GOOS=windows GOARCH=amd64 go build -o dist/goca-windows-amd64.exe
-	GOOS=linux GOARCH=amd64 go build -o dist/goca-linux-amd64
-	GOOS=darwin GOARCH=amd64 go build -o dist/goca-darwin-amd64
-	GOOS=darwin GOARCH=arm64 go build -o dist/goca-darwin-arm64
+	@mkdir -p dist
+	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/goca-windows-amd64.exe
+	GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/goca-linux-amd64
+	GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/goca-darwin-amd64
+	GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o dist/goca-darwin-arm64
 	@echo "Binaries built in dist/ directory"
+	@ls -la dist/
+
+version: ## Show version information
+	@echo "Version: $(VERSION)"
+	@echo "Build Time: $(BUILD_TIME)"
+	@echo "Git Commit: $(GIT_COMMIT)"
 
 # Test
 test: ## Run tests
@@ -46,6 +59,25 @@ fmt: ## Format code
 lint: ## Run linter
 	@echo "Running linter..."
 	golangci-lint run
+
+# Release
+release-patch: ## Create a patch release (x.y.Z)
+	@echo "Creating patch release..."
+	./scripts/release.sh patch
+
+release-minor: ## Create a minor release (x.Y.0)
+	@echo "Creating minor release..."
+	./scripts/release.sh minor
+
+release-major: ## Create a major release (X.0.0)
+	@echo "Creating major release..."
+	./scripts/release.sh major
+
+release-auto: ## Auto-detect release type from commits
+	@echo "Auto-detecting release type..."
+	./scripts/release.sh auto
+
+release: release-auto ## Alias for release-auto
 
 # CLI Testing
 test-cli-comprehensive: ## Run CLI comprehensive tests
@@ -127,13 +159,13 @@ docs: ## Generate documentation
 	@echo "- GUIDE.md: Complete command guide"  
 	@echo "- rules.md: Clean Architecture rules"
 
-# Version info
-version: ## Show current version
-	@grep "Version.*=" cmd/version.go | sed 's/.*"\(.*\)"/\1/'
+# Version info  
+show-version: ## Show current version from git tags
+	@echo "Current git version: $(VERSION)"
 
 # Git helpers  
 status: ## Show git status and current version
-	@echo "Current version: $$(make version)"
+	@echo "Current version: $(VERSION)"
 	@echo "Git status:"
 	@git status --short
 
@@ -145,5 +177,5 @@ docker-build: ## Build Docker image
 # Check if everything is ready for release
 pre-release-check: fmt lint test test-cli ## Check if everything is ready for release
 	@echo "✅ All checks passed! Ready for release."
-	@echo "Current version: $$(make version)"
-	@echo "To create a release, run: make release VERSION=x.y.z"
+	@echo "Current version: $(VERSION)"
+	@echo "To create a release, run: make release [patch|minor|major|auto]"

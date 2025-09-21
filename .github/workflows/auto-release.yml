@@ -8,60 +8,129 @@ on:
       - 'CHANGELOG.md'
       - 'docs/**'
       - '.github/**'
+      - 'scripts/**'
+      - 'wiki/**'
 
 jobs:
-  check-version:
+  check-changes:
     runs-on: ubuntu-latest
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
+      release_type: ${{ steps.check.outputs.release_type }}
       new_version: ${{ steps.check.outputs.new_version }}
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     
-    - name: Check if version changed
+    - name: Analyze commit messages for release type
       id: check
       run: |
-        # Get current version from version.go
-        CURRENT_VERSION=$(grep 'Version.*=' cmd/version.go | sed 's/.*"\(.*\)"/\1/')
-        echo "Current version: $CURRENT_VERSION"
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
         
-        # Get latest tag
-        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-        LATEST_VERSION=${LATEST_TAG#v}
-        echo "Latest tag version: $LATEST_VERSION"
-        
-        # Compare versions
-        if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
-          echo "Version changed from $LATEST_VERSION to $CURRENT_VERSION"
+        if [ -z "$LAST_TAG" ]; then
+          echo "No previous tags found, creating initial release"
           echo "should_release=true" >> $GITHUB_OUTPUT
-          echo "new_version=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
-        else
-          echo "Version unchanged"
-          echo "should_release=false" >> $GITHUB_OUTPUT
+          echo "release_type=minor" >> $GITHUB_OUTPUT
+          echo "new_version=v1.0.0" >> $GITHUB_OUTPUT
+          exit 0
         fi
+        
+        echo "Last tag: $LAST_TAG"
+        
+        # Get commits since last tag
+        COMMITS=$(git log "$LAST_TAG..HEAD" --oneline)
+        
+        if [ -z "$COMMITS" ]; then
+          echo "No new commits since last tag"
+          echo "should_release=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        echo "New commits found:"
+        echo "$COMMITS"
+        
+        # Determine release type based on commit messages
+        RELEASE_TYPE="patch"
+        
+        if echo "$COMMITS" | grep -qE "^[a-f0-9]+ (feat|feature)(\(.+\))?!:"; then
+          RELEASE_TYPE="major"
+        elif echo "$COMMITS" | grep -qE "^[a-f0-9]+ (feat|feature)(\(.+\))?:"; then
+          RELEASE_TYPE="minor"
+        elif echo "$COMMITS" | grep -qE "^[a-f0-9]+ (fix|bugfix|hotfix)(\(.+\))?:"; then
+          RELEASE_TYPE="patch"
+        elif echo "$COMMITS" | grep -qE "^[a-f0-9]+ (chore|docs|style|refactor|test)(\(.+\))?:"; then
+          # Skip release for non-user-facing changes, unless forced
+          if echo "$COMMITS" | grep -qE "\[release\]"; then
+            RELEASE_TYPE="patch"
+          else
+            echo "Only maintenance commits found, skipping release"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+        fi
+        
+        # Calculate new version
+        CURRENT_VERSION=${LAST_TAG#v}
+        IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+        MAJOR=${VERSION_PARTS[0]:-0}
+        MINOR=${VERSION_PARTS[1]:-0}
+        PATCH=${VERSION_PARTS[2]:-0}
+        
+        case "$RELEASE_TYPE" in
+          major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+          minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+          patch)
+            PATCH=$((PATCH + 1))
+            ;;
+        esac
+        
+        NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
+        
+        echo "Release type: $RELEASE_TYPE"
+        echo "New version: $NEW_VERSION"
+        
+        echo "should_release=true" >> $GITHUB_OUTPUT
+        echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
   auto-release:
-    needs: check-version
-    if: needs.check-version.outputs.should_release == 'true'
+    needs: check-changes
+    if: needs.check-changes.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: Create and push tag
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        NEW_VERSION="${{ needs.check-version.outputs.new_version }}"
-        echo "Creating tag: $NEW_VERSION"
+        NEW_VERSION="${{ needs.check-changes.outputs.new_version }}"
+        RELEASE_TYPE="${{ needs.check-changes.outputs.release_type }}"
         
-        git tag "$NEW_VERSION"
+        echo "Creating $RELEASE_TYPE release: $NEW_VERSION"
+        
+        # Create simple tag message
+        git tag -a "$NEW_VERSION" -m "Auto Release $NEW_VERSION ($RELEASE_TYPE) - Automated release generated from commit analysis"
         git push origin "$NEW_VERSION"
+        
+        echo "✅ Tag $NEW_VERSION created and pushed successfully"
     
     - name: Trigger release workflow
       run: |
-        echo "Tag created successfully. Release workflow will be triggered automatically."
+        echo "🎉 Tag created successfully!"
+        echo "📦 Release workflow will be triggered automatically"
+        echo "🔗 Check progress at: https://github.com/sazardev/goca/actions"

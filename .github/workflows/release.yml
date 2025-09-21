@@ -42,17 +42,25 @@ jobs:
     
     - name: Build for multiple platforms
       run: |
+        # Get version and build info
+        VERSION="${{ steps.version.outputs.version }}"
+        BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        GIT_COMMIT=$(git rev-parse --short HEAD)
+        
+        # Build flags
+        LDFLAGS="-X github.com/sazardev/goca/cmd.Version=${VERSION#v} -X github.com/sazardev/goca/cmd.BuildTime=${BUILD_TIME} -X github.com/sazardev/goca/cmd.GitCommit=${GIT_COMMIT}"
+        
         # Build for Windows 64-bit
-        GOOS=windows GOARCH=amd64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-windows-amd64.exe
+        GOOS=windows GOARCH=amd64 go build -ldflags "$LDFLAGS" -o goca-windows-amd64.exe
         
         # Build for Linux 64-bit
-        GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-linux-amd64
+        GOOS=linux GOARCH=amd64 go build -ldflags "$LDFLAGS" -o goca-linux-amd64
         
         # Build for macOS Intel
-        GOOS=darwin GOARCH=amd64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-darwin-amd64
+        GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o goca-darwin-amd64
         
         # Build for macOS Apple Silicon
-        GOOS=darwin GOARCH=arm64 go build -ldflags "-X github.com/sazardev/goca/cmd.Version=${{ steps.version.outputs.version }} -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o goca-darwin-arm64
+        GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o goca-darwin-arm64
         
         # Create checksums
         sha256sum goca-* > checksums.txt
