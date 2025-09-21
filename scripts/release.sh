@@ -141,7 +141,7 @@ fi
 
 # Ejecutar tests
 log "Ejecutando tests..."
-if ! make test-cli > /dev/null 2>&1; then
+if ! go test ./... > /dev/null 2>&1; then
     error "Los tests han fallado. No se puede proceder con el release."
 fi
 success "Tests pasaron correctamente"
