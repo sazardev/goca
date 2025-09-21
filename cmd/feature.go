@@ -360,11 +360,11 @@ func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
 }
 
 func init() {
-	featureCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"campo:tipo,campo2:tipo\" (requerido)")
-	featureCmd.Flags().StringP("database", "d", DBPostgres, fmt.Sprintf("Tipo de base de datos (%s)", strings.Join(ValidDatabases, ", ")))
-	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Tipos de handlers (%s)", strings.Join(ValidHandlers, ", ")))
-	featureCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones en todas las capas")
-	featureCmd.Flags().BoolP("business-rules", "b", false, "Incluir métodos de reglas de negocio")
+	featureCmd.Flags().StringP("fields", "f", "", "Entity fields \"field:type,field2:type\" (required)")
+	featureCmd.Flags().StringP("database", "d", DBPostgres, fmt.Sprintf("Database type (%s)", strings.Join(ValidDatabases, ", ")))
+	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Handler types (%s)", strings.Join(ValidHandlers, ", ")))
+	featureCmd.Flags().BoolP("validation", "v", false, "Include validations in all layers")
+	featureCmd.Flags().BoolP("business-rules", "b", false, "Include business rule methods")
 
 	_ = featureCmd.MarkFlagRequired("fields")
 }

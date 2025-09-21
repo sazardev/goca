@@ -1,211 +1,211 @@
-# Instalación
+# Installation
 
-Esta página te guiará a través de los diferentes métodos para instalar Goca en tu sistema.
+This page will guide you through the different methods to install Goca on your system.
 
-## 📋 Requisitos Previos
+## 📋 Prerequisites
 
-- **Go 1.21+** - [Descargar Go](https://golang.org/dl/)
-- **Git** - Para clonar repositorios y gestión de versiones
-- **Terminal/PowerShell** - Para ejecutar comandos
+- **Go 1.21+** - [Download Go](https://golang.org/dl/)
+- **Git** - For cloning repositories and version control
+- **Terminal/PowerShell** - To run commands
 
-## 🚀 Métodos de Instalación
+## 🚀 Installation Methods
 
-### 1. Instalación con go install (Recomendado)
+### 1. Installation with go install (Recommended)
 
-Este es el método más rápido y siempre te dará la última versión estable:
+This is the fastest method and will always give you the latest stable version:
 
 ```bash
 go install github.com/sazardev/goca@latest
 ```
 
-**Verificar instalación:**
+**Verify installation:**
 ```bash
 goca version
 ```
 
-**Salida esperada:**
+**Expected output:**
 ```
 Goca v1.0.5
 Build: 2025-07-19T15:00:00Z
 Go Version: go1.24.5
 ```
 
-### 2. Descarga de Binarios
+### 2. Binary Downloads
 
-Descarga el binario pre-compilado para tu sistema operativo desde [GitHub Releases](https://github.com/sazardev/goca/releases).
+Download the pre-compiled binary for your operating system from [GitHub Releases](https://github.com/sazardev/goca/releases).
 
-#### Para Windows:
+#### For Windows:
 ```powershell
-# Descargar la última versión
+# Download latest version
 Invoke-WebRequest -Uri "https://github.com/sazardev/goca/releases/latest/download/goca-windows-amd64.exe" -OutFile "goca.exe"
 
-# Mover a una ubicación en el PATH
+# Move to a location in PATH
 Move-Item goca.exe C:\Windows\System32\goca.exe
 ```
 
-#### Para Linux:
+#### For Linux:
 ```bash
-# Descargar la última versión
+# Download latest version
 wget https://github.com/sazardev/goca/releases/latest/download/goca-linux-amd64
 
-# Hacer ejecutable y mover al PATH
+# Make executable and move to PATH
 chmod +x goca-linux-amd64
 sudo mv goca-linux-amd64 /usr/local/bin/goca
 ```
 
-#### Para macOS (Intel):
+#### For macOS (Intel):
 ```bash
-# Descargar la última versión
+# Download latest version
 curl -L https://github.com/sazardev/goca/releases/latest/download/goca-darwin-amd64 -o goca
 
-# Hacer ejecutable y mover al PATH
+# Make executable and move to PATH
 chmod +x goca
 sudo mv goca /usr/local/bin/goca
 ```
 
-#### Para macOS (Apple Silicon):
+#### For macOS (Apple Silicon):
 ```bash
-# Descargar la última versión
+# Download latest version
 curl -L https://github.com/sazardev/goca/releases/latest/download/goca-darwin-arm64 -o goca
 
-# Hacer ejecutable y mover al PATH
+# Make executable and move to PATH
 chmod +x goca
 sudo mv goca /usr/local/bin/goca
 ```
 
-### 3. Instalación con Homebrew (macOS)
+### 3. Installation with Homebrew (macOS)
 
-Si tienes Homebrew instalado:
+If you have Homebrew installed:
 
 ```bash
-# Agregar el tap
+# Add the tap
 brew tap sazardev/tools
 
-# Instalar goca
+# Install goca
 brew install goca
 ```
 
-### 4. Compilación desde Código Fuente
+### 4. Build from Source Code
 
-Para desarrolladores que quieren la última versión de desarrollo:
+For developers who want the latest development version:
 
 ```bash
-# Clonar el repositorio
+# Clone the repository
 git clone https://github.com/sazardev/goca.git
 cd goca
 
-# Compilar
+# Build
 go build -o goca
 
-# Instalar globalmente (opcional)
+# Install globally (optional)
 go install
 ```
 
-## 🔧 Configuración del PATH
+## 🔧 PATH Configuration
 
-Si instalaste manualmente el binario, asegúrate de que esté en tu PATH:
+If you manually installed the binary, make sure it's in your PATH:
 
 ### Windows:
-1. Abre "Variables de entorno del sistema"
-2. Haz clic en "Variables de entorno"
-3. En "Variables del sistema", busca "Path" y haz clic en "Editar"
-4. Haz clic en "Nuevo" y agrega la ruta donde guardaste `goca.exe`
+1. Open "System Environment Variables"
+2. Click "Environment Variables"
+3. In "System Variables", find "Path" and click "Edit"
+4. Click "New" and add the path where you saved `goca.exe`
 
 ### Linux/macOS:
-Agrega esta línea a tu `~/.bashrc`, `~/.zshrc` o `~/.profile`:
+Add this line to your `~/.bashrc`, `~/.zshrc` or `~/.profile`:
 
 ```bash
-export PATH=$PATH:/ruta/donde/guardaste/goca
+export PATH=$PATH:/path/where/you/saved/goca
 ```
 
-Luego recarga tu shell:
+Then reload your shell:
 ```bash
-source ~/.bashrc  # o ~/.zshrc
+source ~/.bashrc  # or ~/.zshrc
 ```
 
-## ✅ Verificación de Instalación
+## ✅ Installation Verification
 
-Una vez instalado, verifica que todo funcione correctamente:
+Once installed, verify that everything works correctly:
 
 ```bash
-# Verificar versión
+# Check version
 goca version
 
-# Mostrar ayuda
+# Show help
 goca help
 
-# Probar comando básico
+# Test basic command
 goca init test-project --module test
 ```
 
-Si ves la información de versión y la ayuda, ¡la instalación fue exitosa! 🎉
+If you see the version information and help, the installation was successful! 🎉
 
-## 🆙 Actualización
+## 🆙 Updates
 
-### Con go install:
+### With go install:
 ```bash
 go install github.com/sazardev/goca@latest
 ```
 
-### Con Homebrew:
+### With Homebrew:
 ```bash
 brew upgrade goca
 ```
 
-### Con binarios:
-Descarga la nueva versión siguiendo los pasos de instalación con binarios.
+### With binaries:
+Download the new version following the binary installation steps.
 
-## 🐛 Solución de Problemas
+## 🐛 Troubleshooting
 
 ### Error: "goca: command not found"
-- ✅ Verifica que Goca esté en tu PATH
-- ✅ Reinicia tu terminal después de la instalación
-- ✅ En Windows, asegúrate de usar PowerShell o CMD como administrador
+- ✅ Verify that Goca is in your PATH
+- ✅ Restart your terminal after installation
+- ✅ On Windows, make sure to use PowerShell or CMD as administrator
 
 ### Error: "permission denied"
 ```bash
-# Linux/macOS - Agregar permisos de ejecución
+# Linux/macOS - Add execution permissions
 chmod +x goca
 
-# Windows - Ejecutar como administrador
+# Windows - Run as administrator
 ```
 
-### Error de certificados SSL (Windows)
+### SSL certificates error (Windows)
 ```powershell
-# Usar TLS 1.2
+# Use TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 ```
 
-### Versión de Go antigua
-Goca requiere Go 1.21+. Actualiza Go desde [golang.org](https://golang.org/dl/).
+### Old Go version
+Goca requires Go 1.21+. Update Go from [golang.org](https://golang.org/dl/).
 
-## 🔄 Desinstalación
+## 🔄 Uninstallation
 
-### Si instalaste con go install:
+### If installed with go install:
 ```bash
-# Encontrar la ubicación
+# Find location
 which goca  # Linux/macOS
 where goca  # Windows
 
-# Eliminar el binario
+# Remove binary
 rm $(which goca)  # Linux/macOS
 del (where goca)  # Windows
 ```
 
-### Con Homebrew:
+### With Homebrew:
 ```bash
 brew uninstall goca
 brew untap sazardev/tools
 ```
 
-## 📞 Soporte
+## 📞 Support
 
-Si tienes problemas con la instalación:
+If you have installation problems:
 
-1. 🔍 Revisa los [Issues conocidos](https://github.com/sazardev/goca/issues)
-2. 💬 Pregunta en [GitHub Discussions](https://github.com/sazardev/goca/discussions)
-3. 🐛 Reporta un nuevo [Issue](https://github.com/sazardev/goca/issues/new)
+1. 🔍 Check [Known Issues](https://github.com/sazardev/goca/issues)
+2. 💬 Ask in [GitHub Discussions](https://github.com/sazardev/goca/discussions)
+3. 🐛 Report a new [Issue](https://github.com/sazardev/goca/issues/new)
 
 ---
 
-**¡Siguiente paso: [Primeros Pasos](Getting-Started) →**
+**Next step: [Getting Started](Getting-Started) →**

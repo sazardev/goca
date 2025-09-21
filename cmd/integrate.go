@@ -409,6 +409,6 @@ func verifyIntegration(features []string) {
 }
 
 func init() {
-	integrateCmd.Flags().BoolP("all", "a", false, "Integrar todos los features detectados automáticamente")
-	integrateCmd.Flags().StringP("features", "f", "", "Features específicos a integrar \"User,Product,Order\"")
+	integrateCmd.Flags().BoolP("all", "a", false, "Integrate all detected features automatically")
+	integrateCmd.Flags().StringP("features", "f", "", "Specific features to integrate \"User,Product,Order\"")
 }

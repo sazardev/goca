@@ -789,5 +789,5 @@ func init() {
 	repositoryCmd.Flags().BoolP(ImplementationFlag, "", false, ImplementationFlagUsage)
 	repositoryCmd.Flags().BoolP(CacheFlag, "c", false, CacheFlagUsage)
 	repositoryCmd.Flags().BoolP(TransactionsFlag, "t", false, TransactionsFlagUsage)
-	repositoryCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"field:type,field2:type\"")
+	repositoryCmd.Flags().StringP("fields", "f", "", "Entity fields \"field:type,field2:type\"")
 }

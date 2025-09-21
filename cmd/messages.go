@@ -216,8 +216,8 @@ func generateConstants(dir, entity string) {
 }
 
 func init() {
-	messagesCmd.Flags().BoolP("errors", "e", false, "Generar mensajes de error")
-	messagesCmd.Flags().BoolP("responses", "r", false, "Generar mensajes de respuesta")
-	messagesCmd.Flags().BoolP("constants", "c", false, "Generar constantes del feature")
-	messagesCmd.Flags().BoolP("all", "a", false, "Generar todos los tipos de mensajes")
+	messagesCmd.Flags().BoolP("errors", "e", false, "Generate error messages")
+	messagesCmd.Flags().BoolP("responses", "r", false, "Generate response messages")
+	messagesCmd.Flags().BoolP("constants", "c", false, "Generate feature constants")
+	messagesCmd.Flags().BoolP("all", "a", false, "Generate all message types")
 }

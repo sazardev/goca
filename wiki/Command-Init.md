@@ -1,53 +1,53 @@
-# Comando goca init
+# goca init Command
 
-El comando `goca init` es el punto de partida para crear cualquier proyecto con Clean Architecture. Genera la estructura base completa siguiendo las mejores prácticas y convenciones establecidas.
+The `goca init` command is the starting point for creating any project with Clean Architecture. It generates the complete base structure following established best practices and conventions.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca init <project-name> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Crea la estructura base de un proyecto Go siguiendo los principios de Clean Architecture, incluyendo:
+Creates the base structure of a Go project following Clean Architecture principles, including:
 
-- 📁 Estructura de directorios organizada por capas
-- 📄 Archivos de configuración esenciales
-- 🔧 Setup inicial de dependencias
-- 📝 Documentación base del proyecto
-- 🔐 Configuración de autenticación (opcional)
-- 🌐 Setup del servidor API (opcional)
+- 📁 Directory structure organized by layers
+- 📄 Essential configuration files
+- 🔧 Initial dependency setup
+- 📝 Project base documentation
+- 🔐 Authentication configuration (optional)
+- 🌐 API server setup (optional)
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag         | Tipo     | Requerido | Valor por Defecto | Descripción                                              |
-| ------------ | -------- | --------- | ----------------- | -------------------------------------------------------- |
-| `--module`   | `string` | ✅ **Sí**  | -                 | Nombre del módulo Go (ej: `github.com/usuario/proyecto`) |
-| `--database` | `string` | ❌ No      | `postgres`        | Tipo de base de datos (`postgres`, `mysql`, `mongodb`)   |
-| `--auth`     | `bool`   | ❌ No      | `false`           | Incluir sistema de autenticación JWT                     |
-| `--api`      | `string` | ❌ No      | `rest`            | Tipo de API (`rest`, `graphql`, `grpc`)                  |
+| Flag         | Type     | Required  | Default Value | Description                                     |
+| ------------ | -------- | --------- | ------------- | ----------------------------------------------- |
+| `--module`   | `string` | ✅ **Yes** | -             | Go module name (e.g: `github.com/user/project`) |
+| `--database` | `string` | ❌ No      | `postgres`    | Database type (`postgres`, `mysql`, `mongodb`)  |
+| `--auth`     | `bool`   | ❌ No      | `false`       | Include JWT authentication system               |
+| `--api`      | `string` | ❌ No      | `rest`        | API type (`rest`, `graphql`, `grpc`)            |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Ejemplo Básico
+### Basic Example
 ```bash
-goca init mi-proyecto --module github.com/usuario/mi-proyecto
+goca init my-project --module github.com/user/my-project
 ```
 
-### Proyecto con Autenticación
+### Project with Authentication
 ```bash
-goca init ecommerce --module github.com/empresa/ecommerce --auth --database postgres --api rest
+goca init ecommerce --module github.com/company/ecommerce --auth --database postgres --api rest
 ```
 
-### Proyecto con gRPC
+### Project with gRPC
 ```bash
-goca init microservicio --module github.com/empresa/microservicio --api grpc --database mongodb
+goca init microservice --module github.com/company/microservice --api grpc --database mongodb
 ```
 
-### Proyecto Completo
+### Complete Project
 ```bash
-goca init plataforma --module github.com/empresa/plataforma --auth --database mysql --api both
+goca init platform --module github.com/company/platform --auth --database mysql --api both
 ```
 
 ## 📂 Estructura Generada

@@ -12,8 +12,8 @@ import (
 var handlerCmd = &cobra.Command{
 	Use:   "handler <entity>",
 	Short: "Generate handlers for different protocols",
-	Long: `Crea adaptadores de entrega que manejan diferentes protocolos 
-(HTTP, gRPC, CLI) manteniendo la separación de capas.`,
+	Long: `Creates delivery adapters that handle different protocols 
+(HTTP, gRPC, CLI) maintaining layer separation.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		entity := args[0]
@@ -859,8 +859,8 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 }
 
 func init() {
-	handlerCmd.Flags().StringP("type", "t", "http", "Tipo de handler (http, grpc, cli, worker, soap)")
-	handlerCmd.Flags().BoolP("middleware", "m", false, "Incluir setup de middleware")
-	handlerCmd.Flags().BoolP("validation", "v", false, "Validación de entrada en handler")
-	handlerCmd.Flags().BoolP("swagger", "s", false, "Generar documentación Swagger (solo HTTP)")
+	handlerCmd.Flags().StringP("type", "t", "http", "Handler type (http, grpc, cli, worker, soap)")
+	handlerCmd.Flags().BoolP("middleware", "m", false, "Include middleware setup")
+	handlerCmd.Flags().BoolP("validation", "v", false, "Input validation in handler")
+	handlerCmd.Flags().BoolP("swagger", "s", false, "Generate Swagger documentation (HTTP only)")
 }

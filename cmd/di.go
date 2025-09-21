@@ -374,8 +374,8 @@ func generateWireGenTemplate(dir string, features []string) {
 }
 
 func init() {
-	diCmd.Flags().StringP("features", "f", "", "Características del proyecto (crud,auth,validation,etc)")
-	diCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")
-	diCmd.Flags().BoolP("wire", "w", false, "Usar Google Wire para inyección de dependencias")
+	diCmd.Flags().StringP("features", "f", "", "Project features (crud,auth,validation,etc)")
+	diCmd.Flags().StringP("database", "d", "postgres", "Database type (postgres, mysql, mongodb)")
+	diCmd.Flags().BoolP("wire", "w", false, "Use Google Wire for dependency injection")
 	_ = diCmd.MarkFlagRequired("features")
 }

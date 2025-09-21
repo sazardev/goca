@@ -580,10 +580,10 @@ func getValidationTag(fieldType string) string {
 }
 
 func init() {
-	usecaseCmd.Flags().StringP("entity", "e", "", "Entidad asociada al caso de uso (requerido)")
-	usecaseCmd.Flags().StringP("operations", "o", "create,read", "Operaciones CRUD \"create,read,update,delete,list\"")
-	usecaseCmd.Flags().BoolP("dto-validation", "d", false, "DTOs con validaciones específicas")
-	usecaseCmd.Flags().BoolP("async", "a", false, "Incluir operaciones asíncronas")
+	usecaseCmd.Flags().StringP("entity", "e", "", "Associated entity for the use case (required)")
+	usecaseCmd.Flags().StringP("operations", "o", "create,read", "CRUD operations \"create,read,update,delete,list\"")
+	usecaseCmd.Flags().BoolP("dto-validation", "d", false, "DTOs with specific validations")
+	usecaseCmd.Flags().BoolP("async", "a", false, "Include asynchronous operations")
 
 	_ = usecaseCmd.MarkFlagRequired("entity")
 }

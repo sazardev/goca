@@ -738,10 +738,10 @@ func generateSQLSampleValue(field Field, index int) string {
 }
 
 func init() {
-	entityCmd.Flags().StringP("fields", "f", "", "Campos de la entidad \"campo:tipo,campo2:tipo\" (requerido)")
-	entityCmd.Flags().BoolP("validation", "v", false, "Incluir validaciones de negocio")
-	entityCmd.Flags().BoolP("business-rules", "b", false, "Incluir reglas de negocio avanzadas")
-	entityCmd.Flags().BoolP("timestamps", "t", false, "Incluir campos CreatedAt y UpdatedAt")
-	entityCmd.Flags().BoolP("soft-delete", "s", false, "Incluir eliminación suave (DeletedAt)")
+	entityCmd.Flags().StringP("fields", "f", "", "Entity fields \"field:type,field2:type\" (required)")
+	entityCmd.Flags().BoolP("validation", "v", false, "Include business validations")
+	entityCmd.Flags().BoolP("business-rules", "b", false, "Include advanced business rules")
+	entityCmd.Flags().BoolP("timestamps", "t", false, "Include CreatedAt and UpdatedAt fields")
+	entityCmd.Flags().BoolP("soft-delete", "s", false, "Include soft delete (DeletedAt)")
 	_ = entityCmd.MarkFlagRequired("fields")
 }

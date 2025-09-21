@@ -1323,9 +1323,9 @@ func getDatabaseHealthCheck(database string) string {
 }
 
 func init() {
-	initCmd.Flags().StringP("module", "m", "", "Nombre del módulo Go (ej: github.com/user/project)")
-	initCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos (postgres, mysql, mongodb)")
-	initCmd.Flags().StringP("api", "a", "rest", "Tipo de API (rest, graphql, grpc)")
-	initCmd.Flags().Bool("auth", false, "Incluir sistema de autenticación")
+	initCmd.Flags().StringP("module", "m", "", "Go module name (e.g: github.com/user/project)")
+	initCmd.Flags().StringP("database", "d", "postgres", "Database type (postgres, mysql, mongodb)")
+	initCmd.Flags().StringP("api", "a", "rest", "API type (rest, graphql, grpc)")
+	initCmd.Flags().Bool("auth", false, "Include authentication system")
 	_ = initCmd.MarkFlagRequired("module")
 }
