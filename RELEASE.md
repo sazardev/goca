@@ -23,12 +23,12 @@ Este documento describe el sistema de release completamente automatizado para Go
 
 ### Detección Automática por Commits
 
-| Patrón de Commit | Tipo Release | Incremento |
-|-----------------|--------------|------------|
-| `feat!:` | **major** | `x.0.0` |
-| `feat:` | **minor** | `x.y.0` |
-| `fix:` | **patch** | `x.y.z` |
-| `chore:`, `docs:`, `style:` | **patch** | `x.y.z` |
+| Patrón de Commit            | Tipo Release | Incremento |
+| --------------------------- | ------------ | ---------- |
+| `feat!:`                    | **major**    | `x.0.0`    |
+| `feat:`                     | **minor**    | `x.y.0`    |
+| `fix:`                      | **patch**    | `x.y.z`    |
+| `chore:`, `docs:`, `style:` | **patch**    | `x.y.z`    |
 
 ### Ejemplos de Commits
 
