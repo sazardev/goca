@@ -337,7 +337,6 @@ func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
 	
 	return nil, fmt.Errorf("failed to connect to database after 5 attempts")
 }
-}
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	status := HealthStatus{
@@ -427,9 +426,6 @@ func runAutoMigrations(database *gorm.DB) error {
 	}
 	
 	log.Println("✅ GORM auto-migrations completed successfully")
-	return nil
-}
-	
 	return nil
 }
 

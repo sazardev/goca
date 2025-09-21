@@ -48,7 +48,7 @@ lint: ## Run linter
 	golangci-lint run
 
 # CLI Testing
-test-cli: ## Run CLI comprehensive tests
+test-cli-comprehensive: ## Run CLI comprehensive tests
 	@echo "Running comprehensive CLI tests..."
 	go run internal/testing/test_runner.go -type=all -v
 
@@ -80,12 +80,13 @@ test-cli-benchmark: ## Run CLI performance benchmarks
 test-all: ## Run all tests (unit + CLI)
 	@echo "Running all tests..."
 	$(MAKE) test
-	$(MAKE) test-cli
-test-cli: build ## Test CLI functionality
-	@echo "Testing CLI functionality..."
+	$(MAKE) test-cli-comprehensive
+
+test-cli-basic: build ## Test basic CLI functionality
+	@echo "Testing basic CLI functionality..."
 	./goca version
 	./goca help
-	@echo "CLI tests passed!"
+	@echo "Basic CLI tests passed!"
 
 # Installation
 install: ## Install CLI to GOPATH/bin
