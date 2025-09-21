@@ -1,72 +1,72 @@
-# Comando goca messages
+# goca messages Command
 
-El comando `goca messages` crea archivos de mensajes de error, respuestas y constantes organizados por feature para mantener consistencia en la aplicación.
+The `goca messages` command creates error message files, responses and constants organized by feature to maintain consistency in the application.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca messages <entity> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Crea sistemas de mensajes organizados y consistentes:
+Creates organized and consistent message systems:
 
-- ❌ **Mensajes de error** centralizados y tipados
-- ✅ **Mensajes de respuesta** para diferentes operaciones
-- 📄 **Constantes** del sistema organizadas por feature
-- 🌍 **Internacionalización** preparada (i18n)
-- 📊 **Códigos de estado** consistentes
+- ❌ **Centralized and typed error messages**
+- ✅ **Response messages** for different operations
+- 📄 **System constants** organized by feature
+- 🌍 **Internationalization** ready (i18n)
+- 📊 **Consistent status codes**
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag          | Tipo   | Requerido | Valor por Defecto | Descripción                         |
-| ------------- | ------ | --------- | ----------------- | ----------------------------------- |
-| `--all`       | `bool` | ❌ No      | `false`           | Generar todos los tipos de mensajes |
-| `--errors`    | `bool` | ❌ No      | `false`           | Generar mensajes de error           |
-| `--responses` | `bool` | ❌ No      | `false`           | Generar mensajes de respuesta       |
-| `--constants` | `bool` | ❌ No      | `false`           | Generar constantes del feature      |
+| Flag          | Type   | Required | Default Value | Description                    |
+| ------------- | ------ | -------- | ------------- | ------------------------------ |
+| `--all`       | `bool` | ❌ No     | `false`       | Generate all types of messages |
+| `--errors`    | `bool` | ❌ No     | `false`       | Generate error messages        |
+| `--responses` | `bool` | ❌ No     | `false`       | Generate response messages     |
+| `--constants` | `bool` | ❌ No     | `false`       | Generate feature constants     |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Todos los Mensajes
+### All Messages
 ```bash
 goca messages User --all
 ```
 
-### Solo Mensajes de Error
+### Error Messages Only
 ```bash
 goca messages Product --errors
 ```
 
-### Solo Mensajes de Respuesta
+### Response Messages Only
 ```bash
 goca messages Order --responses
 ```
 
-### Solo Constantes
+### Constants Only
 ```bash
 goca messages Customer --constants
 ```
 
-### Combinación Específica
+### Specific Combination
 ```bash
 goca messages User --errors --responses
 ```
 
-## 📂 Archivos Generados
+## 📂 Generated Files
 
-### Estructura de Archivos
+### File Structure
 ```
 internal/messages/
-├── errors.go              # Mensajes de error
-├── responses.go            # Mensajes de respuesta
-└── constants.go            # Constantes del sistema
+├── errors.go              # Error messages
+├── responses.go            # Response messages
+└── constants.go            # System constants
 ```
 
-## 🔍 Código Generado en Detalle
+## 🔍 Generated Code in Detail
 
-### Mensajes de Error: `internal/messages/errors.go`
+### Error Messages: `internal/messages/errors.go`
 
 ```go
 package messages
@@ -130,7 +130,7 @@ var (
     ErrUserInternal        = NewUserError(ErrTypeUserInternal, "internal user service error")
 )
 
-// UserError representa un error específico de usuario
+// UserError represents a user-specific error
 type UserError struct {
     Type    string `json:"type"`
     Message string `json:"message"`
@@ -139,7 +139,7 @@ type UserError struct {
     Value   string `json:"value,omitempty"`
 }
 
-// Error implementa la interface error
+// Error implements the error interface
 func (e *UserError) Error() string {
     if e.Field != "" {
         return fmt.Sprintf("%s: %s (field: %s)", e.Type, e.Message, e.Field)
@@ -147,7 +147,7 @@ func (e *UserError) Error() string {
     return fmt.Sprintf("%s: %s", e.Type, e.Message)
 }
 
-// NewUserError crea un nuevo error de usuario
+// NewUserError creates a new user error
 func NewUserError(errorType, message string) *UserError {
     return &UserError{
         Type:    errorType,
@@ -155,7 +155,7 @@ func NewUserError(errorType, message string) *UserError {
     }
 }
 
-// NewUserValidationError crea un error de validación con campo específico
+// NewUserValidationError creates a validation error with specific field
 func NewUserValidationError(message, field, value string) *UserError {
     return &UserError{
         Type:    ErrTypeUserValidation,
@@ -165,25 +165,25 @@ func NewUserValidationError(message, field, value string) *UserError {
     }
 }
 
-// WithField agrega información de campo al error
+// WithField adds field information to the error
 func (e *UserError) WithField(field string) *UserError {
     e.Field = field
     return e
 }
 
-// WithValue agrega valor que causó el error
+// WithValue adds the value that caused the error
 func (e *UserError) WithValue(value string) *UserError {
     e.Value = value
     return e
 }
 
-// WithCode agrega código específico al error
+// WithCode adds specific code to the error
 func (e *UserError) WithCode(code string) *UserError {
     e.Code = code
     return e
 }
 
-// IsValidationError verifica si el error es de validación
+// IsValidationError checks if the error is a validation error
 func IsValidationError(err error) bool {
     if userErr, ok := err.(*UserError); ok {
         return userErr.Type == ErrTypeUserValidation
@@ -191,7 +191,7 @@ func IsValidationError(err error) bool {
     return false
 }
 
-// IsNotFoundError verifica si el error es de entidad no encontrada
+// IsNotFoundError checks if the error is an entity not found error
 func IsNotFoundError(err error) bool {
     if userErr, ok := err.(*UserError); ok {
         return userErr.Type == ErrTypeUserNotFound
@@ -199,7 +199,7 @@ func IsNotFoundError(err error) bool {
     return false
 }
 
-// IsExistsError verifica si el error es de entidad ya existente
+// IsExistsError checks if the error is an entity already exists error
 func IsExistsError(err error) bool {
     if userErr, ok := err.(*UserError); ok {
         return userErr.Type == ErrTypeUserExists
@@ -207,7 +207,7 @@ func IsExistsError(err error) bool {
     return false
 }
 
-// IsPermissionError verifica si el error es de permisos
+// IsPermissionError checks if the error is a permission error
 func IsPermissionError(err error) bool {
     if userErr, ok := err.(*UserError); ok {
         return userErr.Type == ErrTypeUserPermission
@@ -215,7 +215,7 @@ func IsPermissionError(err error) bool {
     return false
 }
 
-// IsDatabaseError verifica si el error es de base de datos
+// IsDatabaseError checks if the error is a database error
 func IsDatabaseError(err error) bool {
     if userErr, ok := err.(*UserError); ok {
         return userErr.Type == ErrTypeUserDatabase
@@ -223,7 +223,7 @@ func IsDatabaseError(err error) bool {
     return false
 }
 
-// GetErrorType retorna el tipo de error
+// GetErrorType returns the error type
 func GetErrorType(err error) string {
     if userErr, ok := err.(*UserError); ok {
         return userErr.Type
@@ -231,7 +231,7 @@ func GetErrorType(err error) string {
     return "UNKNOWN_ERROR"
 }
 
-// WrapError envuelve un error con contexto de usuario
+// WrapError wraps an error with user context
 func WrapError(err error, message string) *UserError {
     return &UserError{
         Type:    ErrTypeUserInternal,
@@ -239,12 +239,12 @@ func WrapError(err error, message string) *UserError {
     }
 }
 
-// MultiError maneja múltiples errores
+// MultiError handles multiple errors
 type MultiError struct {
     Errors []*UserError `json:"errors"`
 }
 
-// Error implementa la interface error para múltiples errores
+// Error implements the error interface for multiple errors
 func (m *MultiError) Error() string {
     if len(m.Errors) == 0 {
         return "no errors"
@@ -257,17 +257,17 @@ func (m *MultiError) Error() string {
     return fmt.Sprintf("multiple errors: %d validation errors", len(m.Errors))
 }
 
-// Add agrega un error a la colección
+// Add adds an error to the collection
 func (m *MultiError) Add(err *UserError) {
     m.Errors = append(m.Errors, err)
 }
 
-// HasErrors verifica si hay errores
+// HasErrors checks if there are errors
 func (m *MultiError) HasErrors() bool {
     return len(m.Errors) > 0
 }
 
-// NewMultiError crea una nueva instancia de múltiples errores
+// NewMultiError creates a new instance of multiple errors
 func NewMultiError() *MultiError {
     return &MultiError{
         Errors: make([]*UserError, 0),
@@ -275,7 +275,7 @@ func NewMultiError() *MultiError {
 }
 ```
 
-### Mensajes de Respuesta: `internal/messages/responses.go`
+### Response Messages: `internal/messages/responses.go`
 
 ```go
 package messages
@@ -381,7 +381,7 @@ var (
     }
 )
 
-// ResponseTemplate estructura base para respuestas
+// ResponseTemplate base structure for responses
 type ResponseTemplate struct {
     Message    string                 `json:"message"`
     Code       string                 `json:"code"`
@@ -391,7 +391,7 @@ type ResponseTemplate struct {
     Timestamp  string                 `json:"timestamp,omitempty"`
 }
 
-// SuccessResponse crea una respuesta de éxito
+// SuccessResponse creates a success response
 func SuccessResponse(template ResponseTemplate, data interface{}) ResponseTemplate {
     response := template
     response.Data = data
@@ -504,7 +504,7 @@ var NotificationMessages = map[string]string{
     "security_alert":      "Suspicious activity detected on your account.",
 }
 
-// GetNotificationMessage obtiene un mensaje de notificación
+// GetNotificationMessage gets a notification message
 func GetNotificationMessage(key string) string {
     if message, exists := NotificationMessages[key]; exists {
         return message
@@ -512,7 +512,7 @@ func GetNotificationMessage(key string) string {
     return "Notification message"
 }
 
-// EmailTemplates plantillas para emails
+// EmailTemplates templates for emails
 var EmailTemplates = map[string]EmailTemplate{
     "welcome": {
         Subject: "Welcome to {{.AppName}}!",
@@ -528,20 +528,20 @@ var EmailTemplates = map[string]EmailTemplate{
     },
 }
 
-// EmailTemplate estructura para plantillas de email
+// EmailTemplate structure for email templates
 type EmailTemplate struct {
     Subject string `json:"subject"`
     Body    string `json:"body"`
 }
 
-// GetEmailTemplate obtiene una plantilla de email
+// GetEmailTemplate gets an email template
 func GetEmailTemplate(templateName string) (EmailTemplate, bool) {
     template, exists := EmailTemplates[templateName]
     return template, exists
 }
 ```
 
-### Constantes del Sistema: `internal/messages/constants.go`
+### System Constants: `internal/messages/constants.go`
 
 ```go
 package messages
@@ -702,7 +702,7 @@ func GetValidUserStatuses() []string {
     }
 }
 
-// GetValidUserRoles retorna todos los roles válidos de usuario
+// GetValidUserRoles returns all valid user roles
 func GetValidUserRoles() []string {
     return []string{
         UserRoleAdmin,
@@ -714,7 +714,7 @@ func GetValidUserRoles() []string {
     }
 }
 
-// GetUserPermissions retorna todos los permisos de usuario
+// GetUserPermissions returns all user permissions
 func GetUserPermissions() []string {
     return []string{
         PermissionUserCreate,
@@ -729,7 +729,7 @@ func GetUserPermissions() []string {
     }
 }
 
-// IsValidUserStatus verifica si el estado de usuario es válido
+// IsValidUserStatus checks if the user status is valid
 func IsValidUserStatus(status string) bool {
     validStatuses := GetValidUserStatuses()
     for _, validStatus := range validStatuses {
@@ -740,7 +740,7 @@ func IsValidUserStatus(status string) bool {
     return false
 }
 
-// IsValidUserRole verifica si el rol de usuario es válido
+// IsValidUserRole checks if the user role is valid
 func IsValidUserRole(role string) bool {
     validRoles := GetValidUserRoles()
     for _, validRole := range validRoles {
@@ -751,17 +751,17 @@ func IsValidUserRole(role string) bool {
     return false
 }
 
-// GetDefaultPaginationValues retorna valores por defecto para paginación
+// GetDefaultPaginationValues returns default values for pagination
 func GetDefaultPaginationValues() (int, int) {
     return 1, DefaultPageLimit // page, limit
 }
 
-// GetMaxAllowedLimit retorna el límite máximo permitido
+// GetMaxAllowedLimit returns the maximum allowed limit
 func GetMaxAllowedLimit() int {
     return DefaultMaxLimit
 }
 
-// UserConfig configuración específica de usuario
+// UserConfig user-specific configuration
 type UserConfig struct {
     NameMinLength        int           `json:"name_min_length"`
     NameMaxLength        int           `json:"name_max_length"`
@@ -776,7 +776,7 @@ type UserConfig struct {
     RateLimitPerMinute   int           `json:"rate_limit_per_minute"`
 }
 
-// GetDefaultUserConfig retorna la configuración por defecto
+// GetDefaultUserConfig returns the default configuration
 func GetDefaultUserConfig() UserConfig {
     return UserConfig{
         NameMinLength:        UserNameMinLength,
@@ -903,9 +903,9 @@ func GetMessageWithParams(key MessageKey, lang string, params ...interface{}) st
 }
 ```
 
-## 📊 Uso en Diferentes Capas
+## 📊 Usage in Different Layers
 
-### En Handlers HTTP
+### In HTTP Handlers
 ```go
 func (h *UserHandler) Create(c *gin.Context) {
     user, err := h.userUseCase.Create(c.Request.Context(), req)
@@ -919,7 +919,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 }
 ```
 
-### En Casos de Uso
+### In Use Cases
 ```go
 func (s *UserService) Create(ctx context.Context, req dto.CreateUserRequest) (*dto.UserResponse, error) {
     if req.Name == "" {
@@ -931,13 +931,13 @@ func (s *UserService) Create(ctx context.Context, req dto.CreateUserRequest) (*d
         return nil, ErrUserEmailExists
     }
     
-    // ... lógica de creación
+    // ... creation logic
     
     return userResponse, nil
 }
 ```
 
-### En Validaciones
+### In Validations
 ```go
 func ValidateUser(user *domain.User) *MultiError {
     multiErr := NewMultiError()
@@ -962,21 +962,21 @@ func ValidateUser(user *domain.User) *MultiError {
 }
 ```
 
-## ⚠️ Consideraciones Importantes
+## ⚠️ Important Considerations
 
-### ✅ Buenas Prácticas
-- **Mensajes consistentes**: Usar templates para mantener consistencia
-- **Códigos de error claros**: Usar códigos descriptivos y únicos
-- **Internacionalización**: Preparar para múltiples idiomas
-- **Metadatos útiles**: Incluir información contextual en errores
+### ✅ Best Practices
+- **Consistent messages**: Use templates to maintain consistency
+- **Clear error codes**: Use descriptive and unique codes
+- **Internationalization**: Prepare for multiple languages
+- **Useful metadata**: Include contextual information in errors
 
-### ❌ Errores Comunes
-- **Mensajes hardcodeados**: Centralizar todos los mensajes
-- **Información sensible**: No exponer datos internos en errores
-- **Mensajes genéricos**: Ser específico sobre el problema
-- **Inconsistencia**: Mantener formato consistente
+### ❌ Common Mistakes
+- **Hardcoded messages**: Centralize all messages
+- **Sensitive information**: Don't expose internal data in errors
+- **Generic messages**: Be specific about the problem
+- **Inconsistency**: Maintain consistent format
 
-### 🔄 Integración Recomendada
+### 🔄 Recommended Integration
 
 #### Logger
 ```go
@@ -1017,4 +1017,4 @@ func TrackUserError(err error) {
 
 ---
 
-**← [Comando goca interfaces](Command-Interfaces) | [Comando goca version](Command-Version) →**
+**← [goca interfaces Command](Command-Interfaces) | [goca version Command](Command-Version) →**

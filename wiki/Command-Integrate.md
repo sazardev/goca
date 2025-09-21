@@ -1,121 +1,121 @@
-# Comando goca integrate
+# goca integrate Command
 
-El comando `goca integrate` es una herramienta especializada para **integrar features existentes** que no están conectados con el contenedor de inyección de dependencias o `main.go`.
+The `goca integrate` command is a specialized tool for **integrating existing features** that are not connected to the dependency injection container or `main.go`.
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Útil para:
-- 📦 Proyectos migrados de versiones anteriores de Goca
-- 🔧 Features generados manualmente que necesitan integración
-- 🛠️ Reparar integraciones incompletas o dañadas
-- 🔄 Actualizar proyectos existentes con la nueva auto-integración
+Useful for:
+- 📦 Projects migrated from previous Goca versions
+- 🔧 Manually generated features that need integration
+- 🛠️ Repairing incomplete or damaged integrations
+- 🔄 Updating existing projects with new auto-integration
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca integrate [flags]
 ```
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag         | Tipo     | Requerido | Descripción                                          |
-| ------------ | -------- | --------- | ---------------------------------------------------- |
-| `--all`      | `bool`   | ❌ No      | Detecta e integra automáticamente todos los features |
-| `--features` | `string` | ❌ No      | Features específicos a integrar (`"User,Product"`)   |
+| Flag         | Type     | Required | Description                                       |
+| ------------ | -------- | -------- | ------------------------------------------------- |
+| `--all`      | `bool`   | ❌ No     | Automatically detect and integrate all features   |
+| `--features` | `string` | ❌ No     | Specific features to integrate (`"User,Product"`) |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Integración Automática (Recomendado)
+### Automatic Integration (Recommended)
 ```bash
-# Detecta automáticamente todos los features y los integra
+# Automatically detect all features and integrate them
 goca integrate --all
 ```
 
-**Salida esperada:**
+**Expected output:**
 ```
-🔍 Detectando features existentes...
-📋 Features detectados: User, Product, Order
+🔍 Detecting existing features...
+📋 Detected features: User, Product, Order
 
-🔄 Iniciando proceso de integración...
+🔄 Starting integration process...
 
-1️⃣  Configurando contenedor DI...
-   📦 Creando contenedor DI...
-   ✅ User integrado en el contenedor DI
-   ✅ Product integrado en el contenedor DI
-   ✅ Order integrado en el contenedor DI
+1️⃣  Setting up DI container...
+   📦 Creating DI container...
+   ✅ User integrated in DI container
+   ✅ Product integrated in DI container
+   ✅ Order integrated in DI container
 
-2️⃣  Actualizando main.go...
-   📍 Actualizando main.go en: main.go
-   🔧 Reescribiendo main.go completo...
-   ✅ main.go creado con 3 features
+2️⃣  Updating main.go...
+   📍 Updating main.go at: main.go
+   🔧 Rewriting complete main.go...
+   ✅ main.go created with 3 features
 
-3️⃣  Verificando integración...
-   ✅ Contenedor DI existe
-   ✅ main.go integrado (main.go)
-   ✅ User routes integradas
-   ✅ Product routes integradas
-   ✅ Order routes integradas
+3️⃣  Verifying integration...
+   ✅ DI container exists
+   ✅ main.go integrated (main.go)
+   ✅ User routes integrated
+   ✅ Product routes integrated
+   ✅ Order routes integrated
 
-🎯 ¡Integración perfecta! Todo está listo.
+🎯 Perfect integration! Everything is ready.
 
-🎉 ¡Integración completada!
-✅ Todos los features están ahora:
-   🔗 Conectados en el contenedor DI
-   🛣️  Con rutas registradas en main.go
-   ⚡ Listos para usar
+🎉 Integration completed!
+✅ All features are now:
+   🔗 Connected in DI container
+   🛣️  With routes registered in main.go
+   ⚡ Ready to use
 ```
 
-### Integración Específica
+### Specific Integration
 ```bash
-# Integra solo features específicos
+# Integrate only specific features
 goca integrate --features "User,Product"
 ```
 
-### Caso de Uso Común: Después de Clonar un Proyecto
+### Common Use Case: After Cloning a Project
 ```bash
-# 1. Clonar proyecto existente
+# 1. Clone existing project
 git clone https://github.com/user/my-goca-project.git
 cd my-goca-project
 
-# 2. Integrar automáticamente todos los features
+# 2. Automatically integrate all features
 goca integrate --all
 
-# 3. Verificar que todo funciona
+# 3. Verify everything works
 go mod tidy
 go run main.go
 ```
 
-## 🔍 Detección Automática
+## 🔍 Automatic Detection
 
-El comando `goca integrate --all` detecta features automáticamente buscando:
+The `goca integrate --all` command automatically detects features by looking for:
 
-1. **Entidades de dominio** en `internal/domain/*.go`
-2. **Handlers HTTP** en `internal/handler/http/*_handler.go`
-3. **Casos de uso** en `internal/usecase/*.go`
+1. **Domain entities** in `internal/domain/*.go`
+2. **HTTP handlers** in `internal/handler/http/*_handler.go`
+3. **Use cases** in `internal/usecase/*.go`
 
-### Archivos Ignorados en Detección
+### Files Ignored in Detection
 - `errors.go`
 - `validations.go`
 - `common.go`
 - `types.go`
 
-## 🔧 Proceso de Integración
+## 🔧 Integration Process
 
-### 1. Contenedor DI
-- ✅ Crea `internal/di/container.go` si no existe
-- ✅ Agrega campos para repositories, use cases y handlers
-- ✅ Configura métodos de setup y getters
-- ✅ Detecta y evita duplicados
+### 1. DI Container
+- ✅ Creates `internal/di/container.go` if it doesn't exist
+- ✅ Adds fields for repositories, use cases and handlers
+- ✅ Sets up setup methods and getters
+- ✅ Detects and avoids duplicates
 
 ### 2. Main.go
-- ✅ Detecta `main.go` en múltiples ubicaciones
-- ✅ Agrega imports necesarios (`internal/di`)
-- ✅ Configura contenedor DI
-- ✅ Registra todas las rutas HTTP
-- ✅ Preserva configuración existente
+- ✅ Detects `main.go` in multiple locations
+- ✅ Adds necessary imports (`internal/di`)
+- ✅ Sets up DI container
+- ✅ Registers all HTTP routes
+- ✅ Preserves existing configuration
 
-### 3. Rutas Generadas
-Para cada feature se registran automáticamente:
+### 3. Generated Routes
+For each feature, the following routes are automatically registered:
 ```go
 // User routes
 userHandler := container.UserHandler()
@@ -126,18 +126,18 @@ router.HandleFunc("/api/v1/users/{id}", userHandler.DeleteUser).Methods("DELETE"
 router.HandleFunc("/api/v1/users", userHandler.ListUsers).Methods("GET")
 ```
 
-## 🏗️ Estructura Esperada del Proyecto
+## 🏗️ Expected Project Structure
 
-Para que la integración funcione correctamente, el proyecto debe tener:
+For integration to work correctly, the project must have:
 
 ```
 myproject/
 ├── go.mod
-├── main.go                          # Será actualizado/creado
+├── main.go                          # Will be updated/created
 ├── internal/
 │   ├── domain/
-│   │   ├── user.go                  # ← Detectado como feature "User"
-│   │   └── product.go               # ← Detectado como feature "Product"
+│   │   ├── user.go                  # ← Detected as "User" feature
+│   │   └── product.go               # ← Detected as "Product" feature
 │   ├── usecase/
 │   │   ├── user_usecase.go
 │   │   └── product_usecase.go
@@ -146,107 +146,107 @@ myproject/
 │   │   └── product_repository.go
 │   ├── handler/
 │   │   └── http/
-│   │       ├── user_handler.go      # ← Detectado como feature "User"
-│   │       └── product_handler.go   # ← Detectado como feature "Product"
-│   └── di/                          # ← Será creado/actualizado
+│   │       ├── user_handler.go      # ← Detected as "User" feature
+│   │       └── product_handler.go   # ← Detected as "Product" feature
+│   └── di/                          # ← Will be created/updated
 │       └── container.go
 └── pkg/
     ├── config/
     └── logger/
 ```
 
-## ⚠️ Casos Especiales
+## ⚠️ Special Cases
 
-### Main.go No Encontrado
-Si no se encuentra `main.go`, el comando creará uno nuevo completo:
+### Main.go Not Found
+If `main.go` is not found, the command will create a complete new one:
 ```
-⚠️  main.go no encontrado, creando nuevo...
-✅ main.go creado con 3 features
-```
-
-### Features Ya Integrados
-Si algunos features ya están integrados, se saltarán:
-```
-✅ User ya está en el contenedor DI
-➕ Agregando Product al contenedor DI...
-✅ Product integrado en el contenedor DI
+⚠️  main.go not found, creating new one...
+✅ main.go created with 3 features
 ```
 
-### Errores de Integración
-Si hay problemas, se muestran instrucciones manuales:
+### Features Already Integrated
+If some features are already integrated, they will be skipped:
 ```
-⚠️  No se pudo actualizar main.go: permission denied
+✅ User is already in DI container
+➕ Adding Product to DI container...
+✅ Product integrated in DI container
+```
 
-📋 Instrucciones de integración manual:
-1. Agregar import en main.go:
+### Integration Errors
+If there are problems, manual instructions are shown:
+```
+⚠️  Could not update main.go: permission denied
+
+📋 Manual integration instructions:
+1. Add import in main.go:
    "myproject/internal/di"
-2. Agregar en main(), después de conectar la DB:
+2. Add in main(), after connecting the DB:
    container := di.NewContainer(db)
-3. Agregar las rutas del feature:
+3. Add feature routes:
    userHandler := container.UserHandler()
    router.HandleFunc("/api/v1/users", userHandler.CreateUser).Methods("POST")
    ...
 ```
 
-## 🔄 Workflow Completo
+## 🔄 Complete Workflow
 
-### Escenario: Migrar Proyecto Existente
+### Scenario: Migrate Existing Project
 
 ```bash
-# 1. Verificar structure actual
-ls internal/domain/     # Ver features existentes
+# 1. Check current structure
+ls internal/domain/     # See existing features
 
-# 2. Ejecutar integración automática
+# 2. Run automatic integration
 goca integrate --all
 
-# 3. Verificar que todo compile
+# 3. Verify everything compiles
 go mod tidy
 go build
 
-# 4. Probar el servidor
+# 4. Test the server
 go run main.go
 
-# 5. Probar endpoints
+# 5. Test endpoints
 curl http://localhost:8080/health
 curl http://localhost:8080/api/v1/users
 ```
 
-### Escenario: Agregar Feature a Proyecto Integrado
+### Scenario: Add Feature to Integrated Project
 
 ```bash
-# 1. Generar nuevo feature (auto-integrado)
+# 1. Generate new feature (auto-integrated)
 goca feature Order --fields "user_id:int,total:float64,status:string"
 
-# 2. ¡Ya está listo! No necesitas integrate
+# 2. Ready to go! No integrate needed
 go run main.go
 ```
 
-## 🤝 Comparación con `goca feature`
+## 🤝 Comparison with `goca feature`
 
-| Aspecto              | `goca feature`         | `goca integrate`                |
-| -------------------- | ---------------------- | ------------------------------- |
-| **Propósito**        | Crear nuevo feature    | Integrar features existentes    |
-| **Genera código**    | ✅ Sí (todas las capas) | ❌ No (solo integración)         |
-| **Auto-integración** | ✅ Sí (automática)      | ✅ Sí (reparación/actualización) |
-| **Uso típico**       | Desarrollo nuevo       | Migración/reparación            |
-| **Detección**        | No aplica              | ✅ Sí (automática)               |
+| Aspect               | `goca feature`     | `goca integrate`            |
+| -------------------- | ------------------ | --------------------------- |
+| **Purpose**          | Create new feature | Integrate existing features |
+| **Generates code**   | ✅ Yes (all layers) | ❌ No (integration only)     |
+| **Auto-integration** | ✅ Yes (automatic)  | ✅ Yes (repair/update)       |
+| **Typical use**      | New development    | Migration/repair            |
+| **Detection**        | Not applicable     | ✅ Yes (automatic)           |
 
-## 💡 Consejos y Mejores Prácticas
+## 💡 Tips and Best Practices
 
-### ✅ Recomendaciones
-- **Usa `--all`** para detección automática en lugar de especificar features manualmente
-- **Ejecuta después de clonar** proyectos existentes de Goca
-- **Combina con `go mod tidy`** después de la integración
-- **Haz backup** de `main.go` antes de integrar si tienes código custom
+### ✅ Recommendations
+- **Use `--all`** for automatic detection instead of specifying features manually
+- **Run after cloning** existing Goca projects
+- **Combine with `go mod tidy`** after integration
+- **Backup `main.go`** before integration if you have custom code
 
-### ⚠️ Precauciones
-- **Revisa `main.go`** después de la integración si tenías configuraciones especiales
-- **Verifica rutas** si ya tenías endpoints custom registrados
-- **Compila después** de la integración para verificar que todo funciona
+### ⚠️ Precautions
+- **Review `main.go`** after integration if you had special configurations
+- **Verify routes** if you already had custom endpoints registered
+- **Compile after** integration to verify everything works
 
-### 🔄 Integración Continua
+### 🔄 Continuous Integration
 ```bash
-# Script para CI/CD
+# Script for CI/CD
 #!/bin/bash
 go mod download
 goca integrate --all
@@ -255,42 +255,42 @@ go test ./...
 go build
 ```
 
-## 🆘 Solución de Problemas
+## 🆘 Troubleshooting
 
-### Problema: "No se encontraron features"
+### Problem: "No features found"
 ```bash
-# Verificar estructura
+# Check structure
 ls internal/domain/
 ls internal/handler/http/
 
-# Si los archivos existen pero no se detectan:
-goca integrate --features "User,Product"  # Especificar manualmente
+# If files exist but are not detected:
+goca integrate --features "User,Product"  # Specify manually
 ```
 
-### Problema: "main.go no se pudo actualizar"
+### Problem: "main.go could not be updated"
 ```bash
-# Verificar permisos
+# Check permissions
 ls -la main.go
 
-# Si es problema de permisos en Windows:
-# Ejecutar terminal como administrador
+# If it's a Windows permission issue:
+# Run terminal as administrator
 
-# Alternativa: integración manual
-goca integrate --features "User" --dry-run  # Ver instrucciones
+# Alternative: manual integration
+goca integrate --features "User" --dry-run  # See instructions
 ```
 
-### Problema: "Rutas duplicadas"
+### Problem: "Duplicate routes"
 ```bash
-# El comando detecta rutas existentes y las salta automáticamente
-# Si hay conflictos, revisar main.go manualmente
+# The command automatically detects existing routes and skips them
+# If there are conflicts, review main.go manually
 ```
 
-## 🔗 Comandos Relacionados
+## 🔗 Related Commands
 
-- [`goca feature`](Command-Feature.md) - Crear nuevos features (incluye auto-integración)
-- [`goca di`](Command-DI.md) - Generar solo contenedor DI
-- [`goca init`](Command-Init.md) - Inicializar nuevo proyecto
+- [`goca feature`](Command-Feature.md) - Create new features (includes auto-integration)
+- [`goca di`](Command-DI.md) - Generate DI container only
+- [`goca init`](Command-Init.md) - Initialize new project
 
 ---
 
-**Próximo**: [Comando DI](Command-DI.md) | **Anterior**: [Comando Feature](Command-Feature.md) | **Índice**: [Comandos](README.md)
+**Next**: [DI Command](Command-DI.md) | **Previous**: [Feature Command](Command-Feature.md) | **Index**: [Commands](README.md)

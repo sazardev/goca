@@ -1,47 +1,47 @@
-# Comando goca entity
+# goca entity Command
 
-El comando `goca entity` genera entidades de dominio puras siguiendo los principios de Domain-Driven Design (DDD), sin dependencias externas y con validaciones de negocio incorporadas.
+The `goca entity` command generates pure domain entities following Domain-Driven Design (DDD) principles, without external dependencies and with built-in business validations.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca entity <name> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Crea entidades de dominio que representan los conceptos centrales del negocio:
+Creates domain entities that represent the core business concepts:
 
-- 🟡 **Entidad pura** sin dependencias externas
-- ✅ **Validaciones de negocio** incorporadas
-- 🔧 **Reglas de negocio** específicas del dominio
-- ⏰ **Timestamps** automáticos (opcional)
-- 🗑️ **Soft delete** (opcional)
-- 📄 **Errores específicos** del dominio
+- 🟡 **Pure entity** without external dependencies
+- ✅ **Business validations** built-in
+- 🔧 **Domain-specific business rules**
+- ⏰ **Automatic timestamps** (optional)
+- 🗑️ **Soft delete** (optional)
+- 📄 **Domain-specific errors**
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag               | Tipo     | Requerido | Valor por Defecto | Descripción                                         |
-| ------------------ | -------- | --------- | ----------------- | --------------------------------------------------- |
-| `--fields`         | `string` | ✅ **Sí**  | -                 | Campos de la entidad (`"name:string,email:string"`) |
-| `--validation`     | `bool`   | ❌ No      | `false`           | Incluir validaciones automáticas                    |
-| `--business-rules` | `bool`   | ❌ No      | `false`           | Generar métodos de reglas de negocio                |
-| `--timestamps`     | `bool`   | ❌ No      | `false`           | Agregar campos `created_at` y `updated_at`          |
-| `--soft-delete`    | `bool`   | ❌ No      | `false`           | Agregar campo `deleted_at` para soft delete         |
+| Flag               | Type     | Required  | Default Value | Description                                  |
+| ------------------ | -------- | --------- | ------------- | -------------------------------------------- |
+| `--fields`         | `string` | ✅ **Yes** | -             | Entity fields (`"name:string,email:string"`) |
+| `--validation`     | `bool`   | ❌ No      | `false`       | Include automatic validations                |
+| `--business-rules` | `bool`   | ❌ No      | `false`       | Generate business rule methods               |
+| `--timestamps`     | `bool`   | ❌ No      | `false`       | Add `created_at` and `updated_at` fields     |
+| `--soft-delete`    | `bool`   | ❌ No      | `false`       | Add `deleted_at` field for soft delete       |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Entidad Básica
+### Basic Entity
 ```bash
 goca entity User --fields "name:string,email:string,age:int"
 ```
 
-### Entidad con Validaciones
+### Entity with Validations
 ```bash
 goca entity Product --fields "name:string,price:float64,category:string" --validation
 ```
 
-### Entidad Completa
+### Complete Entity
 ```bash
 goca entity Order \
   --fields "user_id:int,total:float64,status:string" \
@@ -51,7 +51,7 @@ goca entity Order \
   --soft-delete
 ```
 
-### Entidad con Tipos Complejos
+### Entity with Complex Types
 ```bash
 goca entity Employee \
   --fields "name:string,email:string,salary:float64,hire_date:time.Time,department:string,is_active:bool" \
@@ -60,19 +60,19 @@ goca entity Employee \
   --timestamps
 ```
 
-## 📂 Archivos Generados
+## 📂 Generated Files
 
-### Estructura de Archivos
+### File Structure
 ```
 internal/domain/
-├── user.go              # Entidad principal
-├── errors.go            # Errores específicos (si --validation)
-└── validations.go       # Validaciones reutilizables (si --business-rules)
+├── user.go              # Main entity
+├── errors.go            # Specific errors (if --validation)
+└── validations.go       # Reusable validations (if --business-rules)
 ```
 
-## 🔍 Código Generado en Detalle
+## 🔍 Generated Code in Detail
 
-### Entidad Básica: `internal/domain/user.go`
+### Basic Entity: `internal/domain/user.go`
 
 ```go
 package domain
@@ -83,7 +83,7 @@ import (
     "time"
 )
 
-// User representa un usuario en el sistema
+// User represents a user in the system
 type User struct {
     ID        uint      `json:"id" db:"id"`
     Name      string    `json:"name" db:"name"`
@@ -93,7 +93,7 @@ type User struct {
     UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
-// NewUser crea una nueva instancia de User
+// NewUser creates a new User instance
 func NewUser(name, email string, age int) *User {
     return &User{
         Name:      name,
@@ -527,37 +527,37 @@ func TestUser_Validate(t *testing.T) {
 }
 ```
 
-## 🔄 Integración con Otros Comandos
+## 🔄 Integration with Other Commands
 
-### Después de Crear Entidad
+### After Creating Entity
 ```bash
-# 1. Crear entidad
+# 1. Create entity
 goca entity User --fields "name:string,email:string" --validation
 
-# 2. Crear caso de uso
+# 2. Create use case
 goca usecase UserUseCase --entity User --operations "create,read,update,delete"
 
-# 3. Crear repositorio
+# 3. Create repository
 goca repository User --database postgres
 
-# 4. Crear handler
+# 4. Create handler
 goca handler User --type http
 ```
 
-## ⚠️ Consideraciones Importantes
+## ⚠️ Important Considerations
 
-### ✅ Buenas Prácticas
-- **Nombres descriptivos**: `User`, `Product`, `Order`
-- **Campos específicos**: `email` mejor que `contact`
-- **Validaciones consistentes**: Usar siempre `--validation`
-- **Reglas de negocio**: Activar para dominios complejos
+### ✅ Best Practices
+- **Descriptive names**: `User`, `Product`, `Order`
+- **Specific fields**: `email` better than `contact`
+- **Consistent validations**: Always use `--validation`
+- **Business rules**: Activate for complex domains
 
-### ❌ Errores Comunes
-- **Entidades anémicas**: Sin comportamiento ni validaciones
-- **Dependencias externas**: No agregar imports de DB o HTTP
-- **Demasiados campos**: Dividir en entidades más pequeñas
-- **Nombres genéricos**: `Data`, `Info`, `Item`
+### ❌ Common Errors
+- **Anemic entities**: Without behavior or validations
+- **External dependencies**: Don't add DB or HTTP imports
+- **Too many fields**: Split into smaller entities
+- **Generic names**: `Data`, `Info`, `Item`
 
 ---
 
-**← [Comando goca feature](Command-Feature) | [Comando goca usecase](Command-UseCase) →**
+**← [goca feature Command](Command-Feature) | [goca usecase Command](Command-UseCase) →**

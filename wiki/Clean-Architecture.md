@@ -1,37 +1,37 @@
 # Clean Architecture
 
-Esta página explica en detalle cómo Goca implementa y hace cumplir los principios de **Clean Architecture** de Uncle Bob (Robert C. Martin) en proyectos Go.
+This page explains in detail how Goca implements and enforces **Clean Architecture** principles from Uncle Bob (Robert C. Martin) in Go projects.
 
-## 🎯 ¿Qué es Clean Architecture?
+## 🎯 What is Clean Architecture?
 
-Clean Architecture es un patrón arquitectónico que organiza el código en **capas concéntricas** donde las dependencias apuntan hacia el centro del sistema, garantizando:
+Clean Architecture is an architectural pattern that organizes code in **concentric layers** where dependencies point toward the center of the system, ensuring:
 
-- 🔒 **Independencia de frameworks**
-- 🧪 **Testabilidad completa**
-- 🎨 **Independencia de UI**
-- 💾 **Independencia de base de datos**
-- 🌐 **Independencia de agentes externos**
+- 🔒 **Framework independence**
+- 🧪 **Complete testability**
+- 🎨 **UI independence**
+- 💾 **Database independence**
+- 🌐 **External agent independence**
 
-## 🏗️ Las 4 Capas de Clean Architecture
+## 🏗️ The 4 Layers of Clean Architecture
 
-### 🟡 1. Capa de Dominio (Entities)
-**Ubicación**: `internal/domain/`  
-**Responsabilidad**: Lógica de negocio central y reglas empresariales
+### 🟡 1. Domain Layer (Entities)
+**Location**: `internal/domain/`  
+**Responsibility**: Core business logic and enterprise rules
 
-#### ✅ Lo que SÍ debe estar aquí:
-- Entidades del negocio
-- Reglas de negocio fundamentales
-- Validaciones de dominio
-- Interfaces de repositorios
-- Errores específicos del dominio
+#### ✅ What SHOULD be here:
+- Business entities
+- Fundamental business rules
+- Domain validations
+- Repository interfaces
+- Domain-specific errors
 
-#### ❌ Lo que NO debe estar aquí:
-- Dependencias externas (bases de datos, APIs)
-- Lógica de presentación
-- Detalles de implementación
-- Frameworks o librerías externas
+#### ❌ What should NOT be here:
+- External dependencies (databases, APIs)
+- Presentation logic
+- Implementation details
+- External frameworks or libraries
 
-#### 📄 Ejemplo de Entidad:
+#### 📄 Entity Example:
 ```go
 package domain
 
@@ -41,7 +41,7 @@ import (
     "time"
 )
 
-// User representa un usuario en el sistema
+// User represents a user in the system
 type User struct {
     ID        uint      `json:"id"`
     Name      string    `json:"name"`
@@ -50,7 +50,7 @@ type User struct {
     UpdatedAt time.Time `json:"updated_at"`
 }
 
-// Validate implementa las reglas de negocio para validar un usuario
+// Validate implements business rules for validating a user
 func (u *User) Validate() error {
     if strings.TrimSpace(u.Name) == "" {
         return ErrUserNameRequired
@@ -67,19 +67,19 @@ func (u *User) Validate() error {
     return nil
 }
 
-// CanUpdateProfile verifica si el usuario puede actualizar su perfil
+// CanUpdateProfile verifies if the user can update their profile
 func (u *User) CanUpdateProfile() bool {
     return u.ID > 0 && u.Name != ""
 }
 
-// isValidEmail valida el formato del email (regla de negocio)
+// isValidEmail validates email format (business rule)
 func (u *User) isValidEmail() bool {
     return strings.Contains(u.Email, "@") && 
            strings.Contains(u.Email, ".") &&
            len(u.Email) > 5
 }
 
-// Errores del dominio
+// Domain errors
 var (
     ErrUserNameRequired  = errors.New("user name is required")
     ErrUserNameTooShort  = errors.New("user name must be at least 2 characters")
@@ -88,33 +88,33 @@ var (
 )
 ```
 
-### 🔴 2. Capa de Casos de Uso (Use Cases)
-**Ubicación**: `internal/usecase/`  
-**Responsabilidad**: Lógica de aplicación y orquestación
+### 🔴 2. Use Cases Layer (Use Cases)
+**Location**: `internal/usecase/`  
+**Responsibility**: Application logic and orchestration
 
-#### ✅ Lo que SÍ debe estar aquí:
+#### ✅ What SHOULD be here:
 - DTOs (Data Transfer Objects)
-- Interfaces de casos de uso
-- Servicios de aplicación
-- Validaciones de entrada
-- Coordinación entre repositorios
+- Use case interfaces
+- Application services
+- Input validations
+- Repository coordination
 
-#### ❌ Lo que NO debe estar aquí:
-- Lógica de presentación
-- Detalles de base de datos
-- Lógica de frameworks web
-- Implementaciones específicas de infraestructura
+#### ❌ What should NOT be here:
+- Presentation logic
+- Database details
+- Web framework logic
+- Specific infrastructure implementations
 
-#### 📄 Ejemplo de Caso de Uso:
+#### 📄 Use Case Example:
 ```go
 package usecase
 
 import (
     "context"
-    "github.com/usuario/proyecto/internal/domain"
+    "github.com/user/project/internal/domain"
 )
 
-// UserUseCase define los contratos para casos de uso de usuario
+// UserUseCase defines contracts for user use cases
 type UserUseCase interface {
     Create(ctx context.Context, req CreateUserRequest) (*UserResponse, error)
     GetByID(ctx context.Context, id uint) (*UserResponse, error)
@@ -122,7 +122,7 @@ type UserUseCase interface {
     Delete(ctx context.Context, id uint) error
 }
 
-// UserRepository define los contratos para persistencia
+// UserRepository defines contracts for persistence
 type UserRepository interface {
     Save(ctx context.Context, user *domain.User) error
     FindByID(ctx context.Context, id uint) (*domain.User, error)
@@ -130,48 +130,48 @@ type UserRepository interface {
     Delete(ctx context.Context, id uint) error
 }
 
-// userUseCase implementa la lógica de aplicación
+// userUseCase implements application logic
 type userUseCase struct {
     userRepo UserRepository
 }
 
-// NewUserUseCase crea una nueva instancia del caso de uso
+// NewUserUseCase creates a new use case instance
 func NewUserUseCase(userRepo UserRepository) UserUseCase {
     return &userUseCase{
         userRepo: userRepo,
     }
 }
 
-// Create crea un nuevo usuario
+// Create creates a new user
 func (uc *userUseCase) Create(ctx context.Context, req CreateUserRequest) (*UserResponse, error) {
-    // 1. Validar DTO de entrada
+    // 1. Validate input DTO
     if err := req.Validate(); err != nil {
         return nil, err
     }
     
-    // 2. Crear entidad de dominio
+    // 2. Create domain entity
     user := &domain.User{
         Name:  req.Name,
         Email: req.Email,
     }
     
-    // 3. Validar reglas de negocio
+    // 3. Validate business rules
     if err := user.Validate(); err != nil {
         return nil, err
     }
     
-    // 4. Verificar reglas de aplicación (email único)
+    // 4. Check application rules (unique email)
     existingUser, _ := uc.userRepo.FindByEmail(ctx, req.Email)
     if existingUser != nil {
         return nil, domain.ErrUserEmailAlreadyExists
     }
     
-    // 5. Persistir
+    // 5. Persist
     if err := uc.userRepo.Save(ctx, user); err != nil {
         return nil, err
     }
     
-    // 6. Retornar DTO de respuesta
+    // 6. Return response DTO
     return &UserResponse{
         ID:        user.ID,
         Name:      user.Name,
@@ -186,13 +186,13 @@ func (uc *userUseCase) Create(ctx context.Context, req CreateUserRequest) (*User
 ```go
 package usecase
 
-// CreateUserRequest DTO para crear usuario
+// CreateUserRequest DTO for creating user
 type CreateUserRequest struct {
     Name  string `json:"name" validate:"required,min=2,max=100"`
     Email string `json:"email" validate:"required,email"`
 }
 
-// Validate valida el DTO
+// Validate validates the DTO
 func (r *CreateUserRequest) Validate() error {
     if strings.TrimSpace(r.Name) == "" {
         return errors.New("name is required")
@@ -206,7 +206,7 @@ func (r *CreateUserRequest) Validate() error {
     return nil
 }
 
-// UserResponse DTO de respuesta
+// UserResponse response DTO
 type UserResponse struct {
     ID        uint      `json:"id"`
     Name      string    `json:"name"`
@@ -216,24 +216,24 @@ type UserResponse struct {
 }
 ```
 
-### 🟢 3. Capa de Adaptadores (Interface Adapters)
-**Ubicación**: `internal/handler/`  
-**Responsabilidad**: Adaptar entrada/salida entre protocolos y casos de uso
+### 🟢 3. Adapters Layer (Interface Adapters)
+**Location**: `internal/handler/`  
+**Responsibility**: Adapt input/output between protocols and use cases
 
-#### ✅ Lo que SÍ debe estar aquí:
-- Handlers HTTP/gRPC/CLI
-- Controladores REST
-- Adaptadores de protocolos
-- DTOs específicos por protocolo
+#### ✅ What SHOULD be here:
+- HTTP/gRPC/CLI handlers
+- REST controllers
+- Protocol adapters
+- Protocol-specific DTOs
 - Middlewares
 
-#### ❌ Lo que NO debe estar aquí:
-- Lógica de negocio
-- Acceso directo a base de datos
-- Validaciones de negocio
-- Reglas empresariales
+#### ❌ What should NOT be here:
+- Business logic
+- Direct database access
+- Business validations
+- Enterprise rules
 
-#### 📄 Ejemplo de Handler HTTP:
+#### 📄 HTTP Handler Example:
 ```go
 package http
 
@@ -242,26 +242,26 @@ import (
     "strconv"
     
     "github.com/gin-gonic/gin"
-    "github.com/usuario/proyecto/internal/usecase"
+    "github.com/user/project/internal/usecase"
 )
 
-// UserHandler maneja peticiones HTTP para usuarios
+// UserHandler handles HTTP requests for users
 type UserHandler struct {
     userUseCase usecase.UserUseCase
 }
 
-// NewUserHandler crea un nuevo handler
+// NewUserHandler creates a new handler
 func NewUserHandler(userUseCase usecase.UserUseCase) *UserHandler {
     return &UserHandler{
         userUseCase: userUseCase,
     }
 }
 
-// Create maneja POST /users
+// Create handles POST /users
 func (h *UserHandler) Create(c *gin.Context) {
     var req CreateUserHTTPRequest
     
-    // 1. Parsear entrada HTTP
+    // 1. Parse HTTP input
     if err := c.ShouldBindJSON(&req); err != nil {
         c.JSON(http.StatusBadRequest, ErrorResponse{
             Error: "Invalid request format",
@@ -269,13 +269,13 @@ func (h *UserHandler) Create(c *gin.Context) {
         return
     }
     
-    // 2. Convertir a DTO de caso de uso
+    // 2. Convert to use case DTO
     useCaseReq := usecase.CreateUserRequest{
         Name:  req.Name,
         Email: req.Email,
     }
     
-    // 3. Ejecutar caso de uso
+    // 3. Execute use case
     user, err := h.userUseCase.Create(c.Request.Context(), useCaseReq)
     if err != nil {
         status := http.StatusInternalServerError
@@ -289,7 +289,7 @@ func (h *UserHandler) Create(c *gin.Context) {
         return
     }
     
-    // 4. Convertir a respuesta HTTP
+    // 4. Convert to HTTP response
     response := UserHTTPResponse{
         ID:        user.ID,
         Name:      user.Name,
@@ -302,25 +302,25 @@ func (h *UserHandler) Create(c *gin.Context) {
 }
 ```
 
-### 🔵 4. Capa de Infraestructura (Frameworks & Drivers)
-**Ubicación**: `internal/repository/`, `pkg/`  
-**Responsabilidad**: Implementaciones específicas de tecnología
+### 🔵 4. Infrastructure Layer (Frameworks & Drivers)
+**Location**: `internal/repository/`, `pkg/`  
+**Responsibility**: Technology-specific implementations
 
-#### ✅ Lo que SÍ debe estar aquí:
-- Implementaciones de repositorios
-- Conexiones a bases de datos
-- Clientes HTTP
-- Configuración
+#### ✅ What SHOULD be here:
+- Repository implementations
+- Database connections
+- HTTP clients
+- Configuration
 - Logging
 - Caches
 
-#### ❌ Lo que NO debe estar aquí:
-- Lógica de negocio
-- Reglas empresariales
-- Validaciones de dominio
-- DTOs de casos de uso
+#### ❌ What should NOT be here:
+- Business logic
+- Enterprise rules
+- Domain validations
+- Use case DTOs
 
-#### 📄 Ejemplo de Repositorio:
+#### 📄 Repository Example:
 ```go
 package postgres
 
@@ -328,22 +328,22 @@ import (
     "context"
     "database/sql"
     
-    "github.com/usuario/proyecto/internal/domain"
+    "github.com/user/project/internal/domain"
 )
 
-// userRepository implementa el repositorio para PostgreSQL
+// userRepository implements the repository for PostgreSQL
 type userRepository struct {
     db *sql.DB
 }
 
-// NewUserRepository crea un nuevo repositorio
+// NewUserRepository creates a new repository
 func NewUserRepository(db *sql.DB) domain.UserRepository {
     return &userRepository{
         db: db,
     }
 }
 
-// Save implementa la persistencia específica de PostgreSQL
+// Save implements PostgreSQL-specific persistence
 func (r *userRepository) Save(ctx context.Context, user *domain.User) error {
     query := `
         INSERT INTO users (name, email, created_at, updated_at)
@@ -360,7 +360,7 @@ func (r *userRepository) Save(ctx context.Context, user *domain.User) error {
     return err
 }
 
-// FindByID busca un usuario por ID
+// FindByID searches for a user by ID
 func (r *userRepository) FindByID(ctx context.Context, id uint) (*domain.User, error) {
     query := `
         SELECT id, name, email, created_at, updated_at
@@ -388,80 +388,80 @@ func (r *userRepository) FindByID(ctx context.Context, id uint) (*domain.User, e
 }
 ```
 
-## 🔄 Flujo de Dependencias
+## 🔄 Dependency Flow
 
 ```
 🌐 HTTP Request
      ↓
-🟢 Handler (convierte HTTP → DTO)
+🟢 Handler (converts HTTP → DTO)
      ↓
-🔴 UseCase (ejecuta lógica de aplicación)
+🔴 UseCase (executes application logic)
      ↓
-🟡 Domain (valida reglas de negocio)
+🟡 Domain (validates business rules)
      ↓
-🔵 Repository (persiste en base de datos)
+🔵 Repository (persists to database)
 ```
 
-### Regla de Dependencias:
-> **Las dependencias SIEMPRE apuntan hacia adentro**
+### Dependency Rule:
+> **Dependencies ALWAYS point inward**
 
-- 🟢 Handler depende de 🔴 UseCase
-- 🔴 UseCase depende de 🟡 Domain
-- 🔵 Repository implementa interfaces de 🟡 Domain
-- 🟡 Domain NO depende de nada externo
+- 🟢 Handler depends on 🔴 UseCase
+- 🔴 UseCase depends on 🟡 Domain
+- 🔵 Repository implements 🟡 Domain interfaces
+- 🟡 Domain does NOT depend on anything external
 
-## 🎭 Principios SOLID Aplicados
+## 🎭 SOLID Principles Applied
 
 ### 🔵 Single Responsibility Principle (SRP)
-Cada clase tiene una sola razón para cambiar:
+Each class has a single reason to change:
 
 ```go
-// ✅ BIEN - Una responsabilidad
+// ✅ GOOD - One responsibility
 type UserValidator struct{}
 func (v *UserValidator) Validate(user *User) error { /* ... */ }
 
-// ✅ BIEN - Una responsabilidad
+// ✅ GOOD - One responsibility
 type UserRepository struct{}
 func (r *UserRepository) Save(user *User) error { /* ... */ }
 
-// ❌ MAL - Múltiples responsabilidades
+// ❌ BAD - Multiple responsibilities
 type UserService struct{}
 func (s *UserService) ValidateAndSave(user *User) error {
-    // Validación + Persistencia = 2 responsabilidades
+    // Validation + Persistence = 2 responsibilities
 }
 ```
 
 ### 🔓 Open/Closed Principle (OCP)
-Abierto para extensión, cerrado para modificación:
+Open for extension, closed for modification:
 
 ```go
-// Interface estable
+// Stable interface
 type NotificationSender interface {
     Send(message string) error
 }
 
-// Implementaciones extensibles
-type EmailSender struct{} // Nueva implementación
-type SMSSender struct{}   // Nueva implementación
-type SlackSender struct{} // Nueva implementación
+// Extensible implementations
+type EmailSender struct{} // New implementation
+type SMSSender struct{}   // New implementation
+type SlackSender struct{} // New implementation
 
-// UseCase cerrado para modificación
+// UseCase closed for modification
 type UserUseCase struct {
-    notifier NotificationSender // Usa interface
+    notifier NotificationSender // Uses interface
 }
 ```
 
 ### 🔄 Liskov Substitution Principle (LSP)
-Las implementaciones deben ser intercambiables:
+Implementations must be interchangeable:
 
 ```go
-// Cualquier implementación de UserRepository
-// debe comportarse igual desde el punto de vista del UseCase
+// Any implementation of UserRepository
+// must behave the same from the UseCase perspective
 type PostgreSQLUserRepo struct{}
 type MySQLUserRepo struct{}
 type MongoUserRepo struct{}
 
-// Todas implementan la misma interface
+// All implement the same interface
 type UserRepository interface {
     Save(user *User) error
     FindByID(id uint) (*User, error)
@@ -469,10 +469,10 @@ type UserRepository interface {
 ```
 
 ### 🎯 Interface Segregation Principle (ISP)
-Interfaces específicas y cohesivas:
+Specific and cohesive interfaces:
 
 ```go
-// ✅ BIEN - Interfaces específicas
+// ✅ GOOD - Specific interfaces
 type UserReader interface {
     FindByID(id uint) (*User, error)
 }
@@ -481,7 +481,7 @@ type UserWriter interface {
     Save(user *User) error
 }
 
-// ❌ MAL - Interface demasiado grande
+// ❌ BAD - Interface too large
 type UserRepository interface {
     Save(user *User) error
     FindByID(id uint) (*User, error)
@@ -490,30 +490,30 @@ type UserRepository interface {
     Delete(id uint) error
     FindAll() ([]*User, error)
     Count() (int, error)
-    // ... muchos más métodos
+    // ... many more methods
 }
 ```
 
 ### ⬇️ Dependency Inversion Principle (DIP)
-Depender de abstracciones, no de concreciones:
+Depend on abstractions, not concretions:
 
 ```go
-// ✅ BIEN - Depende de interface (abstracción)
+// ✅ GOOD - Depends on interface (abstraction)
 type UserUseCase struct {
     userRepo UserRepository // Interface
 }
 
-// ❌ MAL - Depende de implementación concreta
+// ❌ BAD - Depends on concrete implementation
 type UserUseCase struct {
-    userRepo *PostgreSQLUserRepository // Implementación específica
+    userRepo *PostgreSQLUserRepository // Specific implementation
 }
 ```
 
-## 🧪 Testabilidad
+## 🧪 Testability
 
-Clean Architecture facilita enormemente el testing:
+Clean Architecture greatly facilitates testing:
 
-### Unit Tests para Dominio
+### Unit Tests for Domain
 ```go
 func TestUser_Validate(t *testing.T) {
     tests := []struct {
@@ -544,7 +544,7 @@ func TestUser_Validate(t *testing.T) {
 }
 ```
 
-### Unit Tests para UseCase con Mocks
+### Unit Tests for UseCase with Mocks
 ```go
 func TestUserUseCase_Create(t *testing.T) {
     // Arrange
@@ -570,7 +570,7 @@ func TestUserUseCase_Create(t *testing.T) {
 }
 ```
 
-### Integration Tests para Repository
+### Integration Tests for Repository
 ```go
 func TestUserRepository_Save(t *testing.T) {
     // Setup test database
@@ -598,71 +598,71 @@ func TestUserRepository_Save(t *testing.T) {
 }
 ```
 
-## 🔒 Beneficios de Clean Architecture
+## 🔒 Benefits of Clean Architecture
 
-### 1. **Independencia de Frameworks**
+### 1. **Framework Independence**
 ```go
-// Puedes cambiar de Gin a Echo sin afectar la lógica de negocio
-// internal/handler/http/ ← Solo esta capa cambia
-// internal/usecase/     ← Sin cambios
-// internal/domain/      ← Sin cambios
+// You can change from Gin to Echo without affecting business logic
+// internal/handler/http/ ← Only this layer changes
+// internal/usecase/     ← No changes
+// internal/domain/      ← No changes
 ```
 
-### 2. **Independencia de Base de Datos**
+### 2. **Database Independence**
 ```go
-// Puedes cambiar de PostgreSQL a MongoDB
+// You can change from PostgreSQL to MongoDB
 // internal/repository/postgres/ → internal/repository/mongo/
-// internal/usecase/             ← Sin cambios (usa interfaces)
-// internal/domain/              ← Sin cambios
+// internal/usecase/             ← No changes (uses interfaces)
+// internal/domain/              ← No changes
 ```
 
-### 3. **Independencia de UI**
+### 3. **UI Independence**
 ```go
-// Puedes agregar gRPC sin afectar REST
-// internal/handler/http/  ← Existente
-// internal/handler/grpc/  ← Nuevo
-// internal/usecase/       ← Sin cambios
-// internal/domain/        ← Sin cambios
+// You can add gRPC without affecting REST
+// internal/handler/http/  ← Existing
+// internal/handler/grpc/  ← New
+// internal/usecase/       ← No changes
+// internal/domain/        ← No changes
 ```
 
-### 4. **Testabilidad Completa**
-- **Unit tests** para entidades de dominio
-- **Unit tests** para casos de uso (con mocks)
-- **Integration tests** para repositorios
-- **End-to-end tests** para handlers
+### 4. **Complete Testability**
+- **Unit tests** for domain entities
+- **Unit tests** for use cases (with mocks)
+- **Integration tests** for repositories
+- **End-to-end tests** for handlers
 
-### 5. **Mantenibilidad**
-- Cambios en una capa no afectan otras
-- Código predecible y bien organizado
-- Fácil agregar nuevas funcionalidades
-- Refactoring seguro
+### 5. **Maintainability**
+- Changes in one layer don't affect others
+- Predictable and well-organized code
+- Easy to add new functionalities
+- Safe refactoring
 
-## 🚫 Anti-Patrones Que Goca Previene
+## 🚫 Anti-Patterns That Goca Prevents
 
 ### ❌ Fat Controller
 ```go
-// MAL - Toda la lógica en el handler
+// BAD - All logic in the handler
 func (h *UserHandler) Create(c *gin.Context) {
     // Parsing
     var req CreateUserRequest
     c.ShouldBindJSON(&req)
     
-    // Validación
+    // Validation
     if req.Name == "" { /* ... */ }
     
-    // Lógica de negocio
+    // Business logic
     if len(req.Name) < 2 { /* ... */ }
     
-    // Base de datos
+    // Database
     db.Query("INSERT INTO users...")
     
-    // Respuesta
+    // Response
     c.JSON(200, user)
 }
 ```
 
 ```go
-// ✅ BIEN - Handler delegando responsabilidades
+// ✅ GOOD - Handler delegating responsibilities
 func (h *UserHandler) Create(c *gin.Context) {
     var req CreateUserHTTPRequest
     if err := c.ShouldBindJSON(&req); err != nil {
@@ -670,7 +670,7 @@ func (h *UserHandler) Create(c *gin.Context) {
         return
     }
     
-    // Delegar al caso de uso
+    // Delegate to use case
     useCaseReq := usecase.CreateUserRequest{
         Name:  req.Name,
         Email: req.Email,
@@ -692,14 +692,14 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 ### ❌ Anemic Domain Model
 ```go
-// MAL - Entidad sin comportamiento
+// BAD - Entity without behavior
 type User struct {
     ID    uint
     Name  string
     Email string
 }
 
-// Lógica en el servicio
+// Logic in the service
 func (s *UserService) ValidateUser(user User) error {
     if user.Name == "" {
         return errors.New("name required")
@@ -709,14 +709,14 @@ func (s *UserService) ValidateUser(user User) error {
 ```
 
 ```go
-// ✅ BIEN - Entidad rica con comportamiento
+// ✅ GOOD - Rich entity with behavior
 type User struct {
     ID    uint
     Name  string
     Email string
 }
 
-// Comportamiento en la entidad
+// Behavior in the entity
 func (u *User) Validate() error {
     if u.Name == "" {
         return ErrUserNameRequired
@@ -731,7 +731,7 @@ func (u *User) CanUpdateProfile() bool {
 
 ### ❌ God Object
 ```go
-// MAL - Una clase hace todo
+// BAD - One class does everything
 type UserManager struct {
     db     *sql.DB
     logger *log.Logger
@@ -751,7 +751,7 @@ func (um *UserManager) CreateUser(data string) error {
 ```
 
 ```go
-// ✅ BIEN - Responsabilidades separadas
+// ✅ GOOD - Separate responsibilities
 type UserUseCase struct {
     userRepo UserRepository
 }
@@ -765,23 +765,23 @@ type UserHandler struct {
 }
 ```
 
-## 📊 Métricas de Calidad
+## 📊 Quality Metrics
 
-### Complejidad por Capa
-- **Dominio**: Alta complejidad de negocio, baja complejidad técnica
-- **UseCase**: Media complejidad de orquestación
-- **Handlers**: Baja complejidad, solo adaptación
-- **Repository**: Baja complejidad, solo persistencia
+### Complexity by Layer
+- **Domain**: High business complexity, low technical complexity
+- **UseCase**: Medium orchestration complexity
+- **Handlers**: Low complexity, only adaptation
+- **Repository**: Low complexity, only persistence
 
-### Acoplamiento
-- **Bajo acoplamiento** entre capas (solo interfaces)
-- **Alto acoplamiento** dentro de cada capa (cohesión)
+### Coupling
+- **Low coupling** between layers (only interfaces)
+- **High coupling** within each layer (cohesion)
 
-### Testabilidad
-- **100% testeable** sin dependencias externas
-- **Mocks fáciles** por uso de interfaces
-- **Tests rápidos** sin I/O en unit tests
+### Testability
+- **100% testable** without external dependencies
+- **Easy mocks** by using interfaces
+- **Fast tests** without I/O in unit tests
 
 ---
 
-**← [Estructura de Proyecto](Project-Structure) | [Patrones Implementados](Design-Patterns) →**
+**← [Project Structure](Project-Structure) | [Implemented Patterns](Design-Patterns) →**

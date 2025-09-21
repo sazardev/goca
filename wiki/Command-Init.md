@@ -50,40 +50,40 @@ goca init microservice --module github.com/company/microservice --api grpc --dat
 goca init platform --module github.com/company/platform --auth --database mysql --api both
 ```
 
-## 📂 Estructura Generada
+## 📂 Generated Structure
 
-Después de ejecutar `goca init`, obtendrás esta estructura:
+After running `goca init`, you'll get this structure:
 
 ```
-mi-proyecto/
+my-project/
 ├── cmd/
 │   └── server/
-│       └── main.go              # Punto de entrada del servidor
+│       └── main.go              # Server entry point
 ├── internal/
-│   ├── domain/                  # 🟡 Capa de Dominio
-│   ├── usecase/                 # 🔴 Capa de Casos de Uso
-│   ├── repository/              # 🔵 Capa de Infraestructura
-│   └── handler/                 # 🟢 Capa de Adaptadores
-│       ├── http/                # Handlers HTTP REST
-│       ├── grpc/                # Handlers gRPC (si se selecciona)
-│       └── middleware/          # Middlewares comunes
+│   ├── domain/                  # 🟡 Domain Layer
+│   ├── usecase/                 # 🔴 Use Cases Layer
+│   ├── repository/              # 🔵 Infrastructure Layer
+│   └── handler/                 # 🟢 Adapters Layer
+│       ├── http/                # HTTP REST handlers
+│       ├── grpc/                # gRPC handlers (if selected)
+│       └── middleware/          # Common middlewares
 ├── pkg/
 │   ├── config/
-│   │   ├── config.go            # Configuración de la aplicación
-│   │   └── database.go          # Configuración de base de datos
+│   │   ├── config.go            # Application configuration
+│   │   └── database.go          # Database configuration
 │   ├── logger/
-│   │   └── logger.go            # Sistema de logging
-│   └── auth/                    # Sistema de autenticación (si se activa)
+│   │   └── logger.go            # Logging system
+│   └── auth/                    # Authentication system (if enabled)
 │       ├── jwt.go
 │       ├── middleware.go
 │       └── service.go
-├── go.mod                       # Dependencias del módulo
-├── go.sum                       # Checksums de dependencias
-├── .gitignore                   # Archivos a ignorar en Git
-└── README.md                    # Documentación del proyecto
+├── go.mod                       # Module dependencies
+├── go.sum                       # Dependency checksums
+├── .gitignore                   # Files to ignore in Git
+└── README.md                    # Project documentation
 ```
 
-## 🔧 Archivos Generados en Detalle
+## 🔧 Generated Files in Detail
 
 ### `cmd/server/main.go`
 ```go
@@ -94,21 +94,21 @@ import (
     "net/http"
     
     "github.com/gin-gonic/gin"
-    "github.com/usuario/mi-proyecto/pkg/config"
-    "github.com/usuario/mi-proyecto/pkg/logger"
+    "github.com/user/my-project/pkg/config"
+    "github.com/user/my-project/pkg/logger"
 )
 
 func main() {
-    // Cargar configuración
+    // Load configuration
     cfg := config.Load()
     
-    // Inicializar logger
+    // Initialize logger
     logger.Init(cfg.LogLevel)
     
-    // Configurar router
+    // Configure router
     router := gin.Default()
     
-    // Middleware global
+    // Global middleware
     router.Use(gin.Logger())
     router.Use(gin.Recovery())
     
@@ -117,10 +117,10 @@ func main() {
         c.JSON(http.StatusOK, gin.H{"status": "ok"})
     })
     
-    // Iniciar servidor
-    log.Printf("Servidor iniciado en puerto %s", cfg.Port)
+    // Start server
+    log.Printf("Server started on port %s", cfg.Port)
     if err := router.Run(":" + cfg.Port); err != nil {
-        log.Fatal("Error al iniciar servidor:", err)
+        log.Fatal("Error starting server:", err)
     }
 }
 ```
@@ -159,7 +159,7 @@ func Load() *Config {
             Port:     getEnv("DB_PORT", "5432"),
             User:     getEnv("DB_USER", "postgres"),
             Password: getEnv("DB_PASSWORD", ""),
-            Name:     getEnv("DB_NAME", "mi_proyecto"),
+            Name:     getEnv("DB_NAME", "my_project"),
             SSLMode:  getEnv("DB_SSL_MODE", "disable"),
         },
     }
@@ -224,9 +224,9 @@ func Warn(msg string, args ...any) {
 }
 ```
 
-## 🔐 Sistema de Autenticación (--auth)
+## 🔐 Authentication System (--auth)
 
-Cuando usas el flag `--auth`, se genera automáticamente:
+When you use the `--auth` flag, it automatically generates:
 
 ### `pkg/auth/jwt.go`
 ```go
@@ -289,75 +289,75 @@ func (j *JWTService) ValidateToken(tokenString string) (*Claims, error) {
 }
 ```
 
-## 🌐 Configuración de API
+## 🌐 API Configuration
 
 ### REST API (--api rest)
-Genera handlers HTTP con Gin:
-- Routing RESTful
-- Middleware de CORS
-- Validación de entrada
-- Manejo de errores
+Generates HTTP handlers with Gin:
+- RESTful routing
+- CORS middleware
+- Input validation
+- Error handling
 
 ### gRPC API (--api grpc)
-Genera configuración para gRPC:
-- Archivos `.proto` base
-- Configuración del servidor gRPC
-- Interceptors de logging y autenticación
+Generates gRPC configuration:
+- Base `.proto` files
+- gRPC server configuration
+- Logging and authentication interceptors
 
-### Ambos (--api both)
-Configura tanto REST como gRPC en el mismo proyecto.
+### Both (--api both)
+Configures both REST and gRPC in the same project.
 
-## 💾 Bases de Datos Soportadas
+## 💾 Supported Databases
 
 ### PostgreSQL (--database postgres)
 ```go
-// Configuración automática para PostgreSQL
+// Automatic configuration for PostgreSQL
 Database: DatabaseConfig{
     Host:     getEnv("DB_HOST", "localhost"),
     Port:     getEnv("DB_PORT", "5432"),
     User:     getEnv("DB_USER", "postgres"),
     Password: getEnv("DB_PASSWORD", ""),
-    Name:     getEnv("DB_NAME", "mi_proyecto"),
+    Name:     getEnv("DB_NAME", "my_project"),
     SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 }
 ```
 
 ### MySQL (--database mysql)
 ```go
-// Configuración automática para MySQL
+// Automatic configuration for MySQL
 Database: DatabaseConfig{
     Host:     getEnv("DB_HOST", "localhost"),
     Port:     getEnv("DB_PORT", "3306"),
     User:     getEnv("DB_USER", "root"),
     Password: getEnv("DB_PASSWORD", ""),
-    Name:     getEnv("DB_NAME", "mi_proyecto"),
+    Name:     getEnv("DB_NAME", "my_project"),
 }
 ```
 
 ### MongoDB (--database mongodb)
 ```go
-// Configuración automática para MongoDB
+// Automatic configuration for MongoDB
 Database: DatabaseConfig{
     URI:      getEnv("MONGO_URI", "mongodb://localhost:27017"),
-    Database: getEnv("MONGO_DB", "mi_proyecto"),
+    Database: getEnv("MONGO_DB", "my_project"),
 }
 ```
 
-## 📄 Documentación Generada
+## 📄 Generated Documentation
 
 ### README.md
-Se genera automáticamente con:
-- Descripción del proyecto
-- Instrucciones de instalación
-- Configuración de variables de entorno
-- Comandos para ejecutar el proyecto
-- Estructura del proyecto explicada
-- Contribución y licencia
+Automatically generated with:
+- Project description
+- Installation instructions
+- Environment variable configuration
+- Commands to run the project
+- Project structure explained
+- Contribution and license
 
 ### .gitignore
-Incluye patrones comunes para proyectos Go:
+Includes common patterns for Go projects:
 ```gitignore
-# Binarios
+# Binaries
 *.exe
 *.exe~
 *.dll
@@ -367,20 +367,20 @@ Incluye patrones comunes para proyectos Go:
 # Test binary
 *.test
 
-# Output de go build
+# Output from go build
 main
 
-# Dependencias
+# Dependencies
 vendor/
 
-# Variables de entorno
+# Environment variables
 .env
 .env.local
 
 # Logs
 *.log
 
-# Base de datos local
+# Local database
 *.db
 *.sqlite
 
@@ -395,58 +395,58 @@ vendor/
 Thumbs.db
 ```
 
-## 🔄 Flujo de Trabajo Después del Init
+## 🔄 Workflow After Init
 
-1. **Entrar al directorio:**
+1. **Enter the directory:**
    ```bash
-   cd mi-proyecto
+   cd my-project
    ```
 
-2. **Instalar dependencias:**
+2. **Install dependencies:**
    ```bash
    go mod tidy
    ```
 
-3. **Configurar variables de entorno:**
+3. **Configure environment variables:**
    ```bash
-   # Crear archivo .env (opcional)
-   echo "DB_PASSWORD=mipassword" > .env
+   # Create .env file (optional)
+   echo "DB_PASSWORD=mypassword" > .env
    ```
 
-4. **Generar tu primer feature:**
+4. **Generate your first feature:**
    ```bash
    goca feature User --fields "name:string,email:string"
    ```
 
-5. **Configurar inyección de dependencias:**
+5. **Configure dependency injection:**
    ```bash
    goca di --features "User" --database postgres
    ```
 
-6. **Ejecutar el proyecto:**
+6. **Run the project:**
    ```bash
    go run cmd/server/main.go
    ```
 
-## ⚠️ Consideraciones Importantes
+## ⚠️ Important Considerations
 
-### ✅ Buenas Prácticas
-- **Usar módulos descriptivos:** `github.com/empresa/proyecto` en lugar de `test` o `app`
-- **Configurar Git:** Inicializar repositorio después del init
-- **Variables de entorno:** Nunca commitear `.env` con credenciales reales
-- **Documentación:** Actualizar README.md con información específica del proyecto
+### ✅ Best Practices
+- **Use descriptive modules:** `github.com/company/project` instead of `test` or `app`
+- **Configure Git:** Initialize repository after init
+- **Environment variables:** Never commit `.env` with real credentials
+- **Documentation:** Update README.md with project-specific information
 
-### ❌ Errores Comunes
-- **Directorio existente:** No puedes usar `init` en un directorio que ya contiene archivos
-- **Nombre de módulo inválido:** Debe seguir las convenciones de Go modules
-- **Permisos:** Asegúrate de tener permisos de escritura en el directorio
+### ❌ Common Errors
+- **Existing directory:** You cannot use `init` in a directory that already contains files
+- **Invalid module name:** Must follow Go modules conventions
+- **Permissions:** Make sure you have write permissions in the directory
 
-## 🚀 Ejemplos Completos
+## 🚀 Complete Examples
 
-### Proyecto de E-commerce
+### E-commerce Project
 ```bash
 goca init ecommerce \
-  --module github.com/miempresa/ecommerce \
+  --module github.com/mycompany/ecommerce \
   --auth \
   --database postgres \
   --api rest
@@ -454,19 +454,19 @@ goca init ecommerce \
 cd ecommerce
 go mod tidy
 
-# Generar features principales
+# Generate main features
 goca feature User --fields "name:string,email:string,password:string" --validation
 goca feature Product --fields "name:string,price:float64,category:string" --validation
 goca feature Order --fields "user_id:int,total:float64,status:string" --validation
 
-# Configurar DI
+# Configure DI
 goca di --features "User,Product,Order" --database postgres
 ```
 
-### Microservicio gRPC
+### gRPC Microservice
 ```bash
 goca init user-service \
-  --module github.com/miempresa/user-service \
+  --module github.com/mycompany/user-service \
   --auth \
   --database mongodb \
   --api grpc
@@ -478,14 +478,14 @@ goca feature User --fields "name:string,email:string" --validation
 goca handler User --type grpc
 ```
 
-## 📞 Soporte
+## 📞 Support
 
-Si tienes problemas con `goca init`:
+If you have problems with `goca init`:
 
-- 🔍 Revisa que el directorio esté vacío
-- 📝 Verifica que el nombre del módulo sea válido
-- 🐛 Reporta issues en [GitHub](https://github.com/sazardev/goca/issues)
+- 🔍 Check that the directory is empty
+- 📝 Verify that the module name is valid
+- 🐛 Report issues on [GitHub](https://github.com/sazardev/goca/issues)
 
 ---
 
-**← [Instalación](Installation) | [Comando goca feature](Command-Feature) →**
+**← [Installation](Installation) | [goca feature Command](Command-Feature) →**

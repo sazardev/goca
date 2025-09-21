@@ -1,72 +1,72 @@
-# Comando goca interfaces
+# goca interfaces Command
 
-El comando `goca interfaces` genera únicamente las interfaces de contratos entre capas, útil para desarrollo dirigido por pruebas (TDD) y para definir contratos claros en Clean Architecture.
+The `goca interfaces` command generates only the contract interfaces between layers, useful for test-driven development (TDD) and for defining clear contracts in Clean Architecture.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca interfaces <entity> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Crea interfaces de contratos para desarrollo TDD:
+Creates contract interfaces for TDD development:
 
-- 🔗 **Interfaces de casos de uso** para la capa de aplicación
-- 📊 **Interfaces de repositorio** para persistencia
-- 🟢 **Interfaces de handlers** para adaptadores
-- 🧪 **Desarrollo TDD** con contratos primero
-- 📝 **Documentación de APIs** internas
+- 🔗 **Use case interfaces** for the application layer
+- 📊 **Repository interfaces** for persistence
+- 🟢 **Handler interfaces** for adapters
+- 🧪 **TDD development** with contracts first
+- 📝 **Internal API documentation**
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag           | Tipo   | Requerido | Valor por Defecto | Descripción                        |
-| -------------- | ------ | --------- | ----------------- | ---------------------------------- |
-| `--all`        | `bool` | ❌ No      | `false`           | Generar todas las interfaces       |
-| `--usecase`    | `bool` | ❌ No      | `false`           | Generar interfaces de casos de uso |
-| `--repository` | `bool` | ❌ No      | `false`           | Generar interfaces de repositorio  |
-| `--handler`    | `bool` | ❌ No      | `false`           | Generar interfaces de handlers     |
+| Flag           | Type   | Required | Default Value | Description                    |
+| -------------- | ------ | -------- | ------------- | ------------------------------ |
+| `--all`        | `bool` | ❌ No     | `false`       | Generate all interfaces        |
+| `--usecase`    | `bool` | ❌ No     | `false`       | Generate use case interfaces   |
+| `--repository` | `bool` | ❌ No     | `false`       | Generate repository interfaces |
+| `--handler`    | `bool` | ❌ No     | `false`       | Generate handler interfaces    |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Todas las Interfaces
+### All Interfaces
 ```bash
 goca interfaces User --all
 ```
 
-### Solo Interfaces de Casos de Uso
+### Use Case Interfaces Only
 ```bash
 goca interfaces Product --usecase
 ```
 
-### Solo Interfaces de Repositorio
+### Repository Interfaces Only
 ```bash
 goca interfaces Order --repository
 ```
 
-### Solo Interfaces de Handlers
+### Handler Interfaces Only
 ```bash
 goca interfaces Customer --handler
 ```
 
-### Combinación Específica
+### Specific Combination
 ```bash
 goca interfaces User --usecase --repository
 ```
 
-## 📂 Archivos Generados
+## 📂 Generated Files
 
-### Estructura de Archivos
+### File Structure
 ```
 internal/interfaces/
-├── user_usecase.go        # Interfaces de casos de uso
-├── user_repository.go     # Interfaces de repositorio
-└── user_handler.go        # Interfaces de handlers
+├── user_usecase.go        # Use case interfaces
+├── user_repository.go     # Repository interfaces
+└── user_handler.go        # Handler interfaces
 ```
 
-## 🔍 Código Generado en Detalle
+## 🔍 Generated Code in Detail
 
-### Interfaces de Casos de Uso: `internal/interfaces/user_usecase.go`
+### Use Case Interfaces: `internal/interfaces/user_usecase.go`
 
 ```go
 package interfaces
@@ -79,35 +79,35 @@ import (
 
 //go:generate mockgen -source=user_usecase.go -destination=mocks/user_usecase_mock.go
 
-// UserUseCase define los contratos para los casos de uso de usuario
+// UserUseCase defines contracts for user use cases
 type UserUseCase interface {
-    // Operaciones CRUD básicas
+    // Basic CRUD operations
     Create(ctx context.Context, req dto.CreateUserRequest) (*dto.UserResponse, error)
     GetByID(ctx context.Context, id uint) (*dto.UserResponse, error)
     Update(ctx context.Context, id uint, req dto.UpdateUserRequest) (*dto.UserResponse, error)
     Delete(ctx context.Context, id uint) error
     List(ctx context.Context, req dto.ListUsersRequest) (*dto.ListUsersResponse, error)
     
-    // Operaciones de búsqueda
+    // Search operations
     Search(ctx context.Context, query string, req dto.ListUsersRequest) (*dto.ListUsersResponse, error)
     FindByEmail(ctx context.Context, email string) (*dto.UserResponse, error)
     
-    // Operaciones de negocio
+    // Business operations
     Activate(ctx context.Context, id uint) error
     Deactivate(ctx context.Context, id uint) error
     ChangePassword(ctx context.Context, id uint, req dto.ChangePasswordRequest) error
     
-    // Operaciones de estadísticas
+    // Statistics operations
     GetUserStats(ctx context.Context, id uint) (*dto.UserStatsResponse, error)
     GetUsersCount(ctx context.Context) (int64, error)
     
-    // Operaciones en lote
+    // Batch operations
     CreateBatch(ctx context.Context, users []dto.CreateUserRequest) (*dto.BatchCreateResponse, error)
     UpdateBatch(ctx context.Context, updates []dto.BatchUpdateUserRequest) (*dto.BatchUpdateResponse, error)
     DeleteBatch(ctx context.Context, ids []uint) (*dto.BatchDeleteResponse, error)
 }
 
-// UserNotificationUseCase interface para notificaciones de usuario
+// UserNotificationUseCase interface for user notifications
 type UserNotificationUseCase interface {
     SendWelcomeEmail(ctx context.Context, userID uint) error
     SendPasswordResetEmail(ctx context.Context, userID uint) error
@@ -115,7 +115,7 @@ type UserNotificationUseCase interface {
     NotifyUserUpdate(ctx context.Context, userID uint, changes map[string]interface{}) error
 }
 
-// UserValidationUseCase interface para validaciones avanzadas
+// UserValidationUseCase interface for advanced validations
 type UserValidationUseCase interface {
     ValidateUserCreation(ctx context.Context, req dto.CreateUserRequest) error
     ValidateUserUpdate(ctx context.Context, id uint, req dto.UpdateUserRequest) error
@@ -123,7 +123,7 @@ type UserValidationUseCase interface {
     ValidateUserPermissions(ctx context.Context, userID uint, action string) error
 }
 
-// UserAnalyticsUseCase interface para análisis de usuarios
+// UserAnalyticsUseCase interface for user analytics
 type UserAnalyticsUseCase interface {
     GetUserActivity(ctx context.Context, userID uint, from, to time.Time) (*dto.UserActivityResponse, error)
     GetUserEngagement(ctx context.Context, userID uint) (*dto.UserEngagementResponse, error)
@@ -132,7 +132,7 @@ type UserAnalyticsUseCase interface {
 }
 ```
 
-### Interfaces de Repositorio: `internal/interfaces/user_repository.go`
+### Repository Interfaces: `internal/interfaces/user_repository.go`
 
 ```go
 package interfaces
@@ -146,48 +146,48 @@ import (
 
 //go:generate mockgen -source=user_repository.go -destination=mocks/user_repository_mock.go
 
-// UserRepository define los contratos para la persistencia de usuarios
+// UserRepository defines contracts for user persistence
 type UserRepository interface {
-    // Operaciones CRUD básicas
+    // Basic CRUD operations
     Save(ctx context.Context, user *domain.User) error
     FindByID(ctx context.Context, id uint) (*domain.User, error)
     Update(ctx context.Context, user *domain.User) error
     Delete(ctx context.Context, id uint) error
     
-    // Operaciones de consulta
+    // Query operations
     List(ctx context.Context, limit, offset int) ([]*domain.User, int64, error)
     FindByEmail(ctx context.Context, email string) (*domain.User, error)
     Search(ctx context.Context, query string, limit, offset int) ([]*domain.User, int64, error)
     Exists(ctx context.Context, id uint) (bool, error)
     ExistsByEmail(ctx context.Context, email string) (bool, error)
     
-    // Operaciones de filtrado
+    // Filtering operations
     FindByStatus(ctx context.Context, status string, limit, offset int) ([]*domain.User, int64, error)
     FindByDateRange(ctx context.Context, from, to time.Time, limit, offset int) ([]*domain.User, int64, error)
     FindActive(ctx context.Context, limit, offset int) ([]*domain.User, int64, error)
     FindInactive(ctx context.Context, inactiveDays int, limit, offset int) ([]*domain.User, int64, error)
     
-    // Operaciones de agregación
+    // Aggregation operations
     Count(ctx context.Context) (int64, error)
     CountByStatus(ctx context.Context, status string) (int64, error)
     CountByDateRange(ctx context.Context, from, to time.Time) (int64, error)
     CountActive(ctx context.Context) (int64, error)
     
-    // Operaciones en lote
+    // Batch operations
     SaveBatch(ctx context.Context, users []*domain.User) error
     UpdateBatch(ctx context.Context, users []*domain.User) error
     DeleteBatch(ctx context.Context, ids []uint) error
     FindByIDs(ctx context.Context, ids []uint) ([]*domain.User, error)
     
-    // Operaciones de transacción
+    // Transaction operations
     WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error
     
-    // Operaciones de caché
+    // Cache operations
     ClearCache(ctx context.Context, id uint) error
     ClearAllCache(ctx context.Context) error
 }
 
-// UserAuditRepository interface para auditoría de usuarios
+// UserAuditRepository interface for user auditing
 type UserAuditRepository interface {
     LogUserAction(ctx context.Context, userID uint, action string, details map[string]interface{}) error
     GetUserAuditLog(ctx context.Context, userID uint, limit, offset int) ([]*domain.UserAuditLog, error)
@@ -195,7 +195,7 @@ type UserAuditRepository interface {
     GetAuditLogByDateRange(ctx context.Context, from, to time.Time, limit, offset int) ([]*domain.UserAuditLog, error)
 }
 
-// UserSessionRepository interface para sesiones de usuario
+// UserSessionRepository interface for user sessions
 type UserSessionRepository interface {
     CreateSession(ctx context.Context, session *domain.UserSession) error
     GetSession(ctx context.Context, token string) (*domain.UserSession, error)
@@ -206,7 +206,7 @@ type UserSessionRepository interface {
     DeleteExpiredSessions(ctx context.Context) error
 }
 
-// UserStatsRepository interface para estadísticas de usuario
+// UserStatsRepository interface for user statistics
 type UserStatsRepository interface {
     GetUserStats(ctx context.Context, userID uint) (*domain.UserStats, error)
     UpdateUserStats(ctx context.Context, stats *domain.UserStats) error
@@ -215,7 +215,7 @@ type UserStatsRepository interface {
 }
 ```
 
-### Interfaces de Handlers: `internal/interfaces/user_handler.go`
+### Handler Interfaces: `internal/interfaces/user_handler.go`
 
 ```go
 package interfaces
@@ -229,134 +229,134 @@ import (
 
 //go:generate mockgen -source=user_handler.go -destination=mocks/user_handler_mock.go
 
-// UserHTTPHandler define los contratos para handlers HTTP
+// UserHTTPHandler defines contracts for HTTP handlers
 type UserHTTPHandler interface {
-    // Operaciones CRUD REST
+    // REST CRUD operations
     Create(c *gin.Context)
     GetByID(c *gin.Context)
     Update(c *gin.Context)
     Delete(c *gin.Context)
     List(c *gin.Context)
     
-    // Operaciones de búsqueda
+    // Search operations
     Search(c *gin.Context)
     FindByEmail(c *gin.Context)
     
-    // Operaciones de negocio
+    // Business operations
     Activate(c *gin.Context)
     Deactivate(c *gin.Context)
     ChangePassword(c *gin.Context)
     
-    // Operaciones de estadísticas
+    // Statistics operations
     GetStats(c *gin.Context)
     GetActivity(c *gin.Context)
     
-    // Operaciones en lote
+    // Batch operations
     CreateBatch(c *gin.Context)
     UpdateBatch(c *gin.Context)
     DeleteBatch(c *gin.Context)
     
-    // Operaciones de archivos
+    // File operations
     UploadAvatar(c *gin.Context)
     DownloadData(c *gin.Context)
     ImportUsers(c *gin.Context)
     ExportUsers(c *gin.Context)
 }
 
-// UserGRPCHandler define los contratos para handlers gRPC
+// UserGRPCHandler defines contracts for gRPC handlers
 type UserGRPCHandler interface {
-    // Operaciones CRUD gRPC
+    // gRPC CRUD operations
     CreateUser(ctx context.Context, req *CreateUserRequest) (*UserResponse, error)
     GetUser(ctx context.Context, req *GetUserRequest) (*UserResponse, error)
     UpdateUser(ctx context.Context, req *UpdateUserRequest) (*UserResponse, error)
     DeleteUser(ctx context.Context, req *DeleteUserRequest) (*DeleteUserResponse, error)
     ListUsers(ctx context.Context, req *ListUsersRequest) (*ListUsersResponse, error)
     
-    // Operaciones de streaming
+    // Streaming operations
     StreamUsers(req *StreamUsersRequest, stream UserService_StreamUsersServer) error
     BulkCreateUsers(stream UserService_BulkCreateUsersServer) error
     
-    // Operaciones de negocio
+    // Business operations
     ActivateUser(ctx context.Context, req *ActivateUserRequest) (*ActivateUserResponse, error)
     ValidateUser(ctx context.Context, req *ValidateUserRequest) (*ValidateUserResponse, error)
     
-    // Operaciones de estadísticas
+    // Statistics operations
     GetUserStats(ctx context.Context, req *GetUserStatsRequest) (*UserStatsResponse, error)
     GetUsersMetrics(ctx context.Context, req *GetUsersMetricsRequest) (*UsersMetricsResponse, error)
 }
 
-// UserCLIHandler define los contratos para handlers CLI
+// UserCLIHandler defines contracts for CLI handlers
 type UserCLIHandler interface {
-    // Comandos CRUD
+    // CRUD commands
     CreateUserCommand() CLICommand
     GetUserCommand() CLICommand
     UpdateUserCommand() CLICommand
     DeleteUserCommand() CLICommand
     ListUsersCommand() CLICommand
     
-    // Comandos de administración
+    // Administration commands
     ActivateUserCommand() CLICommand
     DeactivateUserCommand() CLICommand
     ResetPasswordCommand() CLICommand
     
-    // Comandos de importación/exportación
+    // Import/export commands
     ImportUsersCommand() CLICommand
     ExportUsersCommand() CLICommand
     
-    // Comandos de estadísticas
+    // Statistics commands
     UserStatsCommand() CLICommand
     UsersReportCommand() CLICommand
     
-    // Comandos de mantenimiento
+    // Maintenance commands
     CleanupUsersCommand() CLICommand
     ValidateUsersCommand() CLICommand
 }
 
-// UserWorkerHandler define los contratos para workers
+// UserWorkerHandler defines contracts for workers
 type UserWorkerHandler interface {
-    // Procesamiento de tareas
+    // Task processing
     ProcessUserTask(ctx context.Context, taskData []byte) error
     
-    // Tareas específicas
+    // Specific tasks
     ProcessWelcomeEmail(ctx context.Context, userID uint) error
     ProcessPasswordReset(ctx context.Context, userID uint) error
     ProcessUserActivation(ctx context.Context, userID uint) error
     ProcessUserDeactivation(ctx context.Context, userID uint) error
     
-    // Tareas en lote
+    // Batch tasks
     ProcessBatchUserCreation(ctx context.Context, userData []byte) error
     ProcessBatchUserUpdate(ctx context.Context, userData []byte) error
     ProcessBatchUserDeletion(ctx context.Context, userIDs []uint) error
     
-    // Tareas de mantenimiento
+    // Maintenance tasks
     ProcessInactiveUsersCleanup(ctx context.Context) error
     ProcessUserStatsUpdate(ctx context.Context) error
     ProcessUserDataExport(ctx context.Context, exportID string) error
     
-    // Control de workers
+    // Worker control
     StartWorker(ctx context.Context) error
     StopWorker(ctx context.Context) error
     GetWorkerStatus() WorkerStatus
 }
 
-// UserSOAPHandler define los contratos para servicios SOAP
+// UserSOAPHandler defines contracts for SOAP services
 type UserSOAPHandler interface {
-    // Operaciones SOAP
+    // SOAP operations
     CreateUser(ctx context.Context, req *SOAPCreateUserRequest) (*SOAPUserResponse, error)
     GetUser(ctx context.Context, req *SOAPGetUserRequest) (*SOAPUserResponse, error)
     UpdateUser(ctx context.Context, req *SOAPUpdateUserRequest) (*SOAPUserResponse, error)
     DeleteUser(ctx context.Context, req *SOAPDeleteUserRequest) (*SOAPDeleteUserResponse, error)
     ListUsers(ctx context.Context, req *SOAPListUsersRequest) (*SOAPListUsersResponse, error)
     
-    // Operaciones de validación SOAP
+    // SOAP validation operations
     ValidateUserData(ctx context.Context, req *SOAPValidateUserRequest) (*SOAPValidationResponse, error)
     
-    // Manejo de peticiones SOAP
+    // SOAP request handling
     HandleSOAPRequest(w http.ResponseWriter, r *http.Request)
     ProcessSOAPEnvelope(envelope *SOAPEnvelope) (*SOAPEnvelope, error)
 }
 
-// CLICommand define la estructura de un comando CLI
+// CLICommand defines the structure of a CLI command
 type CLICommand interface {
     GetName() string
     GetDescription() string
@@ -365,7 +365,7 @@ type CLICommand interface {
     GetFlags() []CLIFlag
 }
 
-// CLIFlag define la estructura de un flag CLI
+// CLIFlag defines the structure of a CLI flag
 type CLIFlag struct {
     Name        string
     ShortName   string
@@ -374,7 +374,7 @@ type CLIFlag struct {
     Default     interface{}
 }
 
-// WorkerStatus define el estado de un worker
+// WorkerStatus defines the status of a worker
 type WorkerStatus struct {
     IsRunning     bool
     TasksProcessed int64
@@ -384,25 +384,25 @@ type WorkerStatus struct {
 }
 ```
 
-## 🧪 Generación de Mocks
+## 🧪 Mock Generation
 
-Las interfaces incluyen directivas para `go generate`:
+Interfaces include directives for `go generate`:
 
 ```go
 //go:generate mockgen -source=user_usecase.go -destination=mocks/user_usecase_mock.go
 ```
 
-### Comandos para generar mocks:
+### Commands to generate mocks:
 ```bash
-# Instalar mockgen
+# Install mockgen
 go install github.com/golang/mock/mockgen@latest
 
-# Generar todos los mocks
+# Generate all mocks
 cd internal/interfaces
 go generate ./...
 ```
 
-### Uso de mocks en tests:
+### Using mocks in tests:
 ```go
 func TestUserService_Create(t *testing.T) {
     ctrl := gomock.NewController(t)
@@ -436,79 +436,79 @@ func TestUserService_Create(t *testing.T) {
 }
 ```
 
-## 🔄 Desarrollo TDD
+## 🔄 TDD Development
 
-### Flujo TDD Recomendado:
+### Recommended TDD Flow:
 
-1. **Generar interfaces**:
+1. **Generate interfaces**:
 ```bash
 goca interfaces User --all
 ```
 
-2. **Escribir tests con mocks**:
+2. **Write tests with mocks**:
 ```go
 func TestUserUseCase_Create(t *testing.T) {
-    // Test usando la interface
+    // Test using the interface
 }
 ```
 
-3. **Implementar casos de uso**:
+3. **Implement use cases**:
 ```bash
 goca usecase UserService --entity User
 ```
 
-4. **Implementar repositorios**:
+4. **Implement repositories**:
 ```bash
 goca repository User --database postgres
 ```
 
-5. **Implementar handlers**:
+5. **Implement handlers**:
 ```bash
 goca handler User --type http
 ```
 
-## 📝 Documentación de Contratos
+## 📝 Contract Documentation
 
-Las interfaces sirven como documentación viva:
+Interfaces serve as living documentation:
 
 ```go
-// UserUseCase define todos los contratos para casos de uso de usuario.
-// Esta interface establece el comportamiento esperado sin revelar
-// detalles de implementación, permitiendo flexibilidad y testabilidad.
+// UserUseCase defines all contracts for user use cases.
+// This interface establishes expected behavior without revealing
+// implementation details, allowing flexibility and testability.
 type UserUseCase interface {
-    // Create crea un nuevo usuario en el sistema.
-    // Valida los datos de entrada y retorna el usuario creado.
-    // Retorna error si el email ya existe o los datos son inválidos.
+    // Create creates a new user in the system.
+    // Validates input data and returns the created user.
+    // Returns error if email already exists or data is invalid.
     Create(ctx context.Context, req dto.CreateUserRequest) (*dto.UserResponse, error)
     
-    // GetByID obtiene un usuario por su ID único.
-    // Retorna error si el usuario no existe o está marcado como eliminado.
+    // GetByID gets a user by their unique ID.
+    // Returns error if user doesn't exist or is marked as deleted.
     GetByID(ctx context.Context, id uint) (*dto.UserResponse, error)
 }
 ```
 
-## ⚠️ Consideraciones Importantes
+## ⚠️ Important Considerations
 
-### ✅ Buenas Prácticas
-- **Interfaces pequeñas**: Seguir el principio de segregación de interfaces
-- **Context first**: Siempre usar context.Context como primer parámetro
-- **Error handling**: Retornar errores descriptivos
-- **Documentation**: Documentar todos los métodos de interface
+### ✅ Best Practices
+- **Small interfaces**: Follow interface segregation principle
+- **Context first**: Always use context.Context as first parameter
+- **Error handling**: Return descriptive errors
+- **Documentation**: Document all interface methods
 
-### ❌ Errores Comunes
-- **Interfaces demasiado grandes**: Dividir en interfaces específicas
-- **Dependencias concretas**: Las interfaces no deben depender de implementaciones
-- **Mixing concerns**: Separar responsabilidades en diferentes interfaces
-- **Missing context**: Siempre propagar el contexto
+### ❌ Common Mistakes
+- **Interfaces too large**: Divide into specific interfaces
+- **Concrete dependencies**: Interfaces should not depend on implementations
+- **Mixing concerns**: Separate responsibilities into different interfaces
+- **Missing context**: Always propagate context
 
-### 🔄 Integración con Herramientas
+### 🔄 Tool Integration
 
 #### GoMock
 ```bash
-# Instalar
+# Install
 go install github.com/golang/mock/mockgen@latest
 
-# Generar mocks
+# Generate mocks
 mockgen -source=interfaces/user_usecase.go -destination=mocks/user_usecase_mock.go
 ```
 

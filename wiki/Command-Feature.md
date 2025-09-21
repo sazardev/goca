@@ -1,63 +1,63 @@
-# Comando goca feature
+# goca feature Command
 
-El comando `goca feature` es la herramienta más poderosa de Goca. Genera **todas las capas** de Clean Architecture para un feature completo de una sola vez, siguiendo las mejores prácticas y convenciones establecidas.
+The `goca feature` command is Goca's most powerful tool. It generates **all layers** of Clean Architecture for a complete feature at once, following established best practices and conventions.
 
-## � Nueva Funcionalidad: Auto-Integración
+## 🚀 New Feature: Auto-Integration
 
-**¡NOVEDAD v1.1.0!** El comando `goca feature` ahora incluye **integración automática completa**:
+**NEW in v1.1.0!** The `goca feature` command now includes **complete automatic integration**:
 
-- ✅ **Auto-DI**: Crea/actualiza automáticamente el contenedor de inyección de dependencias
-- ✅ **Auto-Routes**: Registra automáticamente las rutas en `main.go`
-- ✅ **Auto-Imports**: Agrega las importaciones necesarias
-- ✅ **Ready-to-Run**: El feature queda completamente funcional inmediatamente
+- ✅ **Auto-DI**: Automatically creates/updates the dependency injection container
+- ✅ **Auto-Routes**: Automatically registers routes in `main.go`
+- ✅ **Auto-Imports**: Adds necessary imports
+- ✅ **Ready-to-Run**: The feature becomes completely functional immediately
 
-**¡Ya no necesitas pasos manuales!** Ejecuta `goca feature` y tu API estará lista para usar.
+**No manual steps needed!** Execute `goca feature` and your API will be ready to use.
 
-## �📋 Sintaxis
+## 📋 Syntax
 
 ```bash
-goca feature <nombre> [flags]
+goca feature <name> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Genera un feature completo con **todas las capas de Clean Architecture** y **lo integra automáticamente**:
+Generates a complete feature with **all Clean Architecture layers** and **automatically integrates it**:
 
-- 🟡 **Dominio**: Entidad con validaciones y reglas de negocio
-- 🔴 **Casos de Uso**: Servicios de aplicación con DTOs
-- 🔵 **Repositorio**: Interfaz y implementación de persistencia
-- 🟢 **Handlers**: Adaptadores para diferentes protocolos
-- 📄 **Mensajes**: Constantes y mensajes de error/éxito
-- 🔗 **Integración**: DI Container y rutas registradas automáticamente
+- 🟡 **Domain**: Entity with validations and business rules
+- 🔴 **Use Cases**: Application services with DTOs
+- 🔵 **Repository**: Interface and persistence implementation
+- 🟢 **Handlers**: Adapters for different protocols
+- 📄 **Messages**: Constants and error/success messages
+- 🔗 **Integration**: DI Container and routes automatically registered
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag               | Tipo     | Requerido | Valor por Defecto | Descripción                                                      |
-| ------------------ | -------- | --------- | ----------------- | ---------------------------------------------------------------- |
-| `--fields`         | `string` | ✅ **Sí**  | -                 | Campos de la entidad (`"name:string,email:string"`)              |
-| `--database`       | `string` | ❌ No      | `postgres`        | Base de datos (`postgres`, `mysql`, `mongodb`)                   |
-| `--handlers`       | `string` | ❌ No      | `http`            | Tipos de handlers (`http`, `grpc`, `cli`, `worker`, `http,grpc`) |
-| `--validation`     | `bool`   | ❌ No      | `true`            | Incluir validaciones en entidad y DTOs                           |
-| `--business-rules` | `bool`   | ❌ No      | `false`           | Generar métodos de reglas de negocio                             |
+| Flag               | Type     | Required  | Default Value | Description                                                  |
+| ------------------ | -------- | --------- | ------------- | ------------------------------------------------------------ |
+| `--fields`         | `string` | ✅ **Yes** | -             | Entity fields (`"name:string,email:string"`)                 |
+| `--database`       | `string` | ❌ No      | `postgres`    | Database type (`postgres`, `mysql`, `mongodb`)               |
+| `--handlers`       | `string` | ❌ No      | `http`        | Handler types (`http`, `grpc`, `cli`, `worker`, `http,grpc`) |
+| `--validation`     | `bool`   | ❌ No      | `true`        | Include validations in entity and DTOs                       |
+| `--business-rules` | `bool`   | ❌ No      | `false`       | Generate business rule methods                               |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Ejemplo Básico
+### Basic Example
 ```bash
 goca feature User --fields "name:string,email:string"
 ```
 
-### Feature con Validaciones
+### Feature with Validations
 ```bash
 goca feature Product --fields "name:string,price:float64,category:string,stock:int" --validation --business-rules
 ```
 
-### Feature Multi-Handler
+### Multi-Handler Feature
 ```bash
 goca feature Order --fields "user_id:int,total:float64,status:string" --handlers "http,grpc,worker"
 ```
 
-### Feature Completo
+### Complete Feature
 ```bash
 goca feature Employee \
   --fields "name:string,email:string,department:string,salary:float64,hire_date:time.Time" \
@@ -67,119 +67,123 @@ goca feature Employee \
   --handlers "http,grpc"
 ```
 
-## 📂 Estructura Generada
+## 📂 Generated Structure
 
-Un feature completo genera esta estructura:
+A complete feature generates this structure:
 
 ```
 internal/
 ├── domain/
-│   ├── user.go                  # Entidad de dominio
-│   └── errors.go                # Errores específicos del dominio
+│   ├── user.go                  # Domain entity
+│   └── errors.go                # Domain-specific errors
 ├── usecase/
 │   ├── dto/
-│   │   └── user_dto.go          # DTOs para casos de uso
+│   │   └── user_dto.go          # DTOs for use cases
 │   ├── interfaces/
-│   │   └── user_interfaces.go   # Interfaces de contratos
-│   └── user_usecase.go          # Implementación de casos de uso
+│   │   └── user_interfaces.go   # Contract interfaces
+│   └── user_usecase.go          # Use case implementation
 ├── repository/
 │   ├── interfaces/
-│   │   └── user_repository.go   # Interface del repositorio
+│   │   └── user_repository.go   # Repository interface
 │   └── postgres/
-│       └── user_repository.go   # Implementación PostgreSQL
+│       └── user_repository.go   # PostgreSQL implementation
 ├── handler/
 │   ├── http/
-│   │   ├── user_handler.go      # Handler HTTP REST
-│   │   ├── user_routes.go       # Definición de rutas
+│   │   ├── user_handler.go      # HTTP REST handler
+│   │   ├── user_routes.go       # Route definitions
 │   │   └── dto/
-│   │       └── user_dto.go      # DTOs específicos para HTTP
-│   ├── grpc/                    # (si se especifica)
-│   │   ├── user.proto           # Definición Protocol Buffers
-│   │   └── user_server.go       # Servidor gRPC
-│   └── worker/                  # (si se especifica)
-│       └── user_worker.go       # Worker para tareas en background
+│   │       └── user_dto.go      # HTTP-specific DTOs
+│   ├── grpc/                    # (if specified)
+│   │   ├── user.proto           # Protocol Buffers definition
+│   │   └── user_server.go       # gRPC server
+│   └── worker/                  # (if specified)
+│       └── user_worker.go       # Worker for background tasks
+├── constants/
+│   └── user_constants.go        # Feature constants
 └── messages/
-    ├── errors.go                # Mensajes de error
-    └── responses.go             # Mensajes de respuesta
+    ├── user_errors.go           # Error messages
+    └── user_responses.go        # Success response messages
+```
+## ⚡ Auto-Integration Features
+
+### Automatic DI Container Update
+```go
+// Automatically added to internal/di/wire.go
+var UserSet = wire.NewSet(
+    postgres.NewUserRepository,
+    usecase.NewUserUseCase,
+    http.NewUserHandler,
+)
+
+var AllSets = wire.NewSet(
+    // ... other sets
+    UserSet,
+)
 ```
 
-## 🔍 Análisis de Archivos Generados
-
-### 🟡 Dominio: `internal/domain/user.go`
-
+### Automatic Route Registration
 ```go
+// Automatically added to cmd/server/main.go
+func setupRoutes(r *gin.Engine, userHandler *http.UserHandler) {
+    api := r.Group("/api/v1")
+    {
+        users := api.Group("/users")
+        {
+            users.POST("", userHandler.Create)
+            users.GET("/:id", userHandler.GetByID)
+            users.PUT("/:id", userHandler.Update)
+            users.DELETE("/:id", userHandler.Delete)
+            users.GET("", userHandler.List)
+        }
+    }
+}
+```
+
+## 🏗️ Domain Layer (🟡)
+
+### Entity Generation
+```go
+// internal/domain/user.go
 package domain
 
 import (
     "errors"
-    "strings"
     "time"
+    "strings"
 )
 
-// User representa la entidad de dominio del usuario
 type User struct {
-    ID        uint      `json:"id"`
-    Name      string    `json:"name"`
-    Email     string    `json:"email"`
+    ID        uint      `json:"id" gorm:"primaryKey"`
+    Name      string    `json:"name" gorm:"not null;size:100"`
+    Email     string    `json:"email" gorm:"uniqueIndex;not null;size:255"`
     CreatedAt time.Time `json:"created_at"`
     UpdatedAt time.Time `json:"updated_at"`
 }
 
-// Validate valida la entidad User según las reglas de negocio
+// Business validations
 func (u *User) Validate() error {
     if strings.TrimSpace(u.Name) == "" {
-        return ErrUserNameRequired
-    }
-    
-    if len(u.Name) < 2 {
-        return ErrUserNameTooShort
-    }
-    
-    if len(u.Name) > 100 {
-        return ErrUserNameTooLong
+        return errors.New("name is required")
     }
     
     if strings.TrimSpace(u.Email) == "" {
-        return ErrUserEmailRequired
-    }
-    
-    if !isValidEmail(u.Email) {
-        return ErrUserEmailInvalid
+        return errors.New("email is required")
     }
     
     return nil
 }
 
-// isValidEmail valida si el email tiene formato correcto
-func isValidEmail(email string) bool {
-    return strings.Contains(email, "@") && strings.Contains(email, ".")
+// Business rules (if --business-rules flag is used)
+func (u *User) CanBeDeleted() bool {
+    // Business logic for deletion
+    return true
 }
 
-// Business Rules (si --business-rules está activado)
-
-// CanUpdateEmail verifica si el usuario puede actualizar su email
-func (u *User) CanUpdateEmail() bool {
-    return u.ID > 0
+func (u *User) IsEmailValid() bool {
+    // Email validation logic
+    return strings.Contains(u.Email, "@")
 }
-
-// IsEmailDomainAllowed verifica si el dominio del email está permitido
-func (u *User) IsEmailDomainAllowed() bool {
-    allowedDomains := []string{"gmail.com", "company.com", "example.com"}
-    
-    parts := strings.Split(u.Email, "@")
-    if len(parts) != 2 {
-        return false
-    }
-    
-    domain := parts[1]
-    for _, allowed := range allowedDomains {
-        if domain == allowed {
-            return true
-        }
-    }
-    
-    return false
-}
+```
 ```
 
 ### 🔴 Casos de Uso: `internal/usecase/user_usecase.go`
@@ -1092,51 +1096,76 @@ goca di --features "Product" --database postgres
 // en los comentarios de los archivos
 ```
 
-## ⚡ Optimizaciones y Mejores Prácticas
+## 🚀 Getting Started
 
-### ✅ Recomendaciones
-- **Campos descriptivos**: Usa nombres claros y específicos
-- **Validaciones consistentes**: Siempre usar `--validation` en producción
-- **Reglas de negocio**: Activar `--business-rules` para dominios complejos
-- **Multi-handler inteligente**: Solo generar handlers que realmente necesites
-
-### 🚀 Performance
-- **DTOs optimizados**: Campos opcionales con punteros para actualizaciones
-- **Paginación automática**: Incluida en todos los endpoints de listado
-- **Queries eficientes**: Repositorios optimizados por base de datos
-- **Validación temprana**: En múltiples capas para fallar rápido
-
-### 🔒 Seguridad
-- **Validación de entrada**: En todos los puntos de entrada
-- **SQL Injection**: Prevención automática con prepared statements
-- **Type Safety**: Tipado fuerte en toda la aplicación
-- **Error Handling**: Manejo consistente de errores sin exposición de detalles
-
-## 📊 Casos de Uso Reales
-
-### E-commerce
+### 1. Generate Feature
 ```bash
-# Entidades principales
-goca feature User --fields "name:string,email:string,password:string" --validation
-goca feature Product --fields "name:string,price:float64,stock:int" --validation
-goca feature Order --fields "user_id:int,total:float64,status:string" --validation
-
-# Configurar todo junto
-goca di --features "User,Product,Order" --database postgres
+goca feature User --fields "name:string,email:string,age:int" --validation --business-rules
 ```
 
-### Sistema de Blog
+### 2. Run the Application
 ```bash
-goca feature Author --fields "name:string,email:string,bio:string" --validation
-goca feature Post --fields "title:string,content:string,author_id:int" --validation
-goca feature Comment --fields "content:string,post_id:int,author_id:int" --validation
+# Install dependencies
+go mod tidy
+
+# Run server
+go run cmd/server/main.go
 ```
 
-### API de Microservicio
+### 3. Test API Endpoints
 ```bash
-goca feature Customer --fields "name:string,email:string" --handlers "grpc" --validation
+# Create user
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Doe","email":"john@example.com"}'
+
+# Get user
+curl http://localhost:8080/api/v1/users/1
+
+# List users
+curl http://localhost:8080/api/v1/users?page=1&limit=10
+
+# Update user
+curl -X PUT http://localhost:8080/api/v1/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"John Updated","email":"john.updated@example.com"}'
+
+# Delete user
+curl -X DELETE http://localhost:8080/api/v1/users/1
 ```
+
+## 📊 Benefits
+
+### ✅ What You Get
+- **Complete CRUD API** in seconds
+- **Clean Architecture** enforced
+- **Automatic validation** at all layers
+- **Business logic** separation
+- **Auto-integration** with DI and routes
+- **Production-ready** code structure
+- **Swagger documentation** ready
+- **Database migrations** prepared
+
+### 🎯 Best Practices Included
+- **Single Responsibility Principle**
+- **Dependency Inversion**
+- **Interface Segregation**
+- **Domain-Driven Design**
+- **SOLID Principles**
+- **Error Handling**
+- **Input Validation**
+- **Proper HTTP Status Codes**
+
+## � Related Commands
+
+- [`goca init`](Command-Init) - Initialize project structure
+- [`goca entity`](Command-Entity) - Generate entities only
+- [`goca usecase`](Command-UseCase) - Generate use cases only
+- [`goca repository`](Command-Repository) - Generate repositories only
+- [`goca handler`](Command-Handler) - Generate handlers only
+- [`goca di`](Command-DI) - Generate DI container manually
+- [`goca integrate`](Command-Integrate) - Integrate existing features
 
 ---
 
-**← [Comando goca init](Command-Init) | [Comando goca entity](Command-Entity) →**
+**💡 Tip**: Use `goca feature` for new features and individual commands for specific customizations!

@@ -1,97 +1,97 @@
-# Comando goca handler
+# goca handler Command
 
-El comando `goca handler` crea adaptadores de entrega que manejan diferentes protocolos (HTTP, gRPC, CLI, Worker, SOAP) manteniendo la separación de capas y siguiendo Clean Architecture.
+The `goca handler` command creates delivery adapters that handle different protocols (HTTP, gRPC, CLI, Worker, SOAP) while maintaining layer separation and following Clean Architecture.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca handler <entity> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Crea handlers (adaptadores de entrada) para diferentes protocolos:
+Creates handlers (input adapters) for different protocols:
 
-- 🟢 **HTTP REST** con Gin y documentación Swagger
-- 🔷 **gRPC** con Protocol Buffers y servidores
-- 💻 **CLI** para herramientas de línea de comandos
-- ⚙️ **Worker** para tareas en background
-- 🌐 **SOAP** para servicios web legacy
-- 🛡️ **Middleware** y validaciones por protocolo
+- 🟢 **HTTP REST** with Gin and Swagger documentation
+- 🔷 **gRPC** with Protocol Buffers and servers
+- 💻 **CLI** for command-line tools
+- ⚙️ **Worker** for background tasks
+- 🌐 **SOAP** for legacy web services
+- 🛡️ **Middleware** and protocol-specific validations
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag           | Tipo     | Requerido | Valor por Defecto | Descripción                                               |
-| -------------- | -------- | --------- | ----------------- | --------------------------------------------------------- |
-| `--type`       | `string` | ❌ No      | `http`            | Tipo de handler (`http`, `grpc`, `cli`, `worker`, `soap`) |
-| `--swagger`    | `bool`   | ❌ No      | `false`           | Generar documentación Swagger (solo HTTP)                 |
-| `--middleware` | `bool`   | ❌ No      | `false`           | Incluir setup de middleware                               |
-| `--validation` | `bool`   | ❌ No      | `false`           | Validación de entrada en handler                          |
+| Flag           | Type     | Required | Default Value | Description                                            |
+| -------------- | -------- | -------- | ------------- | ------------------------------------------------------ |
+| `--type`       | `string` | ❌ No     | `http`        | Handler type (`http`, `grpc`, `cli`, `worker`, `soap`) |
+| `--swagger`    | `bool`   | ❌ No     | `false`       | Generate Swagger documentation (HTTP only)             |
+| `--middleware` | `bool`   | ❌ No     | `false`       | Include middleware setup                               |
+| `--validation` | `bool`   | ❌ No     | `false`       | Input validation in handler                            |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Handler HTTP REST
+### HTTP REST Handler
 ```bash
 goca handler User --type http --swagger --middleware --validation
 ```
 
-### Handler gRPC
+### gRPC Handler
 ```bash
 goca handler Product --type grpc
 ```
 
-### Handler CLI
+### CLI Handler
 ```bash
 goca handler Order --type cli
 ```
 
-### Handler Worker
+### Worker Handler
 ```bash
 goca handler Notification --type worker
 ```
 
-### Handler SOAP
+### SOAP Handler
 ```bash
 goca handler Payment --type soap
 ```
 
-## 📂 Archivos Generados por Tipo
+## 📂 Generated Files by Type
 
 ### HTTP REST (`--type http`)
 ```
 internal/handler/http/
-├── user_handler.go     # Controladores HTTP
-├── user_routes.go      # Definición de rutas
-├── dto.go              # DTOs específicos para HTTP
-└── swagger.yaml        # Documentación Swagger (si --swagger)
+├── user_handler.go     # HTTP controllers
+├── user_routes.go      # Route definitions
+├── dto.go              # HTTP-specific DTOs
+└── swagger.yaml        # Swagger documentation (if --swagger)
 ```
 
 ### gRPC (`--type grpc`)
 ```
 internal/handler/grpc/
-├── user.proto          # Definición Protocol Buffers
-└── user_server.go      # Servidor gRPC
+├── user.proto          # Protocol Buffers definition
+└── user_server.go      # gRPC server
 ```
 
 ### CLI (`--type cli`)
 ```
 internal/handler/cli/
-└── user_commands.go    # Comandos CLI con Cobra
+└── user_commands.go    # CLI commands with Cobra
 ```
 
 ### Worker (`--type worker`)
 ```
 internal/handler/worker/
-└── user_worker.go      # Worker para tareas en background
+└── user_worker.go      # Worker for background tasks
 ```
 
 ### SOAP (`--type soap`)
 ```
 internal/handler/soap/
-└── user_client.go      # Cliente SOAP
+└── user_client.go      # SOAP client
 ```
 
-## 🔍 Código Generado en Detalle
+## 🔍 Generated Code in Detail
 
 ### HTTP Handler: `internal/handler/http/user_handler.go`
 
@@ -107,24 +107,24 @@ import (
     "github.com/usuario/proyecto/internal/usecase/dto"
 )
 
-// UserHandler maneja las peticiones HTTP para usuarios
+// UserHandler handles HTTP requests for users
 type UserHandler struct {
     userUseCase usecase.UserUseCase
 }
 
-// NewUserHandler crea una nueva instancia del handler
+// NewUserHandler creates a new handler instance
 func NewUserHandler(userUseCase usecase.UserUseCase) *UserHandler {
     return &UserHandler{
         userUseCase: userUseCase,
     }
 }
 
-// @Summary Crear usuario
-// @Description Crea un nuevo usuario en el sistema
+// @Summary Create user
+// @Description Creates a new user in the system
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param user body dto.CreateUserRequest true "Datos del usuario"
+// @Param user body dto.CreateUserRequest true "User data"
 // @Success 201 {object} dto.UserResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 409 {object} dto.ErrorResponse
@@ -157,11 +157,11 @@ func (h *UserHandler) Create(c *gin.Context) {
     c.JSON(http.StatusCreated, userResponse)
 }
 
-// @Summary Obtener usuario por ID
-// @Description Obtiene un usuario específico por su ID
+// @Summary Get user by ID
+// @Description Gets a specific user by their ID
 // @Tags users
 // @Produce json
-// @Param id path int true "ID del usuario"
+// @Param id path int true "User ID"
 // @Success 200 {object} dto.UserResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 404 {object} dto.ErrorResponse
@@ -195,12 +195,12 @@ func (h *UserHandler) GetByID(c *gin.Context) {
     c.JSON(http.StatusOK, userResponse)
 }
 
-// @Summary Listar usuarios
-// @Description Obtiene una lista paginada de usuarios
+// @Summary List users
+// @Description Gets a paginated list of users
 // @Tags users
 // @Produce json
-// @Param page query int false "Número de página" default(1)
-// @Param limit query int false "Elementos por página" default(10)
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
 // @Success 200 {object} dto.ListUsersResponse
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
@@ -249,7 +249,7 @@ import (
     "github.com/usuario/proyecto/internal/usecase"
 )
 
-// RegisterUserRoutes registra todas las rutas relacionadas con usuarios
+// RegisterUserRoutes registers all user-related routes
 func RegisterUserRoutes(router *gin.RouterGroup, userUseCase usecase.UserUseCase) {
     userHandler := NewUserHandler(userUseCase)
     
@@ -263,13 +263,13 @@ func RegisterUserRoutes(router *gin.RouterGroup, userUseCase usecase.UserUseCase
     }
 }
 
-// RegisterUserRoutesWithMiddleware registra rutas con middleware específico
+// RegisterUserRoutesWithMiddleware registers routes with specific middleware
 func RegisterUserRoutesWithMiddleware(router *gin.RouterGroup, userUseCase usecase.UserUseCase) {
     userHandler := NewUserHandler(userUseCase)
     
     users := router.Group("/users")
     
-    // Middleware específico para usuarios
+    // User-specific middleware
     users.Use(AuthMiddleware())
     users.Use(RateLimitMiddleware())
     users.Use(ValidationMiddleware())
@@ -298,20 +298,20 @@ import (
     "github.com/usuario/proyecto/internal/usecase/dto"
 )
 
-// UserServer implementa el servidor gRPC para usuarios
+// UserServer implements the gRPC server for users
 type UserServer struct {
     UnimplementedUserServiceServer
     userUseCase usecase.UserUseCase
 }
 
-// NewUserServer crea una nueva instancia del servidor gRPC
+// NewUserServer creates a new gRPC server instance
 func NewUserServer(userUseCase usecase.UserUseCase) *UserServer {
     return &UserServer{
         userUseCase: userUseCase,
     }
 }
 
-// CreateUser crea un nuevo usuario via gRPC
+// CreateUser creates a new user via gRPC
 func (s *UserServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*UserResponse, error) {
     createReq := dto.CreateUserRequest{
         Name:  req.GetName(),
@@ -335,7 +335,7 @@ func (s *UserServer) CreateUser(ctx context.Context, req *CreateUserRequest) (*U
     }, nil
 }
 
-// GetUser obtiene un usuario por ID via gRPC
+// GetUser gets a user by ID via gRPC
 func (s *UserServer) GetUser(ctx context.Context, req *GetUserRequest) (*UserResponse, error) {
     userResponse, err := s.userUseCase.GetByID(ctx, uint(req.GetId()))
     if err != nil {
@@ -354,7 +354,7 @@ func (s *UserServer) GetUser(ctx context.Context, req *GetUserRequest) (*UserRes
     }, nil
 }
 
-// ListUsers lista usuarios via gRPC
+// ListUsers lists users via gRPC
 func (s *UserServer) ListUsers(ctx context.Context, req *ListUsersRequest) (*ListUsersResponse, error) {
     listReq := dto.ListUsersRequest{
         Page:  int(req.GetPage()),
@@ -503,12 +503,12 @@ func (uc *UserCommands) GetCommands() []*cobra.Command {
     }
 }
 
-// createUserCmd comando para crear usuario
+// createUserCmd command to create user
 func (uc *UserCommands) createUserCmd() *cobra.Command {
     cmd := &cobra.Command{
         Use:   "create-user",
-        Short: "Crear un nuevo usuario",
-        Long:  "Crea un nuevo usuario en el sistema con nombre y email",
+        Short: "Create a new user",
+        Long:  "Creates a new user in the system with name and email",
         RunE: func(cmd *cobra.Command, args []string) error {
             name, _ := cmd.Flags().GetString("name")
             email, _ := cmd.Flags().GetString("email")
@@ -540,20 +540,20 @@ func (uc *UserCommands) createUserCmd() *cobra.Command {
         },
     }
     
-    cmd.Flags().StringP("name", "n", "", "Nombre del usuario")
-    cmd.Flags().StringP("email", "e", "", "Email del usuario")
+    cmd.Flags().StringP("name", "n", "", "User name")
+    cmd.Flags().StringP("email", "e", "", "User email")
     cmd.MarkFlagRequired("name")
     cmd.MarkFlagRequired("email")
     
     return cmd
 }
 
-// getUserCmd comando para obtener usuario por ID
+// getUserCmd command to get user by ID
 func (uc *UserCommands) getUserCmd() *cobra.Command {
     cmd := &cobra.Command{
         Use:   "get-user",
-        Short: "Obtener usuario por ID",
-        Long:  "Obtiene la información de un usuario específico por su ID",
+        Short: "Get user by ID",
+        Long:  "Gets information for a specific user by their ID",
         RunE: func(cmd *cobra.Command, args []string) error {
             idStr, _ := cmd.Flags().GetString("id")
             id, err := strconv.ParseUint(idStr, 10, 32)
@@ -580,18 +580,18 @@ func (uc *UserCommands) getUserCmd() *cobra.Command {
         },
     }
     
-    cmd.Flags().StringP("id", "i", "", "ID del usuario")
+    cmd.Flags().StringP("id", "i", "", "User ID")
     cmd.MarkFlagRequired("id")
     
     return cmd
 }
 
-// listUsersCmd comando para listar usuarios
+// listUsersCmd command to list users
 func (uc *UserCommands) listUsersCmd() *cobra.Command {
     cmd := &cobra.Command{
         Use:   "list-users",
-        Short: "Listar usuarios",
-        Long:  "Lista todos los usuarios del sistema con paginación",
+        Short: "List users",
+        Long:  "Lists all users in the system with pagination",
         RunE: func(cmd *cobra.Command, args []string) error {
             page, _ := cmd.Flags().GetInt("page")
             limit, _ := cmd.Flags().GetInt("limit")
@@ -637,8 +637,8 @@ func (uc *UserCommands) listUsersCmd() *cobra.Command {
         },
     }
     
-    cmd.Flags().IntP("page", "p", 1, "Número de página")
-    cmd.Flags().IntP("limit", "l", 10, "Elementos por página")
+    cmd.Flags().IntP("page", "p", 1, "Page number")
+    cmd.Flags().IntP("limit", "l", 10, "Items per page")
     
     return cmd
 }
@@ -660,26 +660,26 @@ import (
     "github.com/usuario/proyecto/internal/usecase/dto"
 )
 
-// UserWorker maneja tareas en background relacionadas con usuarios
+// UserWorker handles background tasks related to users
 type UserWorker struct {
     userUseCase usecase.UserUseCase
 }
 
-// NewUserWorker crea una nueva instancia del worker
+// NewUserWorker creates a new worker instance
 func NewUserWorker(userUseCase usecase.UserUseCase) *UserWorker {
     return &UserWorker{
         userUseCase: userUseCase,
     }
 }
 
-// UserTask representa una tarea de usuario
+// UserTask represents a user task
 type UserTask struct {
     Type    string      `json:"type"`
     Payload interface{} `json:"payload"`
     UserID  uint        `json:"user_id,omitempty"`
 }
 
-// ProcessUserTask procesa una tarea de usuario
+// ProcessUserTask processes a user task
 func (w *UserWorker) ProcessUserTask(ctx context.Context, taskData []byte) error {
     var task UserTask
     if err := json.Unmarshal(taskData, &task); err != nil {
@@ -700,7 +700,7 @@ func (w *UserWorker) ProcessUserTask(ctx context.Context, taskData []byte) error
     }
 }
 
-// processCreateUser procesa la creación de un usuario
+// processCreateUser processes user creation
 func (w *UserWorker) processCreateUser(ctx context.Context, payload interface{}) error {
     payloadBytes, err := json.Marshal(payload)
     if err != nil {
@@ -719,7 +719,7 @@ func (w *UserWorker) processCreateUser(ctx context.Context, payload interface{})
     
     log.Printf("User created successfully: ID=%d, Email=%s", user.ID, user.Email)
     
-    // Programar tarea de email de bienvenida
+    // Schedule welcome email task
     welcomeTask := UserTask{
         Type:   "send_welcome_email",
         UserID: user.ID,
@@ -732,48 +732,48 @@ func (w *UserWorker) processCreateUser(ctx context.Context, payload interface{})
     return nil
 }
 
-// processSendWelcomeEmail envía email de bienvenida
+// processSendWelcomeEmail sends welcome email
 func (w *UserWorker) processSendWelcomeEmail(ctx context.Context, userID uint) error {
     user, err := w.userUseCase.GetByID(ctx, userID)
     if err != nil {
         return fmt.Errorf("failed to get user: %w", err)
     }
     
-    // Simular envío de email
+    // Simulate email sending
     log.Printf("Sending welcome email to %s (%s)", user.Name, user.Email)
-    time.Sleep(2 * time.Second) // Simular latencia de email
+    time.Sleep(2 * time.Second) // Simulate email latency
     log.Printf("Welcome email sent successfully to %s", user.Email)
     
     return nil
 }
 
-// processUpdateUserStats actualiza estadísticas del usuario
+// processUpdateUserStats updates user statistics
 func (w *UserWorker) processUpdateUserStats(ctx context.Context, userID uint) error {
     log.Printf("Updating stats for user ID: %d", userID)
     
-    // Aquí implementarías la lógica de actualización de estadísticas
-    // Por ejemplo: calcular número de pedidos, última actividad, etc.
+    // Here you would implement the statistics update logic
+    // For example: calculate number of orders, last activity, etc.
     
-    time.Sleep(1 * time.Second) // Simular procesamiento
+    time.Sleep(1 * time.Second) // Simulate processing
     log.Printf("Stats updated for user ID: %d", userID)
     
     return nil
 }
 
-// processCleanupInactiveUsers limpia usuarios inactivos
+// processCleanupInactiveUsers cleans up inactive users
 func (w *UserWorker) processCleanupInactiveUsers(ctx context.Context) error {
     log.Println("Starting cleanup of inactive users")
     
-    // Aquí implementarías la lógica de limpieza
-    // Por ejemplo: marcar como inactivos usuarios sin actividad en X días
+    // Here you would implement the cleanup logic
+    // For example: mark as inactive users without activity in X days
     
-    time.Sleep(5 * time.Second) // Simular procesamiento pesado
+    time.Sleep(5 * time.Second) // Simulate heavy processing
     log.Println("Inactive users cleanup completed")
     
     return nil
 }
 
-// scheduleTask programa una tarea para ejecutar después de un delay
+// scheduleTask schedules a task to run after a delay
 func (w *UserWorker) scheduleTask(task UserTask, delay time.Duration) error {
     go func() {
         time.Sleep(delay)
@@ -795,7 +795,7 @@ func (w *UserWorker) scheduleTask(task UserTask, delay time.Duration) error {
     return nil
 }
 
-// StartWorker inicia el worker para procesar tareas
+// StartWorker starts the worker to process tasks
 func (w *UserWorker) StartWorker(ctx context.Context) error {
     log.Println("Starting user worker...")
     
@@ -1012,13 +1012,13 @@ func (c *UserSOAPClient) HandleSOAPRequest(w http.ResponseWriter, r *http.Reques
         return
     }
     
-    // Procesar según el tipo de petición
-    // Aquí determinarías qué operación realizar basándote en el contenido del body
+    // Process according to request type
+    // Here you would determine which operation to perform based on the body content
     
     w.Header().Set("Content-Type", "text/xml; charset=utf-8")
     w.WriteHeader(http.StatusOK)
     
-    // Retornar respuesta SOAP apropiada
+    // Return appropriate SOAP response
     response := SOAPEnvelope{
         XMLNS: "http://schemas.xmlsoap.org/soap/envelope/",
         Body:  "<!-- Response body would go here -->",
@@ -1030,10 +1030,10 @@ func (c *UserSOAPClient) HandleSOAPRequest(w http.ResponseWriter, r *http.Reques
 
 ## 🛡️ Middleware (--middleware)
 
-Con `--middleware`, se generan middlewares específicos:
+With `--middleware`, specific middlewares are generated:
 
 ```go
-// AuthMiddleware middleware de autenticación
+// AuthMiddleware authentication middleware
 func AuthMiddleware() gin.HandlerFunc {
     return func(c *gin.Context) {
         token := c.GetHeader("Authorization")
@@ -1043,25 +1043,25 @@ func AuthMiddleware() gin.HandlerFunc {
             return
         }
         
-        // Validar token JWT
-        // ... lógica de validación
+        // Validate JWT token
+        // ... validation logic
         
         c.Next()
     }
 }
 
-// ValidationMiddleware middleware de validación
+// ValidationMiddleware validation middleware
 func ValidationMiddleware() gin.HandlerFunc {
     return func(c *gin.Context) {
-        // Validaciones específicas antes de llegar al handler
+        // Specific validations before reaching the handler
         c.Next()
     }
 }
 
-// RateLimitMiddleware middleware de rate limiting
+// RateLimitMiddleware rate limiting middleware
 func RateLimitMiddleware() gin.HandlerFunc {
     return func(c *gin.Context) {
-        // Lógica de rate limiting
+        // Rate limiting logic
         c.Next()
     }
 }
@@ -1069,13 +1069,13 @@ func RateLimitMiddleware() gin.HandlerFunc {
 
 ## 📄 Swagger Documentation (--swagger)
 
-Con `--swagger`, se genera documentación automática:
+With `--swagger`, automatic documentation is generated:
 
 ```yaml
 swagger: "2.0"
 info:
   title: User API
-  description: API para gestión de usuarios
+  description: API for user management
   version: 1.0.0
 host: localhost:8080
 basePath: /api/v1
@@ -1086,8 +1086,8 @@ schemes:
 paths:
   /users:
     post:
-      summary: Crear usuario
-      description: Crea un nuevo usuario en el sistema
+      summary: Create user
+      description: Creates a new user in the system
       tags:
         - users
       consumes:
@@ -1097,17 +1097,17 @@ paths:
       parameters:
         - in: body
           name: user
-          description: Datos del usuario
+          description: User data
           required: true
           schema:
             $ref: '#/definitions/CreateUserRequest'
       responses:
         201:
-          description: Usuario creado exitosamente
+          description: User created successfully
           schema:
             $ref: '#/definitions/UserResponse'
         400:
-          description: Datos inválidos
+          description: Invalid data
           schema:
             $ref: '#/definitions/ErrorResponse'
 
@@ -1139,20 +1139,20 @@ definitions:
         example: "john@example.com"
 ```
 
-## ⚠️ Consideraciones Importantes
+## ⚠️ Important Considerations
 
-### ✅ Buenas Prácticas
-- **Separación de protocolos**: Cada handler maneja solo su protocolo
-- **DTOs específicos**: Diferentes DTOs por protocolo si es necesario
-- **Error handling**: Manejo consistente de errores por protocolo
-- **Context propagation**: Usar context.Context en todas las operaciones
+### ✅ Best Practices
+- **Protocol separation**: Each handler handles only its protocol
+- **Protocol-specific DTOs**: Different DTOs per protocol if necessary
+- **Error handling**: Consistent error handling per protocol
+- **Context propagation**: Use context.Context in all operations
 
-### ❌ Errores Comunes
-- **Lógica de negocio en handlers**: Debe estar en casos de uso
-- **Dependencias directas**: No acceder a repositorios directamente
-- **Exposición de errores internos**: Mapear errores apropiadamente
-- **No validar entrada**: Siempre validar datos de entrada
+### ❌ Common Errors
+- **Business logic in handlers**: Should be in use cases
+- **Direct dependencies**: Don't access repositories directly
+- **Exposing internal errors**: Map errors appropriately
+- **Not validating input**: Always validate input data
 
 ---
 
-**← [Comando goca repository](Command-Repository) | [Comando goca di](Command-DI) →**
+**← [goca repository Command](Command-Repository) | [goca di Command](Command-DI) →**

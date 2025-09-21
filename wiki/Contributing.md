@@ -1,156 +1,156 @@
-# Guía de Contribución
+# Contribution Guide
 
-¡Gracias por tu interés en contribuir a Goca! Esta guía te ayudará a entender cómo puedes participar en el desarrollo del proyecto.
+Thank you for your interest in contributing to Goca! This guide will help you understand how you can participate in the project development.
 
-## 🎯 Formas de Contribuir
+## 🎯 Ways to Contribute
 
-### 🐛 Reportar Bugs
-- Usa el [template de bug report](https://github.com/sazardev/goca/issues/new?template=bug_report.md)
-- Incluye información de versión (`goca version`)
-- Proporciona pasos para reproducir el problema
-- Incluye ejemplos de código si es relevante
+### 🐛 Report Bugs
+- Use the [bug report template](https://github.com/sazardev/goca/issues/new?template=bug_report.md)
+- Include version information (`goca version`)
+- Provide steps to reproduce the problem
+- Include code examples if relevant
 
-### 💡 Sugerir Features
-- Usa el [template de feature request](https://github.com/sazardev/goca/issues/new?template=feature_request.md)
-- Explica el caso de uso y beneficios
-- Considera la compatibilidad con Clean Architecture
-- Discute la implementación en issues antes de codificar
+### 💡 Suggest Features
+- Use the [feature request template](https://github.com/sazardev/goca/issues/new?template=feature_request.md)
+- Explain the use case and benefits
+- Consider compatibility with Clean Architecture
+- Discuss implementation in issues before coding
 
-### 📖 Mejorar Documentación
-- Corregir errores tipográficos
-- Agregar ejemplos y casos de uso
-- Traducir documentación
-- Mejorar la claridad de explicaciones
+### 📖 Improve Documentation
+- Fix typos
+- Add examples and use cases
+- Translate documentation
+- Improve clarity of explanations
 
-### 🔧 Contribuir Código
-- Implementar nuevas características
-- Corregir bugs existentes
-- Optimizar performance
-- Agregar tests
+### 🔧 Contribute Code
+- Implement new features
+- Fix existing bugs
+- Optimize performance
+- Add tests
 
-## 🚀 Configurar Entorno de Desarrollo
+## 🚀 Development Environment Setup
 
-### Prerrequisitos
+### Prerequisites
 - **Go 1.21+**
 - **Git**
-- **Make** (opcional)
+- **Make** (optional)
 
-### Setup Inicial
+### Initial Setup
 ```bash
-# 1. Fork el repositorio en GitHub
-# 2. Clonar tu fork
-git clone https://github.com/tu-usuario/goca.git
+# 1. Fork the repository on GitHub
+# 2. Clone your fork
+git clone https://github.com/your-username/goca.git
 cd goca
 
-# 3. Agregar remote upstream
+# 3. Add upstream remote
 git remote add upstream https://github.com/sazardev/goca.git
 
-# 4. Instalar dependencias
+# 4. Install dependencies
 go mod tidy
 
-# 5. Verificar que todo funciona
+# 5. Verify everything works
 go build
 ./goca version
 ```
 
-### Estructura del Proyecto de Desarrollo
+### Development Project Structure
 ```
 goca/
-├── cmd/                     # Comandos CLI
-│   ├── di.go               # Comando di
-│   ├── entity.go           # Comando entity
-│   ├── feature.go          # Comando feature
-│   ├── handler.go          # Comando handler
-│   ├── init.go             # Comando init
-│   ├── repository.go       # Comando repository
-│   ├── usecase.go          # Comando usecase
-│   ├── version.go          # Comando version
-│   └── utils.go            # Utilidades comunes
-├── examples/               # Ejemplos y demos
-├── scripts/                # Scripts de automatización
-├── wiki/                   # Documentación wiki
+├── cmd/                     # CLI commands
+│   ├── di.go               # di command
+│   ├── entity.go           # entity command
+│   ├── feature.go          # feature command
+│   ├── handler.go          # handler command
+│   ├── init.go             # init command
+│   ├── repository.go       # repository command
+│   ├── usecase.go          # usecase command
+│   ├── version.go          # version command
+│   └── utils.go            # Common utilities
+├── examples/               # Examples and demos
+├── scripts/                # Automation scripts
+├── wiki/                   # Wiki documentation
 ├── .github/workflows/      # CI/CD
 ├── go.mod
 ├── main.go
 └── README.md
 ```
 
-## 📝 Proceso de Desarrollo
+## 📝 Development Process
 
-### 1. Crear Branch
+### 1. Create Branch
 ```bash
-# Actualizar main
+# Update main
 git checkout main
 git pull upstream main
 
-# Crear branch para feature/fix
-git checkout -b feature/nueva-funcionalidad
-# o
-git checkout -b fix/descripcion-del-bug
+# Create branch for feature/fix
+git checkout -b feature/new-functionality
+# or
+git checkout -b fix/bug-description
 ```
 
-### 2. Desarrollo
+### 2. Development
 ```bash
-# Hacer cambios
-# Ejecutar tests
+# Make changes
+# Run tests
 go test ./...
 
-# Verificar que compila
+# Verify it compiles
 go build
 
-# Probar manualmente
+# Test manually
 ./goca help
 ```
 
 ### 3. Commit Guidelines
-Seguimos [Conventional Commits](https://www.conventionalcommits.org/):
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```bash
 # Features
-git commit -m "feat: agregar soporte para MongoDB en repositorios"
+git commit -m "feat: add MongoDB support in repositories"
 
 # Bug fixes
-git commit -m "fix: corregir validación de email en entidades"
+git commit -m "fix: correct email validation in entities"
 
 # Documentation
-git commit -m "docs: actualizar ejemplos en README"
+git commit -m "docs: update examples in README"
 
 # Tests
-git commit -m "test: agregar tests para comando feature"
+git commit -m "test: add tests for feature command"
 
 # Refactoring
-git commit -m "refactor: simplificar generación de DTOs"
+git commit -m "refactor: simplify DTO generation"
 ```
 
-### 4. Push y Pull Request
+### 4. Push and Pull Request
 ```bash
 # Push branch
-git push origin feature/nueva-funcionalidad
+git push origin feature/new-functionality
 
-# Crear Pull Request en GitHub
-# Usar el template proporcionado
-# Incluir descripción detallada
-# Referenciar issues relacionados
+# Create Pull Request on GitHub
+# Use the provided template
+# Include detailed description
+# Reference related issues
 ```
 
 ## 🧪 Testing
 
-### Ejecutar Tests
+### Run Tests
 ```bash
-# Todos los tests
+# All tests
 go test ./...
 
-# Tests con coverage
+# Tests with coverage
 go test -cover ./...
 
-# Tests verbosos
+# Verbose tests
 go test -v ./...
 
-# Tests específicos
+# Specific tests
 go test ./cmd -run TestEntityGeneration
 ```
 
-### Escribir Tests
+### Write Tests
 ```go
 func TestGenerateEntity(t *testing.T) {
     tests := []struct {
@@ -178,29 +178,29 @@ func TestGenerateEntity(t *testing.T) {
 }
 ```
 
-### Tests de Integración
+### Integration Tests
 ```bash
-# Crear proyecto de prueba
+# Create test project
 mkdir test-project
 cd test-project
 
-# Probar comando init
+# Test init command
 ../goca init test --module github.com/test/test
 
-# Verificar estructura
+# Verify structure
 ls -la test/
 
-# Probar generación de features
+# Test feature generation
 ../goca feature User --fields "name:string,email:string"
 
-# Verificar que compila
+# Verify it compiles
 cd test && go mod tidy && go build
 ```
 
-## 📚 Agregar Nueva Funcionalidad
+## 📚 Add New Functionality
 
-### 1. Nuevo Comando
-Para agregar un nuevo comando (ej: `goca migrate`):
+### 1. New Command
+To add a new command (e.g. `goca migrate`):
 
 ```go
 // cmd/migrate.go
@@ -212,10 +212,10 @@ import (
 
 var migrateCmd = &cobra.Command{
     Use:   "migrate",
-    Short: "Generar migraciones de base de datos",
-    Long:  `Descripción larga del comando...`,
+    Short: "Generate database migrations",
+    Long:  `Long description of the command...`,
     Run: func(cmd *cobra.Command, args []string) {
-        // Implementación
+        // Implementation
     },
 }
 
@@ -223,29 +223,29 @@ func init() {
     rootCmd.AddCommand(migrateCmd)
     
     // Flags
-    migrateCmd.Flags().StringP("database", "d", "postgres", "Tipo de base de datos")
+    migrateCmd.Flags().StringP("database", "d", "postgres", "Database type")
 }
 ```
 
-### 2. Nueva Funcionalidad en Comando Existente
-Para agregar un flag o modificar comportamiento:
+### 2. New Functionality in Existing Command
+To add a flag or modify behavior:
 
 ```go
-// En el comando existente
+// In the existing command
 func init() {
-    // Nuevo flag
-    featureCmd.Flags().BoolP("swagger", "s", false, "Generar documentación Swagger")
+    // New flag
+    featureCmd.Flags().BoolP("swagger", "s", false, "Generate Swagger documentation")
 }
 
-// En la función principal
+// In the main function
 swagger, _ := cmd.Flags().GetBool("swagger")
 if swagger {
     generateSwaggerDocs(featureName)
 }
 ```
 
-### 3. Nuevas Plantillas
-Para agregar soporte para nuevas tecnologías:
+### 3. New Templates
+To add support for new technologies:
 
 ```go
 // cmd/repository.go
@@ -272,162 +272,162 @@ func New%sRepository(client *redis.Client) *%sRepository {
 }
 ```
 
-## 🎨 Estándares de Código
+## 🎨 Code Standards
 
-### Formateo
+### Formatting
 ```bash
-# Formatear código
+# Format code
 go fmt ./...
 
-# Imports organizados
+# Organize imports
 goimports -w .
 
 # Linting
 golangci-lint run
 ```
 
-### Convenciones
-- **Funciones públicas**: PascalCase con comentarios
-- **Variables**: camelCase descriptivas
-- **Constantes**: UPPER_SNAKE_CASE
-- **Archivos**: snake_case.go
+### Conventions
+- **Public functions**: PascalCase with comments
+- **Variables**: camelCase descriptive
+- **Constants**: UPPER_SNAKE_CASE
+- **Files**: snake_case.go
 - **Packages**: lowercase, singular
 
-### Comentarios
+### Comments
 ```go
-// generateEntity crea una nueva entidad de dominio con los campos especificados.
-// Parámetros:
-//   - entityName: nombre de la entidad (ej: "User")
-//   - fields: campos separados por coma (ej: "name:string,email:string")
-//   - validation: si incluir validaciones automáticas
-//   - businessRules: si generar métodos de reglas de negocio
+// generateEntity creates a new domain entity with the specified fields.
+// Parameters:
+//   - entityName: entity name (e.g. "User")
+//   - fields: comma-separated fields (e.g. "name:string,email:string")
+//   - validation: whether to include automatic validations
+//   - businessRules: whether to generate business rule methods
 func generateEntity(entityName, fields string, validation, businessRules bool) string {
-    // Implementación...
+    // Implementation...
 }
 ```
 
 ## 🚀 Release Process
 
-### Versionado
-Seguimos [Semantic Versioning](https://semver.org/):
-- **MAJOR**: Cambios incompatibles en API
-- **MINOR**: Nuevas funcionalidades compatibles
-- **PATCH**: Correcciones de bugs compatibles
+### Versioning
+We follow [Semantic Versioning](https://semver.org/):
+- **MAJOR**: Incompatible API changes
+- **MINOR**: Backwards compatible new functionality
+- **PATCH**: Backwards compatible bug fixes
 
-### Proceso de Release
+### Release Process
 ```bash
-# 1. Actualizar version.go
+# 1. Update version.go
 # cmd/version.go
 var Version = "1.1.0"
 
-# 2. Actualizar CHANGELOG.md
-# Agregar nueva sección con cambios
+# 2. Update CHANGELOG.md
+# Add new section with changes
 
-# 3. Commit y tag
+# 3. Commit and tag
 git commit -m "release: v1.1.0"
 git tag v1.1.0
 git push origin main --tags
 
-# 4. GitHub Actions automáticamente:
-# - Ejecuta tests
-# - Compila binarios
-# - Crea release en GitHub
-# - Publica en repositorios
+# 4. GitHub Actions automatically:
+# - Runs tests
+# - Compiles binaries
+# - Creates GitHub release
+# - Publishes to repositories
 ```
 
-## 📖 Documentación
+## 📖 Documentation
 
 ### Wiki
-La documentación está en el directorio `wiki/`:
+Documentation is in the `wiki/` directory:
 
 ```bash
-# Editar documentación
+# Edit documentation
 vim wiki/Command-Entity.md
 
-# Verificar markdown
+# Verify markdown
 markdownlint wiki/*.md
 
-# Previsualizar localmente
+# Preview locally
 cd wiki && python -m http.server 8000
 ```
 
 ### README
-- Mantener ejemplos actualizados
-- Incluir casos de uso comunes
-- Verificar que enlaces funcionen
+- Keep examples updated
+- Include common use cases
+- Verify links work
 
-### Comentarios en Código
-- Documentar funciones públicas
-- Explicar algoritmos complejos
-- Incluir ejemplos de uso
+### Code Comments
+- Document public functions
+- Explain complex algorithms
+- Include usage examples
 
 ## 🤝 Community Guidelines
 
-### Comunicación
-- **Ser respetuoso** y constructivo
-- **Ayudar a newcomers** con paciencia
-- **Discutir ideas** antes de implementar
-- **Dar feedback** útil en code reviews
+### Communication
+- **Be respectful** and constructive
+- **Help newcomers** with patience
+- **Discuss ideas** before implementing
+- **Give useful feedback** in code reviews
 
 ### Code Review
-- **Revisar lógica** y arquitectura
-- **Verificar tests** están incluidos
-- **Comprobar documentación** está actualizada
-- **Sugerir mejoras** constructivamente
+- **Review logic** and architecture
+- **Verify tests** are included
+- **Check documentation** is updated
+- **Suggest improvements** constructively
 
-### Issues y Discussions
-- **Buscar duplicados** antes de crear
-- **Usar templates** apropiados
-- **Proporcionar contexto** completo
-- **Seguir up** en conversaciones
+### Issues and Discussions
+- **Search for duplicates** before creating
+- **Use appropriate templates**
+- **Provide complete context**
+- **Follow up** on conversations
 
-## 🏆 Reconocimiento
+## 🏆 Recognition
 
 ### Contributors
-Todos los contributors son reconocidos en:
+All contributors are recognized in:
 - README.md
 - Release notes
 - Contributors page
 
-### Tipos de Contribución
-- 💻 **Code**: Implementación de features y fixes
-- 📖 **Documentation**: Mejoras en docs y ejemplos
-- 🐛 **Bug Reports**: Identificación y reporte de issues
-- 💡 **Ideas**: Sugerencias y discusiones de features
-- 🎨 **Design**: UX/UI y arquitectura
-- 🔍 **Testing**: Escritura y mejora de tests
+### Types of Contribution
+- 💻 **Code**: Feature implementation and fixes
+- 📖 **Documentation**: Improvements in docs and examples
+- 🐛 **Bug Reports**: Issue identification and reporting
+- 💡 **Ideas**: Feature suggestions and discussions
+- 🎨 **Design**: UX/UI and architecture
+- 🔍 **Testing**: Writing and improving tests
 
-## 📞 Contacto
+## 📞 Contact
 
-### Canales de Comunicación
-- **GitHub Issues**: Para bugs y feature requests
-- **GitHub Discussions**: Para preguntas y discusiones
-- **Email**: sazardev@example.com (mantenedor principal)
+### Communication Channels
+- **GitHub Issues**: For bugs and feature requests
+- **GitHub Discussions**: For questions and discussions
+- **Email**: sazardev@example.com (main maintainer)
 
-### Respuesta Esperada
-- **Issues**: 24-48 horas
-- **Pull Requests**: 2-7 días
-- **Discussions**: 1-3 días
+### Expected Response Time
+- **Issues**: 24-48 hours
+- **Pull Requests**: 2-7 days
+- **Discussions**: 1-3 days
 
-## 📋 Checklist para Contributors
+## 📋 Checklist for Contributors
 
-### Antes de Enviar PR
-- [ ] Tests pasan (`go test ./...`)
-- [ ] Código formateado (`go fmt ./...`)
-- [ ] Documentación actualizada
-- [ ] CHANGELOG.md actualizado (para features)
-- [ ] Commits siguen convenciones
-- [ ] Branch está actualizado con main
+### Before Submitting PR
+- [ ] Tests pass (`go test ./...`)
+- [ ] Code formatted (`go fmt ./...`)
+- [ ] Documentation updated
+- [ ] CHANGELOG.md updated (for features)
+- [ ] Commits follow conventions
+- [ ] Branch is updated with main
 
-### Para Maintainers
-- [ ] Code review completo
-- [ ] Tests de integración pasan
-- [ ] Documentación revisada
-- [ ] Breaking changes documentados
-- [ ] Release notes preparadas
+### For Maintainers
+- [ ] Complete code review
+- [ ] Integration tests pass
+- [ ] Documentation reviewed
+- [ ] Breaking changes documented
+- [ ] Release notes prepared
 
 ---
 
-**¡Gracias por contribuir a Goca! Tu participación hace que este proyecto sea mejor para toda la comunidad. 🙏**
+**Thank you for contributing to Goca! Your participation makes this project better for the entire community. 🙏**
 
 **← [Troubleshooting](Troubleshooting) | [Development](Development) →**

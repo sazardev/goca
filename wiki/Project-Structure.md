@@ -1,114 +1,114 @@
-# Estructura de Proyecto
+# Project Structure
 
-Esta página explica la organización de directorios y archivos que Goca genera, siguiendo las mejores prácticas de Clean Architecture en Go.
+This page explains the directory and file organization that Goca generates, following Clean Architecture best practices in Go.
 
-## 📁 Estructura Completa
+## 📁 Complete Structure
 
 ```
-mi-proyecto/
-├── cmd/                              # Puntos de entrada de la aplicación
+my-project/
+├── cmd/                              # Application entry points
 │   └── server/
-│       └── main.go                   # Servidor HTTP principal
-├── internal/                         # Código privado de la aplicación
-│   ├── domain/                       # 🟡 Capa de Dominio
-│   │   ├── user.go                   # Entidades de negocio
+│       └── main.go                   # Main HTTP server
+├── internal/                         # Private application code
+│   ├── domain/                       # 🟡 Domain Layer
+│   │   ├── user.go                   # Business entities
 │   │   ├── product.go
-│   │   └── errors.go                 # Errores del dominio
-│   ├── usecase/                      # 🔴 Capa de Casos de Uso
+│   │   └── errors.go                 # Domain errors
+│   ├── usecase/                      # 🔴 Use Case Layer
 │   │   ├── dto/                      # Data Transfer Objects
 │   │   │   ├── user_dto.go
 │   │   │   └── product_dto.go
-│   │   ├── interfaces/               # Contratos entre capas
+│   │   ├── interfaces/               # Contracts between layers
 │   │   │   ├── user_interfaces.go
 │   │   │   └── product_interfaces.go
-│   │   ├── user_usecase.go           # Servicios de aplicación
+│   │   ├── user_usecase.go           # Application services
 │   │   └── product_usecase.go
-│   ├── repository/                   # 🔵 Capa de Infraestructura
-│   │   ├── interfaces/               # Interfaces de repositorios
+│   ├── repository/                   # 🔵 Infrastructure Layer
+│   │   ├── interfaces/               # Repository interfaces
 │   │   │   ├── user_repository.go
 │   │   │   └── product_repository.go
-│   │   ├── postgres/                 # Implementaciones PostgreSQL
+│   │   ├── postgres/                 # PostgreSQL implementations
 │   │   │   ├── user_repository.go
 │   │   │   └── product_repository.go
-│   │   ├── mysql/                    # Implementaciones MySQL
-│   │   └── mongodb/                  # Implementaciones MongoDB
-│   ├── handler/                      # 🟢 Capa de Adaptadores
-│   │   ├── http/                     # Handlers HTTP REST
-│   │   │   ├── dto/                  # DTOs específicos para HTTP
+│   │   ├── mysql/                    # MySQL implementations
+│   │   └── mongodb/                  # MongoDB implementations
+│   ├── handler/                      # 🟢 Adapter Layer
+│   │   ├── http/                     # HTTP REST handlers
+│   │   │   ├── dto/                  # HTTP-specific DTOs
 │   │   │   ├── user_handler.go
 │   │   │   ├── user_routes.go
 │   │   │   ├── product_handler.go
-│   │   │   └── middleware/           # Middlewares HTTP
-│   │   ├── grpc/                     # Handlers gRPC
+│   │   │   └── middleware/           # HTTP middlewares
+│   │   ├── grpc/                     # gRPC handlers
 │   │   │   ├── user.proto
 │   │   │   ├── user_server.go
 │   │   │   └── product_server.go
-│   │   ├── cli/                      # Comandos CLI
+│   │   ├── cli/                      # CLI commands
 │   │   │   ├── user_commands.go
 │   │   │   └── product_commands.go
-│   │   └── worker/                   # Workers en background
+│   │   └── worker/                   # Background workers
 │   │       ├── user_worker.go
 │   │       └── order_worker.go
-│   ├── infrastructure/               # Configuración de infraestructura
-│   │   ├── di/                       # Inyección de dependencias
+│   ├── infrastructure/               # Infrastructure configuration
+│   │   ├── di/                       # Dependency injection
 │   │   │   ├── container.go
-│   │   │   ├── wire.go               # Wire.dev (opcional)
+│   │   │   ├── wire.go               # Wire.dev (optional)
 │   │   │   └── wire_gen.go
-│   │   ├── database/                 # Configuración de DB
+│   │   ├── database/                 # DB configuration
 │   │   │   ├── postgres.go
 │   │   │   ├── mysql.go
 │   │   │   └── migrations/
-│   │   └── cache/                    # Configuración de cache
+│   │   └── cache/                    # Cache configuration
 │   │       ├── redis.go
 │   │       └── memory.go
-│   ├── messages/                     # Mensajes y constantes
-│   │   ├── errors.go                 # Mensajes de error
-│   │   ├── responses.go              # Mensajes de respuesta
-│   │   └── constants.go              # Constantes del sistema
-│   └── constants/                    # Constantes específicas por feature
+│   ├── messages/                     # Messages and constants
+│   │   ├── errors.go                 # Error messages
+│   │   ├── responses.go              # Response messages
+│   │   └── constants.go              # System constants
+│   └── constants/                    # Feature-specific constants
 │       ├── user_constants.go
 │       └── product_constants.go
-├── pkg/                              # Código reutilizable/público
-│   ├── config/                       # Configuración de la aplicación
+├── pkg/                              # Reusable/public code
+│   ├── config/                       # Application configuration
 │   │   ├── config.go
 │   │   └── database.go
-│   ├── logger/                       # Sistema de logging
+│   ├── logger/                       # Logging system
 │   │   ├── logger.go
 │   │   └── interfaces.go
-│   ├── auth/                         # Sistema de autenticación
+│   ├── auth/                         # Authentication system
 │   │   ├── jwt.go
 │   │   ├── middleware.go
 │   │   └── service.go
-│   ├── validator/                    # Validaciones reutilizables
+│   ├── validator/                    # Reusable validations
 │   │   ├── validator.go
 │   │   └── custom_rules.go
-│   ├── utils/                        # Utilidades generales
+│   ├── utils/                        # General utilities
 │   │   ├── crypto.go
 │   │   ├── time.go
 │   │   └── strings.go
-│   └── errors/                       # Manejo global de errores
+│   └── errors/                       # Global error handling
 │       ├── errors.go
 │       ├── codes.go
 │       └── handler.go
-├── api/                              # Documentación de APIs
-│   ├── openapi/                      # Especificaciones OpenAPI
+├── api/                              # API documentation
+│   ├── openapi/                      # OpenAPI specifications
 │   │   ├── swagger.yaml
 │   │   └── user.yaml
-│   └── proto/                        # Archivos Protocol Buffers
+│   └── proto/                        # Protocol Buffers files
 │       ├── user.proto
 │       └── product.proto
-├── web/                              # Archivos web estáticos (opcional)
+├── web/                              # Static web files (optional)
 │   ├── static/
 │   └── templates/
-├── docs/                             # Documentación del proyecto
+├── docs/                             # Project documentation
 │   ├── architecture.md
 │   ├── api.md
 │   └── deployment.md
-├── scripts/                          # Scripts de automatización
+├── scripts/                          # Automation scripts
 │   ├── build.sh
 │   ├── test.sh
 │   └── migrate.sh
-├── deployments/                      # Configuraciones de despliegue
+├── deployments/                      # Deployment configurations
 │   ├── docker/
 │   │   ├── Dockerfile
 │   │   └── docker-compose.yml
@@ -116,228 +116,228 @@ mi-proyecto/
 │   │   ├── deployment.yaml
 │   │   └── service.yaml
 │   └── terraform/
-├── test/                             # Tests de integración y E2E
+├── test/                             # Integration and E2E tests
 │   ├── integration/
 │   ├── e2e/
 │   └── fixtures/
-├── migrations/                       # Migraciones de base de datos
+├── migrations/                       # Database migrations
 │   ├── 001_initial_schema.sql
 │   ├── 002_add_users_table.sql
 │   └── 003_add_products_table.sql
-├── .github/                          # Configuración de GitHub
+├── .github/                          # GitHub configuration
 │   └── workflows/
 │       ├── ci.yml
 │       └── release.yml
-├── go.mod                            # Dependencias del módulo
-├── go.sum                            # Checksums de dependencias
-├── .env.example                      # Ejemplo de variables de entorno
-├── .gitignore                        # Archivos ignorados por Git
-├── Makefile                          # Comandos de automatización
-├── README.md                         # Documentación principal
-└── CHANGELOG.md                      # Historial de cambios
+├── go.mod                            # Module dependencies
+├── go.sum                            # Dependency checksums
+├── .env.example                      # Environment variables example
+├── .gitignore                        # Files ignored by Git
+├── Makefile                          # Automation commands
+├── README.md                         # Main documentation
+└── CHANGELOG.md                      # Change history
 ```
 
-## 🏗️ Capas de Clean Architecture
+## 🏗️ Clean Architecture Layers
 
-### 🟡 Capa de Dominio (`internal/domain/`)
+### 🟡 Domain Layer (`internal/domain/`)
 
-**Propósito**: Contiene la lógica de negocio central y las reglas empresariales.
+**Purpose**: Contains core business logic and business rules.
 
-**Archivos típicos:**
+**Typical files:**
 ```
 domain/
-├── user.go              # Entidad User con métodos de negocio
-├── product.go           # Entidad Product con validaciones
-├── order.go             # Entidad Order con reglas de negocio
-├── errors.go            # Errores específicos del dominio
-└── validations.go       # Validaciones de negocio reutilizables
+├── user.go              # User entity with business methods
+├── product.go           # Product entity with validations
+├── order.go             # Order entity with business rules
+├── errors.go            # Domain-specific errors
+└── validations.go       # Reusable business validations
 ```
 
-**Características:**
-- ✅ **Sin dependencias externas**
-- ✅ **Entidades ricas** con comportamiento
-- ✅ **Reglas de negocio** encapsuladas
-- ✅ **Validaciones** de dominio
-- ❌ **No debe conocer** infraestructura
+**Characteristics:**
+- ✅ **No external dependencies**
+- ✅ **Rich entities** with behavior
+- ✅ **Business rules** encapsulated
+- ✅ **Domain validations**
+- ❌ **Must not know** infrastructure
 
-### 🔴 Capa de Casos de Uso (`internal/usecase/`)
+### 🔴 Use Case Layer (`internal/usecase/`)
 
-**Propósito**: Orquesta la lógica de aplicación y coordina entre el dominio y la infraestructura.
+**Purpose**: Orchestrates application logic and coordinates between domain and infrastructure.
 
-**Archivos típicos:**
+**Typical files:**
 ```
 usecase/
 ├── dto/                          # Data Transfer Objects
-│   ├── user_dto.go              # DTOs para operaciones de usuario
-│   └── common_dto.go            # DTOs compartidos
-├── interfaces/                   # Contratos entre capas
-│   ├── user_interfaces.go       # Interfaces de User UseCase
-│   └── repositories.go          # Interfaces de repositorios
-├── user_usecase.go              # Implementación de casos de uso
-├── product_usecase.go           # Casos de uso de productos
-└── common_usecase.go            # Lógica compartida
+│   ├── user_dto.go              # DTOs for user operations
+│   └── common_dto.go            # Shared DTOs
+├── interfaces/                   # Contracts between layers
+│   ├── user_interfaces.go       # User UseCase interfaces
+│   └── repositories.go          # Repository interfaces
+├── user_usecase.go              # Use case implementation
+├── product_usecase.go           # Product use cases
+└── common_usecase.go            # Shared logic
 ```
 
-**Características:**
-- ✅ **Orquesta** flujos de trabajo
-- ✅ **DTOs** para transferencia de datos
-- ✅ **Interfaces** para desacoplar capas
-- ✅ **Validaciones** de aplicación
-- ❌ **No debe conocer** detalles de HTTP/DB
+**Characteristics:**
+- ✅ **Orchestrates** workflows
+- ✅ **DTOs** for data transfer
+- ✅ **Interfaces** to decouple layers
+- ✅ **Application validations**
+- ❌ **Must not know** HTTP/DB details
 
-### 🟢 Capa de Adaptadores (`internal/handler/`)
+### 🟢 Adapter Layer (`internal/handler/`)
 
-**Propósito**: Adapta las interfaces externas (HTTP, gRPC, CLI) a los casos de uso internos.
+**Purpose**: Adapts external interfaces (HTTP, gRPC, CLI) to internal use cases.
 
-**Archivos típicos:**
+**Typical files:**
 ```
 handler/
-├── http/                         # Adaptadores HTTP
-│   ├── dto/                     # DTOs específicos para HTTP
-│   │   ├── user_http_dto.go     # Request/Response HTTP
-│   │   └── error_dto.go         # Respuestas de error
-│   ├── user_handler.go          # Handler para endpoints de usuario
-│   ├── user_routes.go           # Definición de rutas
-│   └── middleware/              # Middlewares HTTP
-│       ├── auth.go              # Middleware de autenticación
-│       ├── cors.go              # Middleware de CORS
-│       └── logging.go           # Middleware de logging
-├── grpc/                        # Adaptadores gRPC
-│   ├── user.proto              # Definición de servicios
-│   ├── user_server.go          # Implementación del servidor
-│   └── interceptors/           # Interceptors gRPC
-├── cli/                        # Comandos CLI
-│   ├── user_commands.go        # Comandos de usuario
-│   └── root.go                 # Comando raíz
-└── worker/                     # Workers en background
-    ├── user_worker.go          # Worker para usuarios
-    └── queue.go                # Configuración de colas
+├── http/                         # HTTP adapters
+│   ├── dto/                     # HTTP-specific DTOs
+│   │   ├── user_http_dto.go     # HTTP Request/Response
+│   │   └── error_dto.go         # Error responses
+│   ├── user_handler.go          # Handler for user endpoints
+│   ├── user_routes.go           # Route definitions
+│   └── middleware/              # HTTP middlewares
+│       ├── auth.go              # Authentication middleware
+│       ├── cors.go              # CORS middleware
+│       └── logging.go           # Logging middleware
+├── grpc/                        # gRPC adapters
+│   ├── user.proto              # Service definitions
+│   ├── user_server.go          # Server implementation
+│   └── interceptors/           # gRPC interceptors
+├── cli/                        # CLI commands
+│   ├── user_commands.go        # User commands
+│   └── root.go                 # Root command
+└── worker/                     # Background workers
+    ├── user_worker.go          # User worker
+    └── queue.go                # Queue configuration
 ```
 
-**Características:**
-- ✅ **Adapta** protocolos externos
-- ✅ **DTOs específicos** por protocolo
-- ✅ **Manejo de errores** apropiado
-- ✅ **Validación** de entrada
-- ❌ **No debe contener** lógica de negocio
+**Characteristics:**
+- ✅ **Adapts** external protocols
+- ✅ **Protocol-specific DTOs**
+- ✅ **Appropriate error handling**
+- ✅ **Input validation**
+- ❌ **Must not contain** business logic
 
-### 🔵 Capa de Infraestructura (`internal/repository/`, `pkg/`)
+### 🔵 Infrastructure Layer (`internal/repository/`, `pkg/`)
 
-**Propósito**: Implementa detalles técnicos como persistencia, logging, configuración.
+**Purpose**: Implements technical details like persistence, logging, configuration.
 
-**Archivos típicos:**
+**Typical files:**
 ```
 repository/
-├── interfaces/                   # Contratos de persistencia
-│   ├── user_repository.go       # Interface del repositorio
-│   └── transaction.go           # Interface de transacciones
-├── postgres/                    # Implementación PostgreSQL
-│   ├── user_repository.go      # Repositorio específico
-│   ├── migrations.go           # Migraciones
-│   └── connection.go           # Configuración de conexión
-├── mysql/                      # Implementación MySQL
-├── mongodb/                    # Implementación MongoDB
-└── memory/                     # Implementación en memoria (tests)
+├── interfaces/                   # Persistence contracts
+│   ├── user_repository.go       # Repository interface
+│   └── transaction.go           # Transaction interface
+├── postgres/                    # PostgreSQL implementation
+│   ├── user_repository.go      # Specific repository
+│   ├── migrations.go           # Migrations
+│   └── connection.go           # Connection configuration
+├── mysql/                      # MySQL implementation
+├── mongodb/                    # MongoDB implementation
+└── memory/                     # In-memory implementation (tests)
     └── user_repository.go
 ```
 
-**Características:**
-- ✅ **Implementa interfaces** del dominio
-- ✅ **Detalles específicos** de tecnología
-- ✅ **Configuración** de conexiones
-- ✅ **Migraciones** de base de datos
-- ❌ **No debe exponer** detalles técnicos
+**Characteristics:**
+- ✅ **Implements** domain interfaces
+- ✅ **Technology-specific** details
+- ✅ **Connection configuration**
+- ✅ **Database migrations**
+- ❌ **Must not expose** technical details
 
-## 📦 Directorios Especiales
+## 📦 Special Directories
 
-### `cmd/` - Puntos de Entrada
+### `cmd/` - Entry Points
 
 ```
 cmd/
-├── server/                      # Servidor HTTP principal
+├── server/                      # Main HTTP server
 │   └── main.go
-├── migrate/                     # Herramienta de migraciones
+├── migrate/                     # Migration tool
 │   └── main.go
-├── worker/                      # Worker en background
+├── worker/                      # Background worker
 │   └── main.go
-└── cli/                        # Herramienta CLI
+└── cli/                        # CLI tool
     └── main.go
 ```
 
-**Propósito**: Cada subdirectorio representa un ejecutable diferente.
+**Purpose**: Each subdirectory represents a different executable.
 
-### `pkg/` - Código Reutilizable
+### `pkg/` - Reusable Code
 
 ```
 pkg/
-├── config/                      # Configuración global
-├── logger/                      # Sistema de logging
-├── auth/                        # Autenticación/autorización
-├── validator/                   # Validaciones reutilizables
-├── utils/                       # Utilidades generales
-└── errors/                      # Manejo global de errores
+├── config/                      # Global configuration
+├── logger/                      # Logging system
+├── auth/                        # Authentication/authorization
+├── validator/                   # Reusable validations
+├── utils/                       # General utilities
+└── errors/                      # Global error handling
 ```
 
-**Propósito**: Código que puede ser importado por otros proyectos.
+**Purpose**: Code that can be imported by other projects.
 
-### `api/` - Documentación de APIs
+### `api/` - API Documentation
 
 ```
 api/
-├── openapi/                     # Especificaciones OpenAPI/Swagger
-│   ├── swagger.yaml            # Documentación principal
-│   ├── user.yaml               # Endpoints de usuario
-│   └── product.yaml            # Endpoints de producto
-└── proto/                      # Protocol Buffers para gRPC
+├── openapi/                     # OpenAPI/Swagger specifications
+│   ├── swagger.yaml            # Main documentation
+│   ├── user.yaml               # User endpoints
+│   └── product.yaml            # Product endpoints
+└── proto/                      # Protocol Buffers for gRPC
     ├── user.proto
     ├── product.proto
     └── common.proto
 ```
 
-**Propósito**: Contratos de API y documentación externa.
+**Purpose**: API contracts and external documentation.
 
-### `migrations/` - Esquema de Base de Datos
+### `migrations/` - Database Schema
 
 ```
 migrations/
-├── 001_initial_schema.sql       # Esquema inicial
-├── 002_add_users_table.sql      # Agregar tabla usuarios
-├── 003_add_products_table.sql   # Agregar tabla productos
-└── 004_add_indexes.sql          # Agregar índices
+├── 001_initial_schema.sql       # Initial schema
+├── 002_add_users_table.sql      # Add users table
+├── 003_add_products_table.sql   # Add products table
+└── 004_add_indexes.sql          # Add indexes
 ```
 
-**Propósito**: Control de versiones del esquema de base de datos.
+**Purpose**: Database schema version control.
 
-## 🔄 Flujo de Dependencias
+## 🔄 Dependency Flow
 
 ```
 ┌─────────────────────────────────────────┐
-│                 cmd/                    │ ← Puntos de entrada
+│                 cmd/                    │ ← Entry points
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│            internal/handler/            │ ← 🟢 Adaptadores
+│            internal/handler/            │ ← 🟢 Adapters
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│            internal/usecase/            │ ← 🔴 Casos de Uso
+│            internal/usecase/            │ ← 🔴 Use Cases
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│            internal/domain/             │ ← 🟡 Dominio
+│            internal/domain/             │ ← 🟡 Domain
 └─────────────────┬───────────────────────┘
                   │
 ┌─────────────────▼───────────────────────┐
-│          internal/repository/           │ ← 🔵 Infraestructura
+│          internal/repository/           │ ← 🔵 Infrastructure
 └─────────────────────────────────────────┘
 ```
 
-**Regla Fundamental**: Las dependencias siempre apuntan hacia adentro.
+**Fundamental Rule**: Dependencies always point inward.
 
-## 📁 Convenciones de Nomenclatura
+## 📁 Naming Conventions
 
-### Archivos
-- **Entidades**: `user.go`, `product.go`, `order.go`
+### Files
+- **Entities**: `user.go`, `product.go`, `order.go`
 - **DTOs**: `user_dto.go`, `create_user_request.go`
 - **UseCase**: `user_usecase.go`, `product_service.go`
 - **Repository**: `user_repository.go`, `postgres_user_repo.go`
@@ -345,79 +345,79 @@ migrations/
 - **Interfaces**: `user_interfaces.go`, `repositories.go`
 
 ### Packages
-- **Lowercase**: Siempre en minúsculas
-- **Descriptivos**: `usecase`, `repository`, `handler`
-- **Sin guiones**: `userservice` no `user-service`
-- **Singulares**: `user` no `users` (excepto cuando sea apropiado)
+- **Lowercase**: Always lowercase
+- **Descriptive**: `usecase`, `repository`, `handler`
+- **No hyphens**: `userservice` not `user-service`
+- **Singular**: `user` not `users` (except when appropriate)
 
-### Estructuras
+### Structures
 ```go
-// Entidades: PascalCase
+// Entities: PascalCase
 type User struct {}
 type OrderItem struct {}
 
-// Interfaces: PascalCase + sufijo
+// Interfaces: PascalCase + suffix
 type UserRepository interface {}
 type UserUseCase interface {}
 
-// DTOs: PascalCase + propósito
+// DTOs: PascalCase + purpose
 type CreateUserRequest struct {}
 type UserResponse struct {}
 ```
 
-## 🎯 Beneficios de esta Estructura
+## 🎯 Benefits of this Structure
 
-### ✅ Separación Clara de Responsabilidades
-- Cada directorio tiene un propósito específico
-- Fácil localizar código relacionado
-- Cambios en una capa no afectan otras
+### ✅ Clear Separation of Responsibilities
+- Each directory has a specific purpose
+- Easy to locate related code
+- Changes in one layer don't affect others
 
-### ✅ Testabilidad
-- Interfaces permiten mocks fáciles
-- Tests unitarios por capa
-- Tests de integración separados
+### ✅ Testability
+- Interfaces allow easy mocks
+- Unit tests per layer
+- Separate integration tests
 
-### ✅ Escalabilidad
-- Agregar nuevos features es predecible
-- Estructura consistente entre features
-- Fácil onboarding de nuevos desarrolladores
+### ✅ Scalability
+- Adding new features is predictable
+- Consistent structure between features
+- Easy onboarding for new developers
 
-### ✅ Mantenibilidad
-- Código organizado y predecible
-- Refactoring seguro por capas
-- Dependencias explícitas
+### ✅ Maintainability
+- Organized and predictable code
+- Safe refactoring by layers
+- Explicit dependencies
 
-### ✅ Flexibilidad
-- Fácil cambiar implementaciones
-- Soporte múltiples protocolos
-- Agregar nuevas funcionalidades sin romper existentes
+### ✅ Flexibility
+- Easy to change implementations
+- Support multiple protocols
+- Add new functionality without breaking existing
 
-## 🛠️ Personalización
+## 🛠️ Customization
 
-### Agregar Nueva Capa
+### Add New Layer
 ```bash
-# Crear nueva capa de eventos
+# Create new events layer
 mkdir -p internal/events
 mkdir -p internal/events/handlers
 mkdir -p internal/events/publishers
 ```
 
-### Agregar Nuevo Protocolo
+### Add New Protocol
 ```bash
-# Agregar soporte para GraphQL
+# Add GraphQL support
 mkdir -p internal/handler/graphql
 mkdir -p internal/handler/graphql/resolvers
 mkdir -p internal/handler/graphql/schemas
 ```
 
-### Agregar Nueva Base de Datos
+### Add New Database
 ```bash
-# Agregar soporte para Redis
+# Add Redis support
 mkdir -p internal/repository/redis
 mkdir -p pkg/cache/redis
 ```
 
-## 📚 Recursos Adicionales
+## 📚 Additional Resources
 
 - [Clean Architecture Principles](Clean-Architecture)
 - [Design Patterns Used](Design-Patterns)
@@ -426,4 +426,4 @@ mkdir -p pkg/cache/redis
 
 ---
 
-**← [Clean Architecture](Clean-Architecture) | [Patrones Implementados](Design-Patterns) →**
+**← [Clean Architecture](Clean-Architecture) | [Implemented Patterns](Design-Patterns) →**

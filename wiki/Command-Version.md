@@ -1,94 +1,94 @@
-# Comando goca version
+# goca version Command
 
-El comando `goca version` proporciona información detallada sobre la versión instalada de Goca, incluyendo metadatos de compilación y compatibilidad.
+The `goca version` command provides detailed information about the installed version of Goca, including build metadata and compatibility.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca version [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Muestra información completa sobre la instalación actual de Goca:
+Shows complete information about the current Goca installation:
 
-- 🏷️ **Número de versión** - Versión semántica actual
-- 📅 **Fecha de compilación** - Cuándo fue compilada esta versión
-- 🔧 **Versión de Go** - Versión de Go utilizada para compilar
-- 📦 **Información de build** - Metadatos adicionales de compilación
+- 🏷️ **Version number** - Current semantic version
+- 📅 **Build date** - When this version was compiled
+- 🔧 **Go version** - Go version used for compilation
+- 📦 **Build information** - Additional build metadata
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag             | Tipo   | Requerido | Valor por Defecto | Descripción                       |
-| ---------------- | ------ | --------- | ----------------- | --------------------------------- |
-| `--short` / `-s` | `bool` | ❌ No      | `false`           | Muestra solo el número de versión |
+| Flag             | Type   | Required | Default Value | Description                  |
+| ---------------- | ------ | -------- | ------------- | ---------------------------- |
+| `--short` / `-s` | `bool` | ❌ No     | `false`       | Show only the version number |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Información Completa
+### Complete Information
 ```bash
 goca version
 ```
 
-**Salida:**
+**Output:**
 ```
 Goca v1.0.6
 Build: 2025-07-19T15:00:00Z
 Go Version: go1.24.5
 ```
 
-### Versión Corta
+### Short Version
 ```bash
 goca version --short
-# o
+# or
 goca version -s
 ```
 
-**Salida:**
+**Output:**
 ```
 1.0.6
 ```
 
-## 🔍 Información Detallada
+## 🔍 Detailed Information
 
-### Número de Versión
-- Sigue el formato **Semantic Versioning (SemVer)**
-- Formato: `MAJOR.MINOR.PATCH`
-- Ejemplo: `1.0.5` significa:
-  - **Major (1)**: Cambios incompatibles en la API
-  - **Minor (0)**: Nuevas funcionalidades compatibles
-  - **Patch (5)**: Correcciones de bugs compatibles
+### Version Number
+- Follows **Semantic Versioning (SemVer)** format
+- Format: `MAJOR.MINOR.PATCH`
+- Example: `1.0.5` means:
+  - **Major (1)**: Incompatible API changes
+  - **Minor (0)**: New backward-compatible functionality
+  - **Patch (5)**: Backward-compatible bug fixes
 
-### Fecha de Compilación
-- Formato **ISO 8601**: `YYYY-MM-DDTHH:MM:SSZ`
-- Siempre en **UTC**
-- Indica cuándo se compiló el binario específico
+### Build Date
+- **ISO 8601** format: `YYYY-MM-DDTHH:MM:SSZ`
+- Always in **UTC**
+- Indicates when the specific binary was compiled
 
-### Versión de Go
-- Muestra la versión exacta de Go utilizada
-- Importante para **compatibilidad** y **debugging**
-- Formato: `go1.XX.Y`
+### Go Version
+- Shows the exact Go version used
+- Important for **compatibility** and **debugging**
+- Format: `go1.XX.Y`
 
-## 🛠️ Casos de Uso
+## 🛠️ Use Cases
 
-### Verificar Instalación
+### Verify Installation
 ```bash
-# Comprobar que Goca está instalado correctamente
+# Check that Goca is installed correctly
 goca version
 ```
 
-### Scripts de Automatización
+### Automation Scripts
 ```bash
 #!/bin/bash
 
-# Obtener solo la versión para scripts
+# Get only the version for scripts
 VERSION=$(goca version --short)
-echo "Usando Goca v$VERSION"
+echo "Using Goca v$VERSION"
 
-# Verificar versión mínima requerida
+# Check minimum required version
 REQUIRED="1.0.0"
 if [[ "$(printf '%s\n' "$REQUIRED" "$VERSION" | sort -V | head -n1)" != "$REQUIRED" ]]; then
-    echo "Error: Se requiere Goca v$REQUIRED o superior"
+    echo "Error: Goca v$REQUIRED or higher is required"
     exit 1
 fi
 ```
@@ -105,127 +105,127 @@ fi
 
 ### Debugging
 ```bash
-# Información completa para reportes de bugs
+# Complete information for bug reports
 goca version > goca-version.txt
-echo "Sistema: $(uname -a)" >> goca-version.txt
-echo "Go instalado: $(go version)" >> goca-version.txt
+echo "System: $(uname -a)" >> goca-version.txt
+echo "Go installed: $(go version)" >> goca-version.txt
 ```
 
-## 📊 Análisis de Versiones
+## 📊 Version Analysis
 
-### Versiones de Desarrollo
+### Development Versions
 ```bash
-# Versiones de desarrollo pueden incluir sufijos
+# Development versions may include suffixes
 goca version
 # Output: Goca v1.1.0-dev
 ```
 
-### Versiones Release Candidate
+### Release Candidate Versions
 ```bash
-# Versiones candidatas a release
+# Release candidate versions
 goca version
 # Output: Goca v1.1.0-rc.1
 ```
 
-### Versiones Estables
+### Stable Versions
 ```bash
-# Versiones finales sin sufijos
+# Final versions without suffixes
 goca version
 # Output: Goca v1.0.5
 ```
 
-## 🔄 Compatibilidad
+## 🔄 Compatibility
 
-### Compatibilidad con Go
-| Versión Goca | Go Mínimo | Go Recomendado | Notas           |
-| ------------ | --------- | -------------- | --------------- |
-| v1.0.x       | Go 1.21   | Go 1.24+       | Versión estable |
-| v1.1.x       | Go 1.22   | Go 1.24+       | Próxima versión |
+### Go Compatibility
+| Goca Version | Minimum Go | Recommended Go | Notes          |
+| ------------ | ---------- | -------------- | -------------- |
+| v1.0.x       | Go 1.21    | Go 1.24+       | Stable version |
+| v1.1.x       | Go 1.22    | Go 1.24+       | Next version   |
 
-### Compatibilidad de Features
+### Feature Compatibility
 ```bash
-# Verificar si tu versión soporta una característica
+# Check if your version supports a feature
 goca version
 
-# Comparar con documentación de features:
-# v1.0.0: Funcionalidades básicas
-# v1.0.1: Correcciones de bugs
-# v1.0.5: Mejoras en gRPC y validaciones
+# Compare with feature documentation:
+# v1.0.0: Basic functionalities
+# v1.0.1: Bug fixes
+# v1.0.5: gRPC and validation improvements
 ```
 
-## 🚀 Actualizaciones
+## 🚀 Updates
 
-### Verificar si Hay Actualizaciones
+### Check for Updates
 ```bash
-# Versión actual
+# Current version
 CURRENT=$(goca version --short)
-echo "Versión actual: v$CURRENT"
+echo "Current version: v$CURRENT"
 
-# Verificar última versión en GitHub (requiere curl/jq)
+# Check latest version on GitHub (requires curl/jq)
 LATEST=$(curl -s https://api.github.com/repos/sazardev/goca/releases/latest | jq -r .tag_name)
-echo "Última versión: $LATEST"
+echo "Latest version: $LATEST"
 
 if [ "v$CURRENT" != "$LATEST" ]; then
-    echo "¡Actualización disponible!"
-    echo "Ejecuta: go install github.com/sazardev/goca@latest"
+    echo "Update available!"
+    echo "Run: go install github.com/sazardev/goca@latest"
 fi
 ```
 
-### Actualizar a Última Versión
+### Update to Latest Version
 ```bash
-# Actualizar usando go install
+# Update using go install
 go install github.com/sazardev/goca@latest
 
-# Verificar actualización
+# Verify update
 goca version
 ```
 
-### Instalar Versión Específica
+### Install Specific Version
 ```bash
-# Instalar versión específica
+# Install specific version
 go install github.com/sazardev/goca@v1.0.6
 
-# Verificar versión instalada
+# Verify installed version
 goca version
 ```
 
-## 🔍 Información de Build Detallada
+## 🔍 Detailed Build Information
 
-### Variables de Build
-El comando `version` muestra información que se compila en tiempo de build:
+### Build Variables
+The `version` command shows information that is compiled at build time:
 
 ```go
-// Definidas en cmd/version.go
+// Defined in cmd/version.go
 var (
-	Version   = "1.0.6"                    // Versión del software
-	BuildTime = "2025-07-19T15:00:00Z"     // Timestamp de compilación
-	GoVersion = runtime.Version()          // Versión de Go runtime
+	Version   = "1.0.6"                    // Software version
+	BuildTime = "2025-07-19T15:00:00Z"     // Compilation timestamp
+	GoVersion = runtime.Version()          // Go runtime version
 )
 ```
 
-### Build Tags y Flags
+### Build Tags and Flags
 ```bash
-# Información de compilación (si está disponible)
-goca version --verbose  # (si se implementa en futuras versiones)
+# Build information (if available)
+goca version --verbose  # (if implemented in future versions)
 ```
 
-## 📝 Formato de Salida
+## 📝 Output Format
 
-### Formato Normal
+### Normal Format
 ```
 Goca v1.0.6
 Build: 2025-07-19T15:00:00Z
 Go Version: go1.24.5
 ```
 
-### Formato Corto
+### Short Format
 ```
 1.0.6
 ```
 
-### Formato JSON (Futuro)
+### JSON Format (Future)
 ```bash
-# Posible implementación futura
+# Possible future implementation
 goca version --json
 ```
 
@@ -241,48 +241,48 @@ goca version --json
 
 ## 🐛 Troubleshooting
 
-### Comando No Encontrado
+### Command Not Found
 ```bash
 # Error: command not found
 which goca          # Linux/macOS
 where goca          # Windows
 
-# Verificar PATH
+# Check PATH
 echo $PATH          # Linux/macOS
 echo $env:PATH      # PowerShell
 ```
 
-### Versión Antigua
+### Old Version
 ```bash
-# Verificar múltiples instalaciones
+# Check multiple installations
 which -a goca       # Linux/macOS
 
-# Limpiar cache de Go
+# Clear Go cache
 go clean -modcache
 
-# Reinstalar
+# Reinstall
 go install github.com/sazardev/goca@latest
 ```
 
-### Información Inconsistente
+### Inconsistent Information
 ```bash
-# Verificar integridad
+# Check integrity
 goca version
 
-# Comparar con archivo go.mod del proyecto
+# Compare with project's go.mod file
 cat go.mod | grep goca
 
-# Verificar en GitHub
+# Check on GitHub
 curl -s https://api.github.com/repos/sazardev/goca/releases/latest
 ```
 
-## 📞 Soporte y Reportes
+## 📞 Support and Reports
 
-### Incluir en Reportes de Bugs
-Siempre incluye la salida de `goca version` en reportes de bugs:
+### Include in Bug Reports
+Always include the output of `goca version` in bug reports:
 
 ```bash
-# Información para reportes
+# Information for reports
 echo "=== GOCA VERSION INFO ===" > bug-report.txt
 goca version >> bug-report.txt
 echo "=== SYSTEM INFO ===" >> bug-report.txt
@@ -290,37 +290,37 @@ uname -a >> bug-report.txt
 go version >> bug-report.txt
 ```
 
-### Links Útiles
+### Useful Links
 - 🐛 **Issues**: [GitHub Issues](https://github.com/sazardev/goca/issues)
 - 📋 **Releases**: [GitHub Releases](https://github.com/sazardev/goca/releases)
 - 📖 **Changelog**: [CHANGELOG.md](https://github.com/sazardev/goca/blob/master/CHANGELOG.md)
 
-## 🔄 Historial de Versiones
+## 🔄 Version History
 
-### Versiones Importantes
+### Important Versions
 
-#### v1.0.6 (Actual)
-- ✅ Bugs críticos arreglados en entity, interfaces y di
-- ✅ Flag --features agregado al comando di
-- ✅ Flag --fields agregado al comando entity  
-- ✅ Conflicto de flags arreglado en interfaces
+#### v1.0.6 (Current)
+- ✅ Critical bugs fixed in entity, interfaces and di
+- ✅ --features flag added to di command
+- ✅ --fields flag added to entity command  
+- ✅ Flag conflict fixed in interfaces
 
-#### v1.0.5 (Anterior)
-- ✅ Mejoras en generación de gRPC
-- ✅ Validaciones mejoradas
-- ✅ Correcciones de bugs
+#### v1.0.5 (Previous)
+- ✅ gRPC generation improvements
+- ✅ Enhanced validations
+- ✅ Bug fixes
 
-#### v1.0.0 (Release Inicial)
-- 🎉 Lanzamiento inicial
-- ✅ Funcionalidades básicas de Clean Architecture
-- ✅ Soporte para múltiples bases de datos
-- ✅ Handlers HTTP y gRPC
+#### v1.0.0 (Initial Release)
+- 🎉 Initial release
+- ✅ Basic Clean Architecture functionalities
+- ✅ Multi-database support
+- ✅ HTTP and gRPC handlers
 
-### Próximas Versiones
-- 🔮 **v1.1.0**: Soporte para microservicios
-- 🔮 **v1.2.0**: Templates personalizables
-- 🔮 **v2.0.0**: Rewrite con mejoras de performance
+### Upcoming Versions
+- 🔮 **v1.1.0**: Microservices support
+- 🔮 **v1.2.0**: Customizable templates
+- 🔮 **v2.0.0**: Rewrite with performance improvements
 
 ---
 
-**← [Comando goca messages](Command-Messages) | [Primeros Pasos](Getting-Started) →**
+**← [goca messages Command](Command-Messages) | [Getting Started](Getting-Started) →**

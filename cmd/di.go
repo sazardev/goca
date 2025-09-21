@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
+	"fmt	if features == "" {
+		fmt.Println("Error: --features flag is required")
+		os.Exit(1)"os"
 	"path/filepath"
 	"strings"
 
@@ -26,12 +27,12 @@ all layers of the system using Google Wire.`,
 		wire, _ := cmd.Flags().GetBool("wire")
 
 		if features == "" {
-			fmt.Println("Error: --features flag es requerido")
+			fmt.Println("Error: --features flag is required")
 			os.Exit(1)
 		}
 
-		fmt.Printf("Generando contenedor DI para features: %s\n", features)
-		fmt.Printf("Base de datos: %s\n", database)
+		fmt.Printf("Generating DI container for features: %s\n", features)
+		fmt.Printf("Database: %s\n", database)
 
 		if wire {
 			fmt.Println("✓ Usando Google Wire")

@@ -1,54 +1,54 @@
-# Tutorial Completo: E-commerce con Goca
+# Complete Tutorial: E-commerce with Goca
 
-En este tutorial crearemos un **sistema de e-commerce completo** usando Goca, desde la inicialización del proyecto hasta tener una API funcional con múltiples features.
+In this tutorial we'll create a **complete e-commerce system** using Goca, from project initialization to having a functional API with multiple features.
 
-## 🎯 Objetivo
+## 🎯 Objective
 
-Al finalizar este tutorial tendrás:
+By the end of this tutorial you'll have:
 
-- ✅ Sistema de usuarios con autenticación
-- ✅ Catálogo de productos con categorías  
-- ✅ Sistema de órdenes con items
-- ✅ API REST completa
-- ✅ Base de datos PostgreSQL
-- ✅ Inyección de dependencias configurada
-- ✅ Estructura Clean Architecture
+- ✅ User system with authentication
+- ✅ Product catalog with categories  
+- ✅ Order system with items
+- ✅ Complete REST API
+- ✅ PostgreSQL database
+- ✅ Configured dependency injection
+- ✅ Clean Architecture structure
 
-## 📋 Prerrequisitos
+## 📋 Prerequisites
 
-- **Go 1.21+** instalado
-- **PostgreSQL** instalado y ejecutándose
-- **Goca CLI** instalado (`go install github.com/sazardev/goca@latest`)
-- **curl** o **Postman** para probar APIs
+- **Go 1.21+** installed
+- **PostgreSQL** installed and running
+- **Goca CLI** installed (`go install github.com/sazardev/goca@latest`)
+- **curl** or **Postman** to test APIs
 
-## 🚀 Paso 1: Inicializar el Proyecto
+## 🚀 Step 1: Initialize the Project
 
-### Crear el proyecto base
+### Create the base project
 ```bash
-# Crear directorio del proyecto
+# Create project directory
 mkdir ecommerce-api
 cd ecommerce-api
 
-# Inicializar con Goca
+# Initialize with Goca
 goca init ecommerce-api \
-  --module github.com/miempresa/ecommerce-api \
+  --module github.com/mycompany/ecommerce-api \
   --database postgres \
   --auth \
   --api rest
 
-# Entrar al directorio generado
+# Enter the generated directory
 cd ecommerce-api
 
-# Instalar dependencias
+# Install dependencies
 go mod tidy
 ```
 
-### Verificar la estructura creada
+### Verify the created structure
 ```bash
 tree
 ```
 
-**Salida esperada:**
+**Expected output:**
 ```
 ecommerce-api/
 ├── cmd/server/main.go
@@ -67,26 +67,26 @@ ecommerce-api/
 └── README.md
 ```
 
-## 🔧 Paso 2: Configurar Base de Datos
+## 🔧 Step 2: Configure Database
 
-### Crear base de datos PostgreSQL
+### Create PostgreSQL database
 ```sql
--- Conectar a PostgreSQL
+-- Connect to PostgreSQL
 psql -U postgres
 
--- Crear base de datos
+-- Create database
 CREATE DATABASE ecommerce_db;
 
--- Crear usuario (opcional)
+-- Create user (optional)
 CREATE USER ecommerce_user WITH PASSWORD 'mypassword';
 GRANT ALL PRIVILEGES ON DATABASE ecommerce_db TO ecommerce_user;
 
 \q
 ```
 
-### Configurar variables de entorno
+### Configure environment variables
 ```bash
-# Crear archivo .env
+# Create .env file
 cat > .env << EOF
 # Database
 DB_HOST=localhost
@@ -107,9 +107,9 @@ JWT_ISSUER=ecommerce-api
 EOF
 ```
 
-## 👤 Paso 3: Crear Feature de Usuarios
+## 👤 Step 3: Create User Feature
 
-### Generar feature completo de usuarios
+### Generate complete user feature
 ```bash
 goca feature User \
   --fields "name:string,email:string,password:string,role:string,phone:string" \
@@ -119,12 +119,12 @@ goca feature User \
   --handlers http
 ```
 
-### Verificar archivos generados
+### Verify generated files
 ```bash
 find internal/ -name "*user*" -type f
 ```
 
-**Archivos creados:**
+**Created files:**
 ```
 internal/domain/user.go
 internal/domain/errors.go
@@ -140,9 +140,9 @@ internal/messages/errors.go
 internal/messages/responses.go
 ```
 
-## 🛍️ Paso 4: Crear Feature de Productos
+## 🛍️ Step 4: Create Product Feature
 
-### Generar feature de productos
+### Generate product feature
 ```bash
 goca feature Product \
   --fields "name:string,description:string,price:float64,category:string,stock:int,sku:string,image_url:string" \
@@ -152,14 +152,14 @@ goca feature Product \
   --handlers http
 ```
 
-### Generar mensajes para productos
+### Generate messages for products
 ```bash
 goca messages Product --all
 ```
 
-## 📦 Paso 5: Crear Feature de Órdenes
+## 📦 Step 5: Create Order Feature
 
-### Generar feature de órdenes
+### Generate order feature
 ```bash
 goca feature Order \
   --fields "user_id:int,total:float64,status:string,payment_method:string,shipping_address:string" \
@@ -169,7 +169,7 @@ goca feature Order \
   --handlers "http,worker"
 ```
 
-### Generar feature de items de orden
+### Generate order item feature
 ```bash
 goca feature OrderItem \
   --fields "order_id:int,product_id:int,quantity:int,price:float64" \
@@ -178,27 +178,27 @@ goca feature OrderItem \
   --handlers http
 ```
 
-## 🔌 Paso 6: Configurar Inyección de Dependencias
+## 🔌 Step 6: Configure Dependency Injection
 
-### Generar contenedor DI
+### Generate DI container
 ```bash
 goca di \
   --features "User,Product,Order,OrderItem" \
   --database postgres
 ```
 
-### Verificar archivos DI generados
+### Verify generated DI files
 ```bash
 ls -la internal/infrastructure/di/
 ```
 
-## 🗄️ Paso 7: Crear Tablas de Base de Datos
+## 🗄️ Step 7: Create Database Tables
 
-### Script SQL para crear tablas
+### SQL script to create tables
 ```bash
-# Crear archivo de migración
+# Create migration file
 cat > migrations/001_initial_schema.sql << 'EOF'
--- Tabla de usuarios
+-- User table
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -210,7 +210,7 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de productos
+-- Product table
 CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -224,7 +224,7 @@ CREATE TABLE products (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de órdenes
+-- Order table
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id),
@@ -236,7 +236,7 @@ CREATE TABLE orders (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla de items de orden
+-- Order items table
 CREATE TABLE order_items (
     id SERIAL PRIMARY KEY,
     order_id INTEGER NOT NULL REFERENCES orders(id),
@@ -247,7 +247,7 @@ CREATE TABLE order_items (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Índices para mejor performance
+-- Indexes for better performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_products_category ON products(category);
 CREATE INDEX idx_products_sku ON products(sku);
@@ -257,18 +257,18 @@ CREATE INDEX idx_order_items_product_id ON order_items(product_id);
 EOF
 ```
 
-### Ejecutar migración
+### Execute migration
 ```bash
-# Crear directorio de migraciones
+# Create migrations directory
 mkdir -p migrations
 
-# Aplicar migración
+# Apply migration
 psql -h localhost -U ecommerce_user -d ecommerce_db -f migrations/001_initial_schema.sql
 ```
 
-## 🔧 Paso 8: Integrar Todo en Main
+## 🔧 Step 8: Integrate Everything in Main
 
-### Actualizar cmd/server/main.go
+### Update cmd/server/main.go
 ```go
 package main
 
@@ -281,35 +281,35 @@ import (
     "github.com/gin-contrib/cors"
     _ "github.com/lib/pq"
     
-    "github.com/miempresa/ecommerce-api/internal/infrastructure/di"
-    userHTTP "github.com/miempresa/ecommerce-api/internal/handler/http"
-    "github.com/miempresa/ecommerce-api/pkg/config"
-    "github.com/miempresa/ecommerce-api/pkg/logger"
+    "github.com/mycompany/ecommerce-api/internal/infrastructure/di"
+    userHTTP "github.com/mycompany/ecommerce-api/internal/handler/http"
+    "github.com/mycompany/ecommerce-api/pkg/config"
+    "github.com/mycompany/ecommerce-api/pkg/logger"
 )
 
 func main() {
-    // Cargar configuración
+    // Load configuration
     cfg := config.Load()
     
-    // Inicializar logger
+    // Initialize logger
     logger.Init(cfg.LogLevel)
     
-    // Conectar a base de datos
+    // Connect to database
     db, err := sql.Open("postgres", buildDSN(cfg))
     if err != nil {
         log.Fatal("Error connecting to database:", err)
     }
     defer db.Close()
     
-    // Verificar conexión
+    // Verify connection
     if err := db.Ping(); err != nil {
         log.Fatal("Error pinging database:", err)
     }
     
-    // Inicializar contenedor DI
+    // Initialize DI container
     container := di.NewContainer(db)
     
-    // Configurar router
+    // Configure router
     router := gin.Default()
     
     // Middleware
@@ -334,12 +334,12 @@ func main() {
     // API routes
     api := router.Group("/api/v1")
     
-    // Registrar rutas
+    // Register routes
     userHTTP.RegisterUserRoutes(api, container.GetUserUseCase())
     // productHTTP.RegisterProductRoutes(api, container.GetProductUseCase())
     // orderHTTP.RegisterOrderRoutes(api, container.GetOrderUseCase())
     
-    // Iniciar servidor
+    // Start server
     log.Printf("🚀 Server starting on port %s", cfg.Port)
     log.Printf("📖 API Documentation: http://localhost:%s/api/v1", cfg.Port)
     
@@ -361,30 +361,30 @@ func buildDSN(cfg *config.Config) string {
 }
 ```
 
-## 🏃‍♂️ Paso 9: Ejecutar y Probar
+## 🏃‍♂️ Step 9: Run and Test
 
-### Ejecutar el servidor
+### Run the server
 ```bash
-# Instalar dependencias faltantes
+# Install missing dependencies
 go mod tidy
 
-# Ejecutar servidor
+# Run server
 go run cmd/server/main.go
 ```
 
-**Salida esperada:**
+**Expected output:**
 ```
 🚀 Server starting on port 8080
 📖 API Documentation: http://localhost:8080/api/v1
 [GIN-debug] Listening and serving HTTP on :8080
 ```
 
-### Probar Health Check
+### Test Health Check
 ```bash
 curl http://localhost:8080/health
 ```
 
-**Respuesta:**
+**Response:**
 ```json
 {
   "status": "ok",
@@ -392,9 +392,9 @@ curl http://localhost:8080/health
 }
 ```
 
-## 🧪 Paso 10: Probar APIs
+## 🧪 Step 10: Test APIs
 
-### 1. Crear Usuario
+### 1. Create User
 ```bash
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
@@ -407,7 +407,7 @@ curl -X POST http://localhost:8080/api/v1/users \
   }'
 ```
 
-**Respuesta esperada:**
+**Expected response:**
 ```json
 {
   "id": 1,
@@ -420,17 +420,17 @@ curl -X POST http://localhost:8080/api/v1/users \
 }
 ```
 
-### 2. Obtener Usuario por ID
+### 2. Get User by ID
 ```bash
 curl http://localhost:8080/api/v1/users/1
 ```
 
-### 3. Listar Usuarios
+### 3. List Users
 ```bash
 curl "http://localhost:8080/api/v1/users?page=1&limit=10"
 ```
 
-### 4. Actualizar Usuario
+### 4. Update User
 ```bash
 curl -X PUT http://localhost:8080/api/v1/users/1 \
   -H "Content-Type: application/json" \
@@ -440,13 +440,13 @@ curl -X PUT http://localhost:8080/api/v1/users/1 \
   }'
 ```
 
-### 5. Crear Producto
+### 5. Create Product
 ```bash
 curl -X POST http://localhost:8080/api/v1/products \
   -H "Content-Type: application/json" \
   -d '{
     "name": "iPhone 15 Pro",
-    "description": "Último iPhone de Apple",
+    "description": "Latest iPhone from Apple",
     "price": 999.99,
     "category": "smartphones",
     "stock": 50,
@@ -455,111 +455,111 @@ curl -X POST http://localhost:8080/api/v1/products \
   }'
 ```
 
-## 📈 Paso 11: Funcionalidades Avanzadas
+## 📈 Step 11: Advanced Features
 
-### Agregar Middleware de Autenticación
+### Add Authentication Middleware
 ```bash
-# Agregar middleware JWT a las rutas protegidas
-# (Código específico dependiente de la implementación JWT)
+# Add JWT middleware to protected routes
+# (Specific code dependent on JWT implementation)
 ```
 
-### Agregar Validaciones Avanzadas
+### Add Advanced Validations
 ```bash
-# Las validaciones ya están incluidas con --validation
-# Revisar archivos generados para personalizaciones
+# Validations are already included with --validation
+# Review generated files for customizations
 ```
 
-### Agregar Logging Estructurado
+### Add Structured Logging
 ```bash
-# El logging ya está configurado en pkg/logger/
-# Personalizar según necesidades
+# Logging is already configured in pkg/logger/
+# Customize according to needs
 ```
 
 ## 🐛 Troubleshooting
 
-### Error de Conexión a Base de Datos
+### Database Connection Error
 ```bash
-# Verificar que PostgreSQL esté ejecutándose
+# Verify PostgreSQL is running
 pg_isready -h localhost -p 5432
 
-# Verificar credenciales en .env
+# Verify credentials in .env
 cat .env | grep DB_
 ```
 
-### Error de Módulo No Encontrado
+### Module Not Found Error
 ```bash
-# Limpiar cache de módulos
+# Clean module cache
 go clean -modcache
 
-# Reinstalar dependencias
+# Reinstall dependencies
 go mod tidy
 ```
 
-### Error de Puerto en Uso
+### Port in Use Error
 ```bash
-# Verificar qué proceso usa el puerto 8080
+# Check what process is using port 8080
 lsof -i :8080  # macOS/Linux
 netstat -ano | findstr :8080  # Windows
 
-# Cambiar puerto en .env
+# Change port in .env
 echo "PORT=8081" >> .env
 ```
 
-## 🎉 Resultado Final
+## 🎉 Final Result
 
-¡Felicitaciones! Ahora tienes:
+Congratulations! You now have:
 
-### ✅ Sistema Completo
-- **API REST** funcional en http://localhost:8080
-- **4 features** completos: User, Product, Order, OrderItem
-- **Base de datos PostgreSQL** configurada
-- **Clean Architecture** implementada correctamente
+### ✅ Complete System
+- **REST API** functional at http://localhost:8080
+- **4 complete features**: User, Product, Order, OrderItem
+- **PostgreSQL database** configured
+- **Clean Architecture** correctly implemented
 
-### ✅ Estructura Profesional
+### ✅ Professional Structure
 ```
 ecommerce-api/
-├── cmd/server/main.go                    # Punto de entrada
+├── cmd/server/main.go                    # Entry point
 ├── internal/
-│   ├── domain/                           # Entidades y reglas de negocio
-│   ├── usecase/                          # Lógica de aplicación
-│   ├── repository/                       # Acceso a datos
-│   ├── handler/                          # Adaptadores HTTP
-│   ├── infrastructure/di/                # Inyección de dependencias
-│   └── messages/                         # Mensajes y constantes
+│   ├── domain/                           # Entities and business rules
+│   ├── usecase/                          # Application logic
+│   ├── repository/                       # Data access
+│   ├── handler/                          # HTTP adapters
+│   ├── infrastructure/di/                # Dependency injection
+│   └── messages/                         # Messages and constants
 ├── pkg/
-│   ├── config/                           # Configuración
-│   ├── logger/                           # Sistema de logging
-│   └── auth/                             # Autenticación JWT
-└── migrations/                           # Scripts de base de datos
+│   ├── config/                           # Configuration
+│   ├── logger/                           # Logging system
+│   └── auth/                             # JWT authentication
+└── migrations/                           # Database scripts
 ```
 
-### ✅ APIs Disponibles
-- `POST /api/v1/users` - Crear usuario
-- `GET /api/v1/users` - Listar usuarios
-- `GET /api/v1/users/:id` - Obtener usuario
-- `PUT /api/v1/users/:id` - Actualizar usuario
-- `DELETE /api/v1/users/:id` - Eliminar usuario
-- *(Similar para productos, órdenes y order items)*
+### ✅ Available APIs
+- `POST /api/v1/users` - Create user
+- `GET /api/v1/users` - List users
+- `GET /api/v1/users/:id` - Get user
+- `PUT /api/v1/users/:id` - Update user
+- `DELETE /api/v1/users/:id` - Delete user
+- *(Similar for products, orders and order items)*
 
-## 🚀 Próximos Pasos
+## 🚀 Next Steps
 
-### Funcionalidades Adicionales
-1. **Autenticación JWT** completa
-2. **Middleware de autorización** por roles
-3. **Documentación Swagger** automática
-4. **Tests unitarios** e integración
-5. **Docker** para deployment
-6. **CI/CD** con GitHub Actions
+### Additional Features
+1. **Complete JWT authentication**
+2. **Authorization middleware** by roles
+3. **Automatic Swagger documentation**
+4. **Unit and integration tests**
+5. **Docker** for deployment
+6. **CI/CD** with GitHub Actions
 
-### Expansión del Sistema
-1. **Sistema de categorías** de productos
-2. **Carrito de compras** temporal
-3. **Sistema de descuentos** y cupones
-4. **Notificaciones** por email
-5. **Dashboard** de administración
+### System Expansion
+1. **Product categories system**
+2. **Temporary shopping cart**
+3. **Discount and coupon system**
+4. **Email notifications**
+5. **Admin dashboard**
 
 ---
 
-**¡Has completado con éxito tu primer proyecto completo con Goca! 🎊**
+**You have successfully completed your first complete project with Goca! 🎊**
 
-**← [Primeros Pasos](Getting-Started) | [Ejemplo REST API](Example-REST-API) →**
+**← [Getting Started](Getting-Started) | [REST API Example](Example-REST-API) →**

@@ -1,52 +1,52 @@
-# Comando goca repository
+# goca repository Command
 
-El comando `goca repository` crea repositorios que implementan el patrón Repository con interfaces bien definidas e implementaciones específicas por base de datos siguiendo Clean Architecture.
+The `goca repository` command creates repositories that implement the Repository pattern with well-defined interfaces and database-specific implementations following Clean Architecture.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca repository <entity> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Crea repositorios para manejar la persistencia de entidades:
+Creates repositories to handle entity persistence:
 
-- 🔵 **Abstracción de persistencia** sin acoplar el dominio
-- 📊 **Implementaciones específicas** por base de datos
-- 🔗 **Interfaces claras** para casos de uso
-- 💾 **Transacciones** y manejo de errores
-- ⚡ **Caché** opcional para optimización
-- 🔍 **Queries optimizadas** por tecnología
+- 🔵 **Persistence abstraction** without coupling the domain
+- 📊 **Database-specific implementations** for each technology
+- 🔗 **Clear interfaces** for use cases
+- 💾 **Transactions** and error handling
+- ⚡ **Optional cache** for optimization
+- 🔍 **Optimized queries** per technology
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag               | Tipo     | Requerido | Valor por Defecto | Descripción                                            |
-| ------------------ | -------- | --------- | ----------------- | ------------------------------------------------------ |
-| `--database`       | `string` | ❌ No      | -                 | Tipo de base de datos (`postgres`, `mysql`, `mongodb`) |
-| `--interface-only` | `bool`   | ❌ No      | `false`           | Solo generar interfaces                                |
-| `--implementation` | `bool`   | ❌ No      | `false`           | Solo generar implementación                            |
-| `--transactions`   | `bool`   | ❌ No      | `false`           | Incluir soporte para transacciones                     |
-| `--cache`          | `bool`   | ❌ No      | `false`           | Incluir capa de caché                                  |
+| Flag               | Type     | Required | Default Value | Description                                    |
+| ------------------ | -------- | -------- | ------------- | ---------------------------------------------- |
+| `--database`       | `string` | ❌ No     | -             | Database type (`postgres`, `mysql`, `mongodb`) |
+| `--interface-only` | `bool`   | ❌ No     | `false`       | Generate interfaces only                       |
+| `--implementation` | `bool`   | ❌ No     | `false`       | Generate implementation only                   |
+| `--transactions`   | `bool`   | ❌ No     | `false`       | Include transaction support                    |
+| `--cache`          | `bool`   | ❌ No     | `false`       | Include cache layer                            |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Repositorio Básico con PostgreSQL
+### Basic Repository with PostgreSQL
 ```bash
 goca repository User --database postgres
 ```
 
-### Solo Generar Interfaces
+### Generate Interfaces Only
 ```bash
 goca repository Product --interface-only
 ```
 
-### Con Transacciones y Caché
+### With Transactions and Cache
 ```bash
 goca repository Order --database postgres --transactions --cache
 ```
 
-### Diferentes Bases de Datos
+### Different Databases
 ```bash
 # PostgreSQL
 goca repository User --database postgres --transactions
@@ -58,22 +58,22 @@ goca repository Product --database mysql --cache
 goca repository Order --database mongodb
 ```
 
-## 📂 Archivos Generados
+## 📂 Generated Files
 
-### Estructura de Archivos
+### File Structure
 ```
 internal/repository/
 ├── interfaces/
-│   └── user_repository.go      # Interface del repositorio
+│   └── user_repository.go      # Repository interface
 ├── postgres/
-│   └── user_repository.go      # Implementación PostgreSQL
+│   └── user_repository.go      # PostgreSQL implementation
 ├── mysql/
-│   └── user_repository.go      # Implementación MySQL (si se especifica)
+│   └── user_repository.go      # MySQL implementation (if specified)
 └── mongodb/
-    └── user_repository.go      # Implementación MongoDB (si se especifica)
+    └── user_repository.go      # MongoDB implementation (if specified)
 ```
 
-## 🔍 Código Generado en Detalle
+## 🔍 Generated Code in Detail
 
 ### Interface: `internal/repository/interfaces/user_repository.go`
 
@@ -88,29 +88,29 @@ import (
 
 //go:generate mockgen -source=user_repository.go -destination=mocks/user_repository_mock.go
 
-// UserRepository define los contratos para la persistencia de usuarios
+// UserRepository defines contracts for user persistence
 type UserRepository interface {
-    // Operaciones básicas CRUD
+    // Basic CRUD operations
     Save(ctx context.Context, user *domain.User) error
     FindByID(ctx context.Context, id uint) (*domain.User, error)
     FindByEmail(ctx context.Context, email string) (*domain.User, error)
     Update(ctx context.Context, user *domain.User) error
     Delete(ctx context.Context, id uint) error
     
-    // Operaciones de consulta
+    // Query operations
     List(ctx context.Context, limit, offset int) ([]*domain.User, int64, error)
     Search(ctx context.Context, query string, limit, offset int) ([]*domain.User, int64, error)
     Exists(ctx context.Context, id uint) (bool, error)
     
-    // Operaciones de transacción (si --transactions)
+    // Transaction operations (if --transactions)
     WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error
     
-    // Operaciones de caché (si --cache)
+    // Cache operations (if --cache)
     ClearCache(ctx context.Context, id uint) error
 }
 ```
 
-### Implementación PostgreSQL: `internal/repository/postgres/user_repository.go`
+### PostgreSQL Implementation: `internal/repository/postgres/user_repository.go`
 
 ```go
 package postgres
@@ -125,19 +125,19 @@ import (
     "github.com/usuario/proyecto/internal/repository/interfaces"
 )
 
-// UserRepository implementa interfaces.UserRepository para PostgreSQL
+// UserRepository implements interfaces.UserRepository for PostgreSQL
 type UserRepository struct {
     db *sql.DB
 }
 
-// NewUserRepository crea una nueva instancia del repositorio
+// NewUserRepository creates a new repository instance
 func NewUserRepository(db *sql.DB) interfaces.UserRepository {
     return &UserRepository{
         db: db,
     }
 }
 
-// Save guarda un usuario en la base de datos
+// Save stores a user in the database
 func (r *UserRepository) Save(ctx context.Context, user *domain.User) error {
     query := `
         INSERT INTO users (name, email, created_at, updated_at)
@@ -167,7 +167,7 @@ func (r *UserRepository) Save(ctx context.Context, user *domain.User) error {
     return nil
 }
 
-// FindByID busca un usuario por ID
+// FindByID searches for a user by ID
 func (r *UserRepository) FindByID(ctx context.Context, id uint) (*domain.User, error) {
     query := `
         SELECT id, name, email, created_at, updated_at
@@ -194,7 +194,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id uint) (*domain.User, e
     return user, nil
 }
 
-// FindByEmail busca un usuario por email
+// FindByEmail searches for a user by email
 func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain.User, error) {
     query := `
         SELECT id, name, email, created_at, updated_at
@@ -213,7 +213,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
     
     if err != nil {
         if err == sql.ErrNoRows {
-            return nil, nil // No error si no existe
+            return nil, nil // No error if it doesn't exist
         }
         return nil, fmt.Errorf("failed to find user by email: %w", err)
     }
@@ -221,7 +221,7 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
     return user, nil
 }
 
-// Update actualiza un usuario existente
+// Update updates an existing user
 func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
     query := `
         UPDATE users
@@ -254,7 +254,7 @@ func (r *UserRepository) Update(ctx context.Context, user *domain.User) error {
     return nil
 }
 
-// Delete elimina un usuario (soft delete)
+// Delete removes a user (soft delete)
 func (r *UserRepository) Delete(ctx context.Context, id uint) error {
     query := `
         UPDATE users
@@ -279,9 +279,9 @@ func (r *UserRepository) Delete(ctx context.Context, id uint) error {
     return nil
 }
 
-// List obtiene una lista paginada de usuarios
+// List gets a paginated list of users
 func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*domain.User, int64, error) {
-    // Contar total
+    // Count total
     countQuery := `SELECT COUNT(*) FROM users WHERE deleted_at IS NULL`
     var total int64
     err := r.db.QueryRowContext(ctx, countQuery).Scan(&total)
@@ -289,7 +289,7 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*domain
         return nil, 0, fmt.Errorf("failed to count users: %w", err)
     }
     
-    // Obtener usuarios paginados
+    // Get paginated users
     query := `
         SELECT id, name, email, created_at, updated_at
         FROM users
@@ -328,33 +328,33 @@ func (r *UserRepository) List(ctx context.Context, limit, offset int) ([]*domain
 }
 ```
 
-## 💾 Implementaciones por Base de Datos
+## 💾 Database-Specific Implementations
 
 ### PostgreSQL Features
-- **JSONB** para campos complejos
-- **Array types** para listas
-- **UUID** como primary keys
-- **Partial indexes** para soft delete
-- **RETURNING** clause para obtener IDs
+- **JSONB** for complex fields
+- **Array types** for lists
+- **UUID** as primary keys
+- **Partial indexes** for soft delete
+- **RETURNING** clause to get IDs
 
 ### MySQL Features
-- **JSON** para campos complejos
-- **Generated columns** para campos calculados
-- **Multi-value indexes** para búsquedas
-- **Foreign key constraints** con CASCADE
+- **JSON** for complex fields
+- **Generated columns** for calculated fields
+- **Multi-value indexes** for searches
+- **Foreign key constraints** with CASCADE
 
 ### MongoDB Features
-- **Agregación pipeline** para queries complejas
-- **Índices compuestos** para optimización
-- **GridFS** para archivos grandes
-- **Transacciones** en replica sets
+- **Aggregation pipeline** for complex queries
+- **Compound indexes** for optimization
+- **GridFS** for large files
+- **Transactions** in replica sets
 
-## 🔄 Transacciones (--transactions)
+## 🔄 Transactions (--transactions)
 
-Con `--transactions`, se agregan métodos para manejo de transacciones:
+With `--transactions`, methods for transaction management are added:
 
 ```go
-// WithTransaction ejecuta operaciones dentro de una transacción
+// WithTransaction executes operations within a transaction
 func (r *UserRepository) WithTransaction(ctx context.Context, fn func(ctx context.Context) error) error {
     tx, err := r.db.BeginTx(ctx, nil)
     if err != nil {
@@ -368,7 +368,7 @@ func (r *UserRepository) WithTransaction(ctx context.Context, fn func(ctx contex
         }
     }()
     
-    // Crear contexto con transacción
+    // Create context with transaction
     txCtx := context.WithValue(ctx, "tx", tx)
     
     if err := fn(txCtx); err != nil {
@@ -385,7 +385,7 @@ func (r *UserRepository) WithTransaction(ctx context.Context, fn func(ctx contex
     return nil
 }
 
-// SaveWithTx guarda usando transacción existente
+// SaveWithTx saves using existing transaction
 func (r *UserRepository) SaveWithTx(ctx context.Context, user *domain.User) error {
     var executor interface {
         QueryRowContext(context.Context, string, ...interface{}) *sql.Row
@@ -408,9 +408,9 @@ func (r *UserRepository) SaveWithTx(ctx context.Context, user *domain.User) erro
 }
 ```
 
-## ⚡ Caché (--cache)
+## ⚡ Cache (--cache)
 
-Con `--cache`, se integra una capa de caché:
+With `--cache`, a cache layer is integrated:
 
 ```go
 import (
@@ -434,11 +434,11 @@ func NewCachedUserRepository(repo interfaces.UserRepository, cache *redis.Client
     }
 }
 
-// FindByID con caché
+// FindByID with cache
 func (r *CachedUserRepository) FindByID(ctx context.Context, id uint) (*domain.User, error) {
     cacheKey := fmt.Sprintf("user:id:%d", id)
     
-    // Intentar obtener del caché
+    // Try to get from cache
     cached, err := r.cache.Get(ctx, cacheKey).Result()
     if err == nil {
         var user domain.User
@@ -447,13 +447,13 @@ func (r *CachedUserRepository) FindByID(ctx context.Context, id uint) (*domain.U
         }
     }
     
-    // Si no está en caché, obtener de DB
+    // If not in cache, get from DB
     user, err := r.repo.FindByID(ctx, id)
     if err != nil {
         return nil, err
     }
     
-    // Guardar en caché
+    // Save to cache
     if user != nil {
         if userData, err := json.Marshal(user); err == nil {
             r.cache.Set(ctx, cacheKey, userData, r.ttl)
@@ -463,7 +463,7 @@ func (r *CachedUserRepository) FindByID(ctx context.Context, id uint) (*domain.U
     return user, nil
 }
 
-// ClearCache limpia el caché de un usuario
+// ClearCache clears user cache
 func (r *CachedUserRepository) ClearCache(ctx context.Context, id uint) error {
     patterns := []string{
         fmt.Sprintf("user:id:%d", id),
@@ -486,11 +486,11 @@ func (r *CachedUserRepository) ClearCache(ctx context.Context, id uint) error {
 }
 ```
 
-## 🔍 Queries Avanzadas
+## 🔍 Advanced Queries
 
-### Búsqueda con Full-Text Search
+### Full-Text Search
 ```go
-// Search busca usuarios por texto
+// Search searches users by text
 func (r *UserRepository) Search(ctx context.Context, query string, limit, offset int) ([]*domain.User, int64, error) {
     searchQuery := `
         SELECT id, name, email, created_at, updated_at,
@@ -524,7 +524,7 @@ func (r *UserRepository) Search(ctx context.Context, query string, limit, offset
         users = append(users, user)
     }
     
-    // Contar resultados
+    // Count results
     countQuery := `
         SELECT COUNT(*)
         FROM users
@@ -543,7 +543,7 @@ func (r *UserRepository) Search(ctx context.Context, query string, limit, offset
 
 ## 🧪 Testing
 
-Los repositorios generados incluyen interfaces para fácil testing:
+Generated repositories include interfaces for easy testing:
 
 ```go
 func TestUserRepository_Save(t *testing.T) {
@@ -584,20 +584,20 @@ func TestUserRepository_WithTransaction(t *testing.T) {
 }
 ```
 
-## ⚠️ Consideraciones Importantes
+## ⚠️ Important Considerations
 
-### ✅ Buenas Prácticas
-- **Context propagation**: Usar context.Context en todos los métodos
-- **Error wrapping**: Envolver errores con información contextual
-- **Prepared statements**: Prevenir SQL injection
-- **Connection pooling**: Configurar pools adecuadamente
+### ✅ Best Practices
+- **Context propagation**: Use context.Context in all methods
+- **Error wrapping**: Wrap errors with contextual information
+- **Prepared statements**: Prevent SQL injection
+- **Connection pooling**: Configure pools appropriately
 
-### ❌ Errores Comunes
-- **No usar transacciones**: Para operaciones que requieren consistencia
-- **Ignorar errores**: Siempre manejar errores apropiadamente
-- **Queries N+1**: Optimizar con JOINs o eager loading
-- **No limpiar recursos**: Cerrar rows, statements, etc.
+### ❌ Common Errors
+- **Not using transactions**: For operations requiring consistency
+- **Ignoring errors**: Always handle errors appropriately
+- **N+1 queries**: Optimize with JOINs or eager loading
+- **Not cleaning resources**: Close rows, statements, etc.
 
 ---
 
-**← [Comando goca usecase](Command-UseCase) | [Comando goca handler](Command-Handler) →**
+**← [goca usecase Command](Command-UseCase) | [goca handler Command](Command-Handler) →**

@@ -1,51 +1,51 @@
-# Comando goca usecase
+# goca usecase Command
 
-El comando `goca usecase` genera servicios de aplicación con DTOs bien definidos, interfaces claras y lógica de negocio encapsulada siguiendo los principios de Clean Architecture.
+The `goca usecase` command generates application services with well-defined DTOs, clear interfaces and encapsulated business logic following Clean Architecture principles.
 
-## 📋 Sintaxis
+## 📋 Syntax
 
 ```bash
 goca usecase <name> [flags]
 ```
 
-## 🎯 Propósito
+## 🎯 Purpose
 
-Crea casos de uso (servicios de aplicación) que coordinan entre el dominio y la infraestructura:
+Creates use cases (application services) that coordinate between domain and infrastructure:
 
-- 🔴 **Lógica de aplicación** sin dependencias externas
-- 📄 **DTOs específicos** para entrada y salida
-- 🔗 **Interfaces claras** para repositorios
-- ⚡ **Operaciones asíncronas** (opcional)
-- ✅ **Validaciones de DTOs** (opcional)
-- 🔄 **Operaciones CRUD** configurables
+- 🔴 **Application logic** without external dependencies
+- 📄 **Specific DTOs** for input and output
+- 🔗 **Clear interfaces** for repositories
+- ⚡ **Asynchronous operations** (optional)
+- ✅ **DTO validations** (optional)
+- 🔄 **Configurable CRUD operations**
 
-## 🚩 Flags Disponibles
+## 🚩 Available Flags
 
-| Flag               | Tipo     | Requerido | Valor por Defecto | Descripción                                         |
-| ------------------ | -------- | --------- | ----------------- | --------------------------------------------------- |
-| `--entity`         | `string` | ✅ **Sí**  | -                 | Entidad asociada al caso de uso                     |
-| `--operations`     | `string` | ❌ No      | `create,read`     | Operaciones CRUD (`create,read,update,delete,list`) |
-| `--dto-validation` | `bool`   | ❌ No      | `false`           | DTOs con validaciones específicas                   |
-| `--async`          | `bool`   | ❌ No      | `false`           | Incluir operaciones asíncronas                      |
+| Flag               | Type     | Required  | Default Value | Description                                        |
+| ------------------ | -------- | --------- | ------------- | -------------------------------------------------- |
+| `--entity`         | `string` | ✅ **Yes** | -             | Entity associated with the use case                |
+| `--operations`     | `string` | ❌ No      | `create,read` | CRUD operations (`create,read,update,delete,list`) |
+| `--dto-validation` | `bool`   | ❌ No      | `false`       | DTOs with specific validations                     |
+| `--async`          | `bool`   | ❌ No      | `false`       | Include asynchronous operations                    |
 
-## 📖 Ejemplos de Uso
+## 📖 Usage Examples
 
-### Caso de Uso Básico
+### Basic Use Case
 ```bash
 goca usecase UserService --entity User
 ```
 
-### Con Todas las Operaciones CRUD
+### With All CRUD Operations
 ```bash
 goca usecase ProductService --entity Product --operations "create,read,update,delete,list"
 ```
 
-### Con Validaciones de DTOs
+### With DTO Validations
 ```bash
 goca usecase OrderService --entity Order --operations "create,read,update" --dto-validation
 ```
 
-### Con Operaciones Asíncronas
+### With Asynchronous Operations
 ```bash
 goca usecase NotificationService --entity Notification --operations "create,list" --async --dto-validation
 ```
@@ -421,20 +421,20 @@ func TestUserService_Create(t *testing.T) {
 }
 ```
 
-## ⚠️ Consideraciones Importantes
+## ⚠️ Important Considerations
 
-### ✅ Buenas Prácticas
-- **DTOs específicos**: Diferentes DTOs para entrada y salida
-- **Validaciones tempranas**: Validar en DTOs antes del dominio
-- **Interfaces claras**: Definir contratos explícitos
-- **Context propagation**: Usar context.Context en todos los métodos
+### ✅ Best Practices
+- **Specific DTOs**: Different DTOs for input and output
+- **Early validations**: Validate in DTOs before domain
+- **Clear interfaces**: Define explicit contracts
+- **Context propagation**: Use context.Context in all methods
 
-### ❌ Errores Comunes
-- **Lógica de negocio en casos de uso**: Debe estar en el dominio
-- **Dependencias directas**: No acceder a DB/HTTP directamente
-- **DTOs anémicos**: Sin validaciones ni comportamiento
-- **Mixing concerns**: Mezclar diferentes responsabilidades
+### ❌ Common Errors
+- **Business logic in use cases**: Should be in domain
+- **Direct dependencies**: Don't access DB/HTTP directly
+- **Anemic DTOs**: Without validations or behavior
+- **Mixing concerns**: Mixing different responsibilities
 
 ---
 
-**← [Comando goca entity](Command-Entity) | [Comando goca repository](Command-Repository) →**
+**← [goca entity Command](Command-Entity) | [goca repository Command](Command-Repository) →**
