@@ -34,7 +34,7 @@ const (
 	DBSQLite   = "sqlite"
 )
 
-// Valid database types
+// ValidDatabases contains the list of supported database types for the CLI.
 var ValidDatabases = []string{DBPostgres, DBMySQL, DBMongoDB, DBSQLite}
 
 // Handler/Protocol constants
@@ -45,7 +45,7 @@ const (
 	HandlerWorker = "worker"
 )
 
-// Valid handler types
+// ValidHandlers contains the list of supported handler types for the CLI.
 var ValidHandlers = []string{HandlerHTTP, HandlerGRPC, HandlerCLI, HandlerWorker}
 
 // CRUD Operations constants
@@ -64,7 +64,7 @@ const (
 	CRUDOperations    = "create,read,update,delete"
 )
 
-// Valid operations
+// ValidOperations contains the list of supported CRUD operations.
 var ValidOperations = []string{OpCreate, OpRead, OpUpdate, OpDelete, OpList}
 
 // API Types constants
@@ -74,7 +74,7 @@ const (
 	APITypeGRPC    = "grpc"
 )
 
-// Valid API types
+// ValidAPITypes contains the list of supported API types for the CLI.
 var ValidAPITypes = []string{APITypeRest, APITypeGraphQL, APITypeGRPC}
 
 // Field Types constants
@@ -92,7 +92,7 @@ const (
 	FieldInterface = "interface{}"
 )
 
-// Valid field types
+// ValidFieldTypes contains the list of supported field types for entities.
 var ValidFieldTypes = []string{
 	FieldString, FieldInt, FieldInt64, FieldUint, FieldUint64,
 	FieldFloat32, FieldFloat64, FieldBool, FieldTime, FieldBytes, FieldInterface,
@@ -140,14 +140,10 @@ const (
 )
 
 // Common field names that might be used for queries
-var CommonQueryFields = map[string][]string{
-	"user":     {"email", "username", "id"},
-	"product":  {"name", "sku", "id", "category"},
-	"order":    {"id", "user_id", "status"},
-	"customer": {"email", "id", "phone"},
-	"article":  {"title", "slug", "id"},
-	"post":     {"title", "slug", "id", "author_id"},
-	"category": {"name", "slug", "id"},
+// CommonQueryFields contains field names commonly used for database queries.
+var CommonQueryFields = []string{
+	"id", "name", "email", "username", "code", "sku",
+	"status", "type", "category", "title", "description",
 }
 
 // Validation constants

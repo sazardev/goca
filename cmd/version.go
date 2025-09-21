@@ -9,9 +9,12 @@ import (
 
 var (
 	// Version is injected at compile time through -ldflags
-	Version   = "dev"
+	Version = "dev"
+	// BuildTime is injected at compile time through -ldflags
 	BuildTime = "unknown"
+	// GoVersion contains the Go runtime version
 	GoVersion = runtime.Version()
+	// GitCommit is injected at compile time through -ldflags
 	GitCommit = "unknown"
 )
 

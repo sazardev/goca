@@ -103,6 +103,7 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 	generateSeedData(domainDir, entityName, fieldsList)
 }
 
+// Field represents a single field definition for an entity structure.
 type Field struct {
 	Name string
 	Type string
