@@ -226,7 +226,10 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 		content.WriteString("}\n\n")
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing entity file: %v\n", err)
+		return
+	}
 }
 
 func generateBusinessRules(content *strings.Builder, entityName string, fields []Field) {
@@ -234,25 +237,25 @@ func generateBusinessRules(content *strings.Builder, entityName string, fields [
 
 	// Generate some common business rules based on field types
 	for _, field := range fields {
-		switch {
-		case field.Name == "Age":
-			content.WriteString(fmt.Sprintf("func (%s *%s) IsAdult() bool {\n", entityVar, entityName))
-			content.WriteString(fmt.Sprintf("\treturn %s.Age >= 18\n", entityVar))
+		switch field.Name {
+		case "Age":
+			fmt.Fprintf(content, "func (%s *%s) IsAdult() bool {\n", entityVar, entityName)
+			fmt.Fprintf(content, "\treturn %s.Age >= 18\n", entityVar)
 			content.WriteString("}\n\n")
 
-		case field.Name == "Price":
-			content.WriteString(fmt.Sprintf("func (%s *%s) IsExpensive() bool {\n", entityVar, entityName))
-			content.WriteString(fmt.Sprintf("\treturn %s.Price > 1000.0\n", entityVar))
+		case "Price":
+			fmt.Fprintf(content, "func (%s *%s) IsExpensive() bool {\n", entityVar, entityName)
+			fmt.Fprintf(content, "\treturn %s.Price > 1000.0\n", entityVar)
 			content.WriteString("}\n\n")
 
-		case field.Name == "Email":
-			content.WriteString(fmt.Sprintf("func (%s *%s) HasValidEmail() bool {\n", entityVar, entityName))
-			content.WriteString(fmt.Sprintf("\treturn strings.Contains(%s.Email, \"@\")\n", entityVar))
+		case "Email":
+			fmt.Fprintf(content, "func (%s *%s) HasValidEmail() bool {\n", entityVar, entityName)
+			fmt.Fprintf(content, "\treturn strings.Contains(%s.Email, \"@\")\n", entityVar)
 			content.WriteString("}\n\n")
 
-		case field.Name == "Status":
-			content.WriteString(fmt.Sprintf("func (%s *%s) IsActive() bool {\n", entityVar, entityName))
-			content.WriteString(fmt.Sprintf("\treturn %s.Status == \"active\"\n", entityVar))
+		case "Status":
+			fmt.Fprintf(content, "func (%s *%s) IsActive() bool {\n", entityVar, entityName)
+			fmt.Fprintf(content, "\treturn %s.Status == \"active\"\n", entityVar)
 			content.WriteString("}\n\n")
 		}
 	}
@@ -363,7 +366,9 @@ func generateErrorsFile(dir, entityName string, fields []Field) {
 	}
 
 	content.WriteString(")\n")
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing errors file: %v\n", err)
+	}
 }
 
 // getSpanishFieldName converts common field names to Spanish for error messages
@@ -471,7 +476,9 @@ func generateSeedData(dir, entityName string, fields []Field) {
 	content.WriteString("`\n")
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing seed file: %v\n", err)
+	}
 }
 
 // generateSampleValue creates realistic sample data based on field type and name

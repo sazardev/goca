@@ -15,7 +15,11 @@ func getModuleName() string {
 	if err != nil {
 		return "myproject" // fallback
 	}
-	defer goMod.Close()
+	defer func() {
+		if err := goMod.Close(); err != nil {
+			fmt.Printf("Error closing go.mod file: %v\n", err)
+		}
+	}()
 
 	scanner := bufio.NewScanner(goMod)
 	for scanner.Scan() {
@@ -38,7 +42,11 @@ func writeFile(path, content string) error {
 	if err != nil {
 		return fmt.Errorf("error creating file %s: %w", path, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Error closing file %s: %v\n", path, err)
+		}
+	}()
 
 	_, err = file.WriteString(content)
 	if err != nil {
@@ -70,7 +78,11 @@ func writeGoFile(path, content string) error {
 	if err != nil {
 		return fmt.Errorf("error creando archivo %s: %w", path, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Error closing file %s: %v\n", path, err)
+		}
+	}()
 
 	_, err = file.WriteString(content)
 	if err != nil {
@@ -91,131 +103,6 @@ func getImportPath(moduleName string) string {
 	// For all projects (both local and remote), use the module name as defined in go.mod
 	// Go modules handle internal imports automatically based on the module declaration
 	return moduleName
-}
-
-// generateFieldsForCreate genera campos reales para estructuras Create basados en los fields
-func generateFieldsForCreate(content *strings.Builder, fields []Field, validation bool) {
-	for _, field := range fields {
-		if field.Name != "ID" { // Excluir ID en estructuras de creación
-			validationTag := ""
-			if validation {
-				validationTag = getValidationTag(field.Type)
-			}
-
-			jsonTag := fmt.Sprintf("json:\"%s\"", strings.ToLower(field.Name))
-			if validationTag != "" {
-				jsonTag += fmt.Sprintf(" validate:\"%s\"", validationTag)
-			}
-
-			content.WriteString(fmt.Sprintf("\t%s %s `%s`\n", field.Name, field.Type, jsonTag))
-		}
-	}
-}
-
-// generateFieldsForUpdate genera campos reales para estructuras Update basados en los fields
-func generateFieldsForUpdate(content *strings.Builder, fields []Field, validation bool) {
-	for _, field := range fields {
-		if field.Name != "ID" { // Excluir ID en estructuras de actualización
-			validationTag := ""
-			if validation {
-				validationTag = getValidationTagForUpdate(field.Type)
-			}
-
-			jsonTag := fmt.Sprintf("json:\"%s,omitempty\"", strings.ToLower(field.Name))
-			if validationTag != "" {
-				jsonTag += fmt.Sprintf(" validate:\"%s\"", validationTag)
-			}
-
-			content.WriteString(fmt.Sprintf("\t%s %s `%s`\n", field.Name, field.Type, jsonTag))
-		}
-	}
-}
-
-// generateFieldMapping genera el mapeo real de campos de input a entity
-func generateFieldMapping(content *strings.Builder, fields []Field) {
-	for _, field := range fields {
-		if field.Name != "ID" {
-			content.WriteString(fmt.Sprintf("\t\t%s: input.%s,\n", field.Name, field.Name))
-		}
-	}
-}
-
-// generateUpdateMapping genera el mapeo real para operaciones de actualización
-func generateUpdateMapping(content *strings.Builder, fields []Field, entityVar string) {
-	for _, field := range fields {
-		if field.Name != "ID" {
-			content.WriteString(fmt.Sprintf("\tif input.%s != \"\" {\n", field.Name))
-			content.WriteString(fmt.Sprintf("\t\t%s.%s = input.%s\n", entityVar, field.Name, field.Name))
-			content.WriteString("\t}\n")
-		}
-	}
-}
-
-// getValidationTagForUpdate retorna validaciones para campos de actualización (más permisivas)
-func getValidationTagForUpdate(fieldType string) string {
-	switch fieldType {
-	case "string":
-		return "omitempty,min=1"
-	case "int", "int64", "uint", "uint64":
-		return "omitempty,min=1"
-	case "float64", "float32":
-		return "omitempty,min=0"
-	case "bool":
-		return ""
-	case "time.Time":
-		return "omitempty"
-	default:
-		return "omitempty"
-	}
-}
-
-// generateSQLFields genera los campos SQL para queries basados en los fields
-func generateSQLFields(fields []Field, operation string) (string, string) {
-	var fieldNames []string
-	var placeholders []string
-
-	for _, field := range fields {
-		if field.Name != "ID" || operation == "SELECT" {
-			columnName := strings.ToLower(field.Name)
-			if field.Name == "ID" {
-				columnName = "id"
-			}
-			fieldNames = append(fieldNames, columnName)
-			if operation == "INSERT" && field.Name != "ID" {
-				placeholders = append(placeholders, "?")
-			}
-		}
-	}
-
-	return strings.Join(fieldNames, ", "), strings.Join(placeholders, ", ")
-}
-
-// generateSQLAssignments genera asignaciones SQL para operaciones UPDATE
-func generateSQLAssignments(fields []Field) string {
-	var assignments []string
-	for _, field := range fields {
-		if field.Name != "ID" {
-			columnName := strings.ToLower(field.Name)
-			assignments = append(assignments, fmt.Sprintf("%s = ?", columnName))
-		}
-	}
-	return strings.Join(assignments, ", ")
-}
-
-// writeGoFileOrPanic wrapper para compatibilidad - maneja errores imprimiendo y continuando
-func writeGoFileOrPanic(path, content string) {
-	if err := writeGoFile(path, content); err != nil {
-		fmt.Printf("❌ Error escribiendo archivo %s: %v\n", path, err)
-		// No hacer panic, solo imprimir el error y continuar
-	}
-}
-
-// writeFileOrPanic wrapper para compatibilidad - maneja errores imprimiendo y continuando
-func writeFileOrPanic(path, content string) {
-	if err := writeFile(path, content); err != nil {
-		fmt.Printf("❌ Error escribiendo archivo %s: %v\n", path, err)
-		// No hacer panic, solo imprimir el error y continuar
-	}
 }
 
 // generateSearchMethods genera métodos de búsqueda basados en los campos de la entidad

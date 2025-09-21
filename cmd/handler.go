@@ -118,22 +118,25 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	generateDeleteHandlerMethod(&content, entity, handlerName)
 	generateListHandlerMethod(&content, entity, handlerName)
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error escribiendo handler file: %v\n", err)
+		return
+	}
 }
 
 func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName string) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Create%s(w http.ResponseWriter, r *http.Request) {\n",
-		handlerVar, handlerName, entity))
-	content.WriteString(fmt.Sprintf("\tvar input usecase.Create%sInput\n\n", entity))
+	fmt.Fprintf(content, "func (%s *%s) Create%s(w http.ResponseWriter, r *http.Request) {\n",
+		handlerVar, handlerName, entity)
+	fmt.Fprintf(content, "\tvar input usecase.Create%sInput\n\n", entity)
 
 	content.WriteString("\tif err := json.NewDecoder(r.Body).Decode(&input); err != nil {\n")
 	content.WriteString("\t\thttp.Error(w, \"Invalid request body\", http.StatusBadRequest)\n")
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\toutput, err := %s.usecase.Create%s(input)\n", handlerVar, entity))
+	fmt.Fprintf(content, "\toutput, err := %s.usecase.Create%s(input)\n", handlerVar, entity)
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusInternalServerError)\n")
 	content.WriteString("\t\treturn\n")
@@ -148,45 +151,45 @@ func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName s
 func generateGetHandlerMethod(content *strings.Builder, entity, handlerName string) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Get%s(w http.ResponseWriter, r *http.Request) {\n",
-		handlerVar, handlerName, entity))
+	fmt.Fprintf(content, "func (%s *%s) Get%s(w http.ResponseWriter, r *http.Request) {\n",
+		handlerVar, handlerName, entity)
 	content.WriteString("\tvars := mux.Vars(r)\n")
 	content.WriteString("\tid, err := strconv.Atoi(vars[\"id\"])\n")
 	content.WriteString("\tif err != nil {\n")
-	content.WriteString(fmt.Sprintf("\t\thttp.Error(w, \"Invalid %s ID\", http.StatusBadRequest)\n", strings.ToLower(entity)))
+	fmt.Fprintf(content, "\t\thttp.Error(w, \"Invalid %s ID\", http.StatusBadRequest)\n", strings.ToLower(entity))
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\t%s, err := %s.usecase.Get%s(id)\n", strings.ToLower(entity), handlerVar, entity))
+	fmt.Fprintf(content, "\t%s, err := %s.usecase.Get%s(id)\n", strings.ToLower(entity), handlerVar, entity)
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusNotFound)\n")
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
 
 	content.WriteString("\tw.Header().Set(\"Content-Type\", \"application/json\")\n")
-	content.WriteString(fmt.Sprintf("\tjson.NewEncoder(w).Encode(%s)\n", strings.ToLower(entity)))
+	fmt.Fprintf(content, "\tjson.NewEncoder(w).Encode(%s)\n", strings.ToLower(entity))
 	content.WriteString("}\n\n")
 }
 
 func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName string) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Update%s(w http.ResponseWriter, r *http.Request) {\n",
-		handlerVar, handlerName, entity))
+	fmt.Fprintf(content, "func (%s *%s) Update%s(w http.ResponseWriter, r *http.Request) {\n",
+		handlerVar, handlerName, entity)
 	content.WriteString("\tvars := mux.Vars(r)\n")
 	content.WriteString("\tid, err := strconv.Atoi(vars[\"id\"])\n")
 	content.WriteString("\tif err != nil {\n")
-	content.WriteString(fmt.Sprintf("\t\thttp.Error(w, \"Invalid %s ID\", http.StatusBadRequest)\n", strings.ToLower(entity)))
+	fmt.Fprintf(content, "\t\thttp.Error(w, \"Invalid %s ID\", http.StatusBadRequest)\n", strings.ToLower(entity))
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\tvar input usecase.Update%sInput\n", entity))
+	fmt.Fprintf(content, "\tvar input usecase.Update%sInput\n", entity)
 	content.WriteString("\tif err := json.NewDecoder(r.Body).Decode(&input); err != nil {\n")
 	content.WriteString("\t\thttp.Error(w, \"Invalid request body\", http.StatusBadRequest)\n")
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\tif err := %s.usecase.Update%s(id, input); err != nil {\n", handlerVar, entity))
+	fmt.Fprintf(content, "\tif err := %s.usecase.Update%s(id, input); err != nil {\n", handlerVar, entity)
 	content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusInternalServerError)\n")
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
@@ -198,16 +201,16 @@ func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName s
 func generateDeleteHandlerMethod(content *strings.Builder, entity, handlerName string) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Delete%s(w http.ResponseWriter, r *http.Request) {\n",
-		handlerVar, handlerName, entity))
+	fmt.Fprintf(content, "func (%s *%s) Delete%s(w http.ResponseWriter, r *http.Request) {\n",
+		handlerVar, handlerName, entity)
 	content.WriteString("\tvars := mux.Vars(r)\n")
 	content.WriteString("\tid, err := strconv.Atoi(vars[\"id\"])\n")
 	content.WriteString("\tif err != nil {\n")
-	content.WriteString(fmt.Sprintf("\t\thttp.Error(w, \"Invalid %s ID\", http.StatusBadRequest)\n", strings.ToLower(entity)))
+	fmt.Fprintf(content, "\t\thttp.Error(w, \"Invalid %s ID\", http.StatusBadRequest)\n", strings.ToLower(entity))
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\tif err := %s.usecase.Delete%s(id); err != nil {\n", handlerVar, entity))
+	fmt.Fprintf(content, "\tif err := %s.usecase.Delete%s(id); err != nil {\n", handlerVar, entity)
 	content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusInternalServerError)\n")
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
@@ -219,9 +222,9 @@ func generateDeleteHandlerMethod(content *strings.Builder, entity, handlerName s
 func generateListHandlerMethod(content *strings.Builder, entity, handlerName string) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) List%ss(w http.ResponseWriter, r *http.Request) {\n",
-		handlerVar, handlerName, entity))
-	content.WriteString(fmt.Sprintf("\toutput, err := %s.usecase.List%ss()\n", handlerVar, entity))
+	fmt.Fprintf(content, "func (%s *%s) List%ss(w http.ResponseWriter, r *http.Request) {\n",
+		handlerVar, handlerName, entity)
+	fmt.Fprintf(content, "\toutput, err := %s.usecase.List%ss()\n", handlerVar, entity)
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusInternalServerError)\n")
 	content.WriteString("\t\treturn\n")
@@ -293,7 +296,10 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 		generateMiddlewareFunctions(&content)
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error escribiendo routes file: %v\n", err)
+		return
+	}
 }
 
 func generateMiddlewareFunctions(content *strings.Builder) {
@@ -341,7 +347,10 @@ func generateHTTPDTOFile(dir, entity string) {
 	content.WriteString("\tMessage string `json:\"message,omitempty\"`\n")
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error escribiendo types file: %v\n", err)
+		return
+	}
 }
 
 func generateSwaggerFile(dir, entity string) {
@@ -424,7 +433,10 @@ components:
           type: string
 `, entity, entityLower, entityLower, entityLower, entity, entityLower, entity, entity, entity, entityLower, entityLower, entity, entity, entity)
 
-	writeFile(filename, content)
+	if err := writeFile(filename, content); err != nil {
+		fmt.Printf("Error escribiendo swagger file: %v\n", err)
+		return
+	}
 }
 
 func generateGRPCHandler(entity string) {
@@ -503,7 +515,10 @@ func generateProtoFile(dir, entity string) {
 	content.WriteString("  int32 total = 2;\n")
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error escribiendo proto file: %v\n", err)
+		return
+	}
 }
 
 func generateGRPCServerFile(dir, entity string) {
@@ -567,7 +582,10 @@ func generateGRPCServerFile(dir, entity string) {
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error escribiendo grpc server file: %v\n", err)
+		return
+	}
 }
 
 func generateCLIHandler(entity string) {
@@ -660,7 +678,10 @@ func generateCLIHandler(entity string) {
 	content.WriteString("\t}\n")
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error escribiendo cli handler file: %v\n", err)
+		return
+	}
 }
 
 func generateWorkerHandler(entity string) {
@@ -729,7 +750,10 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 }
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entity, entityLower, entity)
 
-	writeFile(filename, content)
+	if err := writeFile(filename, content); err != nil {
+		fmt.Printf("Error escribiendo worker file: %v\n", err)
+		return
+	}
 }
 
 func generateSOAPHandler(entity string) {
@@ -828,7 +852,10 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 }
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity)
 
-	writeFile(filename, content)
+	if err := writeFile(filename, content); err != nil {
+		fmt.Printf("Error escribiendo soap file: %v\n", err)
+		return
+	}
 }
 
 func init() {

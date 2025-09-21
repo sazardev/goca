@@ -14,7 +14,11 @@ func main() {
 		fmt.Println("Error creating temp dir:", err)
 		os.Exit(1)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			fmt.Printf("Error cleaning up temp directory: %v\n", err)
+		}
+	}()
 
 	// Initialize project
 	cmd := exec.Command("goca.exe", "init", "testproject", "--module", "github.com/test/testproject")

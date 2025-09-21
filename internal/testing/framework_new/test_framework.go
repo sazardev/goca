@@ -54,7 +54,9 @@ func NewTestContext(t *testing.T) *TestContext {
 // Cleanup limpia los recursos utilizados por el test
 func (tc *TestContext) Cleanup() {
 	if tc.TempDir != "" {
-		os.RemoveAll(tc.TempDir)
+		if err := os.RemoveAll(tc.TempDir); err != nil {
+			fmt.Printf("Error cleaning up temp directory %s: %v\n", tc.TempDir, err)
+		}
 	}
 }
 

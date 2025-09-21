@@ -219,20 +219,22 @@ func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 		generatePostgresTransactionMethods(&content, entity, repoName)
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating PostgreSQL repository file: %v\n", err)
+	}
 }
 
 func generatePostgresSaveMethod(content *strings.Builder, entity, repoName string, cache bool) {
 	entityLower := strings.ToLower(entity)
 	repoVar := strings.ToLower(string(repoName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Save(%s *domain.%s) error {\n",
-		repoVar, repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := %s.db.Create(%s)\n", repoVar, entityLower))
+	fmt.Fprintf(content, "func (%s *%s) Save(%s *domain.%s) error {\n",
+		repoVar, repoName, entityLower, entity)
+	fmt.Fprintf(content, "\tresult := %s.db.Create(%s)\n", repoVar, entityLower)
 
 	if cache {
 		content.WriteString("\tif result.Error == nil {\n")
-		content.WriteString(fmt.Sprintf("\t\t%s.invalidateCache(%s.ID)\n", repoVar, entityLower))
+		fmt.Fprintf(content, "\t\t%s.invalidateCache(%s.ID)\n", repoVar, entityLower)
 		content.WriteString("\t}\n")
 	}
 
@@ -244,28 +246,28 @@ func generatePostgresFindByIDMethod(content *strings.Builder, entity, repoName s
 	entityLower := strings.ToLower(entity)
 	repoVar := strings.ToLower(string(repoName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) FindByID(id int) (*domain.%s, error) {\n",
-		repoVar, repoName, entity))
+	fmt.Fprintf(content, "func (%s *%s) FindByID(id int) (*domain.%s, error) {\n",
+		repoVar, repoName, entity)
 
 	if cache {
 		content.WriteString("\t// Try cache first\n")
-		content.WriteString(fmt.Sprintf("\tif %s := %s.getFromCache(id); %s != nil {\n",
-			entityLower, repoVar, entityLower))
-		content.WriteString(fmt.Sprintf("\t\treturn %s, nil\n", entityLower))
+		fmt.Fprintf(content, "\tif %s := %s.getFromCache(id); %s != nil {\n",
+			entityLower, repoVar, entityLower)
+		fmt.Fprintf(content, "\t\treturn %s, nil\n", entityLower)
 		content.WriteString("\t}\n\n")
 	}
 
-	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := %s.db.First(%s, id)\n", repoVar, entityLower))
+	fmt.Fprintf(content, "\t%s := &domain.%s{}\n", entityLower, entity)
+	fmt.Fprintf(content, "\tresult := %s.db.First(%s, id)\n", repoVar, entityLower)
 	content.WriteString("\tif result.Error != nil {\n")
 	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n\n")
 
 	if cache {
-		content.WriteString(fmt.Sprintf("\t%s.setCache(%s)\n", repoVar, entityLower))
+		fmt.Fprintf(content, "\t%s.setCache(%s)\n", repoVar, entityLower)
 	}
 
-	content.WriteString(fmt.Sprintf("\treturn %s, nil\n", entityLower))
+	fmt.Fprintf(content, "\treturn %s, nil\n", entityLower)
 	content.WriteString("}\n\n")
 }
 
@@ -273,14 +275,14 @@ func generatePostgresFindByEmailMethod(content *strings.Builder, entity, repoNam
 	entityLower := strings.ToLower(entity)
 	repoVar := strings.ToLower(string(repoName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) FindByEmail(email string) (*domain.%s, error) {\n",
-		repoVar, repoName, entity))
-	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := %s.db.Where(\"email = ?\", email).First(%s)\n", repoVar, entityLower))
+	fmt.Fprintf(content, "func (%s *%s) FindByEmail(email string) (*domain.%s, error) {\n",
+		repoVar, repoName, entity)
+	fmt.Fprintf(content, "\t%s := &domain.%s{}\n", entityLower, entity)
+	fmt.Fprintf(content, "\tresult := %s.db.Where(\"email = ?\", email).First(%s)\n", repoVar, entityLower)
 	content.WriteString("\tif result.Error != nil {\n")
 	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n")
-	content.WriteString(fmt.Sprintf("\treturn %s, nil\n", entityLower))
+	fmt.Fprintf(content, "\treturn %s, nil\n", entityLower)
 	content.WriteString("}\n\n")
 }
 
@@ -288,13 +290,13 @@ func generatePostgresUpdateMethod(content *strings.Builder, entity, repoName str
 	entityLower := strings.ToLower(entity)
 	repoVar := strings.ToLower(string(repoName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Update(%s *domain.%s) error {\n",
-		repoVar, repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := %s.db.Save(%s)\n", repoVar, entityLower))
+	fmt.Fprintf(content, "func (%s *%s) Update(%s *domain.%s) error {\n",
+		repoVar, repoName, entityLower, entity)
+	fmt.Fprintf(content, "\tresult := %s.db.Save(%s)\n", repoVar, entityLower)
 
 	if cache {
 		content.WriteString("\tif result.Error == nil {\n")
-		content.WriteString(fmt.Sprintf("\t\t%s.invalidateCache(%s.ID)\n", repoVar, entityLower))
+		fmt.Fprintf(content, "\t\t%s.invalidateCache(%s.ID)\n", repoVar, entityLower)
 		content.WriteString("\t}\n")
 	}
 
@@ -305,13 +307,13 @@ func generatePostgresUpdateMethod(content *strings.Builder, entity, repoName str
 func generatePostgresDeleteMethod(content *strings.Builder, entity, repoName string, cache bool) {
 	repoVar := strings.ToLower(string(repoName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Delete(id int) error {\n",
-		repoVar, repoName))
-	content.WriteString(fmt.Sprintf("\tresult := %s.db.Delete(&domain.%s{}, id)\n", repoVar, entity))
+	fmt.Fprintf(content, "func (%s *%s) Delete(id int) error {\n",
+		repoVar, repoName)
+	fmt.Fprintf(content, "\tresult := %s.db.Delete(&domain.%s{}, id)\n", repoVar, entity)
 
 	if cache {
 		content.WriteString("\tif result.Error == nil {\n")
-		content.WriteString(fmt.Sprintf("\t\t%s.invalidateCache(id)\n", repoVar))
+		fmt.Fprintf(content, "\t\t%s.invalidateCache(id)\n", repoVar)
 		content.WriteString("\t}\n")
 	}
 
@@ -323,15 +325,15 @@ func generatePostgresFindAllMethod(content *strings.Builder, entity, repoName st
 	entityLower := strings.ToLower(entity)
 	repoVar := strings.ToLower(string(repoName[0]))
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) FindAll() ([]domain.%s, error) {\n",
-		repoVar, repoName, entity))
-	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := %s.db.Find(&%ss)\n", repoVar, entityLower))
+	fmt.Fprintf(content, "func (%s *%s) FindAll() ([]domain.%s, error) {\n",
+		repoVar, repoName, entity)
+	fmt.Fprintf(content, "\tvar %ss []domain.%s\n", entityLower, entity)
+	fmt.Fprintf(content, "\tresult := %s.db.Find(&%ss)\n", repoVar, entityLower)
 	content.WriteString("\tif result.Error != nil {\n")
 	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
+	fmt.Fprintf(content, "\treturn %ss, nil\n", entityLower)
 	content.WriteString("}\n\n")
 }
 
@@ -340,26 +342,26 @@ func generatePostgresTransactionMethods(content *strings.Builder, entity, repoNa
 	repoVar := strings.ToLower(string(repoName[0]))
 
 	// SaveWithTx
-	content.WriteString(fmt.Sprintf("func (%s *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
-		repoVar, repoName, entityLower, entity))
+	fmt.Fprintf(content, "func (%s *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
+		repoVar, repoName, entityLower, entity)
 	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	content.WriteString(fmt.Sprintf("\tresult := gormTx.Create(%s)\n", entityLower))
+	fmt.Fprintf(content, "\tresult := gormTx.Create(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// UpdateWithTx
-	content.WriteString(fmt.Sprintf("func (%s *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
-		repoVar, repoName, entityLower, entity))
+	fmt.Fprintf(content, "func (%s *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
+		repoVar, repoName, entityLower, entity)
 	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	content.WriteString(fmt.Sprintf("\tresult := gormTx.Save(%s)\n", entityLower))
+	fmt.Fprintf(content, "\tresult := gormTx.Save(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// DeleteWithTx
-	content.WriteString(fmt.Sprintf("func (%s *%s) DeleteWithTx(tx interface{}, id int) error {\n",
-		repoVar, repoName))
+	fmt.Fprintf(content, "func (%s *%s) DeleteWithTx(tx interface{}, id int) error {\n",
+		repoVar, repoName)
 	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	content.WriteString(fmt.Sprintf("\tresult := gormTx.Delete(&domain.%s{}, id)\n", entity))
+	fmt.Fprintf(content, "\tresult := gormTx.Delete(&domain.%s{}, id)\n", entity)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }
@@ -414,7 +416,9 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating MySQL repository file: %v\n", err)
+	}
 }
 
 func generateMongoRepository(dir, entity string, cache, transactions bool) {
@@ -471,7 +475,9 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating MongoDB repository file: %v\n", err)
+	}
 }
 
 // generateRepositoryInterfaceWithFields genera interfaces de repository con métodos dinámicos basados en campos
@@ -590,7 +596,9 @@ func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, ca
 		generateTransactionMethods(&content, entity, repoName)
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating PostgreSQL repository with fields: %v\n", err)
+	}
 }
 
 // generateBasicCRUDMethods genera los métodos CRUD básicos
@@ -598,41 +606,41 @@ func generateBasicCRUDMethods(content *strings.Builder, entity, repoName string)
 	entityLower := strings.ToLower(entity)
 
 	// Save method
-	content.WriteString(fmt.Sprintf("func (p *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := p.db.Create(%s)\n", entityLower))
+	fmt.Fprintf(content, "func (p *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity)
+	fmt.Fprintf(content, "\tresult := p.db.Create(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// FindByID method
-	content.WriteString(fmt.Sprintf("func (p *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity))
-	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := p.db.First(%s, id)\n", entityLower))
+	fmt.Fprintf(content, "func (p *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity)
+	fmt.Fprintf(content, "\t%s := &domain.%s{}\n", entityLower, entity)
+	fmt.Fprintf(content, "\tresult := p.db.First(%s, id)\n", entityLower)
 	content.WriteString("\tif result.Error != nil {\n")
 	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n")
-	content.WriteString(fmt.Sprintf("\treturn %s, nil\n", entityLower))
+	fmt.Fprintf(content, "\treturn %s, nil\n", entityLower)
 	content.WriteString("}\n\n")
 
 	// Update method
-	content.WriteString(fmt.Sprintf("func (p *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := p.db.Save(%s)\n", entityLower))
+	fmt.Fprintf(content, "func (p *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity)
+	fmt.Fprintf(content, "\tresult := p.db.Save(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// Delete method
-	content.WriteString(fmt.Sprintf("func (p *%s) Delete(id int) error {\n", repoName))
-	content.WriteString(fmt.Sprintf("\tresult := p.db.Delete(&domain.%s{}, id)\n", entity))
+	fmt.Fprintf(content, "func (p *%s) Delete(id int) error {\n", repoName)
+	fmt.Fprintf(content, "\tresult := p.db.Delete(&domain.%s{}, id)\n", entity)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// FindAll method
-	content.WriteString(fmt.Sprintf("func (p *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity))
-	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tresult := p.db.Find(&%ss)\n", entityLower))
+	fmt.Fprintf(content, "func (p *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity)
+	fmt.Fprintf(content, "\tvar %ss []domain.%s\n", entityLower, entity)
+	fmt.Fprintf(content, "\tresult := p.db.Find(&%ss)\n", entityLower)
 	content.WriteString("\tif result.Error != nil {\n")
-	content.WriteString(fmt.Sprintf("\t\treturn nil, result.Error\n"))
+	content.WriteString("\t\treturn nil, result.Error\n")
 	content.WriteString("\t}\n")
-	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
+	fmt.Fprintf(content, "\treturn %ss, nil\n", entityLower)
 	content.WriteString("}\n\n")
 }
 
@@ -641,25 +649,25 @@ func generateTransactionMethods(content *strings.Builder, entity, repoName strin
 	entityLower := strings.ToLower(entity)
 
 	// SaveWithTx
-	content.WriteString(fmt.Sprintf("func (p *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
-		repoName, entityLower, entity))
+	fmt.Fprintf(content, "func (p *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
+		repoName, entityLower, entity)
 	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	content.WriteString(fmt.Sprintf("\tresult := gormTx.Create(%s)\n", entityLower))
+	fmt.Fprintf(content, "\tresult := gormTx.Create(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// UpdateWithTx
-	content.WriteString(fmt.Sprintf("func (p *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
-		repoName, entityLower, entity))
+	fmt.Fprintf(content, "func (p *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
+		repoName, entityLower, entity)
 	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	content.WriteString(fmt.Sprintf("\tresult := gormTx.Save(%s)\n", entityLower))
+	fmt.Fprintf(content, "\tresult := gormTx.Save(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// DeleteWithTx
-	content.WriteString(fmt.Sprintf("func (p *%s) DeleteWithTx(tx interface{}, id int) error {\n", repoName))
+	fmt.Fprintf(content, "func (p *%s) DeleteWithTx(tx interface{}, id int) error {\n", repoName)
 	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	content.WriteString(fmt.Sprintf("\tresult := gormTx.Delete(&domain.%s{}, id)\n", entity))
+	fmt.Fprintf(content, "\tresult := gormTx.Delete(&domain.%s{}, id)\n", entity)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }
@@ -719,7 +727,9 @@ func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache
 		content.WriteString(generateMongoSearchMethodImplementation(method, repoName, entity))
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating MongoDB repository with fields: %v\n", err)
+	}
 }
 
 // generateBasicMongoCRUDMethods genera métodos CRUD básicos para MongoDB
@@ -727,23 +737,23 @@ func generateBasicMongoCRUDMethods(content *strings.Builder, entity, repoName st
 	entityLower := strings.ToLower(entity)
 
 	// Save method
-	content.WriteString(fmt.Sprintf("func (m *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity))
+	fmt.Fprintf(content, "func (m *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity)
 	content.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n")
 	content.WriteString("\tdefer cancel()\n")
-	content.WriteString(fmt.Sprintf("\t_, err := m.collection.InsertOne(ctx, %s)\n", entityLower))
+	fmt.Fprintf(content, "\t_, err := m.collection.InsertOne(ctx, %s)\n", entityLower)
 	content.WriteString("\treturn err\n")
 	content.WriteString("}\n\n")
 
 	// FindByID method
-	content.WriteString(fmt.Sprintf("func (m *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity))
+	fmt.Fprintf(content, "func (m *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity)
 	content.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n")
 	content.WriteString("\tdefer cancel()\n")
-	content.WriteString(fmt.Sprintf("\t%s := &domain.%s{}\n", entityLower, entity))
+	fmt.Fprintf(content, "\t%s := &domain.%s{}\n", entityLower, entity)
 	content.WriteString("\terr := m.collection.FindOne(ctx, bson.M{\"id\": id}).Decode(" + entityLower + ")\n")
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn nil, err\n")
 	content.WriteString("\t}\n")
-	content.WriteString(fmt.Sprintf("\treturn %s, nil\n", entityLower))
+	fmt.Fprintf(content, "\treturn %s, nil\n", entityLower)
 	content.WriteString("}\n\n")
 
 	// Add other basic methods (Update, Delete, FindAll) - simplified

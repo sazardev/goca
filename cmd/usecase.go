@@ -82,10 +82,6 @@ func parseOperations(operations string) []string {
 	return result
 }
 
-func generateDTOFile(dir, entity string, operations []string, validation bool) {
-	generateDTOFileWithFields(dir, entity, operations, validation, "")
-}
-
 func generateDTOFileWithFields(dir, entity string, operations []string, validation bool, fields string) {
 	filename := filepath.Join(dir, "dto.go")
 
@@ -141,34 +137,36 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 		}
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating DTO file: %v\n", err)
+	}
 }
 
 func generateCreateDTO(content *strings.Builder, entity string, validation bool) {
 	entityLower := strings.ToLower(entity)
 
-	content.WriteString(fmt.Sprintf("type Create%sInput struct {\n", entity))
+	fmt.Fprintf(content, "type Create%sInput struct {\n", entity)
 	// Campos estándar cuando no se especifican fields personalizados
-	content.WriteString(fmt.Sprintf("\tNombre      string `json:\"nombre\""))
+	content.WriteString("\tNombre      string `json:\"nombre\"")
 	if validation {
 		content.WriteString(" validate:\"required,min=2\"")
 	}
 	content.WriteString("`\n")
-	content.WriteString(fmt.Sprintf("\tDescripcion string `json:\"descripcion\""))
+	content.WriteString("\tDescripcion string `json:\"descripcion\"")
 	if validation {
 		content.WriteString(" validate:\"required,min=5\"")
 	}
 	content.WriteString("`\n")
 	content.WriteString("}\n\n")
 
-	content.WriteString(fmt.Sprintf("type Create%sOutput struct {\n", entity))
-	content.WriteString(fmt.Sprintf("\t%s    domain.%s `json:\"%s\"`\n", entity, entity, entityLower))
+	fmt.Fprintf(content, "type Create%sOutput struct {\n", entity)
+	fmt.Fprintf(content, "\t%s    domain.%s `json:\"%s\"`\n", entity, entity, entityLower)
 	content.WriteString("\tMessage string      `json:\"message\"`\n")
 	content.WriteString("}\n\n")
 }
 
 func generateUpdateDTO(content *strings.Builder, entity string, validation bool) {
-	content.WriteString(fmt.Sprintf("type Update%sInput struct {\n", entity))
+	fmt.Fprintf(content, "type Update%sInput struct {\n", entity)
 
 	// Generar campos estándar en español para cuando no se especifican fields personalizados
 	content.WriteString("\tNombre      *string `json:\"nombre,omitempty\"")
@@ -186,8 +184,8 @@ func generateUpdateDTO(content *strings.Builder, entity string, validation bool)
 
 func generateListDTO(content *strings.Builder, entity string) {
 	entityLower := strings.ToLower(entity)
-	content.WriteString(fmt.Sprintf("type List%sOutput struct {\n", entity))
-	content.WriteString(fmt.Sprintf("\t%ss   []domain.%s `json:\"%ss\"`\n", entity, entity, entityLower))
+	fmt.Fprintf(content, "type List%sOutput struct {\n", entity)
+	fmt.Fprintf(content, "\t%ss   []domain.%s `json:\"%ss\"`\n", entity, entity, entityLower)
 	content.WriteString("\tTotal   int           `json:\"total\"`\n")
 	content.WriteString("\tMessage string        `json:\"message\"`\n")
 	content.WriteString("}\n\n")
@@ -226,11 +224,9 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
-}
-
-func generateUseCaseService(dir, usecaseName, entity string, operations []string, async bool) {
-	generateUseCaseServiceWithFields(dir, usecaseName, entity, operations, async, "")
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating use case file: %v\n", err)
+	}
 }
 
 func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operations []string, async bool, fields string) {
@@ -287,33 +283,35 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 		}
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating use case service with fields: %v\n", err)
+	}
 }
 
 func generateCreateMethod(content *strings.Builder, serviceName, entity string) {
 	entityLower := strings.ToLower(entity)
 	serviceVar := string(serviceName[0])
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
-		serviceVar, serviceName, entity, entity, entity))
-	content.WriteString(fmt.Sprintf("\t%s := domain.%s{\n", entityLower, entity))
+	fmt.Fprintf(content, "func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
+		serviceVar, serviceName, entity, entity, entity)
+	fmt.Fprintf(content, "\t%s := domain.%s{\n", entityLower, entity)
 	content.WriteString("\t\t// Mapeo automático de campos - ajustar según tu entidad\n")
 	content.WriteString("\t\t// Nombre: input.Nombre,\n")
 	content.WriteString("\t\t// Email: input.Email,\n")
 	content.WriteString("\t\t// Edad: input.Edad,\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\tif err := %s.Validate(); err != nil {\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t\treturn Create%sOutput{}, err\n", entity))
+	fmt.Fprintf(content, "\tif err := %s.Validate(); err != nil {\n", entityLower)
+	fmt.Fprintf(content, "\t\treturn Create%sOutput{}, err\n", entity)
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\tif err := %s.repo.Save(&%s); err != nil {\n", serviceVar, entityLower))
-	content.WriteString(fmt.Sprintf("\t\treturn Create%sOutput{}, err\n", entity))
+	fmt.Fprintf(content, "\tif err := %s.repo.Save(&%s); err != nil {\n", serviceVar, entityLower)
+	fmt.Fprintf(content, "\t\treturn Create%sOutput{}, err\n", entity)
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\treturn Create%sOutput{\n", entity))
-	content.WriteString(fmt.Sprintf("\t\t%s:    %s,\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t\tMessage: messages.%sCreatedSuccessfully,\n", entity))
+	fmt.Fprintf(content, "\treturn Create%sOutput{\n", entity)
+	fmt.Fprintf(content, "\t\t%s:    %s,\n", entity, entityLower)
+	fmt.Fprintf(content, "\t\tMessage: messages.%sCreatedSuccessfully,\n", entity)
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n\n")
 }
@@ -323,31 +321,31 @@ func generateCreateMethodWithFields(content *strings.Builder, serviceName, entit
 	serviceVar := string(serviceName[0])
 	fieldsList := parseFields(fields)
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
-		serviceVar, serviceName, entity, entity, entity))
-	content.WriteString(fmt.Sprintf("\t%s := domain.%s{\n", entityLower, entity))
+	fmt.Fprintf(content, "func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
+		serviceVar, serviceName, entity, entity, entity)
+	fmt.Fprintf(content, "\t%s := domain.%s{\n", entityLower, entity)
 
 	// Map fields from input to entity
 	for _, field := range fieldsList {
 		if field.Name == "ID" {
 			continue // Skip ID, it's auto-generated
 		}
-		content.WriteString(fmt.Sprintf("\t\t%s: input.%s,\n", field.Name, field.Name))
+		fmt.Fprintf(content, "\t\t%s: input.%s,\n", field.Name, field.Name)
 	}
 
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\tif err := %s.Validate(); err != nil {\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t\treturn Create%sOutput{}, err\n", entity))
+	fmt.Fprintf(content, "\tif err := %s.Validate(); err != nil {\n", entityLower)
+	fmt.Fprintf(content, "\t\treturn Create%sOutput{}, err\n", entity)
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\tif err := %s.repo.Save(&%s); err != nil {\n", serviceVar, entityLower))
-	content.WriteString(fmt.Sprintf("\t\treturn Create%sOutput{}, err\n", entity))
+	fmt.Fprintf(content, "\tif err := %s.repo.Save(&%s); err != nil {\n", serviceVar, entityLower)
+	fmt.Fprintf(content, "\t\treturn Create%sOutput{}, err\n", entity)
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\treturn Create%sOutput{\n", entity))
-	content.WriteString(fmt.Sprintf("\t\t%s:    %s,\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t\tMessage: messages.%sCreatedSuccessfully,\n", entity))
+	fmt.Fprintf(content, "\treturn Create%sOutput{\n", entity)
+	fmt.Fprintf(content, "\t\t%s:    %s,\n", entity, entityLower)
+	fmt.Fprintf(content, "\t\tMessage: messages.%sCreatedSuccessfully,\n", entity)
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n\n")
 }
@@ -355,9 +353,9 @@ func generateCreateMethodWithFields(content *strings.Builder, serviceName, entit
 func generateGetMethod(content *strings.Builder, serviceName, entity string) {
 	serviceVar := string(serviceName[0])
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Get%s(id int) (*domain.%s, error) {\n",
-		serviceVar, serviceName, entity, entity))
-	content.WriteString(fmt.Sprintf("\treturn %s.repo.FindByID(id)\n", serviceVar))
+	fmt.Fprintf(content, "func (%s *%s) Get%s(id int) (*domain.%s, error) {\n",
+		serviceVar, serviceName, entity, entity)
+	fmt.Fprintf(content, "\treturn %s.repo.FindByID(id)\n", serviceVar)
 	content.WriteString("}\n\n")
 }
 
@@ -365,32 +363,32 @@ func generateUpdateMethod(content *strings.Builder, serviceName, entity string) 
 	serviceVar := string(serviceName[0])
 	entityVar := strings.ToLower(entity)
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Update%s(id int, input Update%sInput) error {\n",
-		serviceVar, serviceName, entity, entity))
-	content.WriteString(fmt.Sprintf("\t%s, err := %s.repo.FindByID(id)\n", entityVar, serviceVar))
+	fmt.Fprintf(content, "func (%s *%s) Update%s(id int, input Update%sInput) error {\n",
+		serviceVar, serviceName, entity, entity)
+	fmt.Fprintf(content, "\t%s, err := %s.repo.FindByID(id)\n", entityVar, serviceVar)
 	content.WriteString("\tif err != nil {\n")
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n\n")
 
 	content.WriteString("\t// Actualizar campos según tu entidad\n")
 	content.WriteString("\tif input.Nombre != \"\" {\n")
-	content.WriteString(fmt.Sprintf("\t\t%s.Nombre = input.Nombre\n", entityVar))
+	fmt.Fprintf(content, "\t\t%s.Nombre = input.Nombre\n", entityVar)
 	content.WriteString("\t}\n")
 	content.WriteString("\tif input.Email != \"\" {\n")
-	content.WriteString(fmt.Sprintf("\t\t%s.Email = input.Email\n", entityVar))
+	fmt.Fprintf(content, "\t\t%s.Email = input.Email\n", entityVar)
 	content.WriteString("\t}\n")
 	content.WriteString("\t// Agregar más campos según necesites\n\n")
 
-	content.WriteString(fmt.Sprintf("\treturn %s.repo.Update(%s)\n", serviceVar, entityVar))
+	fmt.Fprintf(content, "\treturn %s.repo.Update(%s)\n", serviceVar, entityVar)
 	content.WriteString("}\n\n")
 }
 
 func generateDeleteMethod(content *strings.Builder, serviceName, entity string) {
 	serviceVar := string(serviceName[0])
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) Delete%s(id int) error {\n",
-		serviceVar, serviceName, entity))
-	content.WriteString(fmt.Sprintf("\treturn %s.repo.Delete(id)\n", serviceVar))
+	fmt.Fprintf(content, "func (%s *%s) Delete%s(id int) error {\n",
+		serviceVar, serviceName, entity)
+	fmt.Fprintf(content, "\treturn %s.repo.Delete(id)\n", serviceVar)
 	content.WriteString("}\n\n")
 }
 
@@ -398,17 +396,17 @@ func generateListMethod(content *strings.Builder, serviceName, entity string) {
 	serviceVar := string(serviceName[0])
 	entityLower := strings.ToLower(entity)
 
-	content.WriteString(fmt.Sprintf("func (%s *%s) List%ss() (List%sOutput, error) {\n",
-		serviceVar, serviceName, entity, entity))
-	content.WriteString(fmt.Sprintf("\t%ss, err := %s.repo.FindAll()\n", entityLower, serviceVar))
+	fmt.Fprintf(content, "func (%s *%s) List%ss() (List%sOutput, error) {\n",
+		serviceVar, serviceName, entity, entity)
+	fmt.Fprintf(content, "\t%ss, err := %s.repo.FindAll()\n", entityLower, serviceVar)
 	content.WriteString("\tif err != nil {\n")
-	content.WriteString(fmt.Sprintf("\t\treturn List%sOutput{}, err\n", entity))
+	fmt.Fprintf(content, "\t\treturn List%sOutput{}, err\n", entity)
 	content.WriteString("\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\treturn List%sOutput{\n", entity))
-	content.WriteString(fmt.Sprintf("\t\t%ss:   %ss,\n", entity, entityLower))
-	content.WriteString(fmt.Sprintf("\t\tTotal:   len(%ss),\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t\tMessage: messages.%ssListedSuccessfully,\n", entity))
+	fmt.Fprintf(content, "\treturn List%sOutput{\n", entity)
+	fmt.Fprintf(content, "\t\t%ss:   %ss,\n", entity, entityLower)
+	fmt.Fprintf(content, "\t\tTotal:   len(%ss),\n", entityLower)
+	fmt.Fprintf(content, "\t\tMessage: messages.%ssListedSuccessfully,\n", entity)
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n\n")
 }
@@ -433,15 +431,17 @@ func generateUseCaseInterfaces(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating interfaces file: %v\n", err)
+	}
 }
 
 func generateCreateDTOWithFields(content *strings.Builder, entity string, validation bool, fields string) {
 	fieldsList := parseFields(fields)
 
 	// Generate Create Request DTO
-	content.WriteString(fmt.Sprintf("// Create%sRequest DTO para crear un nuevo %s\n", entity, strings.ToLower(entity)))
-	content.WriteString(fmt.Sprintf("type Create%sRequest struct {\n", entity))
+	fmt.Fprintf(content, "// Create%sRequest DTO para crear un nuevo %s\n", entity, strings.ToLower(entity))
+	fmt.Fprintf(content, "type Create%sRequest struct {\n", entity)
 
 	for _, field := range fieldsList {
 		// Skip auto-managed fields in create request
@@ -453,11 +453,11 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 
 		if validation {
 			validateTag := getValidationTag(field.Type)
-			content.WriteString(fmt.Sprintf("\t%s %s `%s validate:\"%s\"`\n",
-				field.Name, field.Type, jsonTag, validateTag))
+			fmt.Fprintf(content, "\t%s %s `%s validate:\"%s\"`\n",
+				field.Name, field.Type, jsonTag, validateTag)
 		} else {
-			content.WriteString(fmt.Sprintf("\t%s %s `%s`\n",
-				field.Name, field.Type, jsonTag))
+			fmt.Fprintf(content, "\t%s %s `%s`\n",
+				field.Name, field.Type, jsonTag)
 		}
 	}
 
@@ -465,8 +465,8 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 
 	// Generate validation method for the DTO
 	if validation {
-		content.WriteString(fmt.Sprintf("// Validate valida los datos del DTO Create%sRequest\n", entity))
-		content.WriteString(fmt.Sprintf("func (r *Create%sRequest) Validate() error {\n", entity))
+		fmt.Fprintf(content, "// Validate valida los datos del DTO Create%sRequest\n", entity)
+		fmt.Fprintf(content, "func (r *Create%sRequest) Validate() error {\n", entity)
 
 		for _, field := range fieldsList {
 			if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
@@ -476,24 +476,24 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 			switch field.Type {
 			case "string":
 				if strings.Contains(strings.ToLower(field.Name), "email") {
-					content.WriteString(fmt.Sprintf("\tif r.%s == \"\" {\n", field.Name))
-					content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+					fmt.Fprintf(content, "\tif r.%s == \"\" {\n", field.Name)
+					fmt.Fprintf(content, "\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
 					content.WriteString("\t}\n")
-					content.WriteString(fmt.Sprintf("\tif !strings.Contains(r.%s, \"@\") {\n", field.Name))
-					content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"formato de %s inválido\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+					fmt.Fprintf(content, "\tif !strings.Contains(r.%s, \"@\") {\n", field.Name)
+					fmt.Fprintf(content, "\t\treturn errors.New(\"formato de %s inválido\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
 					content.WriteString("\t}\n")
 				} else {
-					content.WriteString(fmt.Sprintf("\tif strings.TrimSpace(r.%s) == \"\" {\n", field.Name))
-					content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+					fmt.Fprintf(content, "\tif strings.TrimSpace(r.%s) == \"\" {\n", field.Name)
+					fmt.Fprintf(content, "\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
 					content.WriteString("\t}\n")
 				}
 			case "int", "int64", "uint", "uint64":
-				content.WriteString(fmt.Sprintf("\tif r.%s < 0 {\n", field.Name))
-				content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+				fmt.Fprintf(content, "\tif r.%s < 0 {\n", field.Name)
+				fmt.Fprintf(content, "\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
 				content.WriteString("\t}\n")
 			case "float64", "float32":
-				content.WriteString(fmt.Sprintf("\tif r.%s < 0 {\n", field.Name))
-				content.WriteString(fmt.Sprintf("\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name))))
+				fmt.Fprintf(content, "\tif r.%s < 0 {\n", field.Name)
+				fmt.Fprintf(content, "\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
 				content.WriteString("\t}\n")
 			}
 		}
@@ -503,8 +503,8 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 	}
 
 	// Generate Create Response DTO
-	content.WriteString(fmt.Sprintf("// Create%sResponse DTO para la respuesta de creación\n", entity))
-	content.WriteString(fmt.Sprintf("type Create%sResponse struct {\n", entity))
+	fmt.Fprintf(content, "// Create%sResponse DTO para la respuesta de creación\n", entity)
+	fmt.Fprintf(content, "type Create%sResponse struct {\n", entity)
 	content.WriteString("\tID      uint   `json:\"id\"`\n")
 
 	// Add actual fields to response
@@ -513,7 +513,7 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 			continue
 		}
 		jsonTag := fmt.Sprintf("json:\"%s\"", strings.ToLower(field.Name))
-		content.WriteString(fmt.Sprintf("\t%s %s `%s`\n", field.Name, field.Type, jsonTag))
+		fmt.Fprintf(content, "\t%s %s `%s`\n", field.Name, field.Type, jsonTag)
 	}
 
 	content.WriteString("\tMessage string `json:\"message\"`\n")
@@ -524,7 +524,7 @@ func generateUpdateDTOWithFields(content *strings.Builder, entity string, valida
 	fieldsList := parseFields(fields)
 
 	// Generate Update Input DTO (fields are optional)
-	content.WriteString(fmt.Sprintf("type Update%sInput struct {\n", entity))
+	fmt.Fprintf(content, "type Update%sInput struct {\n", entity)
 
 	for _, field := range fieldsList {
 		// Skip ID field in update input (it's in the URL)
@@ -534,15 +534,16 @@ func generateUpdateDTOWithFields(content *strings.Builder, entity string, valida
 
 		// Make fields optional for update (pointers)
 		var fieldType string
-		if field.Type == "string" {
+		switch field.Type {
+		case "string":
 			fieldType = "*string"
-		} else if field.Type == "int" {
+		case "int":
 			fieldType = "*int"
-		} else if field.Type == "bool" {
+		case "bool":
 			fieldType = "*bool"
-		} else if field.Type == "float64" {
+		case "float64":
 			fieldType = "*float64"
-		} else {
+		default:
 			fieldType = "*" + field.Type
 		}
 
@@ -550,11 +551,11 @@ func generateUpdateDTOWithFields(content *strings.Builder, entity string, valida
 
 		if validation {
 			validateTag := "omitempty," + getValidationTag(field.Type)
-			content.WriteString(fmt.Sprintf("\t%s %s `%s validate:\"%s\"`\n",
-				field.Name, fieldType, jsonTag, validateTag))
+			fmt.Fprintf(content, "\t%s %s `%s validate:\"%s\"`\n",
+				field.Name, fieldType, jsonTag, validateTag)
 		} else {
-			content.WriteString(fmt.Sprintf("\t%s %s `%s`\n",
-				field.Name, fieldType, jsonTag))
+			fmt.Fprintf(content, "\t%s %s `%s`\n",
+				field.Name, fieldType, jsonTag)
 		}
 	}
 

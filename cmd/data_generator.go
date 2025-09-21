@@ -5,6 +5,9 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // DataGenerator generates realistic sample data for testing
@@ -95,7 +98,9 @@ func (g *DataGenerator) generateName(entity, field string) string {
 		return fmt.Sprintf("Pedido #%d", g.rand.Intn(10000))
 	}
 
-	return fmt.Sprintf("Sample %s %d", strings.Title(entity), g.rand.Intn(1000))
+	// Use cases.Title for proper word capitalization
+	caser := cases.Title(language.English)
+	return fmt.Sprintf("Sample %s %d", caser.String(entity), g.rand.Intn(1000))
 }
 
 // generateDescription generates context-aware descriptions
@@ -242,8 +247,9 @@ func (g *DataGenerator) GenerateInsertSQL(tableName string, fields []Field, coun
 			tableName, strings.Join(fieldNames, ", ")))
 
 		var values []string
+		caser := cases.Title(language.English)
 		for _, fieldName := range fieldNames {
-			value := data[strings.Title(fieldName)]
+			value := data[caser.String(fieldName)]
 			values = append(values, g.formatSQLValue(value))
 		}
 

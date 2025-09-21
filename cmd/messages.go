@@ -64,7 +64,7 @@ func generateMessages(entity string, errors, responses, constants bool) {
 	_ = os.MkdirAll(constantsDir, 0755)
 
 	if errors {
-		generateErrorMessages(messagesDir, entity)
+		generateUseCaseMessages(entity)
 	}
 
 	if responses {
@@ -76,8 +76,8 @@ func generateMessages(entity string, errors, responses, constants bool) {
 	}
 }
 
-func generateErrorMessages(dir, entity string) {
-	filename := filepath.Join(dir, "errors.go")
+func generateUseCaseMessages(entity string) {
+	filename := filepath.Join("internal", "domain", "messages.go")
 	entityLower := strings.ToLower(entity)
 
 	// Check if file exists and read existing content
@@ -88,7 +88,7 @@ func generateErrorMessages(dir, entity string) {
 			existing := string(content)
 			// Remove the closing parenthesis and const block end
 			if strings.Contains(existing, ")\n") {
-				existing = strings.Replace(existing, ")\n", "", -1)
+				existing = strings.ReplaceAll(existing, ")\n", "")
 				existingContent.WriteString(existing)
 			} else {
 				// Start fresh if format is unexpected
@@ -103,26 +103,19 @@ func generateErrorMessages(dir, entity string) {
 		existingContent.WriteString("package messages\n\nconst (\n")
 	}
 
-	// Add new entity error messages
-	existingContent.WriteString(fmt.Sprintf("\t// %s errors\n", entity))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sNotFound        = \"%s no encontrado\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sAlreadyExists   = \"%s ya existe\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErrInvalid%sData     = \"datos de %s inválidos\"\n", entity, entityLower))
-
-	// Field-specific errors
-	existingContent.WriteString(fmt.Sprintf("\tErr%sEmailRequired   = \"email de %s es requerido\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sNameRequired    = \"nombre de %s es requerido\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sAgeInvalid      = \"edad de %s debe ser positiva\"\n", entity, entityLower))
-
-	// Business logic errors
-	existingContent.WriteString(fmt.Sprintf("\tErr%sAccessDenied    = \"acceso denegado a %s\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sUpdateFailed    = \"falló al actualizar %s\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\tErr%sDeleteFailed    = \"falló al eliminar %s\"\n", entity, entityLower))
-
-	// Close the const block
+	// Add new entity messages
+	existingContent.WriteString(fmt.Sprintf("\t// %s messages\n", entity))
+	existingContent.WriteString(fmt.Sprintf("\t%sCreated = \"%s created successfully\"\n", entity, entity))
+	existingContent.WriteString(fmt.Sprintf("\t%sNotFound = \"%s not found\"\n", entity, entity))
+	existingContent.WriteString(fmt.Sprintf("\t%sUpdated = \"%s updated successfully\"\n", entity, entity))
+	existingContent.WriteString(fmt.Sprintf("\t%sDeleted = \"%s deleted successfully\"\n", entity, entity))
+	existingContent.WriteString(fmt.Sprintf("\t%sInvalid = \"Invalid %s data\"\n", entity, entityLower))
 	existingContent.WriteString(")\n")
 
-	writeGoFile(filename, existingContent.String())
+	if err := writeGoFile(filename, existingContent.String()); err != nil {
+		fmt.Printf("Error escribiendo messages file: %v\n", err)
+		return
+	}
 }
 
 func generateResponseMessages(dir, entity string) {
@@ -137,7 +130,7 @@ func generateResponseMessages(dir, entity string) {
 			existing := string(content)
 			// Remove the closing parenthesis and const block end
 			if strings.Contains(existing, ")\n") {
-				existing = strings.Replace(existing, ")\n", "", -1)
+				existing = strings.ReplaceAll(existing, ")\n", "")
 				existingContent.WriteString(existing)
 			} else {
 				// Start fresh if format is unexpected
@@ -168,7 +161,9 @@ func generateResponseMessages(dir, entity string) {
 	// Close the const block
 	existingContent.WriteString(")\n")
 
-	writeGoFile(filename, existingContent.String())
+	if err := writeGoFile(filename, existingContent.String()); err != nil {
+		fmt.Printf("Error creating response messages file: %v\n", err)
+	}
 }
 
 func generateConstants(dir, entity string) {
@@ -215,7 +210,9 @@ func generateConstants(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\t%sStatusDeleted  = \"deleted\"\n", entity))
 	content.WriteString(")\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating constants file: %v\n", err)
+	}
 }
 
 func init() {

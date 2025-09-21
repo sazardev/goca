@@ -113,7 +113,9 @@ func generateUseCaseInterfaceFile(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\tList%ss() ([]domain.%s, error)\n", entity, entity))
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating usecase interface file: %v\n", err)
+	}
 }
 
 func generateRepositoryInterfaceFile(dir, entity string) {
@@ -175,7 +177,9 @@ func generateRepositoryInterfaceFileWithFields(dir, entity, fields string) {
 
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating repository interface file: %v\n", err)
+	}
 }
 
 func generateHandlerInterfaceFile(dir, entity string) {
@@ -228,62 +232,64 @@ func generateHandlerInterfaceFile(dir, entity string) {
 	content.WriteString("// gRPC Request/Response interfaces\n")
 	generateGRPCRequestResponseInterfaces(&content, entity)
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating handler interface file: %v\n", err)
+	}
 }
 
 func generateGRPCRequestResponseInterfaces(content *strings.Builder, entity string) {
 	// Create Request interface
-	content.WriteString(fmt.Sprintf("type Create%sRequest interface {\n", entity))
+	fmt.Fprintf(content, "type Create%sRequest interface {\n", entity)
 	content.WriteString("\tGetName() string\n")
 	content.WriteString("\tGetEmail() string\n")
 	content.WriteString("}\n\n")
 
 	// Create Response interface
-	content.WriteString(fmt.Sprintf("type Create%sResponse interface {\n", entity))
-	content.WriteString(fmt.Sprintf("\tGet%s() *%s\n", entity, entity))
+	fmt.Fprintf(content, "type Create%sResponse interface {\n", entity)
+	fmt.Fprintf(content, "\tGet%s() *%s\n", entity, entity)
 	content.WriteString("\tGetMessage() string\n")
 	content.WriteString("}\n\n")
 
 	// Get Request interface
-	content.WriteString(fmt.Sprintf("type Get%sRequest interface {\n", entity))
+	fmt.Fprintf(content, "type Get%sRequest interface {\n", entity)
 	content.WriteString("\tGetId() int32\n")
 	content.WriteString("}\n\n")
 
 	// Get Response interface
-	content.WriteString(fmt.Sprintf("type %sResponse interface {\n", entity))
-	content.WriteString(fmt.Sprintf("\tGet%s() *%s\n", entity, entity))
+	fmt.Fprintf(content, "type %sResponse interface {\n", entity)
+	fmt.Fprintf(content, "\tGet%s() *%s\n", entity, entity)
 	content.WriteString("}\n\n")
 
 	// Update Request interface
-	content.WriteString(fmt.Sprintf("type Update%sRequest interface {\n", entity))
+	fmt.Fprintf(content, "type Update%sRequest interface {\n", entity)
 	content.WriteString("\tGetId() int32\n")
 	content.WriteString("\tGetName() string\n")
 	content.WriteString("\tGetEmail() string\n")
 	content.WriteString("}\n\n")
 
 	// Update Response interface
-	content.WriteString(fmt.Sprintf("type Update%sResponse interface {\n", entity))
+	fmt.Fprintf(content, "type Update%sResponse interface {\n", entity)
 	content.WriteString("\tGetMessage() string\n")
 	content.WriteString("}\n\n")
 
 	// Delete Request interface
-	content.WriteString(fmt.Sprintf("type Delete%sRequest interface {\n", entity))
+	fmt.Fprintf(content, "type Delete%sRequest interface {\n", entity)
 	content.WriteString("\tGetId() int32\n")
 	content.WriteString("}\n\n")
 
 	// Delete Response interface
-	content.WriteString(fmt.Sprintf("type Delete%sResponse interface {\n", entity))
+	fmt.Fprintf(content, "type Delete%sResponse interface {\n", entity)
 	content.WriteString("\tGetMessage() string\n")
 	content.WriteString("}\n\n")
 
 	// List Request interface
-	content.WriteString(fmt.Sprintf("type List%ssRequest interface {\n", entity))
+	fmt.Fprintf(content, "type List%ssRequest interface {\n", entity)
 	content.WriteString("\t// No fields for basic list\n")
 	content.WriteString("}\n\n")
 
 	// List Response interface
-	content.WriteString(fmt.Sprintf("type List%ssResponse interface {\n", entity))
-	content.WriteString(fmt.Sprintf("\tGet%ss() []*%s\n", entity, entity))
+	fmt.Fprintf(content, "type List%ssResponse interface {\n", entity)
+	fmt.Fprintf(content, "\tGet%ss() []*%s\n", entity, entity)
 	content.WriteString("\tGetTotal() int32\n")
 	content.WriteString("}\n")
 }

@@ -66,9 +66,10 @@ func addEntityToAutoMigration(entity string) error {
 				braceCount := 1
 				i := searchStart
 				for i < len(contentStr) && braceCount > 0 {
-					if contentStr[i] == '{' {
+					switch contentStr[i] {
+					case '{':
 						braceCount++
-					} else if contentStr[i] == '}' {
+					case '}':
 						braceCount--
 					}
 					i++
@@ -93,34 +94,4 @@ func addEntityToAutoMigration(entity string) error {
 	}
 
 	return nil
-} // generateAutoMigrateFunction generates a function that will be called to auto-migrate entities
-func generateAutoMigrateFunction(entities []string) string {
-	var entitiesReferences strings.Builder
-
-	for _, entity := range entities {
-		entitiesReferences.WriteString(fmt.Sprintf("\t\t&domain.%s{},\n", entity))
-	}
-
-	return fmt.Sprintf(`func runAutoMigrations(database *gorm.DB) error {
-	if database == nil {
-		return fmt.Errorf("database connection is nil")
-	}
-	
-	log.Println("🔄 Running GORM auto-migrations...")
-	
-	// Create a slice of all domain entities to migrate
-	entities := []interface{}{
-%s	}
-	
-	// Run auto-migration for all entities
-	for _, entity := range entities {
-		if err := database.AutoMigrate(entity); err != nil {
-			return fmt.Errorf("failed to auto-migrate entity %%T: %%w", entity, err)
-		}
-		log.Printf("✅ Auto-migrated entity: %%T", entity)
-	}
-	
-	log.Println("✅ GORM auto-migrations completed successfully")
-	return nil
-}`, entitiesReferences.String())
 }

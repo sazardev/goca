@@ -277,7 +277,7 @@ func listDirRecursive(dir string, limit int) []string {
 	var result []string
 	count := 0
 
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -301,7 +301,9 @@ func listDirRecursive(dir string, limit int) []string {
 		}
 
 		return nil
-	})
+	}); err != nil {
+		fmt.Printf("Error walking directory %s: %v\n", dir, err)
+	}
 
 	return result
 }

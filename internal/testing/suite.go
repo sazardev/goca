@@ -48,7 +48,9 @@ func NewTestSuite(t *testing.T) *TestSuite {
 // Cleanup removes temporary directories and files
 func (ts *TestSuite) Cleanup() {
 	if ts.tempDir != "" {
-		os.RemoveAll(ts.tempDir)
+		if err := os.RemoveAll(ts.tempDir); err != nil {
+			fmt.Printf("Error cleaning up temp directory: %v\n", err)
+		}
 	}
 }
 
@@ -454,10 +456,8 @@ func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 
 			// Handle camelCase - the generated code might lowercase the first character
 			// or include JSON tags, so we need a more flexible check
-			fieldName = strings.Replace(fieldName, "ID", "Id", -1) // Handle ID becoming Id in gorm
-			loweredName := strings.ToLower(fieldName)
-
-			// Check for the field name appearing in the struct
+			fieldName = strings.ReplaceAll(fieldName, "ID", "Id") // Handle ID becoming Id in gorm
+			loweredName := strings.ToLower(fieldName)             // Check for the field name appearing in the struct
 			matched := strings.Contains(strings.ToLower(contentStr), loweredName)
 			if !matched {
 				ts.addError(fmt.Sprintf("Entity %s missing field containing %s of type %s", entity, fieldName, fieldType))

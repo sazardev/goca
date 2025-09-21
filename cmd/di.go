@@ -120,7 +120,10 @@ func generateManualDI(dir string, features []string, database string) {
 	// Getters
 	generateGetters(&content, features)
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing DI file: %v\n", err)
+		return
+	}
 }
 
 func generateSetupRepositories(content *strings.Builder, features []string, database string) {
@@ -130,17 +133,17 @@ func generateSetupRepositories(content *strings.Builder, features []string, data
 		featureLower := strings.ToLower(feature)
 		switch database {
 		case dbPostgres:
-			content.WriteString(fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n",
-				featureLower, feature))
+			fmt.Fprintf(content, "\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n",
+				featureLower, feature)
 		case dbMySQL:
-			content.WriteString(fmt.Sprintf("\tc.%sRepo = repository.NewMySQL%sRepository(c.db)\n",
-				featureLower, feature))
+			fmt.Fprintf(content, "\tc.%sRepo = repository.NewMySQL%sRepository(c.db)\n",
+				featureLower, feature)
 		case dbMongoDB:
-			content.WriteString(fmt.Sprintf("\tc.%sRepo = repository.NewMongo%sRepository(c.db)\n",
-				featureLower, feature))
+			fmt.Fprintf(content, "\tc.%sRepo = repository.NewMongo%sRepository(c.db)\n",
+				featureLower, feature)
 		default:
-			content.WriteString(fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n",
-				featureLower, feature))
+			fmt.Fprintf(content, "\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n",
+				featureLower, feature)
 		}
 	}
 
@@ -152,8 +155,8 @@ func generateSetupUseCases(content *strings.Builder, features []string) {
 
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
-		content.WriteString(fmt.Sprintf("\tc.%sUC = usecase.New%sService(c.%sRepo)\n",
-			featureLower, feature, featureLower))
+		fmt.Fprintf(content, "\tc.%sUC = usecase.New%sService(c.%sRepo)\n",
+			featureLower, feature, featureLower)
 	}
 
 	content.WriteString("}\n\n")
@@ -165,8 +168,8 @@ func generateSetupHandlers(content *strings.Builder, features []string) {
 	for _, feature := range features {
 		fieldName := strings.ToLower(feature[:1]) + feature[1:] // camelCase
 		featureLower := strings.ToLower(feature)
-		content.WriteString(fmt.Sprintf("\tc.%sHandler = http.New%sHandler(c.%sUC)\n",
-			fieldName, feature, featureLower))
+		fmt.Fprintf(content, "\tc.%sHandler = http.New%sHandler(c.%sUC)\n",
+			fieldName, feature, featureLower)
 	}
 
 	content.WriteString("}\n\n")
@@ -180,21 +183,21 @@ func generateGetters(content *strings.Builder, features []string) {
 		featureLower := strings.ToLower(feature)
 
 		// Handler getter
-		content.WriteString(fmt.Sprintf("func (c *Container) %sHandler() *http.%sHandler {\n",
-			feature, feature))
-		content.WriteString(fmt.Sprintf("\treturn c.%sHandler\n", fieldName))
+		fmt.Fprintf(content, "func (c *Container) %sHandler() *http.%sHandler {\n",
+			feature, feature)
+		fmt.Fprintf(content, "\treturn c.%sHandler\n", fieldName)
 		content.WriteString("}\n\n")
 
 		// UseCase getter
-		content.WriteString(fmt.Sprintf("func (c *Container) %sUseCase() usecase.%sUseCase {\n",
-			feature, feature))
-		content.WriteString(fmt.Sprintf("\treturn c.%sUC\n", featureLower))
+		fmt.Fprintf(content, "func (c *Container) %sUseCase() usecase.%sUseCase {\n",
+			feature, feature)
+		fmt.Fprintf(content, "\treturn c.%sUC\n", featureLower)
 		content.WriteString("}\n\n")
 
 		// Repository getter
-		content.WriteString(fmt.Sprintf("func (c *Container) %sRepository() repository.%sRepository {\n",
-			feature, feature))
-		content.WriteString(fmt.Sprintf("\treturn c.%sRepo\n", featureLower))
+		fmt.Fprintf(content, "func (c *Container) %sRepository() repository.%sRepository {\n",
+			feature, feature)
+		fmt.Fprintf(content, "\treturn c.%sRepo\n", featureLower)
 		content.WriteString("}\n\n")
 	}
 }
@@ -286,7 +289,10 @@ func generateWireFile(dir string, features []string, database string) {
 	content.WriteString("\treturn &Container{}\n")
 	content.WriteString("}\n")
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing Wire file: %v\n", err)
+		return
+	}
 }
 
 func generateWireGenTemplate(dir string, features []string) {
@@ -334,7 +340,10 @@ func generateWireGenTemplate(dir string, features []string) {
 		content.WriteString("}\n\n")
 	}
 
-	writeGoFile(filename, content.String())
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing Wire generator file: %v\n", err)
+		return
+	}
 }
 
 func init() {
