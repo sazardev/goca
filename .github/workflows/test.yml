@@ -17,12 +17,37 @@ jobs:
       with:
         go-version: '1.21'
 
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Tidy dependencies
+      run: go mod tidy
+
+    - name: Verify dependencies
+      run: |
+        go mod verify
+        if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+          echo "Go module files were modified during 'go mod tidy'"
+          git diff go.mod go.sum
+          exit 1
+        fi
+
     - name: Build
       run: go build -v ./...
 
     - name: Build CLI Binary
       run: |
-        go build -o goca
+        go build -o goca .
         echo "$(pwd)" >> $GITHUB_PATH
 
     - name: Test
@@ -30,19 +55,25 @@ jobs:
 
     - name: Test CLI Commands
       run: |
-        # Build the binary
-        go build -o goca
-        
         # Test basic commands
         ./goca help
         ./goca version
         
-        # Test init command
-        mkdir test-project
-        cd test-project
-        ../goca init testapp --module github.com/sazardev/testapp
+        # Test init command in clean directory
+        mkdir -p test-workspace
+        cd test-workspace
+        
+        # Create test project
+        ../goca init testapp --module github.com/test/testapp
         
         # Verify structure was created
         [ -d "testapp" ] || exit 1
         [ -f "testapp/go.mod" ] || exit 1
         [ -d "testapp/internal" ] || exit 1
+        [ -d "testapp/cmd" ] || exit 1
+        [ -d "testapp/pkg" ] || exit 1
+        
+        # Verify generated project compiles
+        cd testapp
+        go mod tidy
+        go build ./...

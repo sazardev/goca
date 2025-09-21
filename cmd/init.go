@@ -188,7 +188,6 @@ import (
 	"gorm.io/driver/postgres"
 	"%s/pkg/config"
 	"%s/pkg/logger"
-	"%s/internal/domain"
 )
 
 type HealthStatus struct {
@@ -385,7 +384,7 @@ func checkDatabase() error {
 	
 	sqlDB, err := db.DB()
 	if err != nil {
-		return fmt.Errorf("failed to get underlying sql DB: %w", err)
+		return fmt.Errorf("failed to get underlying sql DB: %%w", err)
 	}
 	
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -411,25 +410,25 @@ func runAutoMigrations(database *gorm.DB) error {
 	// Run auto-migration for all entities
 	for _, entity := range entities {
 		if err := database.AutoMigrate(entity); err != nil {
-			return fmt.Errorf("failed to auto-migrate entity %T: %w", entity, err)
+			return fmt.Errorf("failed to auto-migrate entity %%T: %%w", entity, err)
 		}
 	}
 	
 	// For now, just ensure the connection works
 	sqlDB, err := database.DB()
 	if err != nil {
-		return fmt.Errorf("failed to get underlying SQL DB: %w", err)
+		return fmt.Errorf("failed to get underlying SQL DB: %%w", err)
 	}
 	
 	if err := sqlDB.Ping(); err != nil {
-		return fmt.Errorf("database ping failed: %w", err)
+		return fmt.Errorf("database ping failed: %%w", err)
 	}
 	
 	log.Println("✅ GORM auto-migrations completed successfully")
 	return nil
 }
 
-`, module, module, module)
+`, module, module)
 
 	writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content)
 }
