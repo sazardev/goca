@@ -91,7 +91,7 @@ func (g *DataGenerator) generateName(entity, field string) string {
 			products := []string{"Laptop Pro", "Smartphone X", "Tablet Ultra", "Auriculares Premium", "Monitor 4K"}
 			return products[g.rand.Intn(len(products))]
 		}
-	case "project":
+	case StringProject:
 		projects := []string{"Sistema de Gestión", "App Móvil", "Portal Web", "API Rest", "Dashboard Analytics"}
 		return projects[g.rand.Intn(len(projects))]
 	case "order":
@@ -181,17 +181,17 @@ func (g *DataGenerator) generateCode(entity string) string {
 // generateByType generates values based on Go types
 func (g *DataGenerator) generateByType(fieldType string) interface{} {
 	switch fieldType {
-	case "string":
+	case FieldString:
 		return "Sample text"
-	case "int", "int32", "int64":
+	case FieldInt, "int32", FieldInt64:
 		return g.rand.Intn(1000)
-	case "uint", "uint32", "uint64":
+	case FieldUint, "uint32", FieldUint64:
 		return uint(g.rand.Intn(1000))
-	case "float32", "float64":
+	case FieldFloat32, FieldFloat64:
 		return g.rand.Float64() * 1000
-	case "bool":
+	case FieldBool:
 		return g.rand.Intn(2) == 1
-	case "time.Time":
+	case FieldTime:
 		return time.Now().Add(-time.Duration(g.rand.Intn(365*24)) * time.Hour)
 	case "[]byte":
 		return []byte("sample data")

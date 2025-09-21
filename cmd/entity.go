@@ -122,8 +122,8 @@ func parseFields(fields string) []Field {
 
 func getGormTag(fieldName, fieldType string) string {
 	switch fieldType {
-	case "string":
-		if fieldName == "Email" {
+	case FieldString:
+		if fieldName == FieldEmailType {
 			return "type:varchar(255);uniqueIndex;not null"
 		}
 		if fieldName == "Title" || fieldName == "Name" {
@@ -133,11 +133,11 @@ func getGormTag(fieldName, fieldType string) string {
 			return "type:text"
 		}
 		return "type:varchar(255)"
-	case "int":
+	case FieldInt:
 		return "type:integer;not null;default:0"
-	case "bool":
+	case FieldBool:
 		return "type:boolean;not null;default:false"
-	case "float64":
+	case FieldFloat64:
 		return "type:decimal(10,2);not null;default:0"
 	default:
 		return "not null"
@@ -160,10 +160,31 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 
 	var content strings.Builder
 
-	// Package and imports
+	writeEntityHeader(&content, fields, businessRules, timestamps, softDelete)
+	writeEntityStruct(&content, entityName, fields)
+
+	if validation {
+		writeValidationMethod(&content, entityName, fields)
+	}
+
+	if businessRules {
+		generateBusinessRules(&content, entityName, fields)
+	}
+
+	if softDelete {
+		writeSoftDeleteMethods(&content, entityName)
+	}
+
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing entity file: %v\n", err)
+		return
+	}
+}
+
+// writeEntityHeader writes package declaration and imports
+func writeEntityHeader(content *strings.Builder, fields []Field, businessRules, timestamps, softDelete bool) {
 	content.WriteString("package domain\n\n")
 
-	// Determine which imports are needed
 	needsTime := timestamps || softDelete
 	needsStrings := businessRules && hasStringBusinessRules(fields)
 
@@ -177,60 +198,71 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 		}
 		content.WriteString(")\n\n")
 	}
+}
 
-	// Entity struct
-	content.WriteString(fmt.Sprintf("type %s struct {\n", entityName))
+// writeEntityStruct writes the entity struct definition
+func writeEntityStruct(content *strings.Builder, entityName string, fields []Field) {
+	fmt.Fprintf(content, "type %s struct {\n", entityName)
 	for _, field := range fields {
-		content.WriteString(fmt.Sprintf("\t%s %s %s\n", field.Name, field.Type, field.Tag))
+		fmt.Fprintf(content, "\t%s %s %s\n", field.Name, field.Type, field.Tag)
 	}
 	content.WriteString("}\n\n")
+}
 
-	// Validation method
-	if validation {
-		content.WriteString(fmt.Sprintf("func (%s *%s) Validate() error {\n", strings.ToLower(string(entityName[0])), entityName))
+// writeValidationMethod writes the Validate method for the entity
+func writeValidationMethod(content *strings.Builder, entityName string, fields []Field) {
+	entityVar := strings.ToLower(string(entityName[0]))
+	fmt.Fprintf(content, "func (%s *%s) Validate() error {\n", entityVar, entityName)
 
-		for _, field := range fields {
-			if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
-				continue
-			}
-
-			switch field.Type {
-			case "string":
-				content.WriteString(fmt.Sprintf("\tif %s.%s == \"\" {\n", strings.ToLower(string(entityName[0])), field.Name))
-				content.WriteString(fmt.Sprintf("\t\treturn ErrInvalid%s%s\n", entityName, field.Name))
-				content.WriteString("\t}\n")
-			case "int", "int64", "float64":
-				content.WriteString(fmt.Sprintf("\tif %s.%s < 0 {\n", strings.ToLower(string(entityName[0])), field.Name))
-				content.WriteString(fmt.Sprintf("\t\treturn ErrInvalid%s%s\n", entityName, field.Name))
-				content.WriteString("\t}\n")
-			}
+	for _, field := range fields {
+		if isSystemField(field.Name) {
+			continue
 		}
 
-		content.WriteString("\treturn nil\n")
-		content.WriteString("}\n\n")
+		writeFieldValidation(content, entityVar, entityName, field)
 	}
 
-	// Business rules methods
-	if businessRules {
-		generateBusinessRules(&content, entityName, fields)
-	}
+	content.WriteString("\treturn nil\n")
+	content.WriteString("}\n\n")
+}
 
-	// Soft delete methods
-	if softDelete {
-		content.WriteString(fmt.Sprintf("func (%s *%s) SoftDelete() {\n", strings.ToLower(string(entityName[0])), entityName))
-		content.WriteString("\tnow := time.Now()\n")
-		content.WriteString(fmt.Sprintf("\t%s.DeletedAt = &now\n", strings.ToLower(string(entityName[0]))))
-		content.WriteString("}\n\n")
-
-		content.WriteString(fmt.Sprintf("func (%s *%s) IsDeleted() bool {\n", strings.ToLower(string(entityName[0])), entityName))
-		content.WriteString(fmt.Sprintf("\treturn %s.DeletedAt != nil\n", strings.ToLower(string(entityName[0]))))
-		content.WriteString("}\n\n")
+// writeFieldValidation writes validation logic for a specific field
+func writeFieldValidation(content *strings.Builder, entityVar, entityName string, field Field) {
+	switch field.Type {
+	case FieldString:
+		fmt.Fprintf(content, "\tif %s.%s == \"\" {\n", entityVar, field.Name)
+		fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
+		content.WriteString("\t}\n")
+	case "int", "int64", "float64":
+		fmt.Fprintf(content, "\tif %s.%s < 0 {\n", entityVar, field.Name)
+		fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
+		content.WriteString("\t}\n")
 	}
+}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing entity file: %v\n", err)
-		return
+// writeSoftDeleteMethods writes soft delete helper methods
+func writeSoftDeleteMethods(content *strings.Builder, entityName string) {
+	entityVar := strings.ToLower(string(entityName[0]))
+
+	fmt.Fprintf(content, "func (%s *%s) SoftDelete() {\n", entityVar, entityName)
+	content.WriteString("\tnow := time.Now()\n")
+	fmt.Fprintf(content, "\t%s.DeletedAt = &now\n", entityVar)
+	content.WriteString("}\n\n")
+
+	fmt.Fprintf(content, "func (%s *%s) IsDeleted() bool {\n", entityVar, entityName)
+	fmt.Fprintf(content, "\treturn %s.DeletedAt != nil\n", entityVar)
+	content.WriteString("}\n\n")
+}
+
+// isSystemField checks if a field is a system-managed field
+func isSystemField(fieldName string) bool {
+	systemFields := []string{"ID", StringCreatedAt, "UpdatedAt", "DeletedAt"}
+	for _, sf := range systemFields {
+		if fieldName == sf {
+			return true
+		}
 	}
+	return false
 }
 
 func generateBusinessRules(content *strings.Builder, entityName string, fields []Field) {
@@ -264,11 +296,21 @@ func generateBusinessRules(content *strings.Builder, entityName string, fields [
 
 func generateErrorsFile(dir, entityName string, fields []Field) {
 	filename := filepath.Join(dir, "errors.go")
+	existingErrors := readExistingErrors(filename, entityName)
 
 	var content strings.Builder
+	writeErrorsHeader(&content)
+	writeEntityErrors(&content, entityName, fields, existingErrors)
+
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing errors file: %v\n", err)
+	}
+}
+
+// readExistingErrors reads existing error definitions from the file
+func readExistingErrors(filename, entityName string) []string {
 	var existingErrors []string
 
-	// Check if file exists and read existing errors
 	if _, err := os.Stat(filename); err == nil {
 		fmt.Printf("⚠️  Archivo errors.go ya existe, agregando nuevos errores para %s\n", entityName)
 
@@ -282,93 +324,122 @@ func generateErrorsFile(dir, entityName string, fields []Field) {
 			}
 		}
 	}
+	return existingErrors
+}
 
+// writeErrorsHeader writes the package declaration and imports
+func writeErrorsHeader(content *strings.Builder) {
 	content.WriteString("package domain\n\n")
 	content.WriteString("import \"errors\"\n\n")
 	content.WriteString("var (\n")
+}
 
-	// Add general error if not exists
+// writeEntityErrors writes all error definitions for the entity
+func writeEntityErrors(content *strings.Builder, entityName string, fields []Field, existingErrors []string) {
+	writeGeneralError(content, entityName, existingErrors)
+	writeExistingErrors(content, existingErrors)
+	writeFieldErrors(content, entityName, fields, existingErrors)
+	content.WriteString(")\n")
+}
+
+// writeGeneralError writes the general entity error
+func writeGeneralError(content *strings.Builder, entityName string, existingErrors []string) {
 	generalError := fmt.Sprintf("\tErrInvalid%sData = errors.New(\"datos de %s inválidos\")",
 		entityName, strings.ToLower(entityName))
 	if !contains(existingErrors, generalError) {
 		content.WriteString(generalError + "\n")
 	}
+}
 
-	// Add existing errors
+// writeExistingErrors writes previously defined errors
+func writeExistingErrors(content *strings.Builder, existingErrors []string) {
 	for _, err := range existingErrors {
 		content.WriteString(err + "\n")
 	}
+}
 
-	// Generate specific validation errors for all fields with Spanish messages
+// writeFieldErrors writes validation errors for all fields
+func writeFieldErrors(content *strings.Builder, entityName string, fields []Field, existingErrors []string) {
 	for _, field := range fields {
-		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
+		if isSystemField(field.Name) {
 			continue
 		}
 
-		// Generate field-specific errors based on type and name
-		fieldLower := strings.ToLower(field.Name)
+		writeRequiredFieldError(content, entityName, field, existingErrors)
+		writeTypeSpecificErrors(content, entityName, field, existingErrors)
+	}
+}
 
-		// Basic required field error
-		requiredError := fmt.Sprintf("\tErrInvalid%s%s = errors.New(\"%s es requerido\")",
+// writeRequiredFieldError writes the required field error
+func writeRequiredFieldError(content *strings.Builder, entityName string, field Field, existingErrors []string) {
+	fieldLower := strings.ToLower(field.Name)
+	requiredError := fmt.Sprintf("\tErrInvalid%s%s = errors.New(\"%s es requerido\")",
+		entityName, field.Name, getSpanishFieldName(fieldLower))
+	if !contains(existingErrors, requiredError) {
+		content.WriteString(requiredError + "\n")
+	}
+}
+
+// writeTypeSpecificErrors writes type-specific validation errors
+func writeTypeSpecificErrors(content *strings.Builder, entityName string, field Field, existingErrors []string) {
+	fieldLower := strings.ToLower(field.Name)
+
+	switch field.Type {
+	case FieldString:
+		writeStringFieldErrors(content, entityName, field, fieldLower, existingErrors)
+	case "int", "int64", "uint", "uint64":
+		writeIntegerFieldErrors(content, entityName, field, fieldLower, existingErrors)
+	case "float64", "float32":
+		writeFloatFieldErrors(content, entityName, field, fieldLower, existingErrors)
+	}
+}
+
+// writeStringFieldErrors writes string-specific validation errors
+func writeStringFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
+	if strings.Contains(fieldLower, FieldEmailType) {
+		emailError := fmt.Sprintf("\tErrInvalid%s%sFormat = errors.New(\"formato de %s inválido\")",
 			entityName, field.Name, getSpanishFieldName(fieldLower))
-		if !contains(existingErrors, requiredError) {
-			content.WriteString(requiredError + "\n")
-		}
-
-		// Type-specific errors
-		switch field.Type {
-		case "string":
-			if strings.Contains(fieldLower, "email") {
-				emailError := fmt.Sprintf("\tErrInvalid%s%sFormat = errors.New(\"formato de %s inválido\")",
-					entityName, field.Name, getSpanishFieldName(fieldLower))
-				if !contains(existingErrors, emailError) {
-					content.WriteString(emailError + "\n")
-				}
-			}
-
-			if strings.Contains(fieldLower, "name") {
-				lengthError := fmt.Sprintf("\tErrInvalid%s%sLength = errors.New(\"%s debe tener entre 2 y 100 caracteres\")",
-					entityName, field.Name, getSpanishFieldName(fieldLower))
-				if !contains(existingErrors, lengthError) {
-					content.WriteString(lengthError + "\n")
-				}
-			}
-
-		case "int", "int64", "uint", "uint64":
-			if strings.Contains(fieldLower, "age") {
-				ageError := fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser mayor a 0\")",
-					entityName, field.Name, getSpanishFieldName(fieldLower))
-				if !contains(existingErrors, ageError) {
-					content.WriteString(ageError + "\n")
-				}
-			} else {
-				rangeError := fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser un número positivo\")",
-					entityName, field.Name, getSpanishFieldName(fieldLower))
-				if !contains(existingErrors, rangeError) {
-					content.WriteString(rangeError + "\n")
-				}
-			}
-
-		case "float64", "float32":
-			if strings.Contains(fieldLower, "price") || strings.Contains(fieldLower, "amount") {
-				priceError := fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser mayor a 0 y menor a 999,999,999.99\")",
-					entityName, field.Name, getSpanishFieldName(fieldLower))
-				if !contains(existingErrors, priceError) {
-					content.WriteString(priceError + "\n")
-				}
-			} else {
-				numberError := fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser un número positivo\")",
-					entityName, field.Name, getSpanishFieldName(fieldLower))
-				if !contains(existingErrors, numberError) {
-					content.WriteString(numberError + "\n")
-				}
-			}
+		if !contains(existingErrors, emailError) {
+			content.WriteString(emailError + "\n")
 		}
 	}
 
-	content.WriteString(")\n")
-	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing errors file: %v\n", err)
+	if strings.Contains(fieldLower, "name") {
+		lengthError := fmt.Sprintf("\tErrInvalid%s%sLength = errors.New(\"%s debe tener entre 2 y 100 caracteres\")",
+			entityName, field.Name, getSpanishFieldName(fieldLower))
+		if !contains(existingErrors, lengthError) {
+			content.WriteString(lengthError + "\n")
+		}
+	}
+}
+
+// writeIntegerFieldErrors writes integer-specific validation errors
+func writeIntegerFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
+	var rangeError string
+	if strings.Contains(fieldLower, "age") {
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser mayor a 0\")",
+			entityName, field.Name, getSpanishFieldName(fieldLower))
+	} else {
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser un número positivo\")",
+			entityName, field.Name, getSpanishFieldName(fieldLower))
+	}
+	if !contains(existingErrors, rangeError) {
+		content.WriteString(rangeError + "\n")
+	}
+}
+
+// writeFloatFieldErrors writes float-specific validation errors
+func writeFloatFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
+	var rangeError string
+	if strings.Contains(fieldLower, "price") || strings.Contains(fieldLower, "amount") {
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser mayor a 0 y menor a 999,999,999.99\")",
+			entityName, field.Name, getSpanishFieldName(fieldLower))
+	} else {
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser un número positivo\")",
+			entityName, field.Name, getSpanishFieldName(fieldLower))
+	}
+	if !contains(existingErrors, rangeError) {
+		content.WriteString(rangeError + "\n")
 	}
 }
 
@@ -415,149 +486,199 @@ func generateSeedData(dir, entityName string, fields []Field) {
 	filename := filepath.Join(dir, strings.ToLower(entityName)+"_seeds.go")
 
 	var content strings.Builder
-	content.WriteString("package domain\n\n")
-	content.WriteString("import (\n")
-	content.WriteString("\t\"time\"\n")
-	content.WriteString(")\n\n")
-
-	content.WriteString(fmt.Sprintf("// Get%sSeeds retorna datos de ejemplo para %s\n", entityName, strings.ToLower(entityName)))
-	content.WriteString(fmt.Sprintf("func Get%sSeeds() []%s {\n", entityName, entityName))
-	content.WriteString(fmt.Sprintf("\treturn []%s{\n", entityName))
-
-	// Generate 3 sample records based on actual fields
-	for i := 1; i <= 3; i++ {
-		content.WriteString("\t\t{\n")
-		for _, field := range fields {
-			if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
-				continue // Skip auto-managed fields
-			}
-
-			sampleValue := generateSampleValue(field, i)
-			content.WriteString(fmt.Sprintf("\t\t\t%s: %s,\n", field.Name, sampleValue))
-		}
-		content.WriteString("\t\t},\n")
-	}
-
-	content.WriteString("\t}\n")
-	content.WriteString("}\n\n")
-
-	// Generate SQL INSERT statements as comments
-	content.WriteString(fmt.Sprintf("// GetSQL%sSeeds retorna sentencias SQL INSERT para %s\n", entityName, strings.ToLower(entityName)))
-	content.WriteString(fmt.Sprintf("func GetSQL%sSeeds() string {\n", entityName))
-	content.WriteString(fmt.Sprintf("\treturn `-- Datos de ejemplo para tabla %s\n", strings.ToLower(entityName)))
-
-	// Generate SQL INSERT statements
-	for i := 1; i <= 3; i++ {
-		content.WriteString(fmt.Sprintf("INSERT INTO %s (", strings.ToLower(entityName)+"s"))
-
-		// Field names
-		fieldNames := []string{}
-		for _, field := range fields {
-			if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
-				continue
-			}
-			fieldNames = append(fieldNames, strings.ToLower(field.Name))
-		}
-		content.WriteString(strings.Join(fieldNames, ", "))
-		content.WriteString(") VALUES (")
-
-		// Field values
-		values := []string{}
-		for _, field := range fields {
-			if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
-				continue
-			}
-			sqlValue := generateSQLSampleValue(field, i)
-			values = append(values, sqlValue)
-		}
-		content.WriteString(strings.Join(values, ", "))
-		content.WriteString(");\\n")
-	}
-
-	content.WriteString("`\n")
-	content.WriteString("}\n")
+	writeSeedFileHeader(&content)
+	writeGoSeeds(&content, entityName, fields)
+	writeSQLSeeds(&content, entityName, fields)
 
 	if err := writeGoFile(filename, content.String()); err != nil {
 		fmt.Printf("Error writing seed file: %v\n", err)
 	}
 }
 
+// writeSeedFileHeader writes the package declaration and imports for seed file
+func writeSeedFileHeader(content *strings.Builder) {
+	content.WriteString("package domain\n\n")
+	content.WriteString("import (\n")
+	content.WriteString("\t\"time\"\n")
+	content.WriteString(")\n\n")
+}
+
+// writeGoSeeds writes the Go struct seed data function
+func writeGoSeeds(content *strings.Builder, entityName string, fields []Field) {
+	fmt.Fprintf(content, "// Get%sSeeds retorna datos de ejemplo para %s\n", entityName, strings.ToLower(entityName))
+	fmt.Fprintf(content, "func Get%sSeeds() []%s {\n", entityName, entityName)
+	fmt.Fprintf(content, "\treturn []%s{\n", entityName)
+
+	// Generate 3 sample records based on actual fields
+	for i := 1; i <= 3; i++ {
+		writeGoSeedRecord(content, fields, i)
+	}
+
+	content.WriteString("\t}\n")
+	content.WriteString("}\n\n")
+}
+
+// writeGoSeedRecord writes a single Go seed record
+func writeGoSeedRecord(content *strings.Builder, fields []Field, recordNum int) {
+	content.WriteString("\t\t{\n")
+	for _, field := range fields {
+		if isSystemField(field.Name) {
+			continue // Skip auto-managed fields
+		}
+
+		sampleValue := generateSampleValue(field, recordNum)
+		fmt.Fprintf(content, "\t\t\t%s: %s,\n", field.Name, sampleValue)
+	}
+	content.WriteString("\t\t},\n")
+}
+
+// writeSQLSeeds writes the SQL INSERT seed data function
+func writeSQLSeeds(content *strings.Builder, entityName string, fields []Field) {
+	fmt.Fprintf(content, "// GetSQL%sSeeds retorna sentencias SQL INSERT para %s\n", entityName, strings.ToLower(entityName))
+	fmt.Fprintf(content, "func GetSQL%sSeeds() string {\n", entityName)
+	fmt.Fprintf(content, "\treturn `-- Datos de ejemplo para tabla %s\n", strings.ToLower(entityName))
+
+	// Generate SQL INSERT statements
+	for i := 1; i <= 3; i++ {
+		writeSQLInsertStatement(content, entityName, fields, i)
+	}
+
+	content.WriteString("`\n")
+	content.WriteString("}\n")
+}
+
+// writeSQLInsertStatement writes a single SQL INSERT statement
+func writeSQLInsertStatement(content *strings.Builder, entityName string, fields []Field, recordNum int) {
+	fmt.Fprintf(content, "INSERT INTO %s (", strings.ToLower(entityName)+"s")
+
+	// Field names
+	fieldNames := getNonSystemFieldNames(fields)
+	content.WriteString(strings.Join(fieldNames, ", "))
+	content.WriteString(") VALUES (")
+
+	// Field values
+	values := getSQLFieldValues(fields, recordNum)
+	content.WriteString(strings.Join(values, ", "))
+	content.WriteString(");\\n")
+}
+
+// getNonSystemFieldNames returns field names excluding system fields
+func getNonSystemFieldNames(fields []Field) []string {
+	var fieldNames []string
+	for _, field := range fields {
+		if !isSystemField(field.Name) {
+			fieldNames = append(fieldNames, strings.ToLower(field.Name))
+		}
+	}
+	return fieldNames
+}
+
+// getSQLFieldValues returns SQL-formatted field values
+func getSQLFieldValues(fields []Field, recordNum int) []string {
+	var values []string
+	for _, field := range fields {
+		if !isSystemField(field.Name) {
+			sqlValue := generateSQLSampleValue(field, recordNum)
+			values = append(values, sqlValue)
+		}
+	}
+	return values
+}
+
 // generateSampleValue creates realistic sample data based on field type and name
 func generateSampleValue(field Field, index int) string {
-	fieldLower := strings.ToLower(field.Name)
-
 	switch field.Type {
-	case "string":
-		switch {
-		case strings.Contains(fieldLower, "name"):
-			names := []string{"Juan Pérez", "María García", "Carlos López"}
-			return fmt.Sprintf("\"%s\"", names[(index-1)%len(names)])
-		case strings.Contains(fieldLower, "email"):
-			emails := []string{"juan@ejemplo.com", "maria@ejemplo.com", "carlos@ejemplo.com"}
-			return fmt.Sprintf("\"%s\"", emails[(index-1)%len(emails)])
-		case strings.Contains(fieldLower, "description"):
-			descriptions := []string{"Descripción detallada del primer elemento", "Información completa del segundo item", "Detalles específicos del tercer registro"}
-			return fmt.Sprintf("\"%s\"", descriptions[(index-1)%len(descriptions)])
-		case strings.Contains(fieldLower, "title"):
-			titles := []string{"Título Principal", "Elemento Secundario", "Item Terciario"}
-			return fmt.Sprintf("\"%s\"", titles[(index-1)%len(titles)])
-		case strings.Contains(fieldLower, "status"):
-			statuses := []string{"activo", "pendiente", "completado"}
-			return fmt.Sprintf("\"%s\"", statuses[(index-1)%len(statuses)])
-		case strings.Contains(fieldLower, "category"):
-			categories := []string{"tecnología", "educación", "salud"}
-			return fmt.Sprintf("\"%s\"", categories[(index-1)%len(categories)])
-		default:
-			return fmt.Sprintf("\"Ejemplo %s %d\"", field.Name, index)
-		}
-
+	case FieldString:
+		return generateStringSampleValue(field.Name, index)
 	case "int", "int64", "uint", "uint64":
-		switch {
-		case strings.Contains(fieldLower, "age"):
-			ages := []int{25, 30, 35}
-			return fmt.Sprintf("%d", ages[(index-1)%len(ages)])
-		case strings.Contains(fieldLower, "stock"):
-			stocks := []int{100, 50, 75}
-			return fmt.Sprintf("%d", stocks[(index-1)%len(stocks)])
-		case strings.Contains(fieldLower, "quantity"):
-			quantities := []int{10, 5, 15}
-			return fmt.Sprintf("%d", quantities[(index-1)%len(quantities)])
-		default:
-			return fmt.Sprintf("%d", index*10)
-		}
-
+		return generateIntSampleValue(field.Name, index)
 	case "float64", "float32":
-		switch {
-		case strings.Contains(fieldLower, "price"):
-			prices := []float64{99.99, 149.50, 199.99}
-			return fmt.Sprintf("%.2f", prices[(index-1)%len(prices)])
-		case strings.Contains(fieldLower, "amount"):
-			amounts := []float64{1000.00, 2500.50, 3750.75}
-			return fmt.Sprintf("%.2f", amounts[(index-1)%len(amounts)])
-		default:
-			return fmt.Sprintf("%.2f", float64(index)*10.50)
-		}
-
-	case "bool":
+		return generateFloatSampleValue(field.Name, index)
+	case FieldBool:
 		return fmt.Sprintf("%t", index%2 == 1)
-
 	case "time.Time":
 		return "time.Now()"
-
 	default:
-		// Generar valores por defecto inteligentes según el tipo
-		switch {
-		case strings.Contains(field.Type, "int"):
-			return fmt.Sprintf("%d", index*10)
-		case strings.Contains(field.Type, "string"):
-			return fmt.Sprintf("\"Valor%d\"", index)
-		case strings.Contains(field.Type, "float"):
-			return fmt.Sprintf("%.2f", float64(index)*10.5)
-		case strings.Contains(field.Type, "bool"):
-			return fmt.Sprintf("%t", index%2 == 1)
-		default:
-			return "nil // Tipo personalizado"
-		}
+		return generateDefaultSampleValue(field.Type, index)
+	}
+}
+
+// generateStringSampleValue generates string sample values based on field name
+func generateStringSampleValue(fieldName string, index int) string {
+	fieldLower := strings.ToLower(fieldName)
+
+	switch {
+	case strings.Contains(fieldLower, "name"):
+		names := []string{"Juan Pérez", "María García", "Carlos López"}
+		return fmt.Sprintf("\"%s\"", names[(index-1)%len(names)])
+	case strings.Contains(fieldLower, FieldEmailType):
+		emails := []string{"juan@ejemplo.com", "maria@ejemplo.com", "carlos@ejemplo.com"}
+		return fmt.Sprintf("\"%s\"", emails[(index-1)%len(emails)])
+	case strings.Contains(fieldLower, "description"):
+		descriptions := []string{"Descripción detallada del primer elemento", "Información completa del segundo item", "Detalles específicos del tercer registro"}
+		return fmt.Sprintf("\"%s\"", descriptions[(index-1)%len(descriptions)])
+	case strings.Contains(fieldLower, "title"):
+		titles := []string{"Título Principal", "Elemento Secundario", "Item Terciario"}
+		return fmt.Sprintf("\"%s\"", titles[(index-1)%len(titles)])
+	case strings.Contains(fieldLower, "status"):
+		statuses := []string{"activo", "pendiente", "completado"}
+		return fmt.Sprintf("\"%s\"", statuses[(index-1)%len(statuses)])
+	case strings.Contains(fieldLower, "category"):
+		categories := []string{"tecnología", "educación", "salud"}
+		return fmt.Sprintf("\"%s\"", categories[(index-1)%len(categories)])
+	default:
+		return fmt.Sprintf("\"Ejemplo %s %d\"", fieldName, index)
+	}
+}
+
+// generateIntSampleValue generates integer sample values based on field name
+func generateIntSampleValue(fieldName string, index int) string {
+	fieldLower := strings.ToLower(fieldName)
+
+	switch {
+	case strings.Contains(fieldLower, "age"):
+		ages := []int{25, 30, 35}
+		return fmt.Sprintf("%d", ages[(index-1)%len(ages)])
+	case strings.Contains(fieldLower, "stock"):
+		stocks := []int{100, 50, 75}
+		return fmt.Sprintf("%d", stocks[(index-1)%len(stocks)])
+	case strings.Contains(fieldLower, "quantity"):
+		quantities := []int{10, 5, 15}
+		return fmt.Sprintf("%d", quantities[(index-1)%len(quantities)])
+	default:
+		return fmt.Sprintf("%d", index*10)
+	}
+}
+
+// generateFloatSampleValue generates float sample values based on field name
+func generateFloatSampleValue(fieldName string, index int) string {
+	fieldLower := strings.ToLower(fieldName)
+
+	switch {
+	case strings.Contains(fieldLower, "price"):
+		prices := []float64{99.99, 149.50, 199.99}
+		return fmt.Sprintf("%.2f", prices[(index-1)%len(prices)])
+	case strings.Contains(fieldLower, "amount"):
+		amounts := []float64{1000.00, 2500.50, 3750.75}
+		return fmt.Sprintf("%.2f", amounts[(index-1)%len(amounts)])
+	default:
+		return fmt.Sprintf("%.2f", float64(index)*10.50)
+	}
+}
+
+// generateDefaultSampleValue generates default sample values for unknown types
+func generateDefaultSampleValue(fieldType string, index int) string {
+	switch {
+	case strings.Contains(fieldType, FieldInt):
+		return fmt.Sprintf("%d", index*10)
+	case strings.Contains(fieldType, FieldString):
+		return fmt.Sprintf("\"Valor%d\"", index)
+	case strings.Contains(fieldType, "float"):
+		return fmt.Sprintf("%.2f", float64(index)*10.5)
+	case strings.Contains(fieldType, FieldBool):
+		return fmt.Sprintf("%t", index%2 == 1)
+	default:
+		return "nil // Tipo personalizado"
 	}
 }
 

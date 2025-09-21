@@ -354,11 +354,10 @@ func (v *FieldValidator) isLikelyUniqueField(fieldName string) bool {
 
 // isCommonQueryField checks if a field is commonly used for queries
 func (v *FieldValidator) isCommonQueryField(entityName, fieldName string) bool {
-	if commonFields, exists := CommonQueryFields[entityName]; exists {
-		for _, common := range commonFields {
-			if fieldName == common {
-				return true
-			}
+	// Check general common query fields
+	for _, common := range CommonQueryFields {
+		if fieldName == common {
+			return true
 		}
 	}
 

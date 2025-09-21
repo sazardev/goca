@@ -197,7 +197,6 @@ func updateDIContainer(featureName string) {
 func addFeatureToDI(featureName string) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
-	// Read existing content
 	content, err := os.ReadFile(diPath)
 	if err != nil {
 		fmt.Printf("   ⚠️  Could not read DI container: %v\n", err)
@@ -215,35 +214,62 @@ func addFeatureToDI(featureName string) {
 
 	fmt.Printf("   ➕ Agregando %s al contenedor DI...\n", featureName)
 
+	updatedContent := addFieldsToDIContainer(contentStr, featureName, featureLower)
+	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower)
+	updatedContent = addGetterMethodsToDI(updatedContent, featureName, featureLower)
+
+	if err := os.WriteFile(diPath, []byte(updatedContent), 0644); err != nil {
+		fmt.Printf("   ⚠️  Could not update DI container: %v\n", err)
+		return
+	}
+
+	fmt.Printf("   ✅ %s integrado en el contenedor DI\n", featureName)
+}
+
+// addFieldsToDIContainer adds the repository, use case, and handler fields to the DI container
+func addFieldsToDIContainer(content, featureName, featureLower string) string {
 	// Add repository field
 	repoField := fmt.Sprintf("\t%sRepo    repository.%sRepository\n", featureLower, featureName)
-	contentStr = strings.Replace(contentStr, "\n\t// Use Cases", repoField+"\n\t// Use Cases", 1)
+	content = strings.Replace(content, "\n\t// Use Cases", repoField+"\n\t// Use Cases", 1)
 
 	// Add use case field
 	ucField := fmt.Sprintf("\t%sUC    usecase.%sUseCase\n", featureLower, featureName)
-	contentStr = strings.Replace(contentStr, "\n\t// Handlers", ucField+"\n\t// Handlers", 1)
+	content = strings.Replace(content, "\n\t// Handlers", ucField+"\n\t// Handlers", 1)
 
 	// Add handler field
 	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
 	handlerField := fmt.Sprintf("\t%sHandler    *http.%sHandler\n", fieldName, featureName)
-	contentStr = strings.Replace(contentStr, "}\n\nfunc NewContainer", handlerField+"}\n\nfunc NewContainer", 1)
+	content = strings.Replace(content, "}\n\nfunc NewContainer", handlerField+"}\n\nfunc NewContainer", 1)
+
+	return content
+}
+
+// addSetupMethodsToDI adds setup method calls for the feature
+func addSetupMethodsToDI(content, featureName, featureLower string) string {
+	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
 
 	// Add repository setup
 	repoSetup := fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n", featureLower, featureName)
 	setupRepoEnd := "}\n\nfunc (c *Container) setupUseCases() {"
-	contentStr = strings.Replace(contentStr, setupRepoEnd, repoSetup+setupRepoEnd, 1)
+	content = strings.Replace(content, setupRepoEnd, repoSetup+setupRepoEnd, 1)
 
 	// Add use case setup
 	ucSetup := fmt.Sprintf("\tc.%sUC = usecase.New%sService(c.%sRepo)\n", featureLower, featureName, featureLower)
 	setupUCEnd := "}\n\nfunc (c *Container) setupHandlers() {"
-	contentStr = strings.Replace(contentStr, setupUCEnd, ucSetup+setupUCEnd, 1)
+	content = strings.Replace(content, setupUCEnd, ucSetup+setupUCEnd, 1)
 
 	// Add handler setup
 	handlerSetup := fmt.Sprintf("\tc.%sHandler = http.New%sHandler(c.%sUC)\n", fieldName, featureName, featureLower)
 	setupHandlerEnd := "}\n\n// Getters"
-	contentStr = strings.Replace(contentStr, setupHandlerEnd, handlerSetup+setupHandlerEnd, 1)
+	content = strings.Replace(content, setupHandlerEnd, handlerSetup+setupHandlerEnd, 1)
 
-	// Add getters
+	return content
+}
+
+// addGetterMethodsToDI adds getter methods for the feature components
+func addGetterMethodsToDI(content, featureName, featureLower string) string {
+	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
+
 	getters := fmt.Sprintf(`func (c *Container) %sHandler() *http.%sHandler {
 	return c.%sHandler
 }
@@ -258,49 +284,19 @@ func (c *Container) %sRepository() repository.%sRepository {
 
 `, featureName, featureName, fieldName, featureName, featureName, featureLower, featureName, featureName, featureLower)
 
-	// Add getters at the end
-	contentStr = contentStr + getters
-
-	// Write updated content
-	if err := os.WriteFile(diPath, []byte(contentStr), 0644); err != nil {
-		fmt.Printf("   ⚠️  Could not update DI container: %v\n", err)
-		return
-	}
-
-	fmt.Printf("   ✅ %s integrado en el contenedor DI\n", featureName)
+	return content + getters
 }
 
 // updateMainRoutes updates main.go to include new feature routes
 func updateMainRoutes(featureName string) {
-	// Try multiple possible locations for main.go
-	possiblePaths := []string{
-		"main.go", // Root directory (default from init)
-		filepath.Join("cmd", "server", "main.go"), // Alternative location
-		filepath.Join("cmd", "main.go"),           // Another common location
-	}
-
-	var mainPath string
-	var found bool
-
-	// Find main.go in one of the possible locations
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			mainPath = path
-			found = true
-			break
-		}
-	}
-
+	mainPath, found := findMainGoPath()
 	if !found {
-		fmt.Println("   ⚠️  main.go no encontrado en ninguna ubicación esperada, omitiendo registro de rutas")
-		fmt.Println("   💡 You can manually add the routes to your main.go file")
-		printManualIntegrationInstructions(featureName)
+		handleMainGoNotFound(featureName)
 		return
 	}
 
 	fmt.Printf("   📍 Encontrado main.go en: %s\n", mainPath)
 
-	// Read existing content
 	content, err := os.ReadFile(mainPath)
 	if err != nil {
 		fmt.Printf("   ⚠️  Could not read main.go: %v\n", err)
@@ -308,16 +304,11 @@ func updateMainRoutes(featureName string) {
 		return
 	}
 
-	contentStr := string(content)
-	featureLower := strings.ToLower(featureName)
-
-	// Check if feature routes already exist
-	if strings.Contains(contentStr, fmt.Sprintf("/%ss", featureLower)) {
+	if isFeatureAlreadyRegistered(string(content), featureName) {
 		fmt.Println("   ✅ Las rutas ya están registradas")
 		return
 	}
 
-	// Get module name
 	moduleName := getModuleName()
 	if moduleName == "" {
 		fmt.Println("   ⚠️  Could not determine module name from go.mod")
@@ -325,23 +316,46 @@ func updateMainRoutes(featureName string) {
 		return
 	}
 
-	// Always use complete GORM setup for consistency
-	needsCompleteSetup := true
+	setupMainGoWithFeature(mainPath, featureName, moduleName, string(content))
+}
 
-	if needsCompleteSetup {
-		fmt.Println("   🔧 Configurando main.go completo con DI...")
-		if !updateMainGoWithCompleteSetup(mainPath, featureName, moduleName) {
-			printManualIntegrationInstructions(featureName)
-			return
-		}
-	} else {
-		fmt.Println("   🔗 Agregando rutas al main.go existente...")
-		if !updateMainGoWithRoutes(mainPath, featureName, moduleName, contentStr) {
-			printManualIntegrationInstructions(featureName)
-			return
-		}
+// findMainGoPath locates the main.go file in possible locations
+func findMainGoPath() (string, bool) {
+	possiblePaths := []string{
+		"main.go", // Root directory (default from init)
+		filepath.Join("cmd", "server", "main.go"), // Alternative location
+		filepath.Join("cmd", "main.go"),           // Another common location
 	}
 
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(path); err == nil {
+			return path, true
+		}
+	}
+	return "", false
+}
+
+// handleMainGoNotFound handles the case when main.go is not found
+func handleMainGoNotFound(featureName string) {
+	fmt.Println("   ⚠️  main.go no encontrado en ninguna ubicación esperada, omitiendo registro de rutas")
+	fmt.Println("   💡 You can manually add the routes to your main.go file")
+	printManualIntegrationInstructions(featureName)
+}
+
+// isFeatureAlreadyRegistered checks if feature routes are already present
+func isFeatureAlreadyRegistered(content, featureName string) bool {
+	featureLower := strings.ToLower(featureName)
+	return strings.Contains(content, fmt.Sprintf("/%ss", featureLower))
+}
+
+// setupMainGoWithFeature sets up the main.go file with the new feature
+func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
+	// Always use complete GORM setup for consistency
+	fmt.Println("   🔧 Configurando main.go completo con DI...")
+	if !updateMainGoWithCompleteSetup(mainPath, featureName, moduleName) {
+		printManualIntegrationInstructions(featureName)
+		return
+	}
 	fmt.Println("   ✅ Rutas registradas exitosamente")
 }
 
@@ -362,78 +376,6 @@ func updateMainGoWithCompleteSetup(mainPath, featureName, moduleName string) boo
 	fmt.Printf("   📍 Actualizando main.go para feature %s\n", featureName)
 
 	// Por ahora solo registramos que se procesó
-	return true
-}
-
-// updateMainGoWithRoutes adds routes to an existing main.go with DI setup
-func updateMainGoWithRoutes(mainPath, featureName, moduleName, contentStr string) bool {
-	featureLower := strings.ToLower(featureName)
-
-	// Add import for DI if not present
-	importPath := getImportPath(moduleName)
-	if !strings.Contains(contentStr, fmt.Sprintf("\"%s/internal/di\"", importPath)) {
-		// Try to add the import (GORM-based)
-		importPattern := "import ("
-		diImport := fmt.Sprintf("import (\n\t\"context\"\n\t\"fmt\"\n\t\"log\"\n\t\"net/http\"\n\t\"os\"\n\t\"os/signal\"\n\t\"syscall\"\n\t\"time\"\n\n\t\"github.com/gorilla/mux\"\n\t\"gorm.io/gorm\"\n\t\"gorm.io/driver/postgres\"\n\t\"%s/internal/di\"\n\t\"%s/pkg/config\"\n\t\"%s/internal/domain\"\n)", importPath, importPath, importPath)
-
-		if strings.Contains(contentStr, importPattern) {
-			contentStr = strings.Replace(contentStr, importPattern, diImport[:len(importPattern)], 1)
-			// Replace the rest after the opening
-			afterImport := strings.SplitN(contentStr, importPattern, 2)[1]
-			if closeIndex := strings.Index(afterImport, ")"); closeIndex != -1 {
-				contentStr = strings.Replace(contentStr, importPattern+afterImport[:closeIndex+1], diImport, 1)
-			}
-		}
-	}
-
-	// Add DI container setup if not present
-	if !strings.Contains(contentStr, "container := di.NewContainer(db)") {
-		setupContainer := "\n\t// Setup DI container\n\tcontainer := di.NewContainer(db)\n"
-		if strings.Contains(contentStr, "// Setup router") {
-			contentStr = strings.Replace(contentStr, "// Setup router", setupContainer+"\t// Setup router", 1)
-		} else if strings.Contains(contentStr, "router := mux.NewRouter()") {
-			contentStr = strings.Replace(contentStr, "router := mux.NewRouter()", setupContainer+"\n\t// Setup router\n\trouter := mux.NewRouter()", 1)
-		}
-	}
-
-	// Add feature routes
-	routeRegistration := fmt.Sprintf(`
-	// %s routes
-	%sHandler := container.%sHandler()
-	router.HandleFunc("/api/v1/%ss", %sHandler.Create%s).Methods("POST")
-	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Get%s).Methods("GET")
-	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Update%s).Methods("PUT")
-	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Delete%s).Methods("DELETE")
-	router.HandleFunc("/api/v1/%ss", %sHandler.List%ss).Methods("GET")
-`, featureName, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName, featureLower, featureLower, featureName)
-
-	// Insert routes before server start
-	serverStartPatterns := []string{
-		"log.Printf(\"Server starting on port %s\", cfg.Port)",
-		"log.Printf(\"Server starting on port %%s\", cfg.Port)",
-		"log.Fatal(http.ListenAndServe(",
-	}
-
-	routeInserted := false
-	for _, pattern := range serverStartPatterns {
-		if strings.Contains(contentStr, pattern) {
-			contentStr = strings.Replace(contentStr, pattern, routeRegistration+"\n\t"+pattern, 1)
-			routeInserted = true
-			break
-		}
-	}
-
-	if !routeInserted {
-		fmt.Println("   ⚠️  Could not find a place to insert routes")
-		return false
-	}
-
-	// Write updated content
-	if err := os.WriteFile(mainPath, []byte(contentStr), 0644); err != nil {
-		fmt.Printf("   ⚠️  Could not update main.go: %v\n", err)
-		return false
-	}
-
 	return true
 }
 

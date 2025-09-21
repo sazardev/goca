@@ -116,10 +116,10 @@ func createGoMod(projectName, module, database string, auth bool) {
 	gorm.io/driver/postgres v1.5.4`
 
 	switch database {
-	case "mysql":
+	case DBMySQL:
 		baseDeps += `
 	gorm.io/driver/mysql v1.5.2`
-	case "mongodb":
+	case DBMongoDB:
 		baseDeps += `
 	go.mongodb.org/mongo-driver v1.12.1`
 	default: // postgres - already included above

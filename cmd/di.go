@@ -211,76 +211,108 @@ func generateWireDI(dir string, features []string, database string) {
 }
 
 func generateWireFile(dir string, features []string, database string) {
-	// Get the module name from go.mod
 	moduleName := getModuleName()
-
-	// Use relative imports for local development and testing
 	importPath := getImportPath(moduleName)
-
 	filename := filepath.Join(dir, "wire.go")
 
 	var content strings.Builder
+	writeWireHeader(&content)
+	writeWireImports(&content, importPath)
+	writeWireSets(&content, features, database)
+	writeWireFunctions(&content, features)
+
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error writing Wire file: %v\n", err)
+		return
+	}
+}
+
+// writeWireHeader writes the Wire file header with build tags
+func writeWireHeader(content *strings.Builder) {
 	content.WriteString("//go:build wireinject\n")
 	content.WriteString("// +build wireinject\n\n")
 	content.WriteString("package di\n\n")
+}
+
+// writeWireImports writes the import section for Wire file
+func writeWireImports(content *strings.Builder, importPath string) {
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n\n")
 	content.WriteString("\t\"github.com/google/wire\"\n")
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", importPath))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
-	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
-	content.WriteString(")\n\n") // Wire sets
+	fmt.Fprintf(content, "\t\"%s/internal/repository\"\n", importPath)
+	fmt.Fprintf(content, "\t\"%s/internal/usecase\"\n", importPath)
+	fmt.Fprintf(content, "\t\"%s/internal/handler/http\"\n", importPath)
+	content.WriteString(")\n\n")
+}
+
+// writeWireSets writes all Wire sets (Repository, UseCase, Handler, All)
+func writeWireSets(content *strings.Builder, features []string, database string) {
 	content.WriteString("// Wire sets\n")
 	content.WriteString("var (\n")
 
-	// Repository set
+	writeRepositorySet(content, features, database)
+	writeUseCaseSet(content, features)
+	writeHandlerSet(content, features)
+	writeAllSet(content)
+
+	content.WriteString(")\n\n")
+}
+
+// writeRepositorySet writes the Repository Wire set
+func writeRepositorySet(content *strings.Builder, features []string, database string) {
 	content.WriteString("\tRepositorySet = wire.NewSet(\n")
 	for _, feature := range features {
 		switch database {
 		case dbPostgres:
-			content.WriteString(fmt.Sprintf("\t\trepository.NewPostgres%sRepository,\n", feature))
+			fmt.Fprintf(content, "\t\trepository.NewPostgres%sRepository,\n", feature)
 		case dbMySQL:
-			content.WriteString(fmt.Sprintf("\t\trepository.NewMySQL%sRepository,\n", feature))
+			fmt.Fprintf(content, "\t\trepository.NewMySQL%sRepository,\n", feature)
 		case dbMongoDB:
-			content.WriteString(fmt.Sprintf("\t\trepository.NewMongo%sRepository,\n", feature))
+			fmt.Fprintf(content, "\t\trepository.NewMongo%sRepository,\n", feature)
 		default:
-			content.WriteString(fmt.Sprintf("\t\trepository.NewPostgres%sRepository,\n", feature))
+			fmt.Fprintf(content, "\t\trepository.NewPostgres%sRepository,\n", feature)
 		}
 	}
 	content.WriteString("\t)\n\n")
+}
 
-	// UseCase set
+// writeUseCaseSet writes the UseCase Wire set
+func writeUseCaseSet(content *strings.Builder, features []string) {
 	content.WriteString("\tUseCaseSet = wire.NewSet(\n")
 	for _, feature := range features {
-		content.WriteString(fmt.Sprintf("\t\tusecase.New%sService,\n", feature))
+		fmt.Fprintf(content, "\t\tusecase.New%sService,\n", feature)
 	}
 	content.WriteString("\t)\n\n")
+}
 
-	// Handler set
+// writeHandlerSet writes the Handler Wire set
+func writeHandlerSet(content *strings.Builder, features []string) {
 	content.WriteString("\tHandlerSet = wire.NewSet(\n")
 	for _, feature := range features {
-		content.WriteString(fmt.Sprintf("\t\thttp.New%sHandler,\n", feature))
+		fmt.Fprintf(content, "\t\thttp.New%sHandler,\n", feature)
 	}
 	content.WriteString("\t)\n\n")
+}
 
-	// All set
+// writeAllSet writes the combined All Wire set
+func writeAllSet(content *strings.Builder) {
 	content.WriteString("\tAllSet = wire.NewSet(\n")
 	content.WriteString("\t\tRepositorySet,\n")
 	content.WriteString("\t\tUseCaseSet,\n")
 	content.WriteString("\t\tHandlerSet,\n")
 	content.WriteString("\t)\n")
-	content.WriteString(")\n\n")
+}
 
-	// Wire functions
+// writeWireFunctions writes Wire initialization functions
+func writeWireFunctions(content *strings.Builder, features []string) {
 	for _, feature := range features {
-		content.WriteString(fmt.Sprintf("func Initialize%sHandler(db *sql.DB) *http.%sHandler {\n",
-			feature, feature))
+		fmt.Fprintf(content, "func Initialize%sHandler(db *sql.DB) *http.%sHandler {\n",
+			feature, feature)
 		content.WriteString("\twire.Build(AllSet)\n")
-		content.WriteString(fmt.Sprintf("\treturn &http.%sHandler{}\n", feature))
+		fmt.Fprintf(content, "\treturn &http.%sHandler{}\n", feature)
 		content.WriteString("}\n\n")
 	}
 
-	// Main container function
 	content.WriteString("func InitializeContainer(db *sql.DB) *Container {\n")
 	content.WriteString("\twire.Build(\n")
 	content.WriteString("\t\tAllSet,\n")
@@ -288,11 +320,6 @@ func generateWireFile(dir string, features []string, database string) {
 	content.WriteString("\t)\n")
 	content.WriteString("\treturn &Container{}\n")
 	content.WriteString("}\n")
-
-	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing Wire file: %v\n", err)
-		return
-	}
 }
 
 func generateWireGenTemplate(dir string, features []string) {

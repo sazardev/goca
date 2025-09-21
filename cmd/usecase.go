@@ -130,7 +130,7 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 			} else {
 				generateUpdateDTO(&content, entity, validation)
 			}
-		case opRead, "get":
+		case opRead, OperationGet:
 			// Read operations typically don't need input DTOs, just output
 		case opList:
 			generateListDTO(&content, entity)

@@ -187,3 +187,14 @@ const (
 	MsgGeneratingUseCase    = "Generating use case '%s' for entity '%s'"
 	MsgGeneratingLayers     = "Generating layers..."
 )
+
+// Additional string constants for repeated values
+const (
+	StringProject   = "project"
+	StringEmail     = "Email"
+	StringCreatedAt = "CreatedAt"
+	StringGet       = "get"
+	FieldEmailType  = "Email"   // Email field type
+	FieldProjectVal = "project" // Project field value
+	OperationGet    = "get"     // Get operation type
+)
