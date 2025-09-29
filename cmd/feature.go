@@ -24,26 +24,68 @@ including domain, use cases, repository and handlers in a single operation.`,
 		validation, _ := cmd.Flags().GetBool("validation")
 		businessRules, _ := cmd.Flags().GetBool("business-rules")
 
+		// Initialize configuration integration
+		configIntegration := NewConfigIntegration()
+		if err := configIntegration.LoadConfigForProject(); err != nil {
+			fmt.Printf("⚠️  Warning: Could not load configuration: %v\n", err)
+			fmt.Println("📝 Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+		}
+
+		// Merge CLI flags with configuration (CLI flags take precedence)
+		flags := map[string]interface{}{
+			"database":       database,
+			"handlers":       handlers,
+			"validation":     validation,
+			"business-rules": businessRules,
+		}
+		configIntegration.MergeWithCLIFlags(flags)
+
+		// Get effective values from configuration
+		effectiveDatabase := configIntegration.GetDatabaseType(database)
+		effectiveHandlers := strings.Join(configIntegration.GetHandlerTypes(handlers), ",")
+		effectiveValidation := configIntegration.GetValidationEnabled(&validation)
+		effectiveBusinessRules := configIntegration.GetBusinessRulesEnabled(&businessRules)
+
 		// Usar validador centralizado
 		validator := NewCommandValidator()
 
-		if err := validator.ValidateFeatureCommand(featureName, fields, database, handlers); err != nil {
+		if err := validator.ValidateFeatureCommand(featureName, fields, effectiveDatabase, effectiveHandlers); err != nil {
 			validator.errorHandler.HandleError(err, "validación de parámetros")
 		}
 
 		fmt.Printf(MsgGeneratingFeature+"\n", featureName)
 		fmt.Printf("📋 Campos: %s\n", fields)
-		fmt.Printf("🗄️  Base de datos: %s\n", database)
-		fmt.Printf("🌐 Handlers: %s\n", handlers)
-
-		if validation {
-			fmt.Println("✅ Incluyendo validaciones")
+		fmt.Printf("🗄️  Base de datos: %s", effectiveDatabase)
+		if configIntegration.HasConfigFile() {
+			fmt.Printf(" (desde config)")
 		}
-		if businessRules {
-			fmt.Println("🧠 Incluyendo reglas de negocio")
+		fmt.Println()
+		fmt.Printf("🌐 Handlers: %s", effectiveHandlers)
+		if configIntegration.HasConfigFile() {
+			fmt.Printf(" (desde config)")
+		}
+		fmt.Println()
+
+		if effectiveValidation {
+			fmt.Print("✅ Incluyendo validaciones")
+			if configIntegration.HasConfigFile() {
+				fmt.Printf(" (desde config)")
+			}
+			fmt.Println()
+		}
+		if effectiveBusinessRules {
+			fmt.Print("🧠 Incluyendo reglas de negocio")
+			if configIntegration.HasConfigFile() {
+				fmt.Printf(" (desde config)")
+			}
+			fmt.Println()
 		}
 
-		generateCompleteFeature(featureName, fields, database, handlers, validation, businessRules)
+		if configIntegration.HasConfigFile() {
+			configIntegration.PrintConfigSummary()
+		}
+
+		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules)
 
 		// 6. Auto-integrate with DI and main.go
 		fmt.Println("6️⃣  Integrando automáticamente...")

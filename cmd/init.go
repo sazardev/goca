@@ -25,30 +25,58 @@ including directories, configuration files and layer structure.`,
 		database, _ := cmd.Flags().GetString("database")
 		auth, _ := cmd.Flags().GetBool("auth")
 		api, _ := cmd.Flags().GetString("api")
+		config, _ := cmd.Flags().GetBool("config")
 
 		if module == "" {
 			fmt.Println("Error: --module flag is required")
 			os.Exit(1)
 		}
 
-		fmt.Printf("Inicializando proyecto '%s' con módulo '%s'\n", projectName, module)
-		fmt.Printf("Base de datos: %s\n", database)
-		fmt.Printf("API: %s\n", api)
+		fmt.Printf("🚀 Inicializando proyecto '%s' con módulo '%s'\n", projectName, module)
+		fmt.Printf("📊 Base de datos: %s\n", database)
+		fmt.Printf("🌐 API: %s\n", api)
 		if auth {
-			fmt.Println("Incluyendo autenticación")
+			fmt.Println("🔐 Incluyendo autenticación")
+		}
+		if config {
+			fmt.Println("⚙️  Generando configuración YAML")
 		}
 
-		createProjectStructure(projectName, module, database, auth, api)
+		// Create configuration integration
+		configIntegration := NewConfigIntegration()
+
+		// Merge CLI flags with configuration
+		flags := map[string]interface{}{
+			"database": database,
+			"auth":     auth,
+			"api":      api,
+		}
+		configIntegration.MergeWithCLIFlags(flags)
+
+		createProjectStructure(projectName, module, database, auth, api, configIntegration, config)
+
 		fmt.Printf("\n✅ Project '%s' created successfully!\n", projectName)
 		fmt.Printf("📁 Directory: ./%s\n", projectName)
-		fmt.Println("\nNext steps:")
+
+		if config {
+			fmt.Printf("⚙️  Configuration file: ./%s/.goca.yaml\n", projectName)
+		}
+
+		fmt.Println("\n📋 Next steps:")
 		fmt.Printf("  cd %s\n", projectName)
 		fmt.Println("  go mod tidy")
-		fmt.Println("  goca feature User --fields \"name:string,email:string\"")
+
+		if config {
+			fmt.Println("  # Edit .goca.yaml to customize your project")
+			fmt.Println("  goca feature User --fields \"name:string,email:string\"")
+		} else {
+			fmt.Println("  goca feature User --fields \"name:string,email:string\"")
+			fmt.Printf("  # Or generate config: goca init %s --module %s --config\n", projectName, module)
+		}
 	},
 }
 
-func createProjectStructure(projectName, module, database string, auth bool, api string) {
+func createProjectStructure(projectName, module, database string, auth bool, api string, configIntegration *ConfigIntegration, generateConfig bool) {
 	// Create main directories
 	dirs := []string{
 		filepath.Join(projectName, "cmd", "server"),
@@ -98,6 +126,16 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 
 	if auth {
 		createAuth(projectName, module)
+	}
+
+	// Generate .goca.yaml configuration file if requested
+	if generateConfig && configIntegration != nil {
+		configPath := filepath.Join(projectName, ".goca.yaml")
+		if err := configIntegration.GenerateConfigFile(projectName, projectName, module); err != nil {
+			fmt.Printf("⚠️  Warning: Failed to generate config file: %v\n", err)
+		} else {
+			fmt.Printf("📝 Generated configuration file: %s\n", configPath)
+		}
 	}
 
 	// Download dependencies after creating go.mod
@@ -1327,5 +1365,6 @@ func init() {
 	initCmd.Flags().StringP("database", "d", "postgres", "Database type (postgres, mysql, mongodb)")
 	initCmd.Flags().StringP("api", "a", "rest", "API type (rest, graphql, grpc)")
 	initCmd.Flags().Bool("auth", false, "Include authentication system")
+	initCmd.Flags().Bool("config", true, "Generate .goca.yaml configuration file")
 	_ = initCmd.MarkFlagRequired("module")
 }

@@ -64,4 +64,6 @@ func init() {
 	rootCmd.AddCommand(diCmd)
 	rootCmd.AddCommand(integrateCmd)
 	rootCmd.AddCommand(interfacesCmd)
+	rootCmd.AddCommand(templateManagementCmd)
+	rootCmd.AddCommand(configCmd)
 }
