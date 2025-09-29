@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"time"
-)
-
 // GetOrderSeeds retorna datos de ejemplo para order
 func GetOrderSeeds() []Order {
 	return []Order{

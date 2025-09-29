@@ -1,8 +1,7 @@
-package usecase
+﻿package usecase
 
 import (
 	"github.com/sazardev/goca/internal/domain"
-	"github.com/sazardev/goca/internal/messages"
 	"github.com/sazardev/goca/internal/repository"
 )
 
@@ -14,7 +13,7 @@ func NewOrderService(repo repository.OrderRepository) OrderUseCase {
 	return &orderService{repo: repo}
 }
 
-func (o *orderService) CreateOrder(input CreateOrderInput) (CreateOrderOutput, error) {
+func (o *orderService) Create(input CreateOrderInput) (*CreateOrderOutput, error) {
 	order := domain.Order{
 		Customer_id: input.Customer_id,
 		Total:       input.Total,
@@ -22,54 +21,60 @@ func (o *orderService) CreateOrder(input CreateOrderInput) (CreateOrderOutput, e
 	}
 
 	if err := order.Validate(); err != nil {
-		return CreateOrderOutput{}, err
+		return nil, err
 	}
 
 	if err := o.repo.Save(&order); err != nil {
-		return CreateOrderOutput{}, err
+		return nil, err
 	}
 
-	return CreateOrderOutput{
+	return &CreateOrderOutput{
 		Order:   order,
-		Message: messages.OrderCreatedSuccessfully,
+		Message: "Order created successfully",
 	}, nil
 }
 
-func (o *orderService) GetOrder(id int) (*domain.Order, error) {
-	return o.repo.FindByID(id)
+func (o *orderService) GetByID(id uint) (*domain.Order, error) {
+	return o.repo.FindByID(int(id))
 }
 
-func (o *orderService) UpdateOrder(id int, input UpdateOrderInput) error {
-	order, err := o.repo.FindByID(id)
+func (o *orderService) Update(id uint, input UpdateOrderInput) (*domain.Order, error) {
+	order, err := o.repo.FindByID(int(id))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Actualizar campos según tu entidad
-	if input.Nombre != "" {
-		order.Nombre = input.Nombre
+	if input.Customer_id != nil {
+		order.Customer_id = *input.Customer_id
 	}
-	if input.Email != "" {
-		order.Email = input.Email
+	if input.Total != nil {
+		order.Total = *input.Total
 	}
-	// Agregar más campos según necesites
+	if input.Status != nil {
+		order.Status = *input.Status
+	}
 
-	return o.repo.Update(order)
+	err = o.repo.Update(order)
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
 }
 
-func (o *orderService) DeleteOrder(id int) error {
-	return o.repo.Delete(id)
+func (o *orderService) Delete(id uint) error {
+	return o.repo.Delete(int(id))
 }
 
-func (o *orderService) ListOrders() (ListOrderOutput, error) {
+func (o *orderService) List() (*ListOrderOutput, error) {
 	orders, err := o.repo.FindAll()
 	if err != nil {
-		return ListOrderOutput{}, err
+		return nil, err
 	}
 
-	return ListOrderOutput{
+	return &ListOrderOutput{
 		Orders:  orders,
 		Total:   len(orders),
-		Message: messages.OrdersListedSuccessfully,
+		Message: "Orders listed successfully",
 	}, nil
 }

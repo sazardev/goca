@@ -25,7 +25,7 @@ func (t *TestFeatureHandler) CreateTestFeature(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	output, err := t.usecase.CreateTestFeature(input)
+	output, err := t.usecase.Create(input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -44,7 +44,7 @@ func (t *TestFeatureHandler) GetTestFeature(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	testfeature, err := t.usecase.GetTestFeature(id)
+	testfeature, err := t.usecase.GetByID(uint(id))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -68,7 +68,7 @@ func (t *TestFeatureHandler) UpdateTestFeature(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := t.usecase.UpdateTestFeature(id, input); err != nil {
+	if _, err := t.usecase.Update(uint(id), input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -84,7 +84,7 @@ func (t *TestFeatureHandler) DeleteTestFeature(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if err := t.usecase.DeleteTestFeature(id); err != nil {
+	if err := t.usecase.Delete(uint(id)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -93,7 +93,7 @@ func (t *TestFeatureHandler) DeleteTestFeature(w http.ResponseWriter, r *http.Re
 }
 
 func (t *TestFeatureHandler) ListTestFeatures(w http.ResponseWriter, r *http.Request) {
-	output, err := t.usecase.ListTestFeatures()
+	output, err := t.usecase.List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

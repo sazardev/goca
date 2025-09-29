@@ -38,7 +38,7 @@ all layers of the system using Google Wire.`,
 		}
 
 		generateDI(features, database, wire)
-		fmt.Printf("\n✅ Contenedor DI generado exitosamente!\n")
+		fmt.Printf("\n✅ DI container generated successfully!\n")
 	},
 }
 

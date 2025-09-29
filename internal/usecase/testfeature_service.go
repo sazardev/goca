@@ -1,20 +1,19 @@
-package usecase
+﻿package usecase
 
 import (
 	"github.com/sazardev/goca/internal/domain"
-	"github.com/sazardev/goca/internal/messages"
 	"github.com/sazardev/goca/internal/repository"
 )
 
-type testfeatureService struct {
+type testFeatureService struct {
 	repo repository.TestFeatureRepository
 }
 
-func NewTestfeatureService(repo repository.TestFeatureRepository) TestFeatureUseCase {
-	return &testfeatureService{repo: repo}
+func NewTestFeatureService(repo repository.TestFeatureRepository) TestFeatureUseCase {
+	return &testFeatureService{repo: repo}
 }
 
-func (t *testfeatureService) CreateTestFeature(input CreateTestFeatureInput) (CreateTestFeatureOutput, error) {
+func (t *testFeatureService) Create(input CreateTestFeatureInput) (*CreateTestFeatureOutput, error) {
 	testfeature := domain.TestFeature{
 		Name:  input.Name,
 		Email: input.Email,
@@ -22,54 +21,60 @@ func (t *testfeatureService) CreateTestFeature(input CreateTestFeatureInput) (Cr
 	}
 
 	if err := testfeature.Validate(); err != nil {
-		return CreateTestFeatureOutput{}, err
+		return nil, err
 	}
 
 	if err := t.repo.Save(&testfeature); err != nil {
-		return CreateTestFeatureOutput{}, err
+		return nil, err
 	}
 
-	return CreateTestFeatureOutput{
+	return &CreateTestFeatureOutput{
 		TestFeature: testfeature,
-		Message:     messages.TestFeatureCreatedSuccessfully,
+		Message:     "TestFeature created successfully",
 	}, nil
 }
 
-func (t *testfeatureService) GetTestFeature(id int) (*domain.TestFeature, error) {
-	return t.repo.FindByID(id)
+func (t *testFeatureService) GetByID(id uint) (*domain.TestFeature, error) {
+	return t.repo.FindByID(int(id))
 }
 
-func (t *testfeatureService) UpdateTestFeature(id int, input UpdateTestFeatureInput) error {
-	testfeature, err := t.repo.FindByID(id)
+func (t *testFeatureService) Update(id uint, input UpdateTestFeatureInput) (*domain.TestFeature, error) {
+	testfeature, err := t.repo.FindByID(int(id))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Actualizar campos según tu entidad
-	if input.Nombre != "" {
-		testfeature.Nombre = input.Nombre
+	if input.Name != nil {
+		testfeature.Name = *input.Name
 	}
-	if input.Email != "" {
-		testfeature.Email = input.Email
+	if input.Email != nil {
+		testfeature.Email = *input.Email
 	}
-	// Agregar más campos según necesites
+	if input.Age != nil {
+		testfeature.Age = *input.Age
+	}
 
-	return t.repo.Update(testfeature)
+	err = t.repo.Update(testfeature)
+	if err != nil {
+		return nil, err
+	}
+
+	return testfeature, nil
 }
 
-func (t *testfeatureService) DeleteTestFeature(id int) error {
-	return t.repo.Delete(id)
+func (t *testFeatureService) Delete(id uint) error {
+	return t.repo.Delete(int(id))
 }
 
-func (t *testfeatureService) ListTestFeatures() (ListTestFeatureOutput, error) {
+func (t *testFeatureService) List() (*ListTestFeatureOutput, error) {
 	testfeatures, err := t.repo.FindAll()
 	if err != nil {
-		return ListTestFeatureOutput{}, err
+		return nil, err
 	}
 
-	return ListTestFeatureOutput{
+	return &ListTestFeatureOutput{
 		TestFeatures: testfeatures,
 		Total:        len(testfeatures),
-		Message:      messages.TestFeaturesListedSuccessfully,
+		Message:      "TestFeatures listed successfully",
 	}, nil
 }

@@ -28,7 +28,7 @@ clear interfaces and encapsulated business logic.`,
 			os.Exit(1)
 		}
 
-		fmt.Printf("Generando caso de uso '%s' para entidad '%s'\n", usecaseName, entity)
+		fmt.Printf("Generating use case '%s' for entity '%s'\n", usecaseName, entity)
 		fmt.Printf("Operaciones: %s\n", operations)
 
 		if dtoValidation {
@@ -39,7 +39,7 @@ clear interfaces and encapsulated business logic.`,
 		}
 
 		generateUseCase(usecaseName, entity, operations, dtoValidation, async)
-		fmt.Printf("\n✅ Caso de uso '%s' generado exitosamente!\n", usecaseName)
+		fmt.Printf("\n✅ Use case '%s' generated successfully!\n", usecaseName)
 	},
 }
 

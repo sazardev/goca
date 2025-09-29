@@ -423,7 +423,7 @@ Los templates se pueden personalizar en {{.TemplateDirectory}}:
 ` + "```" + `
 {{.TemplateDirectory}}/
 ├── domain/
-│   ├── entity.tmpl      # Template para entidades
+│   ├── entity.tmpl      # Template for entities
 │   └── validations.tmpl # Template para validaciones
 ├── usecase/
 │   ├── dto.tmpl         # Template para DTOs

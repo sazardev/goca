@@ -25,7 +25,7 @@ func (o *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, err := o.usecase.CreateOrder(input)
+	output, err := o.usecase.Create(input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -44,7 +44,7 @@ func (o *OrderHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	order, err := o.usecase.GetOrder(id)
+	order, err := o.usecase.GetByID(uint(id))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -68,7 +68,7 @@ func (o *OrderHandler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := o.usecase.UpdateOrder(id, input); err != nil {
+	if _, err := o.usecase.Update(uint(id), input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -84,7 +84,7 @@ func (o *OrderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := o.usecase.DeleteOrder(id); err != nil {
+	if err := o.usecase.Delete(uint(id)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -93,7 +93,7 @@ func (o *OrderHandler) DeleteOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *OrderHandler) ListOrders(w http.ResponseWriter, r *http.Request) {
-	output, err := o.usecase.ListOrders()
+	output, err := o.usecase.List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -257,7 +257,7 @@ func main() {
 	if err := os.WriteFile(mainPath, []byte(newMainContent), 0644); err != nil {
 		fmt.Printf("   ⚠️  No se pudo crear main.go: %v\n", err)
 	} else {
-		fmt.Printf("   ✅ main.go creado con %d features\n", len(features))
+		fmt.Printf("   ✅ main.go created with %d features\n", len(features))
 	}
 }
 

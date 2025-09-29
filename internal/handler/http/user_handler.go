@@ -25,7 +25,7 @@ func (u *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, err := u.usecase.CreateUser(input)
+	output, err := u.usecase.Create(input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -44,7 +44,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := u.usecase.GetUser(id)
+	user, err := u.usecase.GetByID(uint(id))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -68,7 +68,7 @@ func (u *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.usecase.UpdateUser(id, input); err != nil {
+	if _, err := u.usecase.Update(uint(id), input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -84,7 +84,7 @@ func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := u.usecase.DeleteUser(id); err != nil {
+	if err := u.usecase.Delete(uint(id)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -93,7 +93,7 @@ func (u *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
-	output, err := u.usecase.ListUsers()
+	output, err := u.usecase.List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

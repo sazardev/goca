@@ -1,75 +1,80 @@
-package usecase
+﻿package usecase
 
 import (
-	"github.com/sazardev/goca/internal/domain"
-	"github.com/sazardev/goca/internal/messages"
-	"github.com/sazardev/goca/internal/repository"
+"github.com/sazardev/goca/internal/domain"
+"github.com/sazardev/goca/internal/repository"
 )
 
 type userService struct {
-	repo repository.UserRepository
+repo repository.UserRepository
 }
 
 func NewUserService(repo repository.UserRepository) UserUseCase {
-	return &userService{repo: repo}
+return &userService{repo: repo}
 }
 
-func (u *userService) CreateUser(input CreateUserInput) (CreateUserOutput, error) {
-	user := domain.User{
-		Name:  input.Name,
-		Email: input.Email,
-		Age:   input.Age,
-	}
-
-	if err := user.Validate(); err != nil {
-		return CreateUserOutput{}, err
-	}
-
-	if err := u.repo.Save(&user); err != nil {
-		return CreateUserOutput{}, err
-	}
-
-	return CreateUserOutput{
-		User:    user,
-		Message: messages.UserCreatedSuccessfully,
-	}, nil
+func (u *userService) Create(input CreateUserInput) (*CreateUserOutput, error) {
+user := domain.User{
+Name:  input.Name,
+Email: input.Email,
+Age:   input.Age,
 }
 
-func (u *userService) GetUser(id int) (*domain.User, error) {
-	return u.repo.FindByID(id)
+if err := user.Validate(); err != nil {
+return nil, err
 }
 
-func (u *userService) UpdateUser(id int, input UpdateUserInput) error {
-	user, err := u.repo.FindByID(id)
-	if err != nil {
-		return err
-	}
-
-	// Actualizar campos según tu entidad
-	if input.Nombre != "" {
-		user.Nombre = input.Nombre
-	}
-	if input.Email != "" {
-		user.Email = input.Email
-	}
-	// Agregar más campos según necesites
-
-	return u.repo.Update(user)
+if err := u.repo.Save(&user); err != nil {
+return nil, err
 }
 
-func (u *userService) DeleteUser(id int) error {
-	return u.repo.Delete(id)
+return &CreateUserOutput{
+User:    user,
+Message: "User created successfully",
+}, nil
 }
 
-func (u *userService) ListUsers() (ListUserOutput, error) {
-	users, err := u.repo.FindAll()
-	if err != nil {
-		return ListUserOutput{}, err
-	}
+func (u *userService) GetByID(id uint) (*domain.User, error) {
+return u.repo.FindByID(int(id))
+}
 
-	return ListUserOutput{
-		Users:   users,
-		Total:   len(users),
-		Message: messages.UsersListedSuccessfully,
-	}, nil
+func (u *userService) Update(id uint, input UpdateUserInput) (*domain.User, error) {
+user, err := u.repo.FindByID(int(id))
+if err != nil {
+return nil, err
+}
+
+if input.Name != nil {
+user.Name = *input.Name
+}
+if input.Email != nil {
+user.Email = *input.Email
+}
+if input.Age != nil {
+user.Age = *input.Age
+}
+
+err = u.repo.Update(user)
+if err != nil {
+return nil, err
+}
+
+return user, nil
+}
+
+func (u *userService) Delete(id uint) error {
+return u.repo.Delete(int(id))
+}
+
+func (u *userService) List() (*ListUserOutput, error) {
+users, err := u.repo.FindAll()
+if err != nil {
+return nil, err
+}
+
+return &ListUserOutput{
+Users:   users,
+Total:   len(users),
+Message: "Users listed successfully",
+}, nil
 }

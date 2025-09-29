@@ -1,8 +1,7 @@
-package usecase
+﻿package usecase
 
 import (
 	"github.com/sazardev/goca/internal/domain"
-	"github.com/sazardev/goca/internal/messages"
 	"github.com/sazardev/goca/internal/repository"
 )
 
@@ -14,7 +13,7 @@ func NewProductService(repo repository.ProductRepository) ProductUseCase {
 	return &productService{repo: repo}
 }
 
-func (p *productService) CreateProduct(input CreateProductInput) (CreateProductOutput, error) {
+func (p *productService) Create(input CreateProductInput) (*CreateProductOutput, error) {
 	product := domain.Product{
 		Name:        input.Name,
 		Price:       input.Price,
@@ -22,54 +21,60 @@ func (p *productService) CreateProduct(input CreateProductInput) (CreateProductO
 	}
 
 	if err := product.Validate(); err != nil {
-		return CreateProductOutput{}, err
+		return nil, err
 	}
 
 	if err := p.repo.Save(&product); err != nil {
-		return CreateProductOutput{}, err
+		return nil, err
 	}
 
-	return CreateProductOutput{
+	return &CreateProductOutput{
 		Product: product,
-		Message: messages.ProductCreatedSuccessfully,
+		Message: "Product created successfully",
 	}, nil
 }
 
-func (p *productService) GetProduct(id int) (*domain.Product, error) {
-	return p.repo.FindByID(id)
+func (p *productService) GetByID(id uint) (*domain.Product, error) {
+	return p.repo.FindByID(int(id))
 }
 
-func (p *productService) UpdateProduct(id int, input UpdateProductInput) error {
-	product, err := p.repo.FindByID(id)
+func (p *productService) Update(id uint, input UpdateProductInput) (*domain.Product, error) {
+	product, err := p.repo.FindByID(int(id))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Actualizar campos según tu entidad
-	if input.Nombre != "" {
-		product.Nombre = input.Nombre
+	if input.Name != nil {
+		product.Name = *input.Name
 	}
-	if input.Email != "" {
-		product.Email = input.Email
+	if input.Price != nil {
+		product.Price = *input.Price
 	}
-	// Agregar más campos según necesites
+	if input.Description != nil {
+		product.Description = *input.Description
+	}
 
-	return p.repo.Update(product)
+	err = p.repo.Update(product)
+	if err != nil {
+		return nil, err
+	}
+
+	return product, nil
 }
 
-func (p *productService) DeleteProduct(id int) error {
-	return p.repo.Delete(id)
+func (p *productService) Delete(id uint) error {
+	return p.repo.Delete(int(id))
 }
 
-func (p *productService) ListProducts() (ListProductOutput, error) {
+func (p *productService) List() (*ListProductOutput, error) {
 	products, err := p.repo.FindAll()
 	if err != nil {
-		return ListProductOutput{}, err
+		return nil, err
 	}
 
-	return ListProductOutput{
+	return &ListProductOutput{
 		Products: products,
 		Total:    len(products),
-		Message:  messages.ProductsListedSuccessfully,
+		Message:  "Products listed successfully",
 	}, nil
 }

@@ -54,29 +54,29 @@ including domain, use cases, repository and handlers in a single operation.`,
 		}
 
 		fmt.Printf(MsgGeneratingFeature+"\n", featureName)
-		fmt.Printf("📋 Campos: %s\n", fields)
-		fmt.Printf("🗄️  Base de datos: %s", effectiveDatabase)
+		fmt.Printf("📋 Fields: %s\n", fields)
+		fmt.Printf("🗄️  Database: %s", effectiveDatabase)
 		if configIntegration.HasConfigFile() {
-			fmt.Printf(" (desde config)")
+			fmt.Printf(" (from config)")
 		}
 		fmt.Println()
 		fmt.Printf("🌐 Handlers: %s", effectiveHandlers)
 		if configIntegration.HasConfigFile() {
-			fmt.Printf(" (desde config)")
+			fmt.Printf(" (from config)")
 		}
 		fmt.Println()
 
 		if effectiveValidation {
-			fmt.Print("✅ Incluyendo validaciones")
+			fmt.Print("✅ Including validations")
 			if configIntegration.HasConfigFile() {
-				fmt.Printf(" (desde config)")
+				fmt.Printf(" (from config)")
 			}
 			fmt.Println()
 		}
 		if effectiveBusinessRules {
-			fmt.Print("🧠 Incluyendo reglas de negocio")
+			fmt.Print("🧠 Including business rules")
 			if configIntegration.HasConfigFile() {
-				fmt.Printf(" (desde config)")
+				fmt.Printf(" (from config)")
 			}
 			fmt.Println()
 		}
@@ -88,68 +88,68 @@ including domain, use cases, repository and handlers in a single operation.`,
 		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules)
 
 		// 6. Auto-integrate with DI and main.go
-		fmt.Println("6️⃣  Integrando automáticamente...")
+		fmt.Println("6️⃣  Integrating automatically...")
 		autoIntegrateFeature(featureName, handlers)
 
-		fmt.Printf("\n🎉 Feature '%s' generado e integrado exitosamente!\n", featureName)
-		fmt.Println("\n📂 Estructura generada:")
+		fmt.Printf("\n🎉 Feature '%s' generated and integrated successfully!\n", featureName)
+		fmt.Println("\n📂 Generated structure:")
 		printFeatureStructure(featureName, handlers)
 
-		fmt.Println("\n✅ ¡Todo listo! El feature ya está:")
-		fmt.Println("   🔗 Conectado en el contenedor DI")
-		fmt.Println("   🛣️  Rutas registradas en el servidor")
-		fmt.Println("   ⚡ Listo para usar inmediatamente")
-		fmt.Println("   🌱 Con datos de semilla incluidos")
+		fmt.Println("\n✅ All ready! The feature is now:")
+		fmt.Println("   🔗 Connected in the DI container")
+		fmt.Println("   🛣️  Routes registered in the server")
+		fmt.Println("   ⚡ Ready to use immediately")
+		fmt.Println("   🌱 With seed data included")
 
-		fmt.Println("\n🚀 Próximos pasos:")
-		fmt.Println("   1. Ejecutar: go mod tidy")
-		fmt.Printf("   2. Iniciar servidor: go run cmd/server/main.go\n")
-		fmt.Printf("   3. Probar endpoints: curl http://localhost:8080/api/v1/%ss\n", strings.ToLower(featureName))
+		fmt.Println("\n🚀 Next steps:")
+		fmt.Println("   1. Run: go mod tidy")
+		fmt.Printf("   2. Start server: go run cmd/server/main.go\n")
+		fmt.Printf("   3. Test endpoints: curl http://localhost:8080/api/v1/%ss\n", strings.ToLower(featureName))
 
-		fmt.Println("\n💡 Comandos útiles adicionales:")
-		fmt.Println("   goca integrate --all     # Integrar features existentes")
-		fmt.Printf("   goca feature Producto --fields \"nombre:string,precio:float64\"  # Agregar otro feature\n")
+		fmt.Println("\n💡 Additional useful commands:")
+		fmt.Println("   goca integrate --all     # Integrate existing features")
+		fmt.Printf("   goca feature Product --fields \"name:string,price:float64\"  # Add another feature\n")
 	},
 }
 
 func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules bool) {
-	fmt.Println("\n🔄 Generando capas...")
+	fmt.Println("\n🔄 Generating layers...")
 
 	// 1. Generate Entity (Domain layer)
-	fmt.Println("1️⃣  Generando entidad de dominio...")
+	fmt.Println("1️⃣  Generating domain entity...")
 	generateEntity(featureName, fields, true, businessRules, false, false)
 
 	// 2. Generate Use Case
-	fmt.Println("2️⃣  Generando casos de uso...")
+	fmt.Println("2️⃣  Generating use cases...")
 	generateUseCaseWithFields(featureName+"UseCase", featureName, "create,read,update,delete,list", validation, false, fields)
 
 	// 3. Generate Repository
-	fmt.Println("3️⃣  Generando repositorio...")
+	fmt.Println("3️⃣  Generating repository...")
 	generateRepository(featureName, database, false, true, false, false, fields)
 
 	// 4. Generate Handlers
-	fmt.Println("4️⃣  Generando handlers...")
+	fmt.Println("4️⃣  Generating handlers...")
 	handlerTypes := strings.Split(handlers, ",")
 	for _, handlerType := range handlerTypes {
 		handlerType = strings.TrimSpace(handlerType)
-		fmt.Printf("   📡 Generando handler %s...\n", handlerType)
+		fmt.Printf("   📡 Generating %s handler...\n", handlerType)
 		generateHandler(featureName, handlerType, true, validation, handlerType == "http")
 	}
 
 	// 5. Generate Messages
-	fmt.Println("5️⃣  Generando mensajes...")
+	fmt.Println("5️⃣  Generating messages...")
 	generateMessages(featureName, true, true, true)
 
 	// 6. Register entity for auto-migration
-	fmt.Println("6️⃣  Registrando entidad para auto-migración...")
+	fmt.Println("6️⃣  Registering entity for auto-migration...")
 	if err := addEntityToAutoMigration(featureName); err != nil {
-		fmt.Printf("   ⚠️  No se pudo registrar entidad para auto-migración: %v\n", err)
-		fmt.Printf("   💡 La entidad se creó correctamente, pero deberás configurar la migración manualmente\n")
+		fmt.Printf("   ⚠️  Could not register entity for auto-migration: %v\n", err)
+		fmt.Printf("   💡 Entity was created correctly, but you'll need to configure migration manually\n")
 	} else {
-		fmt.Printf("   ✅ Entidad %s registrada para auto-migración GORM\n", featureName)
+		fmt.Printf("   ✅ Entity %s registered for GORM auto-migration\n", featureName)
 	}
 
-	fmt.Println("✅ Todas las capas generadas exitosamente!")
+	fmt.Println("✅ All layers generated successfully!")
 }
 
 func printFeatureStructure(featureName, handlers string) {
@@ -398,7 +398,7 @@ func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
 		printManualIntegrationInstructions(featureName)
 		return
 	}
-	fmt.Println("   ✅ Rutas registradas exitosamente")
+	fmt.Println("   ✅ Routes registered successfully")
 }
 
 func init() {

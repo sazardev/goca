@@ -23,7 +23,7 @@ var handlerCmd = &cobra.Command{
 		validation, _ := cmd.Flags().GetBool("validation")
 		swagger, _ := cmd.Flags().GetBool("swagger")
 
-		fmt.Printf("Generando handler '%s' para entidad '%s'\n", handlerType, entity)
+		fmt.Printf("Generating handler '%s' for entity '%s'\n", handlerType, entity)
 
 		if middleware {
 			fmt.Println("✓ Incluyendo middleware")
@@ -36,7 +36,7 @@ var handlerCmd = &cobra.Command{
 		}
 
 		generateHandler(entity, handlerType, middleware, validation, swagger)
-		fmt.Printf("\n✅ Handler '%s' para '%s' generado exitosamente!\n", handlerType, entity)
+		fmt.Printf("\n✅ Handler '%s' for '%s' generated successfully!\n", handlerType, entity)
 	},
 }
 
@@ -386,7 +386,7 @@ paths:
               $ref: '#/components/schemas/Create%sRequest'
       responses:
         '201':
-          description: %s creado exitosamente
+          description: %s created successfully
           content:
             application/json:
               schema:

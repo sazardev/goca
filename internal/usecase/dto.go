@@ -4,54 +4,21 @@ import (
 	"github.com/sazardev/goca/internal/domain"
 )
 
-// CreateTestFeatureRequest DTO para crear un nuevo testfeature
-type CreateTestFeatureRequest struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Age   int    `json:"age"`
+type CreateUserInput struct {
+	Name  string `json:"name" validate:"required,min=2"`
+	Email string `json:"email" validate:"required,email"`
+	Age   int    `json:"age" validate:"required,min=1"`
 }
 
-// CreateTestFeatureResponse DTO para la respuesta de creación
-type CreateTestFeatureResponse struct {
-	ID      uint   `json:"id"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	Age     int    `json:"age"`
-	Message string `json:"message"`
-}
-
-type UpdateTestFeatureInput struct {
-	Name  *string `json:"name,omitempty"`
-	Email *string `json:"email,omitempty"`
-	Age   *int    `json:"age,omitempty"`
-}
-
-type ListTestFeatureOutput struct {
-	TestFeatures []domain.TestFeature `json:"testfeatures"`
-	Total        int                  `json:"total"`
-	Message      string               `json:"message"`
-}
-
-// CreateUserRequest DTO para crear un nuevo user
-type CreateUserRequest struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Age   int    `json:"age"`
-}
-
-// CreateUserResponse DTO para la respuesta de creación
-type CreateUserResponse struct {
-	ID      uint   `json:"id"`
-	Name    string `json:"name"`
-	Email   string `json:"email"`
-	Age     int    `json:"age"`
-	Message string `json:"message"`
+type CreateUserOutput struct {
+	User    domain.User `json:"user"`
+	Message string      `json:"message"`
 }
 
 type UpdateUserInput struct {
-	Name  *string `json:"name,omitempty"`
-	Email *string `json:"email,omitempty"`
-	Age   *int    `json:"age,omitempty"`
+	Name  *string `json:"name,omitempty" validate:"omitempty,min=2"`
+	Email *string `json:"email,omitempty" validate:"omitempty,email"`
+	Age   *int    `json:"age,omitempty" validate:"omitempty,min=1"`
 }
 
 type ListUserOutput struct {
@@ -60,26 +27,21 @@ type ListUserOutput struct {
 	Message string        `json:"message"`
 }
 
-// CreateProductRequest DTO para crear un nuevo product
-type CreateProductRequest struct {
-	Name        string  `json:"name"`
-	Price       float64 `json:"price"`
-	Description string  `json:"description"`
+type CreateProductInput struct {
+	Name        string  `json:"name" validate:"required,min=2"`
+	Price       float64 `json:"price" validate:"required,min=0"`
+	Description string  `json:"description" validate:"required,min=5"`
 }
 
-// CreateProductResponse DTO para la respuesta de creación
-type CreateProductResponse struct {
-	ID          uint    `json:"id"`
-	Name        string  `json:"name"`
-	Price       float64 `json:"price"`
-	Description string  `json:"description"`
-	Message     string  `json:"message"`
+type CreateProductOutput struct {
+	Product domain.Product `json:"product"`
+	Message string         `json:"message"`
 }
 
 type UpdateProductInput struct {
-	Name        *string  `json:"name,omitempty"`
-	Price       *float64 `json:"price,omitempty"`
-	Description *string  `json:"description,omitempty"`
+	Name        *string  `json:"name,omitempty" validate:"omitempty,min=2"`
+	Price       *float64 `json:"price,omitempty" validate:"omitempty,min=0"`
+	Description *string  `json:"description,omitempty" validate:"omitempty,min=5"`
 }
 
 type ListProductOutput struct {
@@ -88,30 +50,48 @@ type ListProductOutput struct {
 	Message  string           `json:"message"`
 }
 
-// CreateOrderRequest DTO para crear un nuevo order
-type CreateOrderRequest struct {
-	Customer_id int     `json:"customer_id"`
-	Total       float64 `json:"total"`
-	Status      string  `json:"status"`
+type CreateOrderInput struct {
+	Customer_id int     `json:"customer_id" validate:"required,min=0"`
+	Total       float64 `json:"total" validate:"required,min=0"`
+	Status      string  `json:"status" validate:"required,min=2"`
 }
 
-// CreateOrderResponse DTO para la respuesta de creación
-type CreateOrderResponse struct {
-	ID          uint    `json:"id"`
-	Customer_id int     `json:"customer_id"`
-	Total       float64 `json:"total"`
-	Status      string  `json:"status"`
-	Message     string  `json:"message"`
+type CreateOrderOutput struct {
+	Order   domain.Order `json:"order"`
+	Message string       `json:"message"`
 }
 
 type UpdateOrderInput struct {
-	Customer_id *int     `json:"customer_id,omitempty"`
-	Total       *float64 `json:"total,omitempty"`
-	Status      *string  `json:"status,omitempty"`
+	Customer_id *int     `json:"customer_id,omitempty" validate:"omitempty,min=0"`
+	Total       *float64 `json:"total,omitempty" validate:"omitempty,min=0"`
+	Status      *string  `json:"status,omitempty" validate:"omitempty,min=2"`
 }
 
 type ListOrderOutput struct {
 	Orders  []domain.Order `json:"orders"`
 	Total   int            `json:"total"`
 	Message string         `json:"message"`
+}
+
+type CreateTestFeatureInput struct {
+	Name  string `json:"name" validate:"required,min=2"`
+	Email string `json:"email" validate:"required,email"`
+	Age   int    `json:"age" validate:"required,min=1"`
+}
+
+type CreateTestFeatureOutput struct {
+	TestFeature domain.TestFeature `json:"testfeature"`
+	Message     string             `json:"message"`
+}
+
+type UpdateTestFeatureInput struct {
+	Name  *string `json:"name,omitempty" validate:"omitempty,min=2"`
+	Email *string `json:"email,omitempty" validate:"omitempty,email"`
+	Age   *int    `json:"age,omitempty" validate:"omitempty,min=1"`
+}
+
+type ListTestFeatureOutput struct {
+	TestFeatures []domain.TestFeature `json:"testfeatures"`
+	Total        int                  `json:"total"`
+	Message      string               `json:"message"`
 }

@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"time"
-)
-
 // GetUserSeeds retorna datos de ejemplo para user
 func GetUserSeeds() []User {
 	return []User{

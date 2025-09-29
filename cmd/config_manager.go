@@ -583,7 +583,7 @@ func (cm *ConfigManager) PrintSummary() {
 		return
 	}
 
-	fmt.Printf("📋 Configuración del Proyecto: %s\n", cm.config.Project.Name)
+	fmt.Printf("📋 Project Configuration: %s\n", cm.config.Project.Name)
 	fmt.Printf("   📦 Módulo: %s\n", cm.config.Project.Module)
 	fmt.Printf("   🗄️  Base de datos: %s\n", cm.config.Database.Type)
 	fmt.Printf("   🏗️  Capas: %d habilitadas\n", cm.countEnabledLayers())

@@ -37,20 +37,20 @@ useful for Test-Driven Development (TDD).`,
 			handler = true
 		}
 
-		fmt.Printf("Generando interfaces para entidad '%s'\n", entity)
+		fmt.Printf("Generating interfaces for entity '%s'\n", entity)
 
 		if usecase {
-			fmt.Println("✓ Generando interfaces de casos de uso")
+			fmt.Println("✓ Generating use case interfaces")
 		}
 		if repository {
-			fmt.Println("✓ Generando interfaces de repositorio")
+			fmt.Println("✓ Generating repository interfaces")
 		}
 		if handler {
-			fmt.Println("✓ Generando interfaces de handlers")
+			fmt.Println("✓ Generating handler interfaces")
 		}
 
 		generateInterfaces(entity, usecase, repository, handler)
-		fmt.Printf("\n✅ Interfaces para '%s' generadas exitosamente!\n", entity)
+		fmt.Printf("\n✅ Interfaces for '%s' generated successfully!\n", entity)
 	},
 }
 

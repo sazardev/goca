@@ -40,7 +40,7 @@ well-defined interfaces and database-specific implementations.`,
 			}
 		}
 
-		fmt.Printf("🚀 Generando repositorio para entidad '%s'\n", entity)
+		fmt.Printf("🚀 Generating repository for entity '%s'\n", entity)
 
 		if database != "" && !interfaceOnly {
 			fmt.Printf("🗄️  Base de datos: %s\n", database)
@@ -62,7 +62,7 @@ well-defined interfaces and database-specific implementations.`,
 		}
 
 		generateRepository(entity, database, interfaceOnly, implementation, cache, transactions, fields)
-		fmt.Printf("\n✅ Repositorio para '%s' generado exitosamente!\n", entity)
+		fmt.Printf("\n✅ Repository for '%s' generated successfully!\n", entity)
 	},
 }
 

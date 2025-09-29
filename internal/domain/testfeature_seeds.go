@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"time"
-)
-
 // GetTestFeatureSeeds retorna datos de ejemplo para testfeature
 func GetTestFeatureSeeds() []TestFeature {
 	return []TestFeature{

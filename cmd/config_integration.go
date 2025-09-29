@@ -279,7 +279,7 @@ func (ci *ConfigIntegration) PrintConfigSummary() {
 	if ci.manager != nil {
 		ci.manager.PrintSummary()
 	} else {
-		fmt.Println("📋 Usando configuración por defecto (no se encontró .goca.yaml)")
+		fmt.Println("📋 Using default configuration (.goca.yaml not found)")
 	}
 }
 

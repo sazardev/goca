@@ -25,7 +25,7 @@ func (p *ProductHandler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, err := p.usecase.CreateProduct(input)
+	output, err := p.usecase.Create(input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -44,7 +44,7 @@ func (p *ProductHandler) GetProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := p.usecase.GetProduct(id)
+	product, err := p.usecase.GetByID(uint(id))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -68,7 +68,7 @@ func (p *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := p.usecase.UpdateProduct(id, input); err != nil {
+	if _, err := p.usecase.Update(uint(id), input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -84,7 +84,7 @@ func (p *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := p.usecase.DeleteProduct(id); err != nil {
+	if err := p.usecase.Delete(uint(id)); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -93,7 +93,7 @@ func (p *ProductHandler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *ProductHandler) ListProducts(w http.ResponseWriter, r *http.Request) {
-	output, err := p.usecase.ListProducts()
+	output, err := p.usecase.List()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

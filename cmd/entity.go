@@ -33,8 +33,8 @@ without external dependencies and with complete business validations.`,
 
 		validator.errorHandler.ValidateRequiredFlag(fields, "fields")
 
-		fmt.Printf("🏗️  Generando entidad '%s'\n", entityName)
-		fmt.Printf("📋 Campos: %s\n", fields)
+		fmt.Printf("🏗️  Generating entity '%s'\n", entityName)
+		fmt.Printf("📋 Fields: %s\n", fields)
 
 		if validation {
 			fmt.Println("✓ Incluyendo validaciones")
@@ -57,8 +57,8 @@ without external dependencies and with complete business validations.`,
 			fmt.Println("🌱 Datos de semilla generados")
 		}
 
-		fmt.Printf("\n✅ Entidad '%s' generada exitosamente!\n", entityName)
-		fmt.Printf("📁 Archivos creados:\n")
+		fmt.Printf("\n✅ Entity '%s' generated successfully!\n", entityName)
+		fmt.Printf("📁 Files created:\n")
 		fmt.Printf("   - internal/domain/%s.go\n", strings.ToLower(entityName))
 		if validation {
 			fmt.Printf("   - internal/domain/errors.go\n")
@@ -114,7 +114,7 @@ func parseFields(fields string) []Field {
 	validator := NewFieldValidator()
 	fieldsList, err := validator.ParseFieldsWithValidation(fields)
 	if err != nil {
-		fmt.Printf("❌ Error en validación de campos: %v\n", err)
+		fmt.Printf("❌ Error in field validation: %v\n", err)
 		os.Exit(1)
 	}
 	return fieldsList

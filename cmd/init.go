@@ -32,14 +32,14 @@ including directories, configuration files and layer structure.`,
 			os.Exit(1)
 		}
 
-		fmt.Printf("🚀 Inicializando proyecto '%s' con módulo '%s'\n", projectName, module)
+		fmt.Printf("🚀 Initializing project '%s' with module '%s'\n", projectName, module)
 		fmt.Printf("📊 Base de datos: %s\n", database)
 		fmt.Printf("🌐 API: %s\n", api)
 		if auth {
 			fmt.Println("🔐 Incluyendo autenticación")
 		}
 		if config {
-			fmt.Println("⚙️  Generando configuración YAML")
+			fmt.Println("⚙️  Generating YAML configuration")
 		}
 
 		// Create configuration integration

@@ -37,20 +37,20 @@ organized by feature to maintain consistency in the application.`,
 			constants = true
 		}
 
-		fmt.Printf("Generando mensajes para entidad '%s'\n", entity)
+		fmt.Printf("Generating messages for entity '%s'\n", entity)
 
 		if errors {
-			fmt.Println("✓ Generando mensajes de error")
+			fmt.Println("✓ Generating error messages")
 		}
 		if responses {
-			fmt.Println("✓ Generando mensajes de respuesta")
+			fmt.Println("✓ Generating response messages")
 		}
 		if constants {
-			fmt.Println("✓ Generando constantes")
+			fmt.Println("✓ Generating constants")
 		}
 
 		generateMessages(entity, errors, responses, constants)
-		fmt.Printf("\n✅ Mensajes para '%s' generados exitosamente!\n", entity)
+		fmt.Printf("\n✅ Messages for '%s' generated successfully!\n", entity)
 	},
 }
 
@@ -77,7 +77,14 @@ func generateMessages(entity string, errors, responses, constants bool) {
 }
 
 func generateUseCaseMessages(entity string) {
-	filename := filepath.Join("internal", "domain", "messages.go")
+	// Create messages directory and file in internal/messages
+	messagesDir := filepath.Join("internal", "messages")
+	if err := os.MkdirAll(messagesDir, 0755); err != nil {
+		fmt.Printf("Error creating messages directory: %v\n", err)
+		return
+	}
+
+	filename := filepath.Join(messagesDir, "messages.go")
 	entityLower := strings.ToLower(entity)
 
 	// Check if file exists and read existing content
@@ -113,7 +120,7 @@ func generateUseCaseMessages(entity string) {
 	existingContent.WriteString(")\n")
 
 	if err := writeGoFile(filename, existingContent.String()); err != nil {
-		fmt.Printf("Error escribiendo messages file: %v\n", err)
+		fmt.Printf("Error writing messages file: %v\n", err)
 		return
 	}
 }
@@ -147,16 +154,16 @@ func generateResponseMessages(dir, entity string) {
 
 	// Add new entity messages
 	existingContent.WriteString(fmt.Sprintf("\t// %s success messages\n", entity))
-	existingContent.WriteString(fmt.Sprintf("\t%sCreatedSuccessfully = \"%s creado exitosamente\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sUpdatedSuccessfully = \"%s actualizado exitosamente\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sDeletedSuccessfully = \"%s eliminado exitosamente\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sFoundSuccessfully   = \"%s encontrado exitosamente\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%ssListedSuccessfully = \"%ss listados exitosamente\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sCreatedSuccessfully = \"%s created successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sUpdatedSuccessfully = \"%s updated successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sDeletedSuccessfully = \"%s deleted successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sFoundSuccessfully   = \"%s found successfully\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%ssListedSuccessfully = \"%ss listed successfully\"\n", entity, entityLower))
 
 	// Operation messages
-	existingContent.WriteString(fmt.Sprintf("\t%sProcessingStarted   = \"procesamiento de %s iniciado\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sProcessingCompleted = \"procesamiento de %s completado\"\n", entity, entityLower))
-	existingContent.WriteString(fmt.Sprintf("\t%sValidationPassed    = \"validación de %s exitosa\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sProcessingStarted   = \"%s processing started\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sProcessingCompleted = \"%s processing completed\"\n", entity, entityLower))
+	existingContent.WriteString(fmt.Sprintf("\t%sValidationPassed    = \"%s validation passed\"\n", entity, entityLower))
 
 	// Close the const block
 	existingContent.WriteString(")\n")
