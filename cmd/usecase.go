@@ -9,13 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	opCreate = "create"
-	opRead   = "read"
-	opUpdate = "update"
-	opList   = "list"
-)
-
 var usecaseCmd = &cobra.Command{
 	Use:   "usecase <name>",
 	Short: "Generate use cases with DTOs",
@@ -118,21 +111,21 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 	// Generate DTOs for each operation
 	for _, op := range operations {
 		switch op {
-		case opCreate:
+		case OpCreate:
 			if fields != "" {
 				generateCreateDTOWithFields(&content, entity, validation, fields)
 			} else {
 				generateCreateDTO(&content, entity, validation)
 			}
-		case opUpdate:
+		case OpUpdate:
 			if fields != "" {
 				generateUpdateDTOWithFields(&content, entity, validation, fields)
 			} else {
 				generateUpdateDTO(&content, entity, validation)
 			}
-		case opRead, OperationGet:
+		case OpRead, OperationGet:
 			// Read operations typically don't need input DTOs, just output
-		case opList:
+		case OpList:
 			generateListDTO(&content, entity)
 		}
 	}

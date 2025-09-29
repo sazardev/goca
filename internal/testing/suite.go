@@ -285,8 +285,50 @@ func (ts *TestSuite) AssertFileNotContains(path, content string) {
 // AssertValidGoCode checks if the generated Go code is syntactically valid
 func (ts *TestSuite) AssertValidGoCode(path string) {
 	ts.t.Helper()
-	// Implementation will use go/parser to validate syntax
-	// TODO: Add go/parser validation
+
+	fullPath := filepath.Join(ts.tempDir, path)
+
+	// Check if file exists first
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		ts.t.Errorf("Go file %s does not exist", path)
+		return
+	}
+
+	// Read the file content
+	src, err := os.ReadFile(fullPath)
+	if err != nil {
+		ts.t.Errorf("Failed to read Go file %s: %v", path, err)
+		return
+	}
+
+	// Parse the Go code using go/parser
+	fset := token.NewFileSet()
+	_, err = parser.ParseFile(fset, fullPath, src, parser.ParseComments)
+	if err != nil {
+		ts.t.Errorf("Go file %s contains syntax errors: %v", path, err)
+
+		// Print the content for debugging
+		lines := strings.Split(string(src), "\n")
+		for i, line := range lines {
+			fmt.Printf("%3d: %s\n", i+1, line)
+		}
+		return
+	}
+
+	// Additional validation: check for common issues
+	content := string(src)
+
+	// Check for proper package declaration
+	if !strings.HasPrefix(strings.TrimSpace(content), "package ") {
+		ts.t.Errorf("Go file %s does not start with package declaration", path)
+	}
+
+	// Check for proper imports (if any)
+	if strings.Contains(content, "import") {
+		if !strings.Contains(content, "import (") && !strings.Contains(content, "import \"") {
+			ts.t.Errorf("Go file %s has malformed import statements", path)
+		}
+	}
 }
 
 // AssertDirectoryExists checks if a directory exists

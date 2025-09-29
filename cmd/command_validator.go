@@ -19,6 +19,16 @@ func NewCommandValidator() *CommandValidator {
 	}
 }
 
+// NewTestCommandValidator creates a command validator for testing
+func NewTestCommandValidator() *CommandValidator {
+	errorHandler := NewErrorHandler()
+	errorHandler.TestMode = true
+	return &CommandValidator{
+		fieldValidator: NewFieldValidator(),
+		errorHandler:   errorHandler,
+	}
+}
+
 // ValidateEntityCommand validates common entity command parameters
 func (v *CommandValidator) ValidateEntityCommand(entityName, fields string) error {
 	// Validate entity name

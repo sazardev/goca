@@ -18,7 +18,8 @@ type TestContext struct {
 	CurrentTestName string
 	Failures        []string
 	Successes       int
-	SkipCompilation bool // Si es true, se omite la verificación de compilación
+	SkipCompilation bool   // Si es true, se omite la verificación de compilación
+	ProjectDir      string // Directory of the initialized project
 }
 
 // NewTestContext crea un nuevo contexto de test
@@ -48,6 +49,7 @@ func NewTestContext(t *testing.T) *TestContext {
 		Failures:        []string{},
 		Successes:       0,
 		SkipCompilation: true, // Por defecto, omitir compilación para evitar errores en tests
+		ProjectDir:      "",   // Will be set after project initialization
 	}
 }
 
@@ -60,16 +62,30 @@ func (tc *TestContext) Cleanup() {
 	}
 }
 
+// SetProjectDir sets the project directory for subsequent commands
+func (tc *TestContext) SetProjectDir(projectName string) {
+	tc.ProjectDir = filepath.Join(tc.TempDir, projectName)
+}
+
+// GetWorkingDir returns the appropriate working directory for commands
+func (tc *TestContext) GetWorkingDir() string {
+	if tc.ProjectDir != "" {
+		return tc.ProjectDir
+	}
+	return tc.TempDir
+}
+
 // RunCommand ejecuta un comando de Goca y retorna su salida
 func (tc *TestContext) RunCommand(args ...string) (string, error) {
 	cmd := exec.Command(tc.BinaryPath, args...)
-	cmd.Dir = tc.TempDir
+	workDir := tc.GetWorkingDir()
+	cmd.Dir = workDir
 
 	output, err := cmd.CombinedOutput()
 
 	// Log del comando y su resultado
 	tc.T.Logf("Ejecutando: %s %s", tc.BinaryPath, strings.Join(args, " "))
-	tc.T.Logf("Directorio de trabajo: %s", tc.TempDir)
+	tc.T.Logf("Directorio de trabajo: %s", workDir)
 
 	if err != nil {
 		tc.T.Logf("Error: %v\nSalida:\n%s", err, string(output))
@@ -88,8 +104,9 @@ func (tc *TestContext) RunCommand(args ...string) (string, error) {
 func (tc *TestContext) AssertFileExists(relativePath string) bool {
 	tc.T.Logf("🔍 Buscando archivo: %s", relativePath)
 
-	// First try with the direct path
-	fullPath := filepath.Join(tc.TempDir, relativePath)
+	// Use the working directory (either temp dir or project dir)
+	workDir := tc.GetWorkingDir()
+	fullPath := filepath.Join(workDir, relativePath)
 	tc.T.Logf("  - Probando ruta: %s", fullPath)
 	_, err := os.Stat(fullPath)
 

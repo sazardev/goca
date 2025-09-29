@@ -48,7 +48,7 @@ const (
 // ValidHandlers contains the list of supported handler types for the CLI.
 var ValidHandlers = []string{HandlerHTTP, HandlerGRPC, HandlerCLI, HandlerWorker}
 
-// CRUD Operations constants
+// Operation constants
 const (
 	OpCreate = "create"
 	OpRead   = "read"
@@ -64,7 +64,7 @@ const (
 	CRUDOperations    = "create,read,update,delete"
 )
 
-// ValidOperations contains the list of supported CRUD operations.
+// ValidOperations contains the list of supported CRUD operations
 var ValidOperations = []string{OpCreate, OpRead, OpUpdate, OpDelete, OpList}
 
 // API Types constants
@@ -81,9 +81,18 @@ var ValidAPITypes = []string{APITypeRest, APITypeGraphQL, APITypeGRPC}
 const (
 	FieldString    = "string"
 	FieldInt       = "int"
+	FieldInt8      = "int8"
+	FieldInt16     = "int16"
+	FieldInt32     = "int32"
 	FieldInt64     = "int64"
 	FieldUint      = "uint"
+	FieldUint8     = "uint8"
+	FieldUint16    = "uint16"
+	FieldUint32    = "uint32"
 	FieldUint64    = "uint64"
+	FieldUintptr   = "uintptr"
+	FieldByte      = "byte"
+	FieldRune      = "rune"
 	FieldFloat32   = "float32"
 	FieldFloat64   = "float64"
 	FieldBool      = "bool"
@@ -92,10 +101,13 @@ const (
 	FieldInterface = "interface{}"
 )
 
-// ValidFieldTypes contains the list of supported field types for entities.
+// ValidFieldTypes contains the list of supported basic field types for entities.
+// Note: Complex types like slices, pointers, maps, channels, functions, and custom types
+// are validated dynamically by the field validator.
 var ValidFieldTypes = []string{
-	FieldString, FieldInt, FieldInt64, FieldUint, FieldUint64,
-	FieldFloat32, FieldFloat64, FieldBool, FieldTime, FieldBytes, FieldInterface,
+	FieldString, FieldInt, FieldInt8, FieldInt16, FieldInt32, FieldInt64,
+	FieldUint, FieldUint8, FieldUint16, FieldUint32, FieldUint64, FieldUintptr,
+	FieldByte, FieldRune, FieldFloat32, FieldFloat64, FieldBool, FieldTime, FieldBytes, FieldInterface,
 }
 
 // Template constants

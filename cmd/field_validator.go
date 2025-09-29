@@ -21,7 +21,7 @@ func (v *FieldValidator) ValidateFields(fields string) error {
 		return fmt.Errorf("%s", ErrEmptyFields)
 	}
 
-	fieldParts := strings.Split(fields, ",")
+	fieldParts := v.smartSplitFields(fields)
 	if len(fieldParts) == 0 {
 		return fmt.Errorf("%s", ErrEmptyFields)
 	}
@@ -47,6 +47,51 @@ func (v *FieldValidator) ValidateFields(fields string) error {
 	}
 
 	return nil
+}
+
+// smartSplitFields splits fields while respecting parentheses and brackets
+func (v *FieldValidator) smartSplitFields(fields string) []string {
+	var result []string
+	var current strings.Builder
+	parenLevel := 0
+	bracketLevel := 0
+
+	for _, char := range fields {
+		switch char {
+		case '(':
+			parenLevel++
+			current.WriteRune(char)
+		case ')':
+			parenLevel--
+			current.WriteRune(char)
+		case '[':
+			bracketLevel++
+			current.WriteRune(char)
+		case ']':
+			bracketLevel--
+			current.WriteRune(char)
+		case ',':
+			if parenLevel == 0 && bracketLevel == 0 {
+				// We're at the top level, this comma separates fields
+				if current.Len() > 0 {
+					result = append(result, current.String())
+					current.Reset()
+				}
+			} else {
+				// We're inside parentheses or brackets, keep the comma
+				current.WriteRune(char)
+			}
+		default:
+			current.WriteRune(char)
+		}
+	}
+
+	// Add the last field
+	if current.Len() > 0 {
+		result = append(result, current.String())
+	}
+
+	return result
 }
 
 // ValidateField validates a single field definition
@@ -103,7 +148,7 @@ func (v *FieldValidator) ValidateFieldName(name string) error {
 	return nil
 }
 
-// ValidateFieldType validates a field type
+// ValidateFieldType validates a field type with comprehensive Go type support
 func (v *FieldValidator) ValidateFieldType(fieldType string) error {
 	if fieldType == "" {
 		return fmt.Errorf("tipo de campo no puede estar vacío")
@@ -116,28 +161,216 @@ func (v *FieldValidator) ValidateFieldType(fieldType string) error {
 		}
 	}
 
-	// Check for slice types ([]string, []int, etc.)
+	// Enhanced validation for complex Go types
+	return v.validateComplexType(fieldType)
+}
+
+// validateComplexType handles validation of complex Go types
+func (v *FieldValidator) validateComplexType(fieldType string) error {
+	// Trim leading/trailing whitespace but preserve internal spaces for channel/func parsing
+	fieldType = strings.TrimSpace(fieldType)
+
+	// Check for slice types ([]string, []int, []*User, etc.)
 	if strings.HasPrefix(fieldType, "[]") {
 		baseType := strings.TrimPrefix(fieldType, "[]")
 		return v.ValidateFieldType(baseType)
 	}
 
-	// Check for pointer types (*string, *int, etc.)
+	// Check for array types ([10]string, [5]int, etc.)
+	arrayPattern := regexp.MustCompile(`^\[\d+\](.+)$`)
+	if arrayPattern.MatchString(fieldType) {
+		matches := arrayPattern.FindStringSubmatch(fieldType)
+		if len(matches) > 1 {
+			return v.ValidateFieldType(matches[1])
+		}
+	}
+
+	// Check for pointer types (*string, *int, *User, etc.)
 	if strings.HasPrefix(fieldType, "*") {
 		baseType := strings.TrimPrefix(fieldType, "*")
 		return v.ValidateFieldType(baseType)
 	}
 
-	// Check for map types (map[string]string, etc.)
-	if strings.HasPrefix(fieldType, "map[") && strings.Contains(fieldType, "]") {
-		// Basic validation for map types
-		mapPattern := regexp.MustCompile(`^map\[[a-zA-Z0-9_\.\*\[\]]+\][a-zA-Z0-9_\.\*\[\]]+$`)
-		if mapPattern.MatchString(fieldType) {
+	// Enhanced map type validation (map[string]interface{}, map[int]*User, etc.)
+	if strings.HasPrefix(fieldType, "map[") {
+		return v.validateMapType(fieldType)
+	}
+
+	// Check for channel types (chan string, <-chan int, chan<- bool, etc.)
+	if v.isChannelType(fieldType) {
+		return v.validateChannelType(fieldType)
+	}
+
+	// Check for function types (func(string) error, func(int, string) (bool, error), etc.)
+	if strings.HasPrefix(fieldType, "func") {
+		return v.validateFunctionType(fieldType)
+	}
+
+	// Check for interface types (interface{}, io.Reader, etc.)
+	if v.isInterfaceType(fieldType) {
+		return nil // Interface types are generally valid
+	}
+
+	// Check for qualified types (package.Type, time.Time, etc.)
+	if v.isQualifiedType(fieldType) {
+		return nil // Assume qualified types are valid
+	}
+
+	// Check for custom struct types (User, Product, etc.)
+	if v.isCustomType(fieldType) {
+		return nil // Custom types are valid
+	}
+
+	return fmt.Errorf("%s: %s. Tipos válidos incluyen: %s, slices, pointers, maps, channels, functions, interfaces y tipos personalizados",
+		ErrInvalidFieldType, fieldType, strings.Join(ValidFieldTypes, ", "))
+}
+
+// validateMapType validates map types with comprehensive key/value type support
+func (v *FieldValidator) validateMapType(fieldType string) error {
+	// Pattern for map[keyType]valueType
+	mapPattern := regexp.MustCompile(`^map\[([^\]]+)\](.+)$`)
+	matches := mapPattern.FindStringSubmatch(fieldType)
+
+	if len(matches) != 3 {
+		return fmt.Errorf("formato de map inválido: %s. Formato esperado: map[keyType]valueType", fieldType)
+	}
+
+	keyType := matches[1]
+	valueType := matches[2]
+
+	// Validate key type (must be comparable in Go)
+	if err := v.validateMapKeyType(keyType); err != nil {
+		return fmt.Errorf("tipo de clave de map inválido: %w", err)
+	}
+
+	// Validate value type (can be any type)
+	if err := v.ValidateFieldType(valueType); err != nil {
+		return fmt.Errorf("tipo de valor de map inválido: %w", err)
+	}
+
+	return nil
+}
+
+// validateMapKeyType validates that a type can be used as a map key (must be comparable)
+func (v *FieldValidator) validateMapKeyType(keyType string) error {
+	// Go comparable types that can be map keys
+	comparableTypes := []string{
+		"string", "int", "int8", "int16", "int32", "int64",
+		"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+		"byte", "rune", "float32", "float64", "bool",
+	}
+
+	// Check basic comparable types
+	for _, comparable := range comparableTypes {
+		if keyType == comparable {
 			return nil
 		}
 	}
 
-	return fmt.Errorf("%s: %s. Tipos válidos: %s", ErrInvalidFieldType, fieldType, strings.Join(ValidFieldTypes, ", "))
+	// Pointer types are comparable
+	if strings.HasPrefix(keyType, "*") {
+		return nil
+	}
+
+	// Array types are comparable if their element type is comparable
+	arrayPattern := regexp.MustCompile(`^\[\d+\](.+)$`)
+	if arrayPattern.MatchString(keyType) {
+		matches := arrayPattern.FindStringSubmatch(keyType)
+		if len(matches) > 1 {
+			return v.validateMapKeyType(matches[1])
+		}
+	}
+
+	// Interface types are comparable
+	if v.isInterfaceType(keyType) {
+		return nil
+	}
+
+	// Custom types and qualified types are assumed comparable
+	if v.isCustomType(keyType) || v.isQualifiedType(keyType) {
+		return nil
+	}
+
+	// Slices, maps, and functions are not comparable
+	if strings.HasPrefix(keyType, "[]") || strings.HasPrefix(keyType, "map[") || strings.HasPrefix(keyType, "func") {
+		return fmt.Errorf("tipo %s no es comparable y no puede usarse como clave de map", keyType)
+	}
+
+	return nil
+}
+
+// validateChannelType validates channel types
+func (v *FieldValidator) validateChannelType(fieldType string) error {
+	// Handle specific channel patterns
+
+	// Pattern for send-only: chan<- Type
+	sendOnlyPattern := regexp.MustCompile(`^chan<-\s*(.+)$`)
+	if sendOnlyPattern.MatchString(fieldType) {
+		matches := sendOnlyPattern.FindStringSubmatch(fieldType)
+		if len(matches) > 1 {
+			elementType := strings.TrimSpace(matches[1])
+			return v.ValidateFieldType(elementType)
+		}
+	}
+
+	// Pattern for receive-only: <-chan Type
+	receiveOnlyPattern := regexp.MustCompile(`^<-chan\s*(.+)$`)
+	if receiveOnlyPattern.MatchString(fieldType) {
+		matches := receiveOnlyPattern.FindStringSubmatch(fieldType)
+		if len(matches) > 1 {
+			elementType := strings.TrimSpace(matches[1])
+			return v.ValidateFieldType(elementType)
+		}
+	}
+
+	// Pattern for bidirectional: chan Type
+	bidirectionalPattern := regexp.MustCompile(`^chan\s+(.+)$`)
+	if bidirectionalPattern.MatchString(fieldType) {
+		matches := bidirectionalPattern.FindStringSubmatch(fieldType)
+		if len(matches) > 1 {
+			elementType := strings.TrimSpace(matches[1])
+			return v.ValidateFieldType(elementType)
+		}
+	}
+
+	return fmt.Errorf("formato de channel inválido: %s", fieldType)
+}
+
+// validateFunctionType validates function types
+func (v *FieldValidator) validateFunctionType(fieldType string) error {
+	// More flexible function signature validation
+	// Allow: func(), func(params), func(params) return, func(params) (returns)
+	funcPattern := regexp.MustCompile(`^func\s*(\([^)]*\))?\s*(.+)?$`)
+	if funcPattern.MatchString(fieldType) {
+		return nil // Basic function signature is valid
+	}
+
+	return fmt.Errorf("formato de función inválido: %s", fieldType)
+}
+
+// isChannelType checks if a type is a channel type
+func (v *FieldValidator) isChannelType(fieldType string) bool {
+	return strings.HasPrefix(fieldType, "chan ") ||
+		strings.HasPrefix(fieldType, "chan<-") ||
+		strings.HasPrefix(fieldType, "<-chan")
+}
+
+// isInterfaceType checks if a type is an interface type
+func (v *FieldValidator) isInterfaceType(fieldType string) bool {
+	return fieldType == "interface{}" || strings.HasSuffix(fieldType, "interface{}")
+}
+
+// isQualifiedType checks if a type is a qualified type (package.Type)
+func (v *FieldValidator) isQualifiedType(fieldType string) bool {
+	return strings.Contains(fieldType, ".") && !strings.HasPrefix(fieldType, ".")
+}
+
+// isCustomType checks if a type is a custom type (starts with uppercase letter)
+func (v *FieldValidator) isCustomType(fieldType string) bool {
+	if len(fieldType) == 0 {
+		return false
+	}
+	return unicode.IsUpper(rune(fieldType[0])) && regexp.MustCompile(`^[A-Z][a-zA-Z0-9]*$`).MatchString(fieldType)
 }
 
 // ValidateEntityName validates an entity name
