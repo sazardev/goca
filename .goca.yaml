@@ -1,0 +1,174 @@
+# GOCA Configuration File  
+# Configuration file for projects generated with GOCA CLI
+
+# Project configuration
+project:
+  name: "goca"
+  module: "github.com/usuario/goca"
+  version: "1.0.0"
+  description: "Project generated with GOCA CLI"
+  author: ""
+  license: "MIT"
+
+# Architecture configuration
+architecture:
+  pattern: "clean_architecture"
+  layers:
+    domain:
+      enabled: true
+      path: "internal/domain"
+    usecase:
+      enabled: true 
+      path: "internal/usecase"
+    repository:
+      enabled: true
+      path: "internal/repository"
+    handler:
+      enabled: true
+      path: "internal/handler"
+
+# Database configuration
+database:
+  type: "postgres"
+  host: "localhost"
+  port: 5432
+  name: "goca_db"
+  migrations:
+    enabled: true
+    auto_generate: true
+    directory: "migrations"
+    naming: "timestamp"
+    versioning: "sequential"
+    tools: ["migrate", "sql-migrate"]
+  connection:
+    max_open: 25
+    max_idle: 5
+    max_lifetime: "5m"
+    ssl_mode: "disable"
+    timezone: "UTC"
+  features:
+    soft_delete: true
+    timestamps: true
+    uuid: false
+    audit: false
+    versioning: false
+    partitioning: false
+    indexes: []
+    constraints: []
+
+# Code generation configuration  
+generation:
+  validation:
+    enabled: true
+    tags: ["required", "min", "max", "email", "url"]
+    custom_rules: true
+    error_handling: "detailed"
+    localization: "english"
+  business_rules:
+    enabled: false
+    directory: "internal/domain/rules"
+    naming: "rule"
+    testing: true
+  docker:
+    enabled: true
+    compose: true
+    dockerfile: true
+    multi_stage: true
+  docs:
+    swagger:
+      enabled: true
+      title: "goca API"
+      version: "1.0.0"
+      description: "API generada con GOCA CLI"
+      host: "localhost:8080"
+      base_path: "/api/v1"
+      schemes: ["http", "https"]
+      tags: []
+    postman:
+      enabled: true
+      output: "docs/postman"
+      environment: true
+      tests: true
+    markdown:
+      enabled: true
+      output: "docs"
+      template: "default"
+      toc: true
+      examples: true
+  comments:
+    enabled: true
+    language: "english"
+    style: "godoc"
+    examples: true
+    todo: true
+    deprecated: true
+
+# Quality configuration
+quality:
+  style:
+    gofmt: true
+    goimports: true
+    golint: true
+    govet: true
+    staticcheck: true
+    line_length: 120
+    tab_width: 4
+  testing:
+    enabled: true
+    coverage_threshold: 80.0
+    benchmark: true
+    integration: true
+    e2e: false
+    mocks: true
+  security:
+    enabled: true
+    scanner: "gosec"
+    rules: ["all"]
+    exclude: []
+
+# Infrastructure configuration
+infrastructure:
+  logging:
+    enabled: true
+    level: "info"
+    format: "structured"
+    output: ["stdout", "file"]
+    structured: true
+    tracing: false
+  monitoring:
+    enabled: false
+    metrics: false
+    tracing: false
+    health_check: true
+    profiling: false
+    tools: []
+  cache:
+    enabled: false
+    type: "redis"
+    ttl: "1h"
+    max_size: "100MB"
+  message_queue:
+    enabled: false
+    type: "rabbitmq"
+    exchanges: []
+    queues: []
+  deployment:
+    type: "docker"
+    registry: ""
+    namespace: ""
+    replicas: 1
+    resources:
+      cpu: "100m"
+      memory: "128Mi"
+
+# Default configuration for CLI commands
+defaults:
+  database: "postgres"
+  handlers: [http]
+  validation: true
+  soft_delete: true
+  timestamps: true
+  business_rules: false
+  docker: true
+  docs: true
+  testing: true

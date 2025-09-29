@@ -1,0 +1,30 @@
+package domain
+
+import "errors"
+
+var (
+	ErrInvalidOrderData             = errors.New("datos de order inválidos")
+	ErrInvalidProductData           = errors.New("datos de product inválidos")
+	ErrInvalidUserData              = errors.New("datos de user inválidos")
+	ErrInvalidTestFeatureData       = errors.New("datos de testfeature inválidos")
+	ErrInvalidTestFeatureName       = errors.New("el nombre es requerido")
+	ErrInvalidTestFeatureNameLength = errors.New("el nombre debe tener entre 2 y 100 caracteres")
+	ErrInvalidTestFeatureEmail      = errors.New("el email es requerido")
+	ErrInvalidTestFeatureAge        = errors.New("la edad es requerido")
+	ErrInvalidTestFeatureAgeRange   = errors.New("la edad debe ser mayor a 0")
+	ErrInvalidUserName              = errors.New("el nombre es requerido")
+	ErrInvalidUserNameLength        = errors.New("el nombre debe tener entre 2 y 100 caracteres")
+	ErrInvalidUserEmail             = errors.New("el email es requerido")
+	ErrInvalidUserAge               = errors.New("la edad es requerido")
+	ErrInvalidUserAgeRange          = errors.New("la edad debe ser mayor a 0")
+	ErrInvalidProductName           = errors.New("el nombre es requerido")
+	ErrInvalidProductNameLength     = errors.New("el nombre debe tener entre 2 y 100 caracteres")
+	ErrInvalidProductPrice          = errors.New("el precio es requerido")
+	ErrInvalidProductPriceRange     = errors.New("el precio debe ser mayor a 0 y menor a 999,999,999.99")
+	ErrInvalidProductDescription    = errors.New("la descripción es requerido")
+	ErrInvalidOrderCustomer_id      = errors.New("el campo customer_id es requerido")
+	ErrInvalidOrderCustomer_idRange = errors.New("el campo customer_id debe ser un número positivo")
+	ErrInvalidOrderTotal            = errors.New("el campo total es requerido")
+	ErrInvalidOrderTotalRange       = errors.New("el campo total debe ser un número positivo")
+	ErrInvalidOrderStatus           = errors.New("el estado es requerido")
+)
