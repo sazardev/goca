@@ -1,0 +1,23 @@
+{
+    "name": "goca-docs",
+    "version": "2.0.0",
+    "description": "GOCA CLI Documentation",
+    "type": "module",
+    "scripts": {
+        "dev": "vitepress dev",
+        "build": "vitepress build",
+        "preview": "vitepress preview"
+    },
+    "keywords": [
+        "goca",
+        "cli",
+        "go",
+        "clean-architecture",
+        "documentation"
+    ],
+    "author": "SazarDev",
+    "license": "MIT",
+    "devDependencies": {
+        "vitepress": "^1.3.4"
+    }
+}
