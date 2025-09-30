@@ -24,7 +24,55 @@ without external dependencies and with complete business validations.`,
 		timestamps, _ := cmd.Flags().GetBool("timestamps")
 		softDelete, _ := cmd.Flags().GetBool("soft-delete")
 
-		// Usar validador centralizado
+		// Initialize configuration integration
+		configIntegration := NewConfigIntegration()
+		if err := configIntegration.LoadConfigForProject(); err != nil {
+			fmt.Printf("⚠️  Warning: Could not load configuration: %v\n", err)
+			fmt.Println("📝 Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+		}
+
+		// Merge CLI flags with configuration (CLI flags take precedence)
+		// Only include flags that were explicitly set by the user
+		flags := map[string]interface{}{}
+		if cmd.Flags().Changed("validation") {
+			flags["validation"] = validation
+		}
+		if cmd.Flags().Changed("business-rules") {
+			flags["business-rules"] = businessRules
+		}
+		if cmd.Flags().Changed("timestamps") {
+			flags["timestamps"] = timestamps
+		}
+		if cmd.Flags().Changed("soft-delete") {
+			flags["soft-delete"] = softDelete
+		}
+		if len(flags) > 0 {
+			configIntegration.MergeWithCLIFlags(flags)
+		}
+
+
+
+		// Get effective values from configuration
+		// Use CLI flag if explicitly set, otherwise use config
+		effectiveValidation := validation
+		if !cmd.Flags().Changed("validation") && configIntegration.config != nil {
+			effectiveValidation = configIntegration.config.Generation.Validation.Enabled
+		}
+
+		effectiveBusinessRules := businessRules
+		if !cmd.Flags().Changed("business-rules") && configIntegration.config != nil {
+			effectiveBusinessRules = configIntegration.config.Generation.BusinessRules.Enabled
+		}
+
+		// Get timestamps and soft delete from config if not explicitly set via CLI
+		effectiveTimestamps := timestamps
+		effectiveSoftDelete := softDelete
+		if !cmd.Flags().Changed("timestamps") && configIntegration.config != nil {
+			effectiveTimestamps = configIntegration.config.Database.Features.Timestamps
+		}
+		if !cmd.Flags().Changed("soft-delete") && configIntegration.config != nil {
+			effectiveSoftDelete = configIntegration.config.Database.Features.SoftDelete
+		} // Usar validador centralizado
 		validator := NewCommandValidator()
 
 		if err := validator.ValidateEntityCommand(entityName, fields); err != nil {
@@ -36,35 +84,55 @@ without external dependencies and with complete business validations.`,
 		fmt.Printf("🏗️  Generating entity '%s'\n", entityName)
 		fmt.Printf("📋 Fields: %s\n", fields)
 
-		if validation {
-			fmt.Println("✓ Incluyendo validaciones")
+		if effectiveValidation {
+			fmt.Print("✅ Including validations")
+			if configIntegration.HasConfigFile() {
+				fmt.Printf(" (from config)")
+			}
+			fmt.Println()
 		}
-		if businessRules {
-			fmt.Println("✓ Incluyendo reglas de negocio")
+		if effectiveBusinessRules {
+			fmt.Print("🧠 Including business rules")
+			if configIntegration.HasConfigFile() {
+				fmt.Printf(" (from config)")
+			}
+			fmt.Println()
 		}
-		if timestamps {
-			fmt.Println("✓ Incluyendo timestamps")
+		if effectiveTimestamps {
+			fmt.Print("⏰ Including timestamps")
+			if configIntegration.HasConfigFile() && !cmd.Flags().Changed("timestamps") {
+				fmt.Printf(" (from config)")
+			}
+			fmt.Println()
 		}
-		if softDelete {
-			fmt.Println("✓ Incluyendo eliminación suave")
+		if effectiveSoftDelete {
+			fmt.Print("🗑️  Including soft delete")
+			if configIntegration.HasConfigFile() && !cmd.Flags().Changed("soft-delete") {
+				fmt.Printf(" (from config)")
+			}
+			fmt.Println()
 		}
 
-		generateEntity(entityName, fields, validation, businessRules, timestamps, softDelete)
+		if configIntegration.HasConfigFile() {
+			configIntegration.PrintConfigSummary()
+		}
+
+		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete)
 
 		// Generar datos de semilla automáticamente
 		if fields != "" {
 			generateSeedData("internal/domain", entityName, parseFields(fields))
-			fmt.Println("🌱 Datos de semilla generados")
+			fmt.Println("🌱 Seed data generated")
 		}
 
 		fmt.Printf("\n✅ Entity '%s' generated successfully!\n", entityName)
 		fmt.Printf("📁 Files created:\n")
 		fmt.Printf("   - internal/domain/%s.go\n", strings.ToLower(entityName))
-		if validation {
+		if effectiveValidation {
 			fmt.Printf("   - internal/domain/errors.go\n")
 		}
 		fmt.Printf("   - internal/domain/%s_seeds.go\n", strings.ToLower(entityName))
-		fmt.Println("\n🎉 ¡Todo listo! Tu entidad está lista para usar.")
+		fmt.Println("\n🎉 All set! Your entity is ready to use.")
 	},
 }
 
@@ -74,11 +142,8 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 	_ = os.MkdirAll(domainDir, 0755)
 
 	// Parse fields - ahora genera campos reales basados en el input
-	fieldsList := parseFields(fields)
-
-	// Add ID field always as first field
-	idField := Field{Name: "ID", Type: "uint", Tag: "`json:\"id\" gorm:\"primaryKey\"`"}
-	fieldsList = append([]Field{idField}, fieldsList...)
+	// Note: ParseFieldsWithValidation already adds the ID field
+	fieldsList := parseFieldsWithValidation(fields, validation)
 
 	// Add timestamps if requested
 	if timestamps {
@@ -111,13 +176,56 @@ type Field struct {
 }
 
 func parseFields(fields string) []Field {
+	return parseFieldsWithValidation(fields, false)
+}
+
+func parseFieldsWithValidation(fields string, withValidation bool) []Field {
 	validator := NewFieldValidator()
 	fieldsList, err := validator.ParseFieldsWithValidation(fields)
 	if err != nil {
 		fmt.Printf("❌ Error in field validation: %v\n", err)
 		os.Exit(1)
 	}
+
+	// If validation is enabled, add validate tags to the field tags
+	if withValidation {
+		for i := range fieldsList {
+			if fieldsList[i].Name != "ID" {
+				// Parse existing tag and add validation tag
+				existingTag := fieldsList[i].Tag
+				// Remove backticks
+				existingTag = strings.Trim(existingTag, "`")
+
+				// Add validation tag based on field type
+				validateTag := getValidateTag(fieldsList[i].Name, fieldsList[i].Type)
+				if validateTag != "" {
+					existingTag += fmt.Sprintf(" validate:\"%s\"", validateTag)
+				}
+
+				fieldsList[i].Tag = "`" + existingTag + "`"
+			}
+		}
+	}
+
 	return fieldsList
+}
+
+func getValidateTag(fieldName, fieldType string) string {
+	switch fieldType {
+	case FieldString:
+		if fieldName == "Email" || strings.ToLower(fieldName) == "email" {
+			return "required,email"
+		}
+		return "required"
+	case "int", "int64", "uint", "uint64":
+		return "required,gte=0"
+	case "float64":
+		return "required,gte=0"
+	case "bool":
+		return "" // Booleans don't usually need validation
+	default:
+		return "required"
+	}
 }
 
 func getGormTag(fieldName, fieldType string) string {

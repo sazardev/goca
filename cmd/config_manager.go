@@ -92,13 +92,13 @@ func (cm *ConfigManager) loadFromFile(filePath string) error {
 		return fmt.Errorf("failed to parse config file %s: %w", filePath, err)
 	}
 
-	// Validate configuration
+	// Apply defaults for missing values BEFORE validation
+	cm.applyDefaults(config)
+
+	// Validate configuration with defaults applied
 	if err := cm.validateConfig(config); err != nil {
 		return fmt.Errorf("invalid configuration: %w", err)
 	}
-
-	// Apply defaults for missing values
-	cm.applyDefaults(config)
 
 	cm.config = config
 	return nil
@@ -429,7 +429,11 @@ func (cm *ConfigManager) validateFeatures(features *FeatureConfig) {
 
 // applyDefaults applies default values for missing configuration
 func (cm *ConfigManager) applyDefaults(config *GocaConfig) {
-	// Apply defaults based on context and other settings
+	// Apply database defaults
+	if config.Database.Type == "" {
+		config.Database.Type = "postgres"
+	}
+
 	if config.Database.Type == "postgres" && config.Database.Port == 0 {
 		config.Database.Port = 5432
 	}
@@ -440,6 +444,67 @@ func (cm *ConfigManager) applyDefaults(config *GocaConfig) {
 
 	if config.Database.Type == "mongodb" && config.Database.Port == 0 {
 		config.Database.Port = 27017
+	}
+
+	if config.Database.Type == "sqlite" && config.Database.Port == 0 {
+		config.Database.Port = 0 // SQLite doesn't need a port
+	}
+
+	// Apply architecture naming defaults
+	if config.Architecture.Naming.Entities == "" {
+		config.Architecture.Naming.Entities = "PascalCase"
+	}
+	if config.Architecture.Naming.Fields == "" {
+		config.Architecture.Naming.Fields = "camelCase"
+	}
+	if config.Architecture.Naming.Files == "" {
+		config.Architecture.Naming.Files = "snake_case"
+	}
+	if config.Architecture.Naming.Packages == "" {
+		config.Architecture.Naming.Packages = "lowercase"
+	}
+	if config.Architecture.Naming.Constants == "" {
+		config.Architecture.Naming.Constants = "UPPER_CASE"
+	}
+	if config.Architecture.Naming.Variables == "" {
+		config.Architecture.Naming.Variables = "camelCase"
+	}
+	if config.Architecture.Naming.Functions == "" {
+		config.Architecture.Naming.Functions = "PascalCase"
+	}
+
+	// Apply DI defaults
+	if config.Architecture.DI.Type == "" {
+		config.Architecture.DI.Type = "manual"
+	}
+
+	// Apply generation defaults
+	if config.Generation.Validation.Library == "" {
+		config.Generation.Validation.Library = "builtin"
+	}
+	if config.Generation.Style.LineLength == 0 {
+		config.Generation.Style.LineLength = 120
+	}
+
+	// Apply testing defaults
+	if config.Testing.Framework == "" {
+		config.Testing.Framework = "testify"
+	}
+	if config.Testing.Coverage.Threshold == 0 {
+		config.Testing.Coverage.Threshold = 80.0
+	}
+
+	// Apply feature defaults
+	if config.Features.Auth.Enabled && config.Features.Auth.Type == "" {
+		config.Features.Auth.Type = "jwt"
+	}
+	if config.Features.Cache.Enabled && config.Features.Cache.Type == "" {
+		config.Features.Cache.Type = "redis"
+	}
+
+	// Apply database connection defaults
+	if config.Database.Connection.MaxOpen == 0 {
+		config.Database.Connection.MaxOpen = 25
 	}
 
 	// Set intelligent defaults based on project type

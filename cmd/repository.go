@@ -25,43 +25,79 @@ well-defined interfaces and database-specific implementations.`,
 		transactions, _ := cmd.Flags().GetBool(TransactionsFlag)
 		fields, _ := cmd.Flags().GetString("fields")
 
+		// Initialize config integration
+		configIntegration := NewConfigIntegration()
+		if err := configIntegration.LoadConfigForProject(); err != nil {
+			fmt.Printf("⚠️  Warning: Could not load configuration: %v\n", err)
+			fmt.Println("📝 Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+		}
+
+		// Merge CLI flags with configuration (only explicitly changed flags)
+		flags := map[string]interface{}{}
+		if cmd.Flags().Changed("database") {
+			flags["database"] = database
+		}
+		if cmd.Flags().Changed("cache") {
+			flags["cache"] = cache
+		}
+		if cmd.Flags().Changed("transactions") {
+			flags["transactions"] = transactions
+		}
+		if len(flags) > 0 {
+			configIntegration.MergeWithCLIFlags(flags)
+		}
+
+		// Get effective values from configuration
+		effectiveDatabase := database
+		if !cmd.Flags().Changed("database") && configIntegration.config != nil {
+			effectiveDatabase = configIntegration.config.Database.Type
+		}
+
 		// Validar con el nuevo validador robusto
 		validator := NewFieldValidator()
 
 		if err := validator.ValidateEntityName(entity); err != nil {
-			fmt.Printf("❌ Error en nombre de entidad: %v\n", err)
+			fmt.Printf("❌ Error in entity name: %v\n", err)
 			return
 		}
 
-		if database != "" {
-			if err := validator.ValidateDatabase(database); err != nil {
-				fmt.Printf("❌ Error en base de datos: %v\n", err)
+		if effectiveDatabase != "" {
+			if err := validator.ValidateDatabase(effectiveDatabase); err != nil {
+				fmt.Printf("❌ Error in database: %v\n", err)
 				return
 			}
 		}
 
 		fmt.Printf("🚀 Generating repository for entity '%s'\n", entity)
 
-		if database != "" && !interfaceOnly {
-			fmt.Printf("🗄️  Base de datos: %s\n", database)
+		if effectiveDatabase != "" && !interfaceOnly {
+			fmt.Printf("🗄️  Database: %s", effectiveDatabase)
+			if configIntegration.HasConfigFile() && !cmd.Flags().Changed("database") {
+				fmt.Printf(" (from config)")
+			}
+			fmt.Println()
 		}
 		if interfaceOnly {
-			fmt.Println("✓ Solo interfaces")
+			fmt.Println("✓ Interface only")
 		}
 		if implementation {
-			fmt.Println("✓ Solo implementación")
+			fmt.Println("✓ Implementation only")
 		}
 		if cache {
-			fmt.Println("✓ Incluyendo caché")
+			fmt.Println("✓ Including cache")
 		}
 		if transactions {
-			fmt.Println("✓ Incluyendo transacciones")
+			fmt.Println("✓ Including transactions")
 		}
 		if fields != "" {
-			fmt.Printf("✓ Campos personalizados: %s\n", fields)
+			fmt.Printf("✓ Custom fields: %s\n", fields)
 		}
 
-		generateRepository(entity, database, interfaceOnly, implementation, cache, transactions, fields)
+		if configIntegration.HasConfigFile() {
+			configIntegration.PrintConfigSummary()
+		}
+
+		generateRepository(entity, effectiveDatabase, interfaceOnly, implementation, cache, transactions, fields)
 		fmt.Printf("\n✅ Repository for '%s' generated successfully!\n", entity)
 	},
 }

@@ -1,0 +1,8 @@
+﻿project:
+  name: "testvalidation"
+  module: "testvalidation"
+
+generation:
+  validation:
+    enabled: true
+    library: "builtin"
