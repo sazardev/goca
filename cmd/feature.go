@@ -85,7 +85,13 @@ including domain, use cases, repository and handlers in a single operation.`,
 			configIntegration.PrintConfigSummary()
 		}
 
-		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules)
+		// Get naming convention for files
+		fileNamingConvention := "lowercase" // default
+		if configIntegration.config != nil {
+			fileNamingConvention = configIntegration.GetNamingConvention("file")
+		}
+
+		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, fileNamingConvention)
 
 		// 6. Auto-integrate with DI and main.go
 		fmt.Println("6️⃣  Integrating automatically...")
@@ -112,12 +118,12 @@ including domain, use cases, repository and handlers in a single operation.`,
 	},
 }
 
-func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules bool) {
+func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules bool, fileNamingConvention string) {
 	fmt.Println("\n🔄 Generating layers...")
 
 	// 1. Generate Entity (Domain layer)
 	fmt.Println("1️⃣  Generating domain entity...")
-	generateEntity(featureName, fields, true, businessRules, false, false)
+	generateEntity(featureName, fields, true, businessRules, false, false, fileNamingConvention)
 
 	// 2. Generate Use Case
 	fmt.Println("2️⃣  Generating use cases...")
@@ -133,7 +139,7 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 	for _, handlerType := range handlerTypes {
 		handlerType = strings.TrimSpace(handlerType)
 		fmt.Printf("   📡 Generating %s handler...\n", handlerType)
-		generateHandler(featureName, handlerType, true, validation, handlerType == "http")
+		generateHandler(featureName, handlerType, true, validation, handlerType == "http", fileNamingConvention)
 	}
 
 	// 5. Generate Messages

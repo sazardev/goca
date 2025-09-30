@@ -18,51 +18,118 @@ var handlerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		entity := args[0]
 
+		// Initialize configuration integration
+		configIntegration := NewConfigIntegration()
+		configIntegration.LoadConfigForProject()
+
+		// Get CLI flag values
 		handlerType, _ := cmd.Flags().GetString("type")
 		middleware, _ := cmd.Flags().GetBool("middleware")
 		validation, _ := cmd.Flags().GetBool("validation")
 		swagger, _ := cmd.Flags().GetBool("swagger")
 
-		fmt.Printf("Generating handler '%s' for entity '%s'\n", handlerType, entity)
+		// Merge only explicitly changed CLI flags with config
+		flags := map[string]interface{}{}
+		if cmd.Flags().Changed("type") {
+			flags["handlers"] = handlerType
+		}
+		if cmd.Flags().Changed("middleware") {
+			flags["middleware"] = middleware
+		}
+		if cmd.Flags().Changed("validation") {
+			flags["validation"] = validation
+		}
+		if cmd.Flags().Changed("swagger") {
+			flags["swagger"] = swagger
+		}
 
-		if middleware {
-			fmt.Println("✓ Incluyendo middleware")
-		}
-		if validation {
-			fmt.Println("✓ Incluyendo validación")
-		}
-		if swagger && handlerType == HandlerHTTP {
-			fmt.Println("✓ Incluyendo documentación Swagger")
+		if len(flags) > 0 {
+			configIntegration.MergeWithCLIFlags(flags)
 		}
 
-		generateHandler(entity, handlerType, middleware, validation, swagger)
-		fmt.Printf("\n✅ Handler '%s' for '%s' generated successfully!\n", handlerType, entity)
+		// Calculate effective values (config overrides CLI defaults)
+		effectiveHandlerType := handlerType
+		if !cmd.Flags().Changed("type") && configIntegration.config != nil {
+			handlers := configIntegration.GetHandlerTypes(handlerType)
+			if len(handlers) > 0 {
+				effectiveHandlerType = handlers[0]
+			}
+		}
+
+		effectiveMiddleware := middleware
+		effectiveValidation := validation
+		if !cmd.Flags().Changed("validation") && configIntegration.config != nil {
+			effectiveValidation = configIntegration.config.Generation.Validation.Enabled
+		}
+
+		effectiveSwagger := swagger
+		if !cmd.Flags().Changed("swagger") && configIntegration.config != nil {
+			effectiveSwagger = configIntegration.config.Generation.Documentation.Swagger.Enabled
+		}
+
+		// Get naming convention from config
+		fileNamingConvention := "lowercase" // default
+		if configIntegration.config != nil {
+			fileNamingConvention = configIntegration.GetNamingConvention("file")
+		}
+
+		// Print configuration summary
+		fmt.Printf("Generating handler '%s' for entity '%s'\n", effectiveHandlerType, entity)
+		if configIntegration.config != nil {
+			if !cmd.Flags().Changed("type") {
+				handlers := configIntegration.GetHandlerTypes(handlerType)
+				if len(handlers) > 0 {
+					fmt.Printf("  Handler type: %s (from config)\n", effectiveHandlerType)
+				}
+			}
+			if !cmd.Flags().Changed("validation") {
+				fmt.Printf("  Validation: %v (from config)\n", effectiveValidation)
+			}
+			if !cmd.Flags().Changed("swagger") {
+				fmt.Printf("  Swagger: %v (from config)\n", effectiveSwagger)
+			}
+		}
+
+		if effectiveMiddleware {
+			fmt.Println("✓ Including middleware")
+		}
+		if effectiveValidation {
+			fmt.Println("✓ Including validation")
+		}
+		if effectiveSwagger && effectiveHandlerType == HandlerHTTP {
+			fmt.Println("✓ Including Swagger documentation")
+		}
+
+		generateHandler(entity, effectiveHandlerType, effectiveMiddleware, effectiveValidation, effectiveSwagger, fileNamingConvention)
+		fmt.Printf("\n✅ Handler '%s' for '%s' generated successfully!\n", effectiveHandlerType, entity)
 	},
 }
 
-func generateHandler(entity, handlerType string, middleware, validation, swagger bool) {
+func generateHandler(entity, handlerType string, middleware, validation, swagger bool, fileNamingConvention string) {
 	switch handlerType {
 	case HandlerHTTP:
-		generateHTTPHandler(entity, middleware, validation, swagger)
+		generateHTTPHandler(entity, middleware, validation, swagger, fileNamingConvention)
 	case HandlerGRPC:
-		generateGRPCHandler(entity)
+		generateGRPCHandler(entity, fileNamingConvention)
 	case HandlerCLI:
-		generateCLIHandler(entity)
+		generateCLIHandler(entity, fileNamingConvention)
 	case "worker":
-		generateWorkerHandler(entity)
+		generateWorkerHandler(entity, fileNamingConvention)
 	case "soap":
-		generateSOAPHandler(entity)
+		generateSOAPHandler(entity, fileNamingConvention)
 	default:
-		fmt.Printf("Tipo de handler no soportado: %s\n", handlerType)
+		fmt.Printf("Unsupported handler type: %s\n", handlerType)
 		os.Exit(1)
 	}
 }
 
-func generateHTTPHandler(entity string, middleware, validation, swagger bool) {
-	// Crear directorio handlers si no existe
+func generateHTTPHandler(entity string, middleware, validation, swagger bool, fileNamingConvention string) {
+	// Create handlers directory if it doesn't exist
 	handlerDir := filepath.Join(DirInternal, DirHandler, DirHTTP)
-	_ = os.MkdirAll(handlerDir, 0755) // Generate handler file
-	generateHTTPHandlerFile(handlerDir, entity, validation)
+	_ = os.MkdirAll(handlerDir, 0755)
+
+	// Generate handler file
+	generateHTTPHandlerFile(handlerDir, entity, validation, fileNamingConvention)
 
 	// Generate routes file
 	generateHTTPRoutesFile(handlerDir, entity, middleware)
@@ -78,8 +145,14 @@ func generateHTTPHandler(entity string, middleware, validation, swagger bool) {
 	}
 }
 
-func generateHTTPHandlerFile(dir, entity string, validation bool) {
-	filename := filepath.Join(dir, strings.ToLower(entity)+"_handler.go")
+func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConvention string) {
+	// Apply naming convention to filename
+	var filename string
+	if fileNamingConvention == "snake_case" {
+		filename = filepath.Join(dir, toSnakeCase(entity)+"_handler.go")
+	} else {
+		filename = filepath.Join(dir, strings.ToLower(entity)+"_handler.go")
+	}
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -119,7 +192,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool) {
 	generateListHandlerMethod(&content, entity, handlerName)
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error escribiendo handler file: %v\n", err)
+		fmt.Printf("Error writing handler file: %v\n", err)
 		return
 	}
 }
@@ -297,7 +370,7 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 	}
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error escribiendo routes file: %v\n", err)
+		fmt.Printf("Error writing routes file: %v\n", err)
 		return
 	}
 }
@@ -348,7 +421,7 @@ func generateHTTPDTOFile(dir, entity string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error escribiendo types file: %v\n", err)
+		fmt.Printf("Error writing types file: %v\n", err)
 		return
 	}
 }
@@ -434,23 +507,30 @@ components:
 `, entity, entityLower, entityLower, entityLower, entity, entityLower, entity, entity, entity, entityLower, entityLower, entity, entity, entity)
 
 	if err := writeFile(filename, content); err != nil {
-		fmt.Printf("Error escribiendo swagger file: %v\n", err)
+		fmt.Printf("Error writing swagger file: %v\n", err)
 		return
 	}
 }
 
-func generateGRPCHandler(entity string) {
+func generateGRPCHandler(entity string, fileNamingConvention string) {
 	// Create gRPC directory
 	grpcDir := filepath.Join(DirInternal, DirHandler, DirGRPC)
 	_ = os.MkdirAll(grpcDir, 0755)
 
-	generateProtoFile(grpcDir, entity)
-	generateGRPCServerFile(grpcDir, entity)
+	generateProtoFile(grpcDir, entity, fileNamingConvention)
+	generateGRPCServerFile(grpcDir, entity, fileNamingConvention)
 }
 
-func generateProtoFile(dir, entity string) {
+func generateProtoFile(dir, entity string, fileNamingConvention string) {
 	entityLower := strings.ToLower(entity)
-	filename := filepath.Join(dir, entityLower+".proto")
+
+	// Apply naming convention to filename
+	var filename string
+	if fileNamingConvention == "snake_case" {
+		filename = filepath.Join(dir, toSnakeCase(entity)+".proto")
+	} else {
+		filename = filepath.Join(dir, entityLower+".proto")
+	}
 
 	var content strings.Builder
 	content.WriteString("syntax = \"proto3\";\n\n")
@@ -516,18 +596,25 @@ func generateProtoFile(dir, entity string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error escribiendo proto file: %v\n", err)
+		fmt.Printf("Error writing proto file: %v\n", err)
 		return
 	}
 }
 
-func generateGRPCServerFile(dir, entity string) {
+func generateGRPCServerFile(dir, entity string, fileNamingConvention string) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)
 
 	entityLower := strings.ToLower(entity)
-	filename := filepath.Join(dir, entityLower+"_server.go")
+
+	// Apply naming convention to filename
+	var filename string
+	if fileNamingConvention == "snake_case" {
+		filename = filepath.Join(dir, toSnakeCase(entity)+"_server.go")
+	} else {
+		filename = filepath.Join(dir, entityLower+"_server.go")
+	}
 
 	var content strings.Builder
 	content.WriteString("package grpc\n\n")
@@ -583,12 +670,12 @@ func generateGRPCServerFile(dir, entity string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error escribiendo grpc server file: %v\n", err)
+		fmt.Printf("Error writing grpc server file: %v\n", err)
 		return
 	}
 }
 
-func generateCLIHandler(entity string) {
+func generateCLIHandler(entity string, fileNamingConvention string) {
 	// Create CLI directory
 	cliDir := filepath.Join(DirInternal, DirHandler, DirCLI)
 	_ = os.MkdirAll(cliDir, 0755)
@@ -598,7 +685,14 @@ func generateCLIHandler(entity string) {
 	importPath := getImportPath(moduleName)
 
 	entityLower := strings.ToLower(entity)
-	filename := filepath.Join(cliDir, entityLower+"_commands.go")
+
+	// Apply naming convention to filename
+	var filename string
+	if fileNamingConvention == "snake_case" {
+		filename = filepath.Join(cliDir, toSnakeCase(entity)+"_commands.go")
+	} else {
+		filename = filepath.Join(cliDir, entityLower+"_commands.go")
+	}
 
 	var content strings.Builder
 	content.WriteString("package cli\n\n")
@@ -679,12 +773,12 @@ func generateCLIHandler(entity string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error escribiendo cli handler file: %v\n", err)
+		fmt.Printf("Error writing cli handler file: %v\n", err)
 		return
 	}
 }
 
-func generateWorkerHandler(entity string) {
+func generateWorkerHandler(entity string, fileNamingConvention string) {
 	// Create worker directory
 	workerDir := filepath.Join(DirInternal, DirHandler, DirWorker)
 	_ = os.MkdirAll(workerDir, 0755)
@@ -693,7 +787,14 @@ func generateWorkerHandler(entity string) {
 	moduleName := getModuleName()
 
 	entityLower := strings.ToLower(entity)
-	filename := filepath.Join(workerDir, entityLower+"_worker.go")
+
+	// Apply naming convention to filename
+	var filename string
+	if fileNamingConvention == "snake_case" {
+		filename = filepath.Join(workerDir, toSnakeCase(entity)+"_worker.go")
+	} else {
+		filename = filepath.Join(workerDir, entityLower+"_worker.go")
+	}
 
 	content := fmt.Sprintf(`package worker
 
@@ -751,12 +852,12 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entity, entityLower, entity)
 
 	if err := writeFile(filename, content); err != nil {
-		fmt.Printf("Error escribiendo worker file: %v\n", err)
+		fmt.Printf("Error writing worker file: %v\n", err)
 		return
 	}
 }
 
-func generateSOAPHandler(entity string) {
+func generateSOAPHandler(entity string, fileNamingConvention string) {
 	// Create SOAP directory
 	soapDir := filepath.Join(DirInternal, DirHandler, DirSOAP)
 	_ = os.MkdirAll(soapDir, 0755)
@@ -765,7 +866,14 @@ func generateSOAPHandler(entity string) {
 	moduleName := getModuleName()
 
 	entityLower := strings.ToLower(entity)
-	filename := filepath.Join(soapDir, entityLower+"_client.go")
+
+	// Apply naming convention to filename
+	var filename string
+	if fileNamingConvention == "snake_case" {
+		filename = filepath.Join(soapDir, toSnakeCase(entity)+"_client.go")
+	} else {
+		filename = filepath.Join(soapDir, entityLower+"_client.go")
+	}
 
 	content := fmt.Sprintf(`package soap
 
@@ -853,7 +961,7 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity)
 
 	if err := writeFile(filename, content); err != nil {
-		fmt.Printf("Error escribiendo soap file: %v\n", err)
+		fmt.Printf("Error writing soap file: %v\n", err)
 		return
 	}
 }
@@ -864,3 +972,4 @@ func init() {
 	handlerCmd.Flags().BoolP("validation", "v", false, "Input validation in handler")
 	handlerCmd.Flags().BoolP("swagger", "s", false, "Generate Swagger documentation (HTTP only)")
 }
+

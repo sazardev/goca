@@ -18,27 +18,69 @@ clear interfaces and encapsulated business logic.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		usecaseName := args[0]
 
+		// Initialize configuration integration
+		configIntegration := NewConfigIntegration()
+		configIntegration.LoadConfigForProject()
+
+		// Get CLI flag values
 		entity, _ := cmd.Flags().GetString("entity")
 		operations, _ := cmd.Flags().GetString("operations")
 		dtoValidation, _ := cmd.Flags().GetBool("dto-validation")
 		async, _ := cmd.Flags().GetBool("async")
 
 		if entity == "" {
-			fmt.Println("Error: --entity flag es requerido")
+			fmt.Println("Error: --entity flag is required")
 			os.Exit(1)
 		}
 
-		fmt.Printf("Generating use case '%s' for entity '%s'\n", usecaseName, entity)
-		fmt.Printf("Operaciones: %s\n", operations)
+		// Merge only explicitly changed CLI flags with config
+		flags := map[string]interface{}{}
+		if cmd.Flags().Changed("operations") {
+			flags["operations"] = operations
+		}
+		if cmd.Flags().Changed("dto-validation") {
+			flags["validation"] = dtoValidation
+		}
+		if cmd.Flags().Changed("async") {
+			flags["async"] = async
+		}
 
-		if dtoValidation {
-			fmt.Println("✓ Incluyendo validaciones en DTOs")
+		if len(flags) > 0 {
+			configIntegration.MergeWithCLIFlags(flags)
+		}
+
+		// Calculate effective values (config overrides CLI defaults)
+		effectiveDtoValidation := dtoValidation
+		if !cmd.Flags().Changed("dto-validation") && configIntegration.config != nil {
+			effectiveDtoValidation = configIntegration.config.Generation.Validation.Enabled
+		}
+
+		effectiveBusinessRules := false
+		if configIntegration.config != nil {
+			effectiveBusinessRules = configIntegration.config.Generation.BusinessRules.Enabled
+		}
+
+		// Print configuration summary
+		fmt.Printf("Generating use case '%s' for entity '%s'\n", usecaseName, entity)
+		fmt.Printf("Operations: %s\n", operations)
+
+		if configIntegration.config != nil {
+			if !cmd.Flags().Changed("dto-validation") {
+				fmt.Printf("  DTO Validation: %v (from config)\n", effectiveDtoValidation)
+			}
+			if effectiveBusinessRules {
+				fmt.Printf("  Business Rules: enabled (from config)\n")
+			}
+		}
+
+		if effectiveDtoValidation {
+			fmt.Println("✓ Including DTO validations")
 		}
 		if async {
-			fmt.Println("✓ Incluyendo operaciones asíncronas")
+			fmt.Println("✓ Including asynchronous operations")
 		}
 
-		generateUseCase(usecaseName, entity, operations, dtoValidation, async)
+		generateUseCase(usecaseName, entity, operations, effectiveDtoValidation, async)
 		fmt.Printf("\n✅ Use case '%s' generated successfully!\n", usecaseName)
 	},
 }

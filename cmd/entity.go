@@ -50,8 +50,6 @@ without external dependencies and with complete business validations.`,
 			configIntegration.MergeWithCLIFlags(flags)
 		}
 
-
-
 		// Get effective values from configuration
 		// Use CLI flag if explicitly set, otherwise use config
 		effectiveValidation := validation
@@ -117,7 +115,13 @@ without external dependencies and with complete business validations.`,
 			configIntegration.PrintConfigSummary()
 		}
 
-		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete)
+		// Get naming convention for files
+		fileNamingConvention := "lowercase" // default
+		if configIntegration.config != nil {
+			fileNamingConvention = configIntegration.GetNamingConvention("file")
+		}
+
+		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, fileNamingConvention)
 
 		// Generar datos de semilla automáticamente
 		if fields != "" {
@@ -136,7 +140,7 @@ without external dependencies and with complete business validations.`,
 	},
 }
 
-func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete bool) {
+func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete bool, fileNamingConvention string) {
 	// Crear directorio domain si no existe
 	domainDir := "internal/domain"
 	_ = os.MkdirAll(domainDir, 0755)
@@ -157,7 +161,7 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 	}
 
 	// Generate entity file with real field-based content
-	generateEntityFile(domainDir, entityName, fieldsList, validation, businessRules, timestamps, softDelete)
+	generateEntityFile(domainDir, entityName, fieldsList, validation, businessRules, timestamps, softDelete, fileNamingConvention)
 
 	// Generate errors file if validation is enabled - now with real field validations
 	if validation {
@@ -262,9 +266,15 @@ func hasStringBusinessRules(fields []Field) bool {
 	return false
 }
 
-func generateEntityFile(dir, entityName string, fields []Field, validation, businessRules, timestamps, softDelete bool) {
-	entityLower := strings.ToLower(entityName)
-	filename := filepath.Join(dir, entityLower+".go")
+func generateEntityFile(dir, entityName string, fields []Field, validation, businessRules, timestamps, softDelete bool, fileNamingConvention string) {
+	// Apply naming convention to filename
+	var filename string
+	if fileNamingConvention == "snake_case" {
+		filename = filepath.Join(dir, toSnakeCase(entityName)+".go")
+	} else {
+		// Default to lowercase
+		filename = filepath.Join(dir, strings.ToLower(entityName)+".go")
+	}
 
 	var content strings.Builder
 
