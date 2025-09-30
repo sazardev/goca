@@ -305,14 +305,18 @@ func writeEntityHeader(content *strings.Builder, fields []Field, businessRules, 
 
 	needsTime := timestamps || softDelete
 	needsStrings := businessRules && hasStringBusinessRules(fields)
+	needsGorm := softDelete // Need gorm.io/gorm for gorm.DeletedAt
 
-	if needsTime || needsStrings {
+	if needsTime || needsStrings || needsGorm {
 		content.WriteString("import (\n")
 		if needsStrings {
 			content.WriteString("\t\"strings\"\n")
 		}
 		if needsTime {
 			content.WriteString("\t\"time\"\n")
+		}
+		if needsGorm {
+			content.WriteString("\n\t\"gorm.io/gorm\"\n")
 		}
 		content.WriteString(")\n\n")
 	}
@@ -616,9 +620,7 @@ func generateSeedData(dir, entityName string, fields []Field) {
 // writeSeedFileHeader writes the package declaration and imports for seed file
 func writeSeedFileHeader(content *strings.Builder) {
 	content.WriteString("package domain\n\n")
-	content.WriteString("import (\n")
-	content.WriteString("\t\"time\"\n")
-	content.WriteString(")\n\n")
+	// No imports needed - seeds don't use time (timestamps are auto-managed)
 }
 
 // writeGoSeeds writes the Go struct seed data function
