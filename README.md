@@ -3,9 +3,12 @@
 [![Go Version](https://img.shields.io/badge/Go-1.24.5+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/sazardev/goca)
+[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](docs/BUG_FIXES_REPORT.md)
 [![Docs](https://img.shields.io/badge/Docs-Starlight-blueviolet.svg)](https://sazardev.github.io/goca)
 
 Goca is a powerful CLI code generator for Go that helps you create Clean Architecture projects following best practices. It generates clean, well-structured layered code, allowing you to focus on business logic instead of repetitive configuration tasks.
+
+**✨ Version 1.0.1:** Now **100% Production Ready** with all critical bugs fixed! Generated code compiles without manual intervention. See [Bug Fixes Report](docs/BUG_FIXES_REPORT.md).
 
 📚 **[Complete Documentation](https://sazardev.github.io/goca)** | 🚀 **[Quick Start Guide](https://sazardev.github.io/goca/getting-started)** | 📖 **[Complete Tutorial](https://sazardev.github.io/goca/tutorials/complete-tutorial)**
 
