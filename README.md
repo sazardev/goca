@@ -606,6 +606,22 @@ Handler → UseCase → Repository → Database
 
 **Golden Rule**: Dependencies always point inward, towards the domain.
 
+## 📚 Complete Documentation
+
+### Configuration System
+- **[Quick Start Config](docs/QUICKSTART_CONFIG.md)** - Get started with `.goca.yaml` in 5 minutes
+- **[YAML Structure Reference](docs/YAML_STRUCTURE_REFERENCE.md)** - Complete reference for all configuration options
+- **[Configuration System Guide](docs/configuration-system.md)** - Detailed configuration documentation
+- **[Migration Guide](docs/migration-guide.md)** - Migrate from pure CLI to configuration files
+
+### Integration & Status
+- **[Production Ready Report](docs/PRODUCTION_READY_FINAL_REPORT.md)** - 100% production readiness verification
+- **[Configuration Integration Complete](docs/CONFIGURATION_INTEGRATION_COMPLETE.md)** - Integration status and technical details
+
+### Advanced Topics
+- **[Advanced Configuration](docs/advanced-config.md)** - Advanced configuration commands and patterns
+- **[Complete Tutorial](wiki/Complete-Tutorial.md)** - Step-by-step tutorial for full project setup
+
 ## 🤝 Contributing
 
 1. Fork the repository
