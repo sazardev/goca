@@ -271,6 +271,8 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 	var filename string
 	if fileNamingConvention == "snake_case" {
 		filename = filepath.Join(dir, toSnakeCase(entityName)+".go")
+	} else if fileNamingConvention == "kebab-case" {
+		filename = filepath.Join(dir, toKebabCase(entityName)+".go")
 	} else {
 		// Default to lowercase
 		filename = filepath.Join(dir, strings.ToLower(entityName)+".go")

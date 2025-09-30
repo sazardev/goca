@@ -150,6 +150,8 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	var filename string
 	if fileNamingConvention == "snake_case" {
 		filename = filepath.Join(dir, toSnakeCase(entity)+"_handler.go")
+	} else if fileNamingConvention == "kebab-case" {
+		filename = filepath.Join(dir, toKebabCase(entity)+"-handler.go")
 	} else {
 		filename = filepath.Join(dir, strings.ToLower(entity)+"_handler.go")
 	}
@@ -528,6 +530,8 @@ func generateProtoFile(dir, entity string, fileNamingConvention string) {
 	var filename string
 	if fileNamingConvention == "snake_case" {
 		filename = filepath.Join(dir, toSnakeCase(entity)+".proto")
+	} else if fileNamingConvention == "kebab-case" {
+		filename = filepath.Join(dir, toKebabCase(entity)+".proto")
 	} else {
 		filename = filepath.Join(dir, entityLower+".proto")
 	}
@@ -612,6 +616,8 @@ func generateGRPCServerFile(dir, entity string, fileNamingConvention string) {
 	var filename string
 	if fileNamingConvention == "snake_case" {
 		filename = filepath.Join(dir, toSnakeCase(entity)+"_server.go")
+	} else if fileNamingConvention == "kebab-case" {
+		filename = filepath.Join(dir, toKebabCase(entity)+"-server.go")
 	} else {
 		filename = filepath.Join(dir, entityLower+"_server.go")
 	}
@@ -690,6 +696,8 @@ func generateCLIHandler(entity string, fileNamingConvention string) {
 	var filename string
 	if fileNamingConvention == "snake_case" {
 		filename = filepath.Join(cliDir, toSnakeCase(entity)+"_commands.go")
+	} else if fileNamingConvention == "kebab-case" {
+		filename = filepath.Join(cliDir, toKebabCase(entity)+"-commands.go")
 	} else {
 		filename = filepath.Join(cliDir, entityLower+"_commands.go")
 	}
@@ -792,6 +800,8 @@ func generateWorkerHandler(entity string, fileNamingConvention string) {
 	var filename string
 	if fileNamingConvention == "snake_case" {
 		filename = filepath.Join(workerDir, toSnakeCase(entity)+"_worker.go")
+	} else if fileNamingConvention == "kebab-case" {
+		filename = filepath.Join(workerDir, toKebabCase(entity)+"-worker.go")
 	} else {
 		filename = filepath.Join(workerDir, entityLower+"_worker.go")
 	}
@@ -871,6 +881,8 @@ func generateSOAPHandler(entity string, fileNamingConvention string) {
 	var filename string
 	if fileNamingConvention == "snake_case" {
 		filename = filepath.Join(soapDir, toSnakeCase(entity)+"_client.go")
+	} else if fileNamingConvention == "kebab-case" {
+		filename = filepath.Join(soapDir, toKebabCase(entity)+"-client.go")
 	} else {
 		filename = filepath.Join(soapDir, entityLower+"_client.go")
 	}
@@ -972,4 +984,3 @@ func init() {
 	handlerCmd.Flags().BoolP("validation", "v", false, "Input validation in handler")
 	handlerCmd.Flags().BoolP("swagger", "s", false, "Generate Swagger documentation (HTTP only)")
 }
-

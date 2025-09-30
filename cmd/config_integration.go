@@ -327,12 +327,12 @@ func (ci *ConfigIntegration) GetValidationWarnings() []ConfigWarning {
 }
 
 // GenerateConfigFile generates a .goca.yaml file in the specified project directory
-func (ci *ConfigIntegration) GenerateConfigFile(projectPath, projectName, module string) error {
+func (ci *ConfigIntegration) GenerateConfigFile(projectPath, projectName, module, database string) error {
 	if ci.manager == nil {
 		ci.manager = NewConfigManager()
 	}
 
-	return ci.manager.GenerateDefaultConfig(projectPath, projectName, module)
+	return ci.manager.GenerateDefaultConfig(projectPath, projectName, module, database)
 }
 
 // UpdateConfigFromTemplate updates configuration based on template data

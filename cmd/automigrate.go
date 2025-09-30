@@ -22,12 +22,20 @@ func addEntityToAutoMigration(entity string) error {
 	contentStr := string(content)
 	entityReference := fmt.Sprintf("&domain.%s{}", entity)
 
-	// Check if entity is already added to auto-migration
-	if strings.Contains(contentStr, entityReference) {
+	// Check if entity is already added to auto-migration (not in a comment)
+	// Look for the entity reference followed by a comma and not preceded by //
+	if isEntityInMigrationList(contentStr, entityReference) {
 		return nil
 	}
 
-	updatedContent, err := addEntityToMigrationSlice(contentStr, entityReference)
+	// 1. Add domain import if not present
+	updatedContent, err := ensureDomainImport(contentStr)
+	if err != nil {
+		return fmt.Errorf("failed to add domain import: %w", err)
+	}
+
+	// 2. Add entity to migration slice
+	updatedContent, err = addEntityToMigrationSlice(updatedContent, entityReference)
 	if err != nil {
 		return err
 	}
@@ -106,4 +114,81 @@ func findSliceClosingBrace(content string, startPos int) int {
 		}
 	}
 	return -1
+}
+
+// isEntityInMigrationList checks if an entity reference exists in the migration list (not in comments)
+func isEntityInMigrationList(content, entityReference string) bool {
+	// Find the entities slice
+	entitiesPattern := "entities := []interface{}{"
+	startIdx := strings.Index(content, entitiesPattern)
+	if startIdx == -1 {
+		return false
+	}
+
+	// Find the closing brace
+	closingIdx := findSliceClosingBrace(content, startIdx+len(entitiesPattern))
+	if closingIdx == -1 {
+		return false
+	}
+
+	// Get the slice content
+	sliceContent := content[startIdx+len(entitiesPattern) : closingIdx]
+
+	// Split by lines and check each line
+	lines := strings.Split(sliceContent, "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		// Skip empty lines and comments
+		if trimmed == "" || strings.HasPrefix(trimmed, "//") {
+			continue
+		}
+		// Check if this line contains the entity reference
+		if strings.Contains(line, entityReference) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ensureDomainImport ensures that the internal/domain package is imported in main.go
+func ensureDomainImport(content string) (string, error) {
+	// Check if domain is already imported
+	if strings.Contains(content, "/internal/domain\"") {
+		return content, nil
+	}
+
+	// Get module name from go.mod
+	moduleName := getModuleName()
+	if moduleName == "" {
+		return "", fmt.Errorf("could not determine module name from go.mod")
+	}
+
+	domainImport := fmt.Sprintf("\"%s/internal/domain\"", moduleName)
+
+	// Find import block
+	importStart := strings.Index(content, "import (")
+	if importStart == -1 {
+		// No import block, add one
+		packageEnd := strings.Index(content, "\n\n")
+		if packageEnd == -1 {
+			return "", fmt.Errorf("could not find appropriate place to add import")
+		}
+		newImport := fmt.Sprintf("\n\nimport (\n\t%s\n)", domainImport)
+		return content[:packageEnd] + newImport + content[packageEnd:], nil
+	}
+
+	// Find the end of import block
+	importEnd := strings.Index(content[importStart:], ")")
+	if importEnd == -1 {
+		return "", fmt.Errorf("could not find end of import block")
+	}
+	importEnd += importStart
+
+	// Add domain import before closing parenthesis
+	beforeClose := content[:importEnd]
+	afterClose := content[importEnd:]
+
+	// Add newline and tab for proper formatting
+	return beforeClose + fmt.Sprintf("\n\t%s", domainImport) + afterClose, nil
 }

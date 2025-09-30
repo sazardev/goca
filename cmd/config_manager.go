@@ -555,7 +555,7 @@ func (cm *ConfigManager) SaveConfig(filePath string) error {
 }
 
 // GenerateDefaultConfig generates a default .goca.yaml file
-func (cm *ConfigManager) GenerateDefaultConfig(projectPath, projectName, module string) error {
+func (cm *ConfigManager) GenerateDefaultConfig(projectPath, projectName, module, database string) error {
 	// Create default config with provided parameters
 	config := cm.createDefaultConfig(projectPath)
 	if projectName != "" {
@@ -563,6 +563,9 @@ func (cm *ConfigManager) GenerateDefaultConfig(projectPath, projectName, module 
 	}
 	if module != "" {
 		config.Project.Module = module
+	}
+	if database != "" {
+		config.Database.Type = database
 	}
 
 	cm.config = config

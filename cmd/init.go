@@ -131,7 +131,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	// Generate .goca.yaml configuration file if requested
 	if generateConfig && configIntegration != nil {
 		configPath := filepath.Join(projectName, ".goca.yaml")
-		if err := configIntegration.GenerateConfigFile(projectName, projectName, module); err != nil {
+		if err := configIntegration.GenerateConfigFile(projectName, projectName, module, database); err != nil {
 			fmt.Printf("⚠️  Warning: Failed to generate config file: %v\n", err)
 		} else {
 			fmt.Printf("📝 Generated configuration file: %s\n", configPath)

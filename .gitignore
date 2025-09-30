@@ -53,3 +53,4 @@ test-repository_test.go
 test-repo/*
 temp*/
 /temp*
+*-test/
