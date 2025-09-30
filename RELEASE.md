@@ -2,7 +2,7 @@
 
 This document describes the fully automated release system for Goca CLI.
 
-## 🎯 System Features
+## 🎯 System Features 
 
 ### 1. **Dynamic Versions**
 - ✅ Version injected at compile time from git tags
