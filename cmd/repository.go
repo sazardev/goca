@@ -113,13 +113,15 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 		parsedFields = parseFields(fields)
 	}
 
-	// Generate interface if not implementation-only
-	if !implementation || interfaceOnly {
-		if fields != "" {
-			generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions)
-		} else {
-			generateRepositoryInterface(repoDir, entity, transactions)
-		}
+	// Generate interface:
+	// - Always generate interface UNLESS explicitly skipped
+	// - interfaceOnly=true: only interface
+	// - interfaceOnly=false, implementation=true: both
+	// - interfaceOnly=false, implementation=false: both (default)
+	if fields != "" {
+		generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions)
+	} else {
+		generateRepositoryInterface(repoDir, entity, transactions)
 	}
 
 	// Generate implementation if not interface-only and database is specified
@@ -872,4 +874,3 @@ func init() {
 	repositoryCmd.Flags().BoolP(TransactionsFlag, "t", false, TransactionsFlagUsage)
 	repositoryCmd.Flags().StringP("fields", "f", "", "Entity fields \"field:type,field2:type\"")
 }
-
