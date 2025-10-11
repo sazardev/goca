@@ -61,8 +61,8 @@ func detectExistingFeatures() []string {
 		for _, entry := range entries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") {
 				name := strings.TrimSuffix(entry.Name(), ".go")
-				// Skip common files
-				if name != "errors" && name != "validations" && name != "common" {
+				// Skip common files and seed files
+				if name != "errors" && name != "validations" && name != "common" && !strings.HasSuffix(name, "_seeds") {
 					// Capitalize first letter to match feature naming
 					if len(name) > 0 {
 						caser := cases.Title(language.English)
