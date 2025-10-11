@@ -474,9 +474,9 @@ func generateUseCaseInterfaces(dir, entity string) {
 func generateCreateDTOWithFields(content *strings.Builder, entity string, validation bool, fields string) {
 	fieldsList := parseFields(fields)
 
-	// Generate Create Request DTO
-	fmt.Fprintf(content, "// Create%sRequest DTO para crear un nuevo %s\n", entity, strings.ToLower(entity))
-	fmt.Fprintf(content, "type Create%sRequest struct {\n", entity)
+	// Generate Create Input DTO
+	fmt.Fprintf(content, "// Create%sInput DTO para crear un nuevo %s\n", entity, strings.ToLower(entity))
+	fmt.Fprintf(content, "type Create%sInput struct {\n", entity)
 
 	for _, field := range fieldsList {
 		// Skip auto-managed fields in create request
@@ -500,8 +500,8 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 
 	// Generate validation method for the DTO
 	if validation {
-		fmt.Fprintf(content, "// Validate valida los datos del DTO Create%sRequest\n", entity)
-		fmt.Fprintf(content, "func (r *Create%sRequest) Validate() error {\n", entity)
+		fmt.Fprintf(content, "// Validate valida los datos del DTO Create%sInput\n", entity)
+		fmt.Fprintf(content, "func (r *Create%sInput) Validate() error {\n", entity)
 
 		for _, field := range fieldsList {
 			if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
@@ -537,9 +537,9 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 		content.WriteString("}\n\n")
 	}
 
-	// Generate Create Response DTO
-	fmt.Fprintf(content, "// Create%sResponse DTO para la respuesta de creación\n", entity)
-	fmt.Fprintf(content, "type Create%sResponse struct {\n", entity)
+	// Generate Create Output DTO
+	fmt.Fprintf(content, "// Create%sOutput DTO para la respuesta de creación\n", entity)
+	fmt.Fprintf(content, "type Create%sOutput struct {\n", entity)
 	content.WriteString("\tID      uint   `json:\"id\"`\n")
 
 	// Add actual fields to response
