@@ -310,7 +310,11 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 		case "read", "get":
 			generateGetMethod(&content, serviceName, entity)
 		case "update":
-			generateUpdateMethod(&content, serviceName, entity)
+			if fields != "" {
+				generateUpdateMethodWithFields(&content, serviceName, entity, fields)
+			} else {
+				generateUpdateMethod(&content, serviceName, entity)
+			}
 		case "delete":
 			generateDeleteMethod(&content, serviceName, entity)
 		case "list":
@@ -379,7 +383,16 @@ func generateCreateMethodWithFields(content *strings.Builder, serviceName, entit
 	content.WriteString("\t}\n\n")
 
 	fmt.Fprintf(content, "\treturn Create%sOutput{\n", entity)
-	fmt.Fprintf(content, "\t\t%s:    %s,\n", entity, entityLower)
+	content.WriteString("\t\tID:      " + entityLower + ".ID,\n")
+	
+	// Map fields from entity to output
+	for _, field := range fieldsList {
+		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
+			continue
+		}
+		fmt.Fprintf(content, "\t\t%s: %s.%s,\n", field.Name, entityLower, field.Name)
+	}
+	
 	fmt.Fprintf(content, "\t\tMessage: messages.%sCreatedSuccessfully,\n", entity)
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n\n")
@@ -391,6 +404,41 @@ func generateGetMethod(content *strings.Builder, serviceName, entity string) {
 	fmt.Fprintf(content, "func (%s *%s) Get%s(id int) (*domain.%s, error) {\n",
 		serviceVar, serviceName, entity, entity)
 	fmt.Fprintf(content, "\treturn %s.repo.FindByID(id)\n", serviceVar)
+	content.WriteString("}\n\n")
+}
+
+func generateUpdateMethodWithFields(content *strings.Builder, serviceName, entity, fields string) {
+	serviceVar := string(serviceName[0])
+	entityVar := strings.ToLower(entity)
+	fieldsList := parseFields(fields)
+
+	fmt.Fprintf(content, "func (%s *%s) Update%s(id int, input Update%sInput) error {\n",
+		serviceVar, serviceName, entity, entity)
+	fmt.Fprintf(content, "\t%s, err := %s.repo.FindByID(id)\n", entityVar, serviceVar)
+	content.WriteString("\tif err != nil {\n")
+	content.WriteString("\t\treturn err\n")
+	content.WriteString("\t}\n\n")
+
+	// Update fields based on actual entity fields
+	for _, field := range fieldsList {
+		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
+			continue
+		}
+		
+		// Check if field is a pointer (optional in update)
+		if strings.HasPrefix(field.Type, "*") {
+			// For pointer fields, check if not nil
+			fmt.Fprintf(content, "\tif input.%s != nil {\n", field.Name)
+			fmt.Fprintf(content, "\t\t%s.%s = *input.%s\n", entityVar, field.Name, field.Name)
+			content.WriteString("\t}\n")
+		} else {
+			// For non-pointer fields in update (should be rare)
+			fmt.Fprintf(content, "\t%s.%s = input.%s\n", entityVar, field.Name, field.Name)
+		}
+	}
+
+	content.WriteString("\n")
+	fmt.Fprintf(content, "\treturn %s.repo.Update(%s)\n", serviceVar, entityVar)
 	content.WriteString("}\n\n")
 }
 
