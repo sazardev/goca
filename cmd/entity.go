@@ -305,7 +305,16 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 func writeEntityHeader(content *strings.Builder, fields []Field, businessRules, timestamps, softDelete bool) {
 	content.WriteString("package domain\n\n")
 
-	needsTime := timestamps || softDelete
+	// Check if any field is time.Time
+	hasTimeField := false
+	for _, field := range fields {
+		if field.Type == "time.Time" {
+			hasTimeField = true
+			break
+		}
+	}
+
+	needsTime := timestamps || softDelete || hasTimeField
 	needsStrings := businessRules && hasStringBusinessRules(fields)
 	needsGorm := softDelete // Need gorm.io/gorm for gorm.DeletedAt
 
@@ -610,7 +619,7 @@ func generateSeedData(dir, entityName string, fields []Field) {
 	filename := filepath.Join(dir, strings.ToLower(entityName)+"_seeds.go")
 
 	var content strings.Builder
-	writeSeedFileHeader(&content)
+	writeSeedFileHeader(&content, fields)
 	writeGoSeeds(&content, entityName, fields)
 	writeSQLSeeds(&content, entityName, fields)
 
@@ -620,9 +629,21 @@ func generateSeedData(dir, entityName string, fields []Field) {
 }
 
 // writeSeedFileHeader writes the package declaration and imports for seed file
-func writeSeedFileHeader(content *strings.Builder) {
+func writeSeedFileHeader(content *strings.Builder, fields []Field) {
 	content.WriteString("package domain\n\n")
-	// No imports needed - seeds don't use time (timestamps are auto-managed)
+	
+	// Check if any field is time.Time
+	hasTimeField := false
+	for _, field := range fields {
+		if field.Type == "time.Time" {
+			hasTimeField = true
+			break
+		}
+	}
+	
+	if hasTimeField {
+		content.WriteString("import \"time\"\n\n")
+	}
 }
 
 // writeGoSeeds writes the Go struct seed data function
