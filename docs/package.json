@@ -1,0 +1,19 @@
+{
+    "name": "goca-docs",
+    "version": "2.0.0",
+    "description": "Documentation for Goca - Go Clean Architecture Code Generator",
+    "scripts": {
+        "dev": "vitepress dev",
+        "build": "vitepress build",
+        "preview": "vitepress preview"
+    },
+    "devDependencies": {
+        "vitepress": "^1.0.0-rc.31"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/sazardev/goca.git"
+    },
+    "author": "sazardev",
+    "license": "MIT"
+}

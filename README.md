@@ -11,7 +11,13 @@ Goca is a powerful CLI code generator for Go that helps you create Clean Archite
 
 **🎉 Version 2.0.0:** Major release with **complete VitePress documentation system**! Now with beautiful, searchable docs and 100% production ready. See [Release Notes](docs/releases/v2.0.0.md).
 
-📚 **[Complete Documentation](https://sazardev.github.io/goca)** | 🚀 **[Quick Start Guide](https://sazardev.github.io/goca/getting-started)** | 📖 **[Complete Tutorial](https://sazardev.github.io/goca/tutorials/complete-tutorial)**
+## 📚 Documentation
+
+- 🌐 **[Complete Documentation Website](https://sazardev.github.io/goca)** - Beautiful, searchable VitePress docs
+- 🚀 **[Quick Start Guide](https://sazardev.github.io/goca/getting-started)** - Get started in 5 minutes
+- 📖 **[Complete Tutorial](https://sazardev.github.io/goca/tutorials/complete-tutorial)** - Build a real application
+- 🏗️ **[Clean Architecture Guide](https://sazardev.github.io/goca/guide/clean-architecture)** - Learn the principles
+- 📚 **[Commands Reference](https://sazardev.github.io/goca/commands/)** - All commands documented
 
 ## 🏗️ Clean Architecture Philosophy
 

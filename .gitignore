@@ -55,6 +55,5 @@ temp*/
 /temp*
 *-test/
 
-/docs
-/docs/*
+/docs/node_modules
 .github/copilot-instructions.md
