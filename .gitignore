@@ -54,3 +54,7 @@ test-repo/*
 temp*/
 /temp*
 *-test/
+
+/docs
+/docs/*
+.github/copilot-instructions.md
