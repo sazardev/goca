@@ -11,7 +11,6 @@ export default defineConfig({
         ['meta', { name: 'og:locale', content: 'en' }],
         ['meta', { name: 'og:site_name', content: 'Goca Documentation' }],
     ],
-
     themeConfig: {
         logo: '/logo.svg',
 

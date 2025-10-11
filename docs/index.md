@@ -92,11 +92,9 @@ Clean Architecture ensures your codebase remains:
 
 ## Ready to Build?
 
-<div style="text-align: center; margin-top: 2rem;">
-  <a href="/getting-started" style="display: inline-block; padding: 12px 24px; background: var(--vp-c-brand-1); color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">
-    Get Started in 5 Minutes →
-  </a>
-</div>
+<p style="text-align: center; margin: 2rem 0;">
+  <a href="/goca/getting-started.html" style="display: inline-block; padding: 12px 24px; background: #00ADD8; color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">Get Started in 5 Minutes →</a>
+</p>
 
 ## Trusted By
 
