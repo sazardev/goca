@@ -384,7 +384,7 @@ func generateCreateMethodWithFields(content *strings.Builder, serviceName, entit
 
 	fmt.Fprintf(content, "\treturn Create%sOutput{\n", entity)
 	content.WriteString("\t\tID:      " + entityLower + ".ID,\n")
-	
+
 	// Map fields from entity to output
 	for _, field := range fieldsList {
 		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
@@ -392,7 +392,7 @@ func generateCreateMethodWithFields(content *strings.Builder, serviceName, entit
 		}
 		fmt.Fprintf(content, "\t\t%s: %s.%s,\n", field.Name, entityLower, field.Name)
 	}
-	
+
 	fmt.Fprintf(content, "\t\tMessage: messages.%sCreatedSuccessfully,\n", entity)
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n\n")
@@ -420,23 +420,18 @@ func generateUpdateMethodWithFields(content *strings.Builder, serviceName, entit
 	content.WriteString("\t}\n\n")
 
 	// Update fields based on actual entity fields
+	// In UpdateInput DTOs, fields are always pointers (optional updates)
 	for _, field := range fieldsList {
 		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
 			continue
 		}
 		
-		// Check if field is a pointer (optional in update)
-		if strings.HasPrefix(field.Type, "*") {
-			// For pointer fields, check if not nil
-			fmt.Fprintf(content, "\tif input.%s != nil {\n", field.Name)
-			fmt.Fprintf(content, "\t\t%s.%s = *input.%s\n", entityVar, field.Name, field.Name)
-			content.WriteString("\t}\n")
-		} else {
-			// For non-pointer fields in update (should be rare)
-			fmt.Fprintf(content, "\t%s.%s = input.%s\n", entityVar, field.Name, field.Name)
-		}
+		// Fields in UpdateInput are always pointers, check if not nil
+		fmt.Fprintf(content, "\tif input.%s != nil {\n", field.Name)
+		fmt.Fprintf(content, "\t\t%s.%s = *input.%s\n", entityVar, field.Name, field.Name)
+		content.WriteString("\t}\n")
 	}
-
+	
 	content.WriteString("\n")
 	fmt.Fprintf(content, "\treturn %s.repo.Update(%s)\n", serviceVar, entityVar)
 	content.WriteString("}\n\n")
