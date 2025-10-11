@@ -19,12 +19,11 @@ A **Task Management API** with:
 ## Step 1: Initialize Project
 
 ```bash
-mkdir task-manager
+goca init task-manager --module github.com/yourusername/task-manager --database postgres
 cd task-manager
-goca init --module github.com/yourusername/task-manager
 ```
 
-This creates the complete project structure with clean architecture.
+This creates the complete project structure with clean architecture and PostgreSQL configuration.
 
 ## Step 2: Configure Database
 
@@ -47,7 +46,7 @@ server:
 ## Step 3: Create User Feature
 
 ```bash
-goca feature User name:string email:string:unique password:string role:string
+goca feature User --fields "name:string,email:string,password:string,role:string"
 ```
 
 This generates:
@@ -60,7 +59,7 @@ This generates:
 ## Step 4: Create Project Feature
 
 ```bash
-goca feature Project name:string description:text owner_id:uint:fk
+goca feature Project --fields "name:string,description:string,owner_id:int"
 ```
 
 A project belongs to a user (owner).
@@ -68,7 +67,7 @@ A project belongs to a user (owner).
 ## Step 5: Create Task Feature
 
 ```bash
-goca feature Task title:string description:text project_id:uint:fk assigned_to:uint:fk priority:string status:string due_date:time
+goca feature Task --fields "title:string,description:string,project_id:int,assigned_to:int,priority:string,status:string,due_date:time.Time"
 ```
 
 Tasks belong to projects and can be assigned to users.
