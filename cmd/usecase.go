@@ -425,13 +425,13 @@ func generateUpdateMethodWithFields(content *strings.Builder, serviceName, entit
 		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
 			continue
 		}
-		
+
 		// Fields in UpdateInput are always pointers, check if not nil
 		fmt.Fprintf(content, "\tif input.%s != nil {\n", field.Name)
 		fmt.Fprintf(content, "\t\t%s.%s = *input.%s\n", entityVar, field.Name, field.Name)
 		content.WriteString("\t}\n")
 	}
-	
+
 	content.WriteString("\n")
 	fmt.Fprintf(content, "\treturn %s.repo.Update(%s)\n", serviceVar, entityVar)
 	content.WriteString("}\n\n")
