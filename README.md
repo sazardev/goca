@@ -166,12 +166,46 @@ goca integrate --all
 # Automatically detects all features and connects them
 ```
 
-## 📋 Main Commands
+## ⚡ NEW in v1.11.0: Safety & Dependency Features
+
+Goca now includes production-ready safety features to prevent common mistakes:
+
+### 🛡️ Safety Features
+
+- **🔍 Dry-Run Mode** (`--dry-run`): Preview all changes before creating files
+- **⚠️ File Conflict Detection**: Automatically detects existing files to prevent accidental overwrites
+- **👤 Name Conflict Detection**: Scans project for duplicate entity/feature names
+- **📦 Automatic Backup** (`--backup`): Backup files before overwriting
+- **💪 Force Overwrite** (`--force`): Override protection when needed
+- **📚 Version Compatibility**: Verifies Go version compatibility (1.21+)
+
+### 📦 Dependency Management
+
+- **🤖 Automatic go.mod Updates**: Auto-updates dependencies when generating features
+- **� Smart Suggestions**: Recommends optional dependencies based on feature type
+- **✅ Version Verification**: Validates dependency versions and integrity
+
+### Example Usage
+
+```bash
+# Preview changes before generating
+goca feature User --fields "name:string,email:string" --dry-run
+
+# Safe generation with conflict detection
+goca feature User --fields "name:string,email:string"
+
+# Update existing feature with backup
+goca feature User --fields "name:string,email:string,role:string" --force --backup
+```
+
+**[📖 Complete Safety Features Documentation](docs/features/safety-and-dependencies.md)**
+
+## �📋 Main Commands
 
 | Command              | Purpose                                 | Automatic Integration       |
 | -------------------- | --------------------------------------- | --------------------------- |
-| **`goca init`**      | Initialize Clean Architecture project   | ✅ Complete structure        |
-| **`goca feature`**   | Generate complete feature (all layers)  | ✅ **NEW**: Auto-DI + Routes |
+| **`goca init`**      | Initialize Clean Architecture project   | ✅ Complete structure + Git  |
+| **`goca feature`**   | Generate complete feature (all layers)  | ✅ Auto-DI + Routes + Safety |
 | **`goca integrate`** | **NEW**: Integrate existing features    | ✅ Repair/update integration |
 | `goca entity`        | Generate domain entities only           | ❌ Manual                    |
 | `goca usecase`       | Generate use cases only                 | ❌ Manual                    |

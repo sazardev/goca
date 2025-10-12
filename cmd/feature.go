@@ -23,6 +23,9 @@ including domain, use cases, repository and handlers in a single operation.`,
 		handlers, _ := cmd.Flags().GetString("handlers")
 		validation, _ := cmd.Flags().GetBool("validation")
 		businessRules, _ := cmd.Flags().GetBool("business-rules")
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
 
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
@@ -46,11 +49,35 @@ including domain, use cases, repository and handlers in a single operation.`,
 		effectiveValidation := configIntegration.GetValidationEnabled(&validation)
 		effectiveBusinessRules := configIntegration.GetBusinessRulesEnabled(&businessRules)
 
+		// Initialize safety manager
+		safetyMgr := NewSafetyManager(dryRun, force, backup)
+
+		// Initialize name conflict detector
+		projectRoot, _ := os.Getwd()
+		conflictDetector := NewNameConflictDetector(projectRoot)
+		if err := conflictDetector.ScanExistingEntities(); err != nil {
+			fmt.Printf("⚠️  Warning: Could not scan for conflicts: %v\n", err)
+		}
+
+		// Check for name conflicts
+		if err := conflictDetector.CheckNameConflict(featureName); err != nil && !force {
+			fmt.Printf("❌ %v\n", err)
+			fmt.Println("💡 Use --force to generate anyway")
+			os.Exit(1)
+		}
+
+		// Initialize dependency manager
+		depMgr := NewDependencyManager(projectRoot, dryRun)
+
 		// Usar validador centralizado
 		validator := NewCommandValidator()
 
 		if err := validator.ValidateFeatureCommand(featureName, fields, effectiveDatabase, effectiveHandlers); err != nil {
 			validator.errorHandler.HandleError(err, "validación de parámetros")
+		}
+
+		if dryRun {
+			fmt.Println("🔍 DRY-RUN MODE: Previewing changes without creating files\n")
 		}
 
 		fmt.Printf(MsgGeneratingFeature+"\n", featureName)
@@ -91,11 +118,61 @@ including domain, use cases, repository and handlers in a single operation.`,
 			fileNamingConvention = configIntegration.GetNamingConvention("file")
 		}
 
-		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, fileNamingConvention)
+		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, fileNamingConvention, safetyMgr)
+
+		// Show dry-run summary
+		if dryRun {
+			safetyMgr.PrintSummary()
+
+			// Suggest dependencies
+			features := []string{}
+			if validation {
+				features = append(features, "validation")
+			}
+			if strings.Contains(effectiveHandlers, "grpc") {
+				features = append(features, "grpc")
+			}
+			suggestions := depMgr.SuggestDependencies(features)
+			depMgr.PrintDependencySuggestions(suggestions)
+			return
+		}
 
 		// 6. Auto-integrate with DI and main.go
 		fmt.Println("6️⃣  Integrating automatically...")
 		autoIntegrateFeature(featureName, handlers)
+
+		// 7. Handle dependencies
+		fmt.Println("7️⃣  Managing dependencies...")
+
+		// Add required dependencies
+		requiredDeps := depMgr.GetRequiredDependenciesForFeature(
+			effectiveHandlers,
+			map[string]bool{"validation": effectiveValidation},
+		)
+
+		for _, dep := range requiredDeps {
+			if err := depMgr.AddDependency(dep); err != nil {
+				fmt.Printf("⚠️  Warning: Could not add dependency %s: %v\n", dep.Module, err)
+			}
+		}
+
+		// Suggest optional dependencies
+		features := []string{}
+		if validation {
+			features = append(features, "validation")
+		}
+		if strings.Contains(effectiveHandlers, "grpc") {
+			features = append(features, "grpc")
+		}
+		suggestions := depMgr.SuggestDependencies(features)
+		depMgr.PrintDependencySuggestions(suggestions)
+
+		// Update go.mod
+		fmt.Println("\n📦 Updating go.mod...")
+		if err := depMgr.UpdateGoMod(); err != nil {
+			fmt.Printf("⚠️  Warning: Could not update go.mod: %v\n", err)
+			fmt.Println("💡 Run 'go mod tidy' manually")
+		}
 
 		fmt.Printf("\n🎉 Feature '%s' generated and integrated successfully!\n", featureName)
 		fmt.Println("\n📂 Generated structure:")
@@ -118,7 +195,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 	},
 }
 
-func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules bool, fileNamingConvention string) {
+func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules bool, fileNamingConvention string, safetyMgr *SafetyManager) {
 	fmt.Println("\n🔄 Generating layers...")
 
 	// 1. Generate Entity (Domain layer)
@@ -413,6 +490,11 @@ func init() {
 	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Handler types (%s)", strings.Join(ValidHandlers, ", ")))
 	featureCmd.Flags().BoolP("validation", "v", false, "Include validations in all layers")
 	featureCmd.Flags().BoolP("business-rules", "b", false, "Include business rule methods")
+
+	// Safety flags
+	featureCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	featureCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	featureCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 
 	_ = featureCmd.MarkFlagRequired("fields")
 }
