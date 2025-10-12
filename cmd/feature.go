@@ -72,12 +72,12 @@ including domain, use cases, repository and handlers in a single operation.`,
 			validator.errorHandler.HandleError(err, "parameter validation")
 		}
 
-		if dryRun {
-			fmt.Println("DRY-RUN MODE: Previewing changes without creating files\n")
-		}
+	if dryRun {
+		fmt.Println("DRY-RUN MODE: Previewing changes without creating files")
+	}
 
-		fmt.Printf(MsgGeneratingFeature+"\n", featureName)
-		fmt.Printf("Fields: %s\n", fields)
+	fmt.Printf(MsgGeneratingFeature+"\n", featureName)
+	fmt.Printf("Fields: %s\n", fields)
 		fmt.Printf("Database: %s", effectiveDatabase)
 		if configIntegration.HasConfigFile() {
 			fmt.Printf(" (from config)")

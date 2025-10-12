@@ -223,7 +223,7 @@ func (dm *DependencyManager) PrintDependencySuggestions(suggestions []Dependency
 	}
 
 	fmt.Println("\nOPTIONAL DEPENDENCIES:")
-	fmt.Println("   The following dependencies might be useful for your feature:\n")
+	fmt.Println("   The following dependencies might be useful for your feature:")
 
 	for _, dep := range suggestions {
 		fmt.Printf("   %s %s\n", dep.Module, dep.Version)
