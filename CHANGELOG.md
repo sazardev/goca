@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.6] - 2025-10-12
+
+### 🎉 New Features
+
+#### Project Templates
+- **Predefined Templates** (`--template`): Quick start with optimized configurations
+  - **minimal**: Lightweight starter with essential features only
+  - **rest-api**: Production-ready REST API with validation and testing
+  - **microservice**: Microservice architecture with events and audit
+  - **monolith**: Full-featured monolithic application
+  - **enterprise**: Enterprise-grade with security and monitoring
+  - Auto-generates optimized `.goca.yaml` configurations
+  - `--list-templates` flag to display available templates
+
+### 🐛 Bug Fixes
+- **Fixed `gorm.DeletedAt` Type Issues**: Updated soft delete implementation
+  - Changed from `*time.Time` to `gorm.DeletedAt` for proper GORM compatibility
+  - Fixed `SoftDelete()` method to use `gorm.DeletedAt{Time: time.Now(), Valid: true}`
+  - Fixed `IsDeleted()` method to check `DeletedAt.Valid` instead of nil comparison
+  - Added automatic `gorm.io/gorm` import when soft delete is enabled
+- **Fixed Missing Imports in DTO Files**: Automatic import injection for validation
+  - Added `errors` and `strings` imports when validation is enabled
+  - Fixed issue where existing `dto.go` files didn't get required imports
+- **Fixed Linting Errors**: Code quality improvements
+  - Removed redundant newlines in `fmt.Println` calls
+  - Fixed formatting issues in multiple files
+
+### 📦 Release Notes
+- Force rebuild to ensure Go proxy serves correct binaries with v1.13.6
+- All features from template system fully functional
+
 ## [1.13.5] - 2025-10-12
 
 ### 🎉 New Features
