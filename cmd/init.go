@@ -16,20 +16,62 @@ var initCmd = &cobra.Command{
 	Use:   "init <project-name>",
 	Short: "Initialize Clean Architecture project",
 	Long: `Creates the base structure of a Go project following Clean Architecture principles, 
-including directories, configuration files and layer structure.`,
-	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		projectName := args[0]
+including directories, configuration files and layer structure.
 
+Use --template to initialize with predefined configurations:
+  goca init myproject --module github.com/user/myproject --template rest-api`,
+	Args: func(cmd *cobra.Command, args []string) error {
+		// Allow 0 args if --list-templates is set
+		listTemplates, _ := cmd.Flags().GetBool("list-templates")
+		if listTemplates {
+			return nil
+		}
+		// Otherwise require exactly 1 argument
+		return cobra.ExactArgs(1)(cmd, args)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 		module, _ := cmd.Flags().GetString("module")
 		database, _ := cmd.Flags().GetString("database")
 		auth, _ := cmd.Flags().GetBool("auth")
 		api, _ := cmd.Flags().GetString("api")
 		config, _ := cmd.Flags().GetBool("config")
+		template, _ := cmd.Flags().GetString("template")
+		listTemplates, _ := cmd.Flags().GetBool("list-templates")
+
+		// Handle --list-templates flag
+		if listTemplates {
+			ListAvailableTemplates()
+			return
+		}
+
+		// Ensure project name is provided when not listing templates
+		if len(args) == 0 {
+			fmt.Println("Error: project name is required")
+			cmd.Usage()
+			os.Exit(1)
+		}
+
+		projectName := args[0]
 
 		if module == "" {
 			fmt.Println("Error: --module flag is required")
 			os.Exit(1)
+		}
+
+		// Validate template if provided
+		if template != "" {
+			if !ValidateTemplateName(template) {
+				fmt.Printf("Error: invalid template '%s'\n", template)
+				fmt.Println("\nAvailable templates:")
+				for _, name := range GetTemplateNames() {
+					fmt.Printf("  - %s\n", name)
+				}
+				fmt.Println("\nUse --list-templates for detailed descriptions")
+				os.Exit(1)
+			}
+			// When using template, always generate config
+			config = true
+			fmt.Printf("Using template: %s\n", template)
 		}
 
 		fmt.Printf("Initializing project '%s' with module '%s'\n", projectName, module)
@@ -53,12 +95,12 @@ including directories, configuration files and layer structure.`,
 		}
 		configIntegration.MergeWithCLIFlags(flags)
 
-		createProjectStructure(projectName, module, database, auth, api, configIntegration, config)
+		createProjectStructure(projectName, module, database, auth, api, configIntegration, config, template)
 
 		fmt.Printf("\nProject '%s' created successfully!\n", projectName)
 		fmt.Printf("Directory: ./%s\n", projectName)
 
-		if config {
+		if config || template != "" {
 			fmt.Printf("Configuration file: ./%s/.goca.yaml\n", projectName)
 		}
 
@@ -66,17 +108,17 @@ including directories, configuration files and layer structure.`,
 		fmt.Printf("  cd %s\n", projectName)
 		fmt.Println("  go mod tidy")
 
-		if config {
+		if config || template != "" {
 			fmt.Println("  # Edit .goca.yaml to customize your project")
 			fmt.Println("  goca feature User --fields \"name:string,email:string\"")
 		} else {
 			fmt.Println("  goca feature User --fields \"name:string,email:string\"")
-			fmt.Printf("  # Or generate config: goca init %s --module %s --config\n", projectName, module)
+			fmt.Printf("  # Or use a template: goca init %s --module %s --template rest-api\n", projectName, module)
 		}
 	},
 }
 
-func createProjectStructure(projectName, module, database string, auth bool, api string, configIntegration *ConfigIntegration, generateConfig bool) {
+func createProjectStructure(projectName, module, database string, auth bool, api string, configIntegration *ConfigIntegration, generateConfig bool, template string) {
 	// Create main directories
 	dirs := []string{
 		filepath.Join(projectName, "cmd", "server"),
@@ -128,13 +170,32 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 		createAuth(projectName, module)
 	}
 
-	// Generate .goca.yaml configuration file if requested
+	// Generate .goca.yaml configuration file if requested or template is used
 	if generateConfig && configIntegration != nil {
 		configPath := filepath.Join(projectName, ".goca.yaml")
-		if err := configIntegration.GenerateConfigFile(projectName, projectName, module, database); err != nil {
-			fmt.Printf("Warning: Failed to generate config file: %v\n", err)
+
+		// Use template configuration if specified
+		if template != "" {
+			templateConfig, err := GetTemplateConfig(template)
+			if err != nil {
+				fmt.Printf("Warning: Failed to get template config: %v\n", err)
+			} else {
+				// Replace placeholders in template
+				configContent := strings.ReplaceAll(templateConfig, "project:", fmt.Sprintf("project:\n  name: %s\n  module: %s", projectName, module))
+
+				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+					fmt.Printf("Warning: Failed to write config file: %v\n", err)
+				} else {
+					fmt.Printf("Generated configuration file from template '%s': %s\n", template, configPath)
+				}
+			}
 		} else {
-			fmt.Printf("Generated configuration file: %s\n", configPath)
+			// Generate standard configuration
+			if err := configIntegration.GenerateConfigFile(projectName, projectName, module, database); err != nil {
+				fmt.Printf("Warning: Failed to generate config file: %v\n", err)
+			} else {
+				fmt.Printf("Generated configuration file: %s\n", configPath)
+			}
 		}
 	}
 
@@ -1409,5 +1470,7 @@ func init() {
 	initCmd.Flags().StringP("api", "a", "rest", "API type (rest, graphql, grpc)")
 	initCmd.Flags().Bool("auth", false, "Include authentication system")
 	initCmd.Flags().Bool("config", true, "Generate .goca.yaml configuration file")
-	_ = initCmd.MarkFlagRequired("module")
+	initCmd.Flags().StringP("template", "t", "", "Use predefined template (minimal, rest-api, microservice, monolith, enterprise)")
+	initCmd.Flags().Bool("list-templates", false, "List available project templates")
+	// Note: module flag is required for project initialization but not for --list-templates
 }

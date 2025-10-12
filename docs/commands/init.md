@@ -122,6 +122,214 @@ goca init platform \
   --api both
 ```
 
+## Project Templates
+
+GOCA provides predefined project templates that automatically configure your project with optimized settings for specific use cases. Templates generate a complete `.goca.yaml` configuration file tailored to your project type.
+
+### Using Templates
+
+#### `--template`
+
+Initialize project with a predefined configuration template.
+
+```bash
+goca init myproject --module github.com/user/myproject --template rest-api
+```
+
+#### `--list-templates`
+
+List all available templates with descriptions.
+
+```bash
+goca init --list-templates
+```
+
+### Available Templates
+
+#### `minimal`
+
+**Lightweight starter with essential features only**
+
+Perfect for:
+- Quick prototypes
+- Learning Clean Architecture
+- Minimal dependencies
+
+```bash
+goca init quick-start \
+  --module github.com/user/quick-start \
+  --template minimal
+```
+
+**Includes:**
+- Basic project structure
+- PostgreSQL database
+- Essential layers (domain, usecase, repository, handler)
+- Simple validation
+- Testify for testing
+
+#### `rest-api`
+
+**Production-ready REST API with PostgreSQL, validation, and testing**
+
+Perfect for:
+- RESTful web services
+- API backends
+- Standard CRUD applications
+
+```bash
+goca init api-service \
+  --module github.com/company/api-service \
+  --template rest-api
+```
+
+**Includes:**
+- Complete Clean Architecture layers
+- PostgreSQL with migrations
+- Input validation and sanitization
+- Swagger/OpenAPI documentation
+- Comprehensive testing with testify
+- Test coverage (70% threshold)
+- Integration tests
+- Soft deletes and timestamps
+
+#### `microservice`
+
+**Microservice with gRPC, events, and comprehensive testing**
+
+Perfect for:
+- Distributed systems
+- Event-driven architecture
+- Service-oriented architecture
+
+```bash
+goca init user-service \
+  --module github.com/company/user-service \
+  --template microservice
+```
+
+**Includes:**
+- UUID primary keys
+- Audit logging
+- Event-driven patterns
+- Domain events support
+- Specification pattern
+- Advanced validation (validator library)
+- High test coverage (80% threshold)
+- Integration and benchmark tests
+- Optimized for horizontal scaling
+
+#### `monolith`
+
+**Full-featured monolithic application with web interface**
+
+Perfect for:
+- Traditional web applications
+- Internal tools
+- Admin panels
+
+```bash
+goca init admin-panel \
+  --module github.com/company/admin-panel \
+  --template monolith
+```
+
+**Includes:**
+- JWT authentication with RBAC
+- Redis caching
+- Structured logging (JSON)
+- Health check endpoints
+- Soft deletes and timestamps
+- Audit trail
+- Versioning support
+- Markdown documentation
+- Test fixtures and seeds
+- Guards and authorization patterns
+
+#### `enterprise`
+
+**Enterprise-grade with all features, security, and monitoring**
+
+Perfect for:
+- Production applications
+- Enterprise systems
+- Mission-critical services
+
+```bash
+goca init enterprise-app \
+  --module github.com/corp/enterprise-app \
+  --template enterprise
+```
+
+**Includes:**
+- **Security**: HTTPS, CORS, rate limiting, header security
+- **Authentication**: JWT + OAuth2, RBAC
+- **Caching**: Redis with multi-layer caching
+- **Monitoring**: Prometheus metrics, distributed tracing, health checks, profiling
+- **Documentation**: Swagger 3.0, Postman collections, comprehensive markdown
+- **Testing**: 85% coverage threshold, mocks, integration, benchmarks, examples
+- **Deployment**: Docker (multistage), Kubernetes (manifests, Helm), CI/CD (GitHub Actions)
+- **Code Quality**: gofmt, goimports, golint, staticcheck
+- **Database**: Advanced features (partitioning, connection pooling)
+
+### Template Configuration
+
+When you initialize a project with a template, GOCA:
+
+1. Creates the standard project structure
+2. Generates a `.goca.yaml` configuration file with template settings
+3. All future feature generation uses these settings automatically
+4. You can still override settings using CLI flags when needed
+
+**Example workflow:**
+
+```bash
+# Initialize with template
+goca init my-api --module github.com/user/my-api --template rest-api
+
+# Navigate to project
+cd my-api
+
+# Generate features - automatically uses template configuration
+goca feature Product --fields "name:string,price:float64,stock:int"
+# ✓ Uses REST API settings from template
+# ✓ Includes validation
+# ✓ Generates Swagger docs
+# ✓ Creates comprehensive tests
+
+# Override specific settings if needed
+goca feature Order --fields "total:float64" --database mysql
+# ✓ Uses template settings except database
+```
+
+### Customizing Template Configuration
+
+After initialization, you can customize the generated `.goca.yaml`:
+
+```bash
+# Initialize project
+goca init my-project --module github.com/user/my-project --template rest-api
+
+# Edit configuration
+cd my-project
+vim .goca.yaml  # Customize as needed
+
+# Features use your customized settings
+goca feature User --fields "name:string,email:string"
+```
+
+See [Configuration Guide](/guide/configuration) for detailed `.goca.yaml` documentation.
+
+### Choosing the Right Template
+
+| Template       | Best For                | Complexity    | Features               |
+| -------------- | ----------------------- | ------------- | ---------------------- |
+| `minimal`      | Learning, prototypes    | ⭐ Simple      | Essential only         |
+| `rest-api`     | Web APIs, CRUD services | ⭐⭐ Standard   | Production-ready API   |
+| `microservice` | Distributed systems     | ⭐⭐⭐ Advanced  | Events, gRPC, scaling  |
+| `monolith`     | Web applications        | ⭐⭐⭐ Advanced  | Auth, caching, logging |
+| `enterprise`   | Mission-critical apps   | ⭐⭐⭐⭐ Complete | Everything included    |
+
 ## Generated Structure
 
 ```

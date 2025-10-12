@@ -8,7 +8,44 @@ GOCA supports centralized project configuration through the `.goca.yaml` file. T
 
 - **Consistency**: Maintain uniform settings across your entire project
 - **Productivity**: Avoid repeating the same CLI flags for every command
-- **Team Collaboration**: Share standardized configurations across your team
+- *### 2. Start Simple
+
+Begin### 3. Document Your Choices
+
+### 4. Version Control
+
+Always commit `.goca.yaml` to version control so team members can use the same configuration:
+
+```bash
+git add .goca.yaml
+git commit -m "Add GOCA configuration"
+```
+
+### 5. Team Standardsts to explain configuration decisions, especially if you've customized a template:
+
+```yaml
+# Using PostgreSQL for advanced features
+database:
+  type: postgres
+  
+  # Enable soft deletes for audit trail
+  features:
+    soft_delete: true
+    timestamps: true
+```
+
+### 4. Version Controlnfiguration and add settings as needed. If using a template, you already have a good starting point:
+
+```yaml
+project:
+  name: my-project
+  module: github.com/user/my-project
+
+database:
+  type: postgres
+```
+
+### 3. Document Your Choicesation**: Share standardized configurations across your team
 - **Flexibility**: Override configuration with CLI flags when needed
 - **Documentation**: Configuration files serve as self-documenting project preferences
 
@@ -20,6 +57,27 @@ Use `.goca.yaml` when:
 - Enforcing team-wide coding standards
 - Automating CI/CD workflows
 - Customizing code generation templates
+
+### Quick Start with Templates
+
+The fastest way to get started with configuration is using project templates. Templates automatically generate optimized `.goca.yaml` files for specific use cases:
+
+```bash
+# List available templates
+goca init --list-templates
+
+# Initialize with a template
+goca init my-api --module github.com/user/my-api --template rest-api
+```
+
+**Available templates:**
+- `minimal`: Lightweight starter with essentials
+- `rest-api`: Production REST API with PostgreSQL, validation, testing
+- `microservice`: Distributed systems with events and comprehensive testing
+- `monolith`: Full-featured web application with auth and caching
+- `enterprise`: Complete enterprise setup with security and monitoring
+
+See the [init command documentation](/commands/init#project-templates) for detailed information about templates.
 
 ## Configuration File Location
 
@@ -404,7 +462,21 @@ Access variables in templates:
 
 ## Best Practices
 
-### 1. Start Simple
+### 1. Use Templates for Quick Start
+
+Start with a predefined template that matches your use case:
+
+```bash
+# List available templates
+goca init --list-templates
+
+# Initialize with appropriate template
+goca init my-api --module github.com/user/my-api --template rest-api
+```
+
+Templates provide optimized configurations that you can customize later. See the [init command documentation](/commands/init#project-templates) for details.
+
+### 2. Start Simple
 
 Begin with minimal configuration and add settings as needed:
 
