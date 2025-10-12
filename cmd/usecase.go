@@ -138,6 +138,12 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 				return
 			}
 
+			// If validation is enabled, ensure errors and strings are imported
+			if validation {
+				existingStr = ensureImportInDTOFile(existingStr, "errors", moduleName)
+				existingStr = ensureImportInDTOFile(existingStr, "strings", moduleName)
+			}
+
 			// Add the existing content without the final newline
 			content.WriteString(strings.TrimSuffix(existingStr, "\n"))
 			content.WriteString("\n\n")
@@ -146,6 +152,10 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 		// File doesn't exist, create header
 		content.WriteString("package usecase\n\n")
 		content.WriteString("import (\n")
+		if validation {
+			content.WriteString("\t\"errors\"\n")
+			content.WriteString("\t\"strings\"\n\n")
+		}
 		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 		content.WriteString(")\n\n")
 	}
@@ -655,6 +665,39 @@ func getValidationTag(fieldType string) string {
 	default:
 		return "required"
 	}
+}
+
+// ensureImportInDTOFile ensures a specific import exists in the DTO file content
+func ensureImportInDTOFile(content, importPkg, moduleName string) string {
+	// Check if import already exists
+	importLine := fmt.Sprintf("\"%s\"", importPkg)
+	if strings.Contains(content, importLine) {
+		return content
+	}
+
+	// Find the import block
+	importStart := strings.Index(content, "import (")
+	if importStart == -1 {
+		// No import block found, shouldn't happen but handle it
+		return content
+	}
+
+	// Find the end of the import block
+	importEnd := strings.Index(content[importStart:], ")")
+	if importEnd == -1 {
+		return content
+	}
+	importEnd += importStart
+
+	// Insert the new import at the beginning of the import block
+	beforeImports := content[:importStart+8] // "import (" length is 8
+	afterImports := content[importStart+8:]
+
+	// Add the new import with proper indentation
+	newImport := fmt.Sprintf("\n\t\"%s\"", importPkg)
+	updatedContent := beforeImports + newImport + afterImports
+
+	return updatedContent
 }
 
 func init() {
