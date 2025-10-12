@@ -1,5 +1,4 @@
 package tests
-package tests
 
 import (
 	"os"
@@ -13,7 +12,7 @@ import (
 func TestSafetyManager(t *testing.T) {
 	t.Run("DryRunMode", func(t *testing.T) {
 		sm := cmd.NewSafetyManager(true, false, false)
-		
+
 		err := sm.WriteFile("test.go", "package test")
 		if err != nil {
 			t.Errorf("WriteFile in dry-run should not error: %v", err)
@@ -28,7 +27,7 @@ func TestSafetyManager(t *testing.T) {
 	t.Run("FileConflictDetection", func(t *testing.T) {
 		tempDir := t.TempDir()
 		testFile := filepath.Join(tempDir, "existing.go")
-		
+
 		// Create existing file
 		err := os.WriteFile(testFile, []byte("existing content"), 0644)
 		if err != nil {
@@ -37,7 +36,7 @@ func TestSafetyManager(t *testing.T) {
 
 		sm := cmd.NewSafetyManager(false, false, false)
 		err = sm.CheckFileConflict(testFile)
-		
+
 		if err == nil {
 			t.Error("Expected conflict error for existing file")
 		}
@@ -46,7 +45,7 @@ func TestSafetyManager(t *testing.T) {
 	t.Run("ForceOverwrite", func(t *testing.T) {
 		tempDir := t.TempDir()
 		testFile := filepath.Join(tempDir, "existing.go")
-		
+
 		// Create existing file
 		err := os.WriteFile(testFile, []byte("existing content"), 0644)
 		if err != nil {
@@ -55,7 +54,7 @@ func TestSafetyManager(t *testing.T) {
 
 		sm := cmd.NewSafetyManager(false, true, false)
 		err = sm.CheckFileConflict(testFile)
-		
+
 		if err != nil {
 			t.Errorf("Force mode should not error on conflict: %v", err)
 		}
@@ -65,7 +64,7 @@ func TestSafetyManager(t *testing.T) {
 		tempDir := t.TempDir()
 		testFile := filepath.Join(tempDir, "test.go")
 		originalContent := "original content"
-		
+
 		err := os.WriteFile(testFile, []byte(originalContent), 0644)
 		if err != nil {
 			t.Fatalf("Failed to create test file: %v", err)
@@ -73,7 +72,7 @@ func TestSafetyManager(t *testing.T) {
 
 		sm := cmd.NewSafetyManager(false, true, true)
 		sm.BackupDir = filepath.Join(tempDir, ".backup")
-		
+
 		err = sm.BackupFile(testFile)
 		if err != nil {
 			t.Errorf("Backup failed: %v", err)
@@ -191,9 +190,9 @@ func TestDependencyManager(t *testing.T) {
 	t.Run("CommonDependencies", func(t *testing.T) {
 		tempDir := t.TempDir()
 		dm := cmd.NewDependencyManager(tempDir, false)
-		
+
 		deps := dm.CommonDependencies()
-		
+
 		// Check for known dependencies
 		if _, ok := deps["validator"]; !ok {
 			t.Error("Expected 'validator' in common dependencies")
@@ -209,9 +208,9 @@ func TestDependencyManager(t *testing.T) {
 	t.Run("SuggestDependencies", func(t *testing.T) {
 		tempDir := t.TempDir()
 		dm := cmd.NewDependencyManager(tempDir, false)
-		
+
 		suggestions := dm.SuggestDependencies([]string{"validation", "auth", "grpc"})
-		
+
 		if len(suggestions) == 0 {
 			t.Error("Expected dependency suggestions")
 		}
@@ -220,7 +219,7 @@ func TestDependencyManager(t *testing.T) {
 		hasValidator := false
 		hasJWT := false
 		hasGRPC := false
-		
+
 		for _, dep := range suggestions {
 			if dep.Module == "github.com/go-playground/validator/v10" {
 				hasValidator = true
@@ -247,7 +246,7 @@ func TestDependencyManager(t *testing.T) {
 	t.Run("GetRequiredDependencies", func(t *testing.T) {
 		tempDir := t.TempDir()
 		dm := cmd.NewDependencyManager(tempDir, false)
-		
+
 		required := dm.GetRequiredDependenciesForFeature("grpc", map[string]bool{
 			"validation": true,
 		})
@@ -287,7 +286,7 @@ func TestDependencyManager(t *testing.T) {
 	t.Run("DryRunMode", func(t *testing.T) {
 		tempDir := t.TempDir()
 		dm := cmd.NewDependencyManager(tempDir, true)
-		
+
 		dep := cmd.Dependency{
 			Module:  "github.com/test/module",
 			Version: "v1.0.0",
