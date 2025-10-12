@@ -1,0 +1,27 @@
+{
+  "name": "Goca - Go Clean Architecture",
+  "short_name": "Goca",
+  "description": "CLI code generator for Go following Clean Architecture principles",
+  "start_url": "/goca/",
+  "scope": "/goca/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00ADD8",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/goca/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/goca/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["development", "productivity", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr"
+}

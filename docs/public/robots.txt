@@ -1,0 +1,32 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://sazardev.github.io/goca/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
+# Block unnecessary paths
+Disallow: /node_modules/
+Disallow: /.vitepress/
+Disallow: /*.json$
+Disallow: /*?*print=
+Disallow: /*?*pdf=
+
+# Allow search engines to index everything else
+Allow: /guide/
+Allow: /commands/
+Allow: /tutorials/
+Allow: /getting-started
+
+# Specific crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
