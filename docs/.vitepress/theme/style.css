@@ -189,3 +189,49 @@ html {
     border-radius: 0.375rem;
     padding: 0.2rem 0.4rem;
 }
+
+/**
+ * SVG Icons - Dark mode fix
+ * -------------------------------------------------------------------------- */
+
+/* Feature icons in homepage */
+.VPFeature .vp-feature-icon {
+    filter: brightness(1);
+}
+
+.dark .VPFeature .vp-feature-icon {
+    filter: brightness(1.2) contrast(1.1);
+}
+
+/* Icon images with src attribute */
+.vp-feature-icon img {
+    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(162deg) brightness(95%) contrast(101%);
+}
+
+.dark .vp-feature-icon img {
+    filter: brightness(0) saturate(100%) invert(82%) sepia(59%) saturate(3127%) hue-rotate(160deg) brightness(103%) contrast(101%);
+}
+
+/* SVG icons in features */
+.VPFeatures .VPFeature svg,
+.VPFeatures .VPFeature img {
+    color: var(--vp-c-brand-1);
+}
+
+.dark .VPFeatures .VPFeature svg,
+.dark .VPFeatures .VPFeature img {
+    color: var(--vp-c-brand-1);
+    filter: brightness(1.2);
+}
+
+/* Custom components with iconify */
+.feature-icon svg,
+.badge-icon svg {
+    color: inherit;
+}
+
+.dark .feature-icon svg,
+.dark .badge-icon svg {
+    color: inherit;
+    opacity: 0.95;
+}

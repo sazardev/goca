@@ -53,6 +53,17 @@ defineProps({
   justify-content: center;
 }
 
+.feature-icon svg {
+  width: 100%;
+  height: 100%;
+  color: var(--vp-c-brand-1);
+}
+
+.dark .feature-icon svg {
+  color: var(--vp-c-brand-1);
+  filter: brightness(1.2);
+}
+
 .feature-title {
   margin: 0 0 0.75rem 0;
   font-size: 1.125rem;
