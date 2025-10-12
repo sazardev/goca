@@ -33,9 +33,6 @@
   <text x="380" y="400" font-family="Arial, sans-serif" font-size="32" fill="rgba(255,255,255,0.8)">Build production-ready Go applications</text>
   <text x="380" y="445" font-family="Arial, sans-serif" font-size="32" fill="rgba(255,255,255,0.8)">following Clean Architecture principles</text>
   
-  <!-- Bottom badge -->
-  <rect x="380" y="490" width="420" height="50" fill="rgba(0,173,216,0.2)" stroke="#00ADD8" stroke-width="2"/>
-  <text x="420" y="525" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#00ADD8">CLI Code Generator</text>
   
   <!-- Version -->
   <text x="1050" y="580" font-family="Arial, sans-serif" font-size="24" fill="rgba(255,255,255,0.5)">v2.0.0</text>
