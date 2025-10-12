@@ -236,17 +236,17 @@ func printFeatureStructure(featureName, handlers string) {
 
 	fmt.Printf(`%s/
 ├── domain/
-│   ├── %s.go          # Entidad pura
-│   ├── errors.go      # Errores de dominio
-│   └── validations.go # Validaciones de negocio
+│   ├── %s.go          # Pure entity
+│   ├── errors.go      # Domain errors
+│   └── validations.go # Business validations
 ├── usecase/
-│   ├── dto.go              # DTOs de entrada/salida
-│   ├── %s_usecase.go       # Interfaz de casos de uso
-│   ├── %s_service.go       # Implementación de casos de uso
-│   └── interfaces.go       # Contratos hacia otras capas
+│   ├── dto.go              # Input/Output DTOs
+│   ├── %s_usecase.go       # Use case interface
+│   ├── %s_service.go       # Use case implementation
+│   └── interfaces.go       # Contracts to other layers
 ├── repository/
-│   ├── interfaces.go       # Contratos de persistencia
-│   └── postgres_%s_repo.go # Implementación PostgreSQL
+│   ├── interfaces.go       # Persistence contracts
+│   └── postgres_%s_repo.go # PostgreSQL implementation
 ├── handler/`, featureName, featureLower, featureLower, featureLower, featureLower)
 
 	handlerTypes := strings.Split(handlers, ",")
@@ -256,17 +256,17 @@ func printFeatureStructure(featureName, handlers string) {
 		case "http":
 			fmt.Printf(`
 │   ├── http/
-│   │   ├── %s_handler.go   # Controlador HTTP
-│   │   └── routes.go       # Rutas HTTP`, featureLower)
+│   │   ├── %s_handler.go   # HTTP handler
+│   │   └── routes.go       # HTTP routes`, featureLower)
 		case HandlerGRPC:
 			fmt.Printf(`
 │   ├── grpc/
-│   │   ├── %s.proto        # Definición gRPC
-│   │   └── %s_server.go    # Servidor gRPC`, featureLower, featureLower)
+│   │   ├── %s.proto        # gRPC definition
+│   │   └── %s_server.go    # gRPC server`, featureLower, featureLower)
 		case "cli":
 			fmt.Printf(`
 │   ├── cli/
-│   │   └── %s_commands.go  # Comandos CLI`, featureLower)
+│   │   └── %s_commands.go  # CLI commands`, featureLower)
 		case "worker":
 			fmt.Printf(`
 │   ├── worker/
@@ -274,14 +274,14 @@ func printFeatureStructure(featureName, handlers string) {
 		case "soap":
 			fmt.Printf(`
 │   ├── soap/
-│   │   └── %s_client.go    # Cliente SOAP`, featureLower)
+│   │   └── %s_client.go    # SOAP client`, featureLower)
 		}
 	}
 
 	fmt.Printf(`
 └── messages/
-    ├── errors.go       # Mensajes de error
-    └── responses.go    # Mensajes de respuesta
+    ├── errors.go       # Error messages
+    └── responses.go    # Response messages
 `)
 }
 
