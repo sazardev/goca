@@ -143,6 +143,15 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 		fmt.Printf("⚠️  Warning: Failed to download dependencies: %v\n", err)
 		fmt.Printf("💡 Run 'go mod download' manually in the project directory\n")
 	}
+
+	// Initialize Git repository
+	fmt.Println("🔧 Initializing Git repository...")
+	if err := initializeGitRepository(projectName); err != nil {
+		fmt.Printf("⚠️  Warning: Failed to initialize Git repository: %v\n", err)
+		fmt.Printf("💡 You can initialize Git manually with 'git init' in the project directory\n")
+	} else {
+		fmt.Println("✅ Git repository initialized with initial commit")
+	}
 }
 
 func createGoMod(projectName, module, database string, auth bool) {
@@ -525,6 +534,40 @@ Thumbs.db
 		fmt.Printf("Error escribiendo .gitignore: %v\n", err)
 		return
 	}
+}
+
+// initializeGitRepository initializes a Git repository in the project directory
+func initializeGitRepository(projectName string) error {
+	// Check if git is available
+	if _, err := exec.LookPath("git"); err != nil {
+		return fmt.Errorf("git is not installed or not in PATH")
+	}
+
+	projectPath := filepath.Join(".", projectName)
+
+	// Initialize git repository
+	cmdInit := exec.Command("git", "init")
+	cmdInit.Dir = projectPath
+	if err := cmdInit.Run(); err != nil {
+		return fmt.Errorf("failed to initialize git repository: %v", err)
+	}
+
+	// Add all files to staging
+	cmdAdd := exec.Command("git", "add", ".")
+	cmdAdd.Dir = projectPath
+	if err := cmdAdd.Run(); err != nil {
+		return fmt.Errorf("failed to add files to git: %v", err)
+	}
+
+	// Create initial commit
+	commitMessage := "Initial commit - Goca Clean Architecture project"
+	cmdCommit := exec.Command("git", "commit", "-m", commitMessage)
+	cmdCommit.Dir = projectPath
+	if err := cmdCommit.Run(); err != nil {
+		return fmt.Errorf("failed to create initial commit: %v", err)
+	}
+
+	return nil
 }
 
 func createReadme(projectName, module string) {

@@ -12,6 +12,10 @@ goca init <project-name> [flags]
 
 The `goca init` command creates a production-ready Go project following Clean Architecture principles. It generates the complete directory structure, configuration files, and boilerplate code to get you started immediately.
 
+::: tip Git Initialization
+Projects are automatically initialized with Git, including an initial commit. This ensures your project is version-control ready from the start.
+:::
+
 ## Arguments
 
 ### `<project-name>`
@@ -262,9 +266,9 @@ migrate-down:
 
 ## Next Steps
 
-After running `goca init`:
+After initialization, follow these steps:
 
-1. **Navigate to project directory:**
+1. **Navigate to project:**
    ```bash
    cd myproject
    ```
@@ -280,12 +284,18 @@ After running `goca init`:
    # Edit .env with your settings
    ```
 
-4. **Generate your first feature:**
+4. **Verify Git initialization:**
+   ```bash
+   git log --oneline  # See initial commit
+   git status         # Check repository status
+   ```
+
+5. **Generate your first feature:**
    ```bash
    goca feature User --fields "name:string,email:string"
    ```
 
-5. **Run the application:**
+6. **Run the application:**
    ```bash
    make run
    # or

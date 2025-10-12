@@ -99,15 +99,15 @@ Clean Architecture ensures your codebase remains:
 >
 > — Go Developer
 
+> "The automatic integration of new features saved us so much time. No more manual wiring!"
+>
+> — Go Team Lead
+
 ## Ready to Build?
 
 <p style="text-align: center; margin: 2rem 0;">
-  <a href="/goca/getting-started.html" style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, #00ADD8, #00D9FF); color: white; border-radius: 0.75rem; text-decoration: none; font-weight: 600; box-shadow: 0 4px 12px rgba(0, 173, 216, 0.3); transition: all 0.3s ease;">Get Started in 5 Minutes →</a>
+  <a href="/goca/getting-started.html" style="display: inline-block; padding: 0.75rem 2rem; background: #037794ff; color: white; border-radius: 0.75rem; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Get Started in 5 Minutes</a>
 </p>
-
-## Trusted By
-
-Production-ready and used in real-world applications. Join developers building clean, maintainable Go applications.
 
 <style>
 .vp-doc a {
