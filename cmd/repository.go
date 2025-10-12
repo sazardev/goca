@@ -28,11 +28,9 @@ well-defined interfaces and database-specific implementations.`,
 		// Initialize config integration
 		configIntegration := NewConfigIntegration()
 		if err := configIntegration.LoadConfigForProject(); err != nil {
-			fmt.Printf("⚠️  Warning: Could not load configuration: %v\n", err)
-			fmt.Println("📝 Using default values. Consider running 'goca init --config' to generate .goca.yaml")
-		}
-
-		// Merge CLI flags with configuration (only explicitly changed flags)
+			fmt.Printf("Warning: Could not load configuration: %v\n", err)
+			fmt.Println("Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+		} // Merge CLI flags with configuration (only explicitly changed flags)
 		flags := map[string]interface{}{}
 		if cmd.Flags().Changed("database") {
 			flags["database"] = database
@@ -57,21 +55,21 @@ well-defined interfaces and database-specific implementations.`,
 		validator := NewFieldValidator()
 
 		if err := validator.ValidateEntityName(entity); err != nil {
-			fmt.Printf("❌ Error in entity name: %v\n", err)
+			fmt.Printf("Error in entity name: %v\n", err)
 			return
 		}
 
 		if effectiveDatabase != "" {
 			if err := validator.ValidateDatabase(effectiveDatabase); err != nil {
-				fmt.Printf("❌ Error in database: %v\n", err)
+				fmt.Printf("Error in database: %v\n", err)
 				return
 			}
 		}
 
-		fmt.Printf("🚀 Generating repository for entity '%s'\n", entity)
+		fmt.Printf("Generating repository for entity '%s'\n", entity)
 
 		if effectiveDatabase != "" && !interfaceOnly {
-			fmt.Printf("🗄️  Database: %s", effectiveDatabase)
+			fmt.Printf("Database: %s", effectiveDatabase)
 			if configIntegration.HasConfigFile() && !cmd.Flags().Changed("database") {
 				fmt.Printf(" (from config)")
 			}
@@ -98,7 +96,7 @@ well-defined interfaces and database-specific implementations.`,
 		}
 
 		generateRepository(entity, effectiveDatabase, interfaceOnly, implementation, cache, transactions, fields)
-		fmt.Printf("\n✅ Repository for '%s' generated successfully!\n", entity)
+		fmt.Printf("\nRepository for '%s' generated successfully!\n", entity)
 	},
 }
 
@@ -182,7 +180,7 @@ func generateRepositoryInterface(dir, entity string, transactions bool) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("❌ Error writing archivo %s: %v\n", filename, err)
+		fmt.Printf("Error writing file %s: %v\n", filename, err)
 	}
 }
 
@@ -195,7 +193,7 @@ func generateRepositoryImplementation(dir, entity, database string, cache, trans
 	case DBMongoDB:
 		generateMongoRepository(dir, entity, cache, transactions)
 	default:
-		fmt.Printf("Base de datos no soportada: %s\n", database)
+		fmt.Printf("Database not supported: %s\n", database)
 		os.Exit(1)
 	}
 }
@@ -613,11 +611,11 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 	content.WriteString("}\n\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("❌ Error writing archivo %s: %v\n", filename, err)
+		fmt.Printf("Error writing file %s: %v\n", filename, err)
 	}
 }
 
-// generateRepositoryImplementationWithFields genera implementaciones de repository con métodos dinámicos
+// generateRepositoryImplementationWithFields generates repository implementations with dynamic methods
 func generateRepositoryImplementationWithFields(dir, entity, database string, fields []Field, cache, transactions bool) {
 	switch database {
 	case DBPostgres:

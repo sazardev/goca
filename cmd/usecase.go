@@ -81,7 +81,7 @@ clear interfaces and encapsulated business logic.`,
 		}
 
 		generateUseCase(usecaseName, entity, operations, effectiveDtoValidation, async)
-		fmt.Printf("\n✅ Use case '%s' generated successfully!\n", usecaseName)
+		fmt.Printf("\nUse case '%s' generated successfully!\n", usecaseName)
 	},
 }
 

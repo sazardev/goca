@@ -61,7 +61,7 @@ func findMainGoFile() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("main.go no encontrado en ninguna ubicación esperada")
+	return "", fmt.Errorf("main.go not found in any expected location")
 }
 
 // addEntityToMigrationSlice adds an entity reference to the migration entities slice

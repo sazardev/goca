@@ -50,7 +50,7 @@ useful for Test-Driven Development (TDD).`,
 		}
 
 		generateInterfaces(entity, usecase, repository, handler)
-		fmt.Printf("\n✅ Interfaces for '%s' generated successfully!\n", entity)
+		fmt.Printf("\nInterfaces for '%s' generated successfully!\n", entity)
 	},
 }
 

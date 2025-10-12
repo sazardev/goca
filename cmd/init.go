@@ -32,14 +32,14 @@ including directories, configuration files and layer structure.`,
 			os.Exit(1)
 		}
 
-		fmt.Printf("🚀 Initializing project '%s' with module '%s'\n", projectName, module)
-		fmt.Printf("📊 Base de datos: %s\n", database)
-		fmt.Printf("🌐 API: %s\n", api)
+		fmt.Printf("Initializing project '%s' with module '%s'\n", projectName, module)
+		fmt.Printf("Database: %s\n", database)
+		fmt.Printf("API: %s\n", api)
 		if auth {
-			fmt.Println("🔐 Incluyendo autenticación")
+			fmt.Println("Including authentication")
 		}
 		if config {
-			fmt.Println("⚙️  Generating YAML configuration")
+			fmt.Println("Generating YAML configuration")
 		}
 
 		// Create configuration integration
@@ -55,14 +55,14 @@ including directories, configuration files and layer structure.`,
 
 		createProjectStructure(projectName, module, database, auth, api, configIntegration, config)
 
-		fmt.Printf("\n✅ Project '%s' created successfully!\n", projectName)
-		fmt.Printf("📁 Directory: ./%s\n", projectName)
+		fmt.Printf("\nProject '%s' created successfully!\n", projectName)
+		fmt.Printf("Directory: ./%s\n", projectName)
 
 		if config {
-			fmt.Printf("⚙️  Configuration file: ./%s/.goca.yaml\n", projectName)
+			fmt.Printf("Configuration file: ./%s/.goca.yaml\n", projectName)
 		}
 
-		fmt.Println("\n📋 Next steps:")
+		fmt.Println("\nNext steps:")
 		fmt.Printf("  cd %s\n", projectName)
 		fmt.Println("  go mod tidy")
 
@@ -132,25 +132,25 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	if generateConfig && configIntegration != nil {
 		configPath := filepath.Join(projectName, ".goca.yaml")
 		if err := configIntegration.GenerateConfigFile(projectName, projectName, module, database); err != nil {
-			fmt.Printf("⚠️  Warning: Failed to generate config file: %v\n", err)
+			fmt.Printf("Warning: Failed to generate config file: %v\n", err)
 		} else {
-			fmt.Printf("📝 Generated configuration file: %s\n", configPath)
+			fmt.Printf("Generated configuration file: %s\n", configPath)
 		}
 	}
 
 	// Download dependencies after creating go.mod
 	if err := downloadDependencies(projectName); err != nil {
-		fmt.Printf("⚠️  Warning: Failed to download dependencies: %v\n", err)
-		fmt.Printf("💡 Run 'go mod download' manually in the project directory\n")
+		fmt.Printf("Warning: Failed to download dependencies: %v\n", err)
+		fmt.Printf("Tip: Run 'go mod download' manually in the project directory\n")
 	}
 
 	// Initialize Git repository
-	fmt.Println("🔧 Initializing Git repository...")
+	fmt.Println("Initializing Git repository...")
 	if err := initializeGitRepository(projectName); err != nil {
-		fmt.Printf("⚠️  Warning: Failed to initialize Git repository: %v\n", err)
-		fmt.Printf("💡 You can initialize Git manually with 'git init' in the project directory\n")
+		fmt.Printf("Warning: Failed to initialize Git repository: %v\n", err)
+		fmt.Printf("Tip: You can initialize Git manually with 'git init' in the project directory\n")
 	} else {
-		fmt.Println("✅ Git repository initialized with initial commit")
+		fmt.Println("Git repository initialized with initial commit")
 	}
 }
 
@@ -268,19 +268,19 @@ func main() {
 	var err error
 	db, err = connectToDatabase(cfg)
 	if err != nil {
-		log.Printf("⚠️  Database connection failed: %%v", err)
-		log.Printf("📝 Server will start in degraded mode. Check your database configuration.")
-		log.Printf("💡 To fix: Configure database environment variables in .env file")
+		log.Printf("Warning: Database connection failed: %%v", err)
+		log.Printf("Server will start in degraded mode. Check your database configuration.")
+		log.Printf("Tip: Configure database environment variables in .env file")
 		db = nil // Ensure db is nil for health checks
 	} else {
-		log.Printf("✅ Database connected successfully")
+		log.Printf("Database connected successfully")
 		
 		// Run auto-migrations if database is connected
 		if err := runAutoMigrations(db); err != nil {
-			log.Printf("⚠️  Auto-migration failed: %%v", err)
-			log.Printf("💡 You may need to run migrations manually")
+			log.Printf("Warning: Auto-migration failed: %%v", err)
+			log.Printf("Tip: You may need to run migrations manually")
 		} else {
-			log.Printf("✅ Database schema is up to date")
+			log.Printf("Database schema is up to date")
 		}
 	}
 	
@@ -334,14 +334,14 @@ func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
 	
 	// Check if this is development mode without database
 	if cfg.Environment == "development" && cfg.Database.Password == "" {
-		log.Println("⚠️  Development mode detected: No database password set")
-		log.Println("📝 To connect to PostgreSQL, set environment variables:")
+		log.Println("Warning: Development mode detected: No database password set")
+		log.Println("To connect to PostgreSQL, set environment variables:")
 		log.Println("   DB_HOST=localhost")
 		log.Println("   DB_PORT=5432") 
 		log.Println("   DB_USER=postgres")
 		log.Println("   DB_PASSWORD=your_password")
 		log.Println("   DB_NAME=your_database")
-		log.Println("🚀 Server will continue without database connection...")
+		log.Println("Server will continue without database connection...")
 		return nil, fmt.Errorf("development mode: database not configured")
 	}
 	
@@ -449,7 +449,7 @@ func runAutoMigrations(database *gorm.DB) error {
 	}
 	
 	// Auto-migrate domain entities using GORM
-	log.Println("🔄 Running GORM auto-migrations...")
+	log.Println("Running GORM auto-migrations...")
 	
 	// Create a slice of all domain entities to migrate
 	entities := []interface{}{
@@ -474,14 +474,14 @@ func runAutoMigrations(database *gorm.DB) error {
 		return fmt.Errorf("database ping failed: %%w", err)
 	}
 	
-	log.Println("✅ GORM auto-migrations completed successfully")
+	log.Println("GORM auto-migrations completed successfully")
 	return nil
 }
 
 `, module, module)
 
 	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
-		fmt.Printf("Error escribiendo main.go: %v\n", err)
+		fmt.Printf("Error writing main.go: %v\n", err)
 		return
 	}
 }
@@ -573,140 +573,140 @@ func initializeGitRepository(projectName string) error {
 func createReadme(projectName, module string) {
 	content := fmt.Sprintf(`# %s
 
-Proyecto generado con Goca - Go Clean Architecture Code Generator
+Generated with Goca - Go Clean Architecture Code Generator
 
-## 🏗️ Arquitectura
+## Architecture
 
-Este proyecto sigue los principios de Clean Architecture:
+This project follows Clean Architecture principles:
 
-- **Domain**: Entidades y reglas de negocio  
-- **Use Cases**: Lógica de aplicación
-- **Repository**: Abstracción de datos
-- **Handler**: Adaptadores de entrega
+- **Domain**: Entities and business rules  
+- **Use Cases**: Application logic
+- **Repository**: Data abstraction
+- **Handler**: Delivery adapters
 
-## 🚀 Inicio Rápido
+## Quick Start
 
-### 1. Instalar dependencias:
+### 1. Install dependencies:
 `+"```bash\n"+`go mod tidy
 `+"```\n"+`
 
-### 2. Configurar base de datos (PostgreSQL):
+### 2. Configure database (PostgreSQL):
 
-#### Opción A: Usando Docker (Recomendado)
-`+"```bash\n"+`# Ejecutar PostgreSQL
+#### Option A: Using Docker (Recommended)
+`+"```bash\n"+`# Run PostgreSQL
 docker run --name postgres-dev \
   -e POSTGRES_PASSWORD=password \
   -e POSTGRES_DB=%s \
   -p 5432:5432 \
   -d postgres:15
 
-# O usando docker-compose
+# Or using docker-compose
 docker-compose up -d postgres
 `+"```\n"+`
 
-#### Opción B: PostgreSQL local
-`+"```bash\n"+`# Crear base de datos
+#### Option B: Local PostgreSQL
+`+"```bash\n"+`# Create database
 createdb %s
 `+"```\n"+`
 
-### 3. Configurar variables de entorno:
-`+"```bash\n"+`# Copiar archivo de ejemplo
+### 3. Configure environment variables:
+`+"```bash\n"+`# Copy example file
 cp .env.example .env
 
-# Editar con tus credenciales
+# Edit with your credentials
 # DB_PASSWORD=password
 # DB_NAME=%s
 `+"```\n"+`
 
-### 4. Ejecutar la aplicación:
+### 4. Run the application:
 `+"```bash\n"+`go run cmd/server/main.go
 `+"```\n"+`
 
-### 5. Probar endpoints:
+### 5. Test endpoints:
 `+"```bash\n"+`# Health check
 curl http://localhost:8080/health
 
-# Crear usuario (si tienes el feature User)
+# Create user (if you have the User feature)
 curl -X POST http://localhost:8080/api/v1/users \
   -H "Content-Type: application/json" \
-  -d '{"name":"Juan Perez","email":"juan@ejemplo.com"}'
+  -d '{"name":"John Doe","email":"john@example.com"}'
 `+"```\n"+`
 
-## 📁 Estructura del Proyecto
+## Project Structure
 
 `+"```\n"+`%s/
 ├── cmd/
-│   └── server/           # Punto de entrada de la aplicación
+│   └── server/           # Application entry point
 │       └── main.go
 ├── internal/
-│   ├── domain/           # Entidades y reglas de negocio
-│   ├── usecase/          # Lógica de aplicación
-│   ├── repository/       # Implementaciones de persistencia
-│   ├── handler/          # Adaptadores HTTP/gRPC
+│   ├── domain/           # Entities and business rules
+│   ├── usecase/          # Application logic
+│   ├── repository/       # Persistence implementations
+│   ├── handler/          # HTTP/gRPC adapters
 │   │   └── http/
-│   └── messages/         # Mensajes de error y respuesta
+│   └── messages/         # Error and response messages
 ├── pkg/
-│   ├── config/           # Configuración de la aplicación
-│   └── logger/           # Sistema de logging
-├── migrations/           # Migraciones de base de datos
-├── .env                  # Variables de entorno
-├── .env.example          # Ejemplo de configuración
-├── docker-compose.yml    # Servicios con Docker
-├── Makefile              # Comandos útiles
+│   ├── config/           # Application configuration
+│   └── logger/           # Logging system
+├── migrations/           # Database migrations
+├── .env                  # Environment variables
+├── .env.example          # Configuration example
+├── docker-compose.yml    # Docker services
+├── Makefile              # Useful commands
 ├── go.mod
 └── README.md
 `+"```\n"+`
 
-## 🔧 Comandos Útiles
+## Useful Commands
 
-### Generar nuevos features:
-`+"```bash\n"+`# Feature completo con todas las capas
+### Generate new features:
+`+"```bash\n"+`# Complete feature with all layers
 goca feature User --fields "name:string,email:string"
 
-# Feature con validaciones
+# Feature with validations
 goca feature Product --fields "name:string,price:float64" --validation
 
-# Integrar features existentes
+# Integrate existing features
 goca integrate --all
 `+"```\n"+`
 
-### Comandos de desarrollo:
-`+"```bash\n"+`# Ejecutar aplicación
+### Development commands:
+`+"```bash\n"+`# Run application
 make run
 
-# Ejecutar tests
+# Run tests
 make test
 
-# Build para producción
+# Build for production
 make build
 
-# Linting y formateo
+# Linting and formatting
 make lint
 make fmt
 `+"```\n"+`
 
-## 🐛 Resolución de Problemas
+## Troubleshooting
 
 ### Error: "dial tcp [::1]:5432: connection refused"
-La base de datos PostgreSQL no está ejecutándose. 
+PostgreSQL database is not running. 
 
-**Solución:**
-`+"```bash\n"+`# Con Docker
+**Solution:**
+`+"```bash\n"+`# With Docker
 docker run --name postgres-dev \
   -e POSTGRES_PASSWORD=password \
   -e POSTGRES_DB=%s \
   -p 5432:5432 \
   -d postgres:15
 
-# Verificar que esté corriendo
+# Verify it's running
 docker ps
 `+"```\n"+`
 
 ### Error: "database not configured"
-Variables de entorno de base de datos no están configuradas.
+Database environment variables are not configured.
 
-**Solución:**
-`+"```bash\n"+`# Configurar en .env
+**Solution:**
+`+"```bash\n"+`# Configure in .env
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
@@ -715,42 +715,42 @@ DB_NAME=%s
 `+"```\n"+`
 
 ### Error: "command not found: goca"
-Goca CLI no está instalado o no está en PATH.
+Goca CLI is not installed or not in PATH.
 
-**Solución:**
-`+"```bash\n"+`# Reinstalar Goca
+**Solution:**
+`+"```bash\n"+`# Reinstall Goca
 go install github.com/sazardev/goca@latest
 
-# Verificar instalación
+# Verify installation
 goca version
 `+"```\n"+`
 
-### Health Check muestra "degraded"
-La aplicación funciona pero no puede conectarse a la base de datos.
+### Health Check shows "degraded"
+Application runs but cannot connect to database.
 
-**Solución:**
-1. Verificar que PostgreSQL esté ejecutándose
-2. Verificar variables de entorno en .env
-3. Probar conexión manual: `+"`"+`psql -h localhost -U postgres -d %s`+"`"+`
+**Solution:**
+1. Verify PostgreSQL is running
+2. Verify environment variables in .env
+3. Test connection manually: `+"`"+`psql -h localhost -U postgres -d %s`+"`"+`
 
-## 📚 Recursos Adicionales
+## Additional Resources
 
-- [Documentación de Goca](https://github.com/sazardev/goca)
-- [Principios de Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [Tutorial completo](https://github.com/sazardev/goca/wiki/Complete-Tutorial)
+- [Goca Documentation](https://github.com/sazardev/goca)
+- [Clean Architecture Principles](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [Complete Tutorial](https://github.com/sazardev/goca/wiki/Complete-Tutorial)
 
-## 🤝 Contribuir
+## Contributing
 
-Este proyecto fue generado con Goca. Para contribuir:
+This project was generated with Goca. To contribute:
 
-1. Agregar nuevos features con `+"`"+`goca feature`+"`"+`
-2. Mantener la separación de capas
-3. Escribir tests para nuevas funcionalidades
-4. Seguir las convenciones de Clean Architecture
+1. Add new features with `+"`"+`goca feature`+"`"+`
+2. Maintain layer separation
+3. Write tests for new functionality
+4. Follow Clean Architecture conventions
 
 ---
 
-Generado con ❤️ usando [Goca](https://github.com/sazardev/goca)
+Generated with [Goca](https://github.com/sazardev/goca)
 `, cases.Title(language.English).String(projectName), projectName, projectName, projectName, projectName, projectName, projectName, projectName)
 
 	if err := writeFile(filepath.Join(projectName, "README.md"), content); err != nil {

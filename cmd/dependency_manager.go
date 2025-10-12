@@ -119,7 +119,7 @@ func (dm *DependencyManager) SuggestDependencies(features []string) []Dependency
 // AddDependency adds a dependency to go.mod
 func (dm *DependencyManager) AddDependency(dep Dependency) error {
 	if dm.dryRun {
-		fmt.Printf("📦 [DRY-RUN] Would add dependency: %s %s\n", dep.Module, dep.Version)
+		fmt.Printf("[DRY-RUN] Would add dependency: %s %s\n", dep.Module, dep.Version)
 		return nil
 	}
 
@@ -130,7 +130,7 @@ func (dm *DependencyManager) AddDependency(dep Dependency) error {
 	}
 
 	if exists {
-		fmt.Printf("ℹ️  Dependency %s already exists\n", dep.Module)
+		fmt.Printf("Dependency %s already exists\n", dep.Module)
 		return nil
 	}
 
@@ -142,7 +142,7 @@ func (dm *DependencyManager) AddDependency(dep Dependency) error {
 		return fmt.Errorf("failed to add dependency %s: %v\n%s", dep.Module, err, string(output))
 	}
 
-	fmt.Printf("✅ Added dependency: %s %s\n", dep.Module, dep.Version)
+	fmt.Printf("Added dependency: %s %s\n", dep.Module, dep.Version)
 	return nil
 }
 
@@ -201,7 +201,7 @@ func (dm *DependencyManager) isVersionCompatible(current, required string) bool 
 // UpdateGoMod runs go mod tidy to update go.mod and go.sum
 func (dm *DependencyManager) UpdateGoMod() error {
 	if dm.dryRun {
-		fmt.Println("📦 [DRY-RUN] Would run: go mod tidy")
+		fmt.Println("[DRY-RUN] Would run: go mod tidy")
 		return nil
 	}
 
@@ -212,7 +212,7 @@ func (dm *DependencyManager) UpdateGoMod() error {
 		return fmt.Errorf("go mod tidy failed: %v\n%s", err, string(output))
 	}
 
-	fmt.Println("✅ Updated go.mod and go.sum")
+	fmt.Println("Updated go.mod and go.sum")
 	return nil
 }
 
@@ -222,11 +222,11 @@ func (dm *DependencyManager) PrintDependencySuggestions(suggestions []Dependency
 		return
 	}
 
-	fmt.Println("\n💡 OPTIONAL DEPENDENCIES:")
+	fmt.Println("\nOPTIONAL DEPENDENCIES:")
 	fmt.Println("   The following dependencies might be useful for your feature:\n")
 
 	for _, dep := range suggestions {
-		fmt.Printf("   📦 %s %s\n", dep.Module, dep.Version)
+		fmt.Printf("   %s %s\n", dep.Module, dep.Version)
 		fmt.Printf("      Reason: %s\n", dep.Reason)
 		fmt.Printf("      Install: go get %s@%s\n\n", dep.Module, dep.Version)
 	}
@@ -241,7 +241,7 @@ func (dm *DependencyManager) VerifyDependencyVersions() error {
 		return fmt.Errorf("dependency verification failed: %v\n%s", err, string(output))
 	}
 
-	fmt.Println("✅ All dependencies verified")
+	fmt.Println("All dependencies verified")
 	return nil
 }
 

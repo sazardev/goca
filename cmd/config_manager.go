@@ -647,25 +647,25 @@ func (cm *ConfigManager) contains(slice []string, item string) bool {
 // PrintSummary prints configuration summary
 func (cm *ConfigManager) PrintSummary() {
 	if cm.config == nil {
-		fmt.Println("❌ No configuration loaded")
+		fmt.Println("No configuration loaded")
 		return
 	}
 
-	fmt.Printf("📋 Project Configuration: %s\n", cm.config.Project.Name)
-	fmt.Printf("   📦 Módulo: %s\n", cm.config.Project.Module)
-	fmt.Printf("   🗄️  Base de datos: %s\n", cm.config.Database.Type)
-	fmt.Printf("   🏗️  Capas: %d habilitadas\n", cm.countEnabledLayers())
-	fmt.Printf("   🧪 Tests: %t\n", cm.config.Testing.Enabled)
+	fmt.Printf("Project Configuration: %s\n", cm.config.Project.Name)
+	fmt.Printf("   Module: %s\n", cm.config.Project.Module)
+	fmt.Printf("   Database: %s\n", cm.config.Database.Type)
+	fmt.Printf("   Layers: %d enabled\n", cm.countEnabledLayers())
+	fmt.Printf("   Tests: %t\n", cm.config.Testing.Enabled)
 
 	if len(cm.warnings) > 0 {
-		fmt.Printf("\n⚠️  Advertencias (%d):\n", len(cm.warnings))
+		fmt.Printf("\nWarnings (%d):\n", len(cm.warnings))
 		for _, warning := range cm.warnings {
 			fmt.Printf("   - %s: %s\n", warning.Field, warning.Message)
 		}
 	}
 
 	if len(cm.errors) > 0 {
-		fmt.Printf("\n❌ Errores (%d):\n", len(cm.errors))
+		fmt.Printf("\nErrors (%d):\n", len(cm.errors))
 		for _, error := range cm.errors {
 			fmt.Printf("   - %s: %s\n", error.Field, error.Message)
 		}

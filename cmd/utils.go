@@ -62,8 +62,8 @@ func writeGoFile(path, content string) error {
 	if strings.HasSuffix(path, ".go") {
 		formatted, err := format.Source([]byte(content))
 		if err != nil {
-			fmt.Printf("⚠️  Advertencia: No se pudo formatear el código Go para %s: %v\n", path, err)
-			// Continuar con código sin formatear
+			fmt.Printf("Warning: Could not format Go code for %s: %v\n", path, err)
+			// Continue with unformatted code
 		} else {
 			content = string(formatted)
 		}
@@ -76,7 +76,7 @@ func writeGoFile(path, content string) error {
 
 	file, err := os.Create(path)
 	if err != nil {
-		return fmt.Errorf("error creando archivo %s: %w", path, err)
+		return fmt.Errorf("error creating file %s: %w", path, err)
 	}
 	defer func() {
 		if err := file.Close(); err != nil {

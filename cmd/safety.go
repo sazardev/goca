@@ -72,7 +72,7 @@ func (sm *SafetyManager) BackupFile(filePath string) error {
 		return err
 	}
 
-	fmt.Printf("📦 Backed up: %s -> %s\n", filePath, backupFile)
+	fmt.Printf("Backed up: %s -> %s\n", filePath, backupFile)
 	return nil
 }
 
@@ -84,7 +84,7 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	}
 
 	if sm.DryRun {
-		fmt.Printf("📝 [DRY-RUN] Would create: %s (%d bytes)\n", filePath, len(content))
+		fmt.Printf("[DRY-RUN] Would create: %s (%d bytes)\n", filePath, len(content))
 		sm.createdFiles = append(sm.createdFiles, filePath)
 		return nil
 	}
@@ -101,7 +101,7 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	}
 
 	sm.createdFiles = append(sm.createdFiles, filePath)
-	fmt.Printf("✅ Created: %s\n", filePath)
+	fmt.Printf("Created: %s\n", filePath)
 	return nil
 }
 
@@ -118,19 +118,19 @@ func (sm *SafetyManager) GetCreatedFiles() []string {
 // PrintSummary prints a summary of the operation
 func (sm *SafetyManager) PrintSummary() {
 	if sm.DryRun {
-		fmt.Println("\n📋 DRY-RUN SUMMARY:")
+		fmt.Println("\nDRY-RUN SUMMARY:")
 		fmt.Printf("   Would create %d files\n", len(sm.createdFiles))
 		if len(sm.conflicts) > 0 {
-			fmt.Printf("   ⚠️  %d conflicts detected:\n", len(sm.conflicts))
+			fmt.Printf("   Warning: %d conflicts detected:\n", len(sm.conflicts))
 			for _, conflict := range sm.conflicts {
 				fmt.Printf("      - %s\n", conflict)
 			}
 		}
-		fmt.Println("\n💡 Run without --dry-run to actually create files")
+		fmt.Println("\nTip: Run without --dry-run to actually create files")
 		fmt.Println("   Use --force to overwrite existing files")
 		fmt.Println("   Use --backup to backup files before overwriting")
 	} else {
-		fmt.Printf("\n✅ Successfully created %d files\n", len(sm.createdFiles))
+		fmt.Printf("\nSuccessfully created %d files\n", len(sm.createdFiles))
 	}
 }
 

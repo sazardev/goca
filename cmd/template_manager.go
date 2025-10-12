@@ -392,13 +392,13 @@ Este proyecto fue generado usando GOCA CLI con configuración YAML personalizada
 
 ### Archivo de configuración: .goca.yaml
 
-El proyecto utiliza configuración centralizada en .goca.yaml para:
+This project uses centralized configuration in .goca.yaml for:
 
-- 🏗️ **Arquitectura**: Capas, patrones, DI, convenciones de nombres
-- 🗄️ **Base de datos**: Tipo ({{.DatabaseType}}), migraciones, características
-- ✅ **Generación**: Validación, reglas de negocio, documentación
-- 🧪 **Testing**: Framework, coverage, mocks
-- 🔧 **Templates**: Personalizables en {{.TemplateDirectory}}
+- **Architecture**: Layers, patterns, DI, naming conventions
+- **Database**: Type ({{.DatabaseType}}), migrations, features
+- **Generation**: Validation, business rules, documentation
+- **Testing**: Framework, coverage, mocks
+- **Templates**: Customizable in {{.TemplateDirectory}}
 
 ### Comandos disponibles
 

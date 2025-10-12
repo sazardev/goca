@@ -58,13 +58,13 @@ func (v *CommandValidator) ValidateFeatureCommand(featureName, fields, database,
 
 	// Validate fields
 	if err := v.fieldValidator.ValidateFields(fields); err != nil {
-		return fmt.Errorf("campos: %w", err)
+		return fmt.Errorf("fields: %w", err)
 	}
 
 	// Validate database if provided
 	if database != "" {
 		if err := v.fieldValidator.ValidateDatabase(database); err != nil {
-			return fmt.Errorf("base de datos: %w", err)
+			return fmt.Errorf("database: %w", err)
 		}
 	}
 
@@ -82,13 +82,13 @@ func (v *CommandValidator) ValidateFeatureCommand(featureName, fields, database,
 func (v *CommandValidator) ValidateRepositoryCommand(entityName, database string) error {
 	// Validate entity name
 	if err := v.fieldValidator.ValidateEntityName(entityName); err != nil {
-		return fmt.Errorf("nombre de entidad: %w", err)
+		return fmt.Errorf("entity name: %w", err)
 	}
 
 	// Validate database if provided
 	if database != "" {
 		if err := v.fieldValidator.ValidateDatabase(database); err != nil {
-			return fmt.Errorf("base de datos: %w", err)
+			return fmt.Errorf("database: %w", err)
 		}
 	}
 

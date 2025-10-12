@@ -30,11 +30,9 @@ including domain, use cases, repository and handlers in a single operation.`,
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
 		if err := configIntegration.LoadConfigForProject(); err != nil {
-			fmt.Printf("⚠️  Warning: Could not load configuration: %v\n", err)
-			fmt.Println("📝 Using default values. Consider running 'goca init --config' to generate .goca.yaml")
-		}
-
-		// Merge CLI flags with configuration (CLI flags take precedence)
+			fmt.Printf("Warning: Could not load configuration: %v\n", err)
+			fmt.Println("Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+		} // Merge CLI flags with configuration (CLI flags take precedence)
 		flags := map[string]interface{}{
 			"database":       database,
 			"handlers":       handlers,
@@ -56,17 +54,15 @@ including domain, use cases, repository and handlers in a single operation.`,
 		projectRoot, _ := os.Getwd()
 		conflictDetector := NewNameConflictDetector(projectRoot)
 		if err := conflictDetector.ScanExistingEntities(); err != nil {
-			fmt.Printf("⚠️  Warning: Could not scan for conflicts: %v\n", err)
+			fmt.Printf("Warning: Could not scan for conflicts: %v\n", err)
 		}
 
 		// Check for name conflicts
 		if err := conflictDetector.CheckNameConflict(featureName); err != nil && !force {
-			fmt.Printf("❌ %v\n", err)
-			fmt.Println("💡 Use --force to generate anyway")
+			fmt.Printf("%v\n", err)
+			fmt.Println("Tip: Use --force to generate anyway")
 			os.Exit(1)
-		}
-
-		// Initialize dependency manager
+		} // Initialize dependency manager
 		depMgr := NewDependencyManager(projectRoot, dryRun)
 
 		// Usar validador centralizado
@@ -77,31 +73,31 @@ including domain, use cases, repository and handlers in a single operation.`,
 		}
 
 		if dryRun {
-			fmt.Println("🔍 DRY-RUN MODE: Previewing changes without creating files\n")
+			fmt.Println("DRY-RUN MODE: Previewing changes without creating files\n")
 		}
 
 		fmt.Printf(MsgGeneratingFeature+"\n", featureName)
-		fmt.Printf("📋 Fields: %s\n", fields)
-		fmt.Printf("🗄️  Database: %s", effectiveDatabase)
+		fmt.Printf("Fields: %s\n", fields)
+		fmt.Printf("Database: %s", effectiveDatabase)
 		if configIntegration.HasConfigFile() {
 			fmt.Printf(" (from config)")
 		}
 		fmt.Println()
-		fmt.Printf("🌐 Handlers: %s", effectiveHandlers)
+		fmt.Printf("Handlers: %s", effectiveHandlers)
 		if configIntegration.HasConfigFile() {
 			fmt.Printf(" (from config)")
 		}
 		fmt.Println()
 
 		if effectiveValidation {
-			fmt.Print("✅ Including validations")
+			fmt.Print("Including validations")
 			if configIntegration.HasConfigFile() {
 				fmt.Printf(" (from config)")
 			}
 			fmt.Println()
 		}
 		if effectiveBusinessRules {
-			fmt.Print("🧠 Including business rules")
+			fmt.Print("Including business rules")
 			if configIntegration.HasConfigFile() {
 				fmt.Printf(" (from config)")
 			}
@@ -138,11 +134,11 @@ including domain, use cases, repository and handlers in a single operation.`,
 		}
 
 		// 6. Auto-integrate with DI and main.go
-		fmt.Println("6️⃣  Integrating automatically...")
+		fmt.Println("6. Integrating automatically...")
 		autoIntegrateFeature(featureName, handlers)
 
 		// 7. Handle dependencies
-		fmt.Println("7️⃣  Managing dependencies...")
+		fmt.Println("7. Managing dependencies...")
 
 		// Add required dependencies
 		requiredDeps := depMgr.GetRequiredDependenciesForFeature(
@@ -152,7 +148,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 
 		for _, dep := range requiredDeps {
 			if err := depMgr.AddDependency(dep); err != nil {
-				fmt.Printf("⚠️  Warning: Could not add dependency %s: %v\n", dep.Module, err)
+				fmt.Printf("Warning: Could not add dependency %s: %v\n", dep.Module, err)
 			}
 		}
 
@@ -168,71 +164,71 @@ including domain, use cases, repository and handlers in a single operation.`,
 		depMgr.PrintDependencySuggestions(suggestions)
 
 		// Update go.mod
-		fmt.Println("\n📦 Updating go.mod...")
+		fmt.Println("\nUpdating go.mod...")
 		if err := depMgr.UpdateGoMod(); err != nil {
-			fmt.Printf("⚠️  Warning: Could not update go.mod: %v\n", err)
-			fmt.Println("💡 Run 'go mod tidy' manually")
+			fmt.Printf("Warning: Could not update go.mod: %v\n", err)
+			fmt.Println("Tip: Run 'go mod tidy' manually")
 		}
 
-		fmt.Printf("\n🎉 Feature '%s' generated and integrated successfully!\n", featureName)
-		fmt.Println("\n📂 Generated structure:")
+		fmt.Printf("\nFeature '%s' generated and integrated successfully!\n", featureName)
+		fmt.Println("\nGenerated structure:")
 		printFeatureStructure(featureName, handlers)
 
-		fmt.Println("\n✅ All ready! The feature is now:")
-		fmt.Println("   🔗 Connected in the DI container")
-		fmt.Println("   🛣️  Routes registered in the server")
-		fmt.Println("   ⚡ Ready to use immediately")
-		fmt.Println("   🌱 With seed data included")
+		fmt.Println("\nAll ready! The feature is now:")
+		fmt.Println("   - Connected in the DI container")
+		fmt.Println("   - Routes registered in the server")
+		fmt.Println("   - Ready to use immediately")
+		fmt.Println("   - With seed data included")
 
-		fmt.Println("\n🚀 Next steps:")
+		fmt.Println("\nNext steps:")
 		fmt.Println("   1. Run: go mod tidy")
 		fmt.Printf("   2. Start server: go run cmd/server/main.go\n")
 		fmt.Printf("   3. Test endpoints: curl http://localhost:8080/api/v1/%ss\n", strings.ToLower(featureName))
 
-		fmt.Println("\n💡 Additional useful commands:")
+		fmt.Println("\nAdditional useful commands:")
 		fmt.Println("   goca integrate --all     # Integrate existing features")
 		fmt.Printf("   goca feature Product --fields \"name:string,price:float64\"  # Add another feature\n")
 	},
 }
 
 func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules bool, fileNamingConvention string, safetyMgr *SafetyManager) {
-	fmt.Println("\n🔄 Generating layers...")
+	fmt.Println("\nGenerating layers...")
 
 	// 1. Generate Entity (Domain layer)
-	fmt.Println("1️⃣  Generating domain entity...")
+	fmt.Println("1. Generating domain entity...")
 	generateEntity(featureName, fields, true, businessRules, false, false, fileNamingConvention)
 
 	// 2. Generate Use Case
-	fmt.Println("2️⃣  Generating use cases...")
+	fmt.Println("2. Generating use cases...")
 	generateUseCaseWithFields(featureName+"UseCase", featureName, "create,read,update,delete,list", validation, false, fields)
 
 	// 3. Generate Repository
-	fmt.Println("3️⃣  Generating repository...")
+	fmt.Println("3. Generating repository...")
 	generateRepository(featureName, database, false, true, false, false, fields)
 
 	// 4. Generate Handlers
-	fmt.Println("4️⃣  Generating handlers...")
+	fmt.Println("4. Generating handlers...")
 	handlerTypes := strings.Split(handlers, ",")
 	for _, handlerType := range handlerTypes {
 		handlerType = strings.TrimSpace(handlerType)
-		fmt.Printf("   📡 Generating %s handler...\n", handlerType)
+		fmt.Printf("   Generating %s handler...\n", handlerType)
 		generateHandler(featureName, handlerType, true, validation, handlerType == "http", fileNamingConvention)
 	}
 
 	// 5. Generate Messages
-	fmt.Println("5️⃣  Generating messages...")
+	fmt.Println("5. Generating messages...")
 	generateMessages(featureName, true, true, true)
 
 	// 6. Register entity for auto-migration
-	fmt.Println("6️⃣  Registering entity for auto-migration...")
+	fmt.Println("6. Registering entity for auto-migration...")
 	if err := addEntityToAutoMigration(featureName); err != nil {
-		fmt.Printf("   ⚠️  Could not register entity for auto-migration: %v\n", err)
-		fmt.Printf("   💡 Entity was created correctly, but you'll need to configure migration manually\n")
+		fmt.Printf("   Warning: Could not register entity for auto-migration: %v\n", err)
+		fmt.Printf("   Tip: Entity was created correctly, but you'll need to configure migration manually\n")
 	} else {
-		fmt.Printf("   ✅ Entity %s registered for GORM auto-migration\n", featureName)
+		fmt.Printf("   Entity %s registered for GORM auto-migration\n", featureName)
 	}
 
-	fmt.Println("✅ All layers generated successfully!")
+	fmt.Println("All layers generated successfully!")
 }
 
 func printFeatureStructure(featureName, handlers string) {
@@ -291,15 +287,15 @@ func printFeatureStructure(featureName, handlers string) {
 
 // autoIntegrateFeature automatically integrates the feature with DI and main.go
 func autoIntegrateFeature(featureName, handlers string) {
-	fmt.Println("   🔄 Actualizando contenedor DI...")
+	fmt.Println("   Updating DI container...")
 	updateDIContainer(featureName)
 
-	fmt.Println("   🛣️  Registrando rutas HTTP...")
+	fmt.Println("   Registering HTTP routes...")
 	if strings.Contains(handlers, "http") {
 		updateMainRoutes(featureName)
 	}
 
-	fmt.Println("   ✅ Integración completada")
+	fmt.Println("   Integration completed")
 }
 
 // updateDIContainer updates or creates DI container with new feature
@@ -309,11 +305,11 @@ func updateDIContainer(featureName string) {
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		// DI doesn't exist, create it with this feature
-		fmt.Printf("   📦 Creando contenedor DI para %s...\n", featureName)
+		fmt.Printf("   Creating DI container for %s...\n", featureName)
 		generateDI(featureName, "postgres", false)
 	} else {
 		// DI exists, update it to include new feature
-		fmt.Printf("   🔄 Actualizando contenedor DI existente...\n")
+		fmt.Printf("   Updating existing DI container...\n")
 		addFeatureToDI(featureName)
 	}
 }
@@ -420,17 +416,17 @@ func updateMainRoutes(featureName string) {
 		return
 	}
 
-	fmt.Printf("   📍 Encontrado main.go en: %s\n", mainPath)
+	fmt.Printf("   Found main.go at: %s\n", mainPath)
 
 	content, err := os.ReadFile(mainPath)
 	if err != nil {
-		fmt.Printf("   ⚠️  Could not read main.go: %v\n", err)
+		fmt.Printf("   Warning: Could not read main.go: %v\n", err)
 		printManualIntegrationInstructions(featureName)
 		return
 	}
 
 	if isFeatureAlreadyRegistered(string(content), featureName) {
-		fmt.Println("   ✅ Las rutas ya están registradas")
+		fmt.Println("   Routes already registered")
 		return
 	}
 
@@ -462,7 +458,7 @@ func findMainGoPath() (string, bool) {
 
 // handleMainGoNotFound handles the case when main.go is not found
 func handleMainGoNotFound(featureName string) {
-	fmt.Println("   ⚠️  main.go no encontrado en ninguna ubicación esperada, omitiendo registro de rutas")
+	fmt.Println("   Warning: main.go not found in any expected location, skipping route registration")
 	fmt.Println("   💡 You can manually add the routes to your main.go file")
 	printManualIntegrationInstructions(featureName)
 }
@@ -476,12 +472,12 @@ func isFeatureAlreadyRegistered(content, featureName string) bool {
 // setupMainGoWithFeature sets up the main.go file with the new feature
 func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
 	// Always use complete GORM setup for consistency
-	fmt.Println("   🔧 Configurando main.go completo con DI...")
+	fmt.Println("   Setting up complete main.go with DI...")
 	if !updateMainGoWithCompleteSetup(mainPath, featureName, moduleName) {
 		printManualIntegrationInstructions(featureName)
 		return
 	}
-	fmt.Println("   ✅ Routes registered successfully")
+	fmt.Println("   Routes registered successfully")
 }
 
 func init() {
@@ -501,10 +497,10 @@ func init() {
 
 // updateMainGoWithCompleteSetup replaces the basic main.go with a complete DI-integrated version
 func updateMainGoWithCompleteSetup(mainPath, featureName, moduleName string) bool {
-	// Simplificado para evitar errores de formato
-	fmt.Printf("   📍 Actualizando main.go para feature %s\n", featureName)
+	// Simplified to avoid format errors
+	fmt.Printf("   Updating main.go for feature %s\n", featureName)
 
-	// Por ahora solo registramos que se procesó
+	// For now just mark it as processed
 	return true
 }
 
