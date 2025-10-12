@@ -4,12 +4,10 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/sazardev/goca)
 [![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](docs/BUG_FIXES_REPORT.md)
-[![Version](https://img.shields.io/badge/Version-2.0.0-blue.svg)](docs/releases/v2.0.0.md)
+[![GitHub Release](https://img.shields.io/github/v/release/sazardev/goca?style=flat&logo=github)](https://github.com/sazardev/goca/releases)
 [![Docs](https://img.shields.io/badge/Docs-VitePress-blueviolet.svg)](https://sazardev.github.io/goca)
 
 Goca is a powerful CLI code generator for Go that helps you create Clean Architecture projects following best practices. It generates clean, well-structured layered code, allowing you to focus on business logic instead of repetitive configuration tasks.
-
-**Version 2.0.0:** Major release with **complete VitePress documentation system**! Now with beautiful, searchable docs and 100% production ready. See [Release Notes](docs/releases/v2.0.0.md).
 
 ## Documentation
 
@@ -77,26 +75,18 @@ Goca guarantees that every generated file complies with:
 
 ## 📦 Installation
 
-### Using Go Install (Recommended)
-```bash
-go install github.com/sazardev/goca@latest
-```
-
-### Binary Downloads
-Download binaries directly from [GitHub Releases](https://github.com/sazardev/goca/releases):
-
-**Windows:**
-```bash
-# Download goca-windows-amd64.exe from releases
-# Rename to goca.exe and add to PATH
-```
+### Recommended: Binary from GitHub Releases
+Download the latest stable version with proper version info from [GitHub Releases](https://github.com/sazardev/goca/releases):
 
 **Linux:**
 ```bash
-# Download and make executable
+# Download latest release
 wget https://github.com/sazardev/goca/releases/latest/download/goca-linux-amd64
 chmod +x goca-linux-amd64
 sudo mv goca-linux-amd64 /usr/local/bin/goca
+
+# Verify installation
+goca version
 ```
 
 **macOS:**
@@ -110,13 +100,39 @@ sudo mv goca-darwin-amd64 /usr/local/bin/goca
 wget https://github.com/sazardev/goca/releases/latest/download/goca-darwin-arm64
 chmod +x goca-darwin-arm64
 sudo mv goca-darwin-arm64 /usr/local/bin/goca
+
+# Verify installation
+goca version
 ```
 
-### From Source
+**Windows:**
+```powershell
+# Download goca-windows-amd64.exe from GitHub Releases
+# Rename to goca.exe and add to PATH
+
+# Verify installation
+goca version
+```
+
+### Alternative: Using Go Install
 ```bash
+# Install from source (version info will show "dev")
+go install github.com/sazardev/goca@latest
+
+# Note: go install builds from source without version injection
+# For proper version info, use binary releases above
+```
+
+### For Development
+```bash
+# Clone and build with proper version injection
 git clone https://github.com/sazardev/goca.git
 cd goca
-go build -o goca
+make build
+
+# The binary will be created in current directory
+# Move to PATH if needed:
+sudo mv goca /usr/local/bin/goca
 ```
 
 ## 🛠️ Quick Start

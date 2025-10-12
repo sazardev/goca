@@ -9,7 +9,8 @@ import (
 
 var (
 	// Version is injected at compile time through -ldflags
-	Version = "2.0.0"
+	// Default to "dev" for development builds (go install, go build without ldflags)
+	Version = "dev"
 	// BuildTime is injected at compile time through -ldflags
 	BuildTime = "unknown"
 	// GoVersion contains the Go runtime version
