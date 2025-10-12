@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.5] - 2025-10-12
+
 ### 🎉 New Features
 
 #### Project Templates
@@ -25,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed `SoftDelete()` method to use `gorm.DeletedAt{Time: time.Now(), Valid: true}`
   - Fixed `IsDeleted()` method to check `DeletedAt.Valid` instead of nil comparison
   - Added automatic `gorm.io/gorm` import when soft delete is enabled
+- **Fixed Missing Imports in DTO Files**: Automatic import injection for validation
+  - Added `errors` and `strings` imports when validation is enabled
+  - Fixed issue where existing `dto.go` files didn't get required imports
+- **Fixed Linting Errors**: Code quality improvements
+  - Removed redundant newlines in `fmt.Println` calls
+  - Fixed formatting issues in multiple files
 
 ## [1.11.0] - 2025-01-12
 
