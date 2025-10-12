@@ -24,26 +24,26 @@ Creates .goca/templates/ with customizable templates for all layers.`,
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
 		if err := configIntegration.LoadConfigForProject(); err != nil {
-			fmt.Printf("❌ Error: Could not load configuration: %v\n", err)
-			fmt.Println("💡 Make sure you're in a GOCA project directory or run 'goca init' first")
+			fmt.Printf("Error: Could not load configuration: %v\n", err)
+			fmt.Println("Tip: Make sure you're in a GOCA project directory or run 'goca init' first")
 			os.Exit(1)
 		}
 
 		// Initialize template system
 		if err := configIntegration.InitializeTemplateSystem(); err != nil {
-			fmt.Printf("❌ Error initializing templates: %v\n", err)
+			fmt.Printf("Error initializing templates: %v\n", err)
 			os.Exit(1)
 		}
 
 		// Generate enhanced documentation if templates are available
 		if err := configIntegration.GenerateProjectDocumentation(); err != nil {
-			fmt.Printf("⚠️  Warning: Could not generate documentation: %v\n", err)
+			fmt.Printf("Warning: Could not generate documentation: %v\n", err)
 		}
 
 		fmt.Println()
-		fmt.Println("🎉 Template system initialized successfully!")
+		fmt.Println("Template system initialized successfully!")
 		fmt.Println()
-		fmt.Println("📋 Next steps:")
+		fmt.Println("Next steps:")
 		fmt.Printf("   1. Edit templates in: %s\n", configIntegration.GetTemplateConfig().Directory)
 		fmt.Println("   2. Use functions like {{pascal .EntityName}}, {{snake .EntityName}}")
 		fmt.Println("   3. Generate features: goca feature Product --fields \"name:string\"")
@@ -56,12 +56,12 @@ var templateListCmd = &cobra.Command{
 	Short: "List available templates",
 	Long:  `List all available custom templates in the project.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("🔍 Checking for templates...")
+		fmt.Println("Checking for templates...")
 
 		// Get current working directory
 		wd, err := os.Getwd()
 		if err != nil {
-			fmt.Printf("❌ Error getting working directory: %v\n", err)
+			fmt.Printf("Error getting working directory: %v\n", err)
 			return
 		}
 
@@ -70,29 +70,29 @@ var templateListCmd = &cobra.Command{
 		// Try simple config manager first
 		configManager := NewConfigManager()
 		if err := configManager.LoadConfig(wd); err != nil {
-			fmt.Printf("❌ Error loading config: %v\n", err)
+			fmt.Printf("Error loading config: %v\n", err)
 			return
 		}
 
 		config := configManager.GetConfig()
 		if config == nil {
-			fmt.Println("❌ Config is nil")
+			fmt.Println("Config is nil")
 			return
 		}
 
-		fmt.Printf("✅ Config loaded. Templates dir: %s\n", config.Templates.Directory)
+		fmt.Printf("Config loaded. Templates dir: %s\n", config.Templates.Directory)
 
 		// Try template manager
 		templateDir := filepath.Join(wd, config.Templates.Directory)
 		fmt.Printf("📂 Full template path: %s\n", templateDir)
 
 		if _, err := os.Stat(templateDir); os.IsNotExist(err) {
-			fmt.Println("� No templates directory found.")
-			fmt.Println("💡 Run 'goca template init' to create templates")
+			fmt.Println("No templates directory found.")
+			fmt.Println("Tip: Run 'goca template init' to create templates")
 			return
 		}
 
-		fmt.Println("✅ Template directory exists")
+		fmt.Println("Template directory exists")
 	},
 }
 

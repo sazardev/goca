@@ -50,7 +50,7 @@ organized by feature to maintain consistency in the application.`,
 		}
 
 		generateMessages(entity, errors, responses, constants)
-		fmt.Printf("\n✅ Messages for '%s' generated successfully!\n", entity)
+		fmt.Printf("\nMessages for '%s' generated successfully!\n", entity)
 	},
 }
 

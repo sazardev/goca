@@ -101,7 +101,7 @@ var handlerCmd = &cobra.Command{
 		}
 
 		generateHandler(entity, effectiveHandlerType, effectiveMiddleware, effectiveValidation, effectiveSwagger, fileNamingConvention)
-		fmt.Printf("\n✅ Handler '%s' for '%s' generated successfully!\n", effectiveHandlerType, entity)
+		fmt.Printf("\nHandler '%s' for '%s' generated successfully!\n", effectiveHandlerType, entity)
 	},
 }
 

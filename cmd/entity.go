@@ -27,8 +27,8 @@ without external dependencies and with complete business validations.`,
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
 		if err := configIntegration.LoadConfigForProject(); err != nil {
-			fmt.Printf("⚠️  Warning: Could not load configuration: %v\n", err)
-			fmt.Println("📝 Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+			fmt.Printf("Warning: Could not load configuration: %v\n", err)
+			fmt.Println("Using default values. Consider running 'goca init --config' to generate .goca.yaml")
 		}
 
 		// Merge CLI flags with configuration (CLI flags take precedence)
@@ -79,11 +79,11 @@ without external dependencies and with complete business validations.`,
 
 		validator.errorHandler.ValidateRequiredFlag(fields, "fields")
 
-		fmt.Printf("🏗️  Generating entity '%s'\n", entityName)
-		fmt.Printf("📋 Fields: %s\n", fields)
+		fmt.Printf("Generating entity '%s'\n", entityName)
+		fmt.Printf("Fields: %s\n", fields)
 
 		if effectiveValidation {
-			fmt.Print("✅ Including validations")
+			fmt.Print("Including validations")
 			if configIntegration.HasConfigFile() {
 				fmt.Printf(" (from config)")
 			}
@@ -123,20 +123,20 @@ without external dependencies and with complete business validations.`,
 
 		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, fileNamingConvention)
 
-		// Generar datos de semilla automáticamente
+		// Generate seed data automatically
 		if fields != "" {
 			generateSeedData("internal/domain", entityName, parseFields(fields))
-			fmt.Println("🌱 Seed data generated")
+			fmt.Println("Seed data generated")
 		}
 
-		fmt.Printf("\n✅ Entity '%s' generated successfully!\n", entityName)
-		fmt.Printf("📁 Files created:\n")
+		fmt.Printf("\nEntity '%s' generated successfully!\n", entityName)
+		fmt.Printf("Files created:\n")
 		fmt.Printf("   - internal/domain/%s.go\n", strings.ToLower(entityName))
 		if effectiveValidation {
 			fmt.Printf("   - internal/domain/errors.go\n")
 		}
 		fmt.Printf("   - internal/domain/%s_seeds.go\n", strings.ToLower(entityName))
-		fmt.Println("\n🎉 All set! Your entity is ready to use.")
+		fmt.Println("\nAll set! Your entity is ready to use.")
 	},
 }
 
@@ -187,7 +187,7 @@ func parseFieldsWithValidation(fields string, withValidation bool) []Field {
 	validator := NewFieldValidator()
 	fieldsList, err := validator.ParseFieldsWithValidation(fields)
 	if err != nil {
-		fmt.Printf("❌ Error in field validation: %v\n", err)
+		fmt.Printf("Error in field validation: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -445,7 +445,7 @@ func readExistingErrors(filename, entityName string) []string {
 	var existingErrors []string
 
 	if _, err := os.Stat(filename); err == nil {
-		fmt.Printf("⚠️  Archivo errors.go ya existe, agregando nuevos errores para %s\n", entityName)
+		fmt.Printf("Warning: errors.go already exists, adding new errors for %s\n", entityName)
 
 		if existingContent, err := os.ReadFile(filename); err == nil {
 			lines := strings.Split(string(existingContent), "\n")
@@ -631,7 +631,7 @@ func generateSeedData(dir, entityName string, fields []Field) {
 // writeSeedFileHeader writes the package declaration and imports for seed file
 func writeSeedFileHeader(content *strings.Builder, fields []Field) {
 	content.WriteString("package domain\n\n")
-	
+
 	// Check if any field is time.Time
 	hasTimeField := false
 	for _, field := range fields {
@@ -640,7 +640,7 @@ func writeSeedFileHeader(content *strings.Builder, fields []Field) {
 			break
 		}
 	}
-	
+
 	if hasTimeField {
 		content.WriteString("import \"time\"\n\n")
 	}

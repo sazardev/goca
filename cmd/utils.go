@@ -50,7 +50,7 @@ func writeFile(path, content string) error {
 
 	_, err = file.WriteString(content)
 	if err != nil {
-		return fmt.Errorf("error escribiendo archivo %s: %w", path, err)
+		return fmt.Errorf("error writing file %s: %w", path, err)
 	}
 
 	return nil
@@ -86,7 +86,7 @@ func writeGoFile(path, content string) error {
 
 	_, err = file.WriteString(content)
 	if err != nil {
-		return fmt.Errorf("error escribiendo archivo %s: %w", path, err)
+		return fmt.Errorf("error writing file %s: %w", path, err)
 	}
 
 	return nil

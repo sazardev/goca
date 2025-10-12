@@ -44,7 +44,7 @@ func (ci *ConfigIntegration) LoadConfigForProject() error {
 		ci.templateManager = NewTemplateManager(&ci.config.Templates, wd)
 		if err := ci.templateManager.LoadTemplates(); err != nil {
 			// Don't fail if templates can't be loaded, just warn
-			fmt.Printf("⚠️  Warning: Could not load custom templates: %v\n", err)
+			fmt.Printf("Warning: Could not load custom templates: %v\n", err)
 		}
 	}
 
@@ -279,7 +279,7 @@ func (ci *ConfigIntegration) PrintConfigSummary() {
 	if ci.manager != nil {
 		ci.manager.PrintSummary()
 	} else {
-		fmt.Println("📋 Using default configuration (.goca.yaml not found)")
+		fmt.Println("Using default configuration (.goca.yaml not found)")
 	}
 }
 
@@ -472,8 +472,8 @@ func (ci *ConfigIntegration) InitializeTemplateSystem() error {
 		return fmt.Errorf("failed to initialize templates: %w", err)
 	}
 
-	fmt.Printf("✨ Template system initialized in: %s\n", ci.config.Templates.Directory)
-	fmt.Printf("📝 Available templates: %v\n", ci.templateManager.GetAvailableTemplates())
+	fmt.Printf("Template system initialized in: %s\n", ci.config.Templates.Directory)
+	fmt.Printf("Available templates: %v\n", ci.templateManager.GetAvailableTemplates())
 
 	return nil
 }

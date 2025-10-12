@@ -99,26 +99,26 @@ func showCurrentConfig() {
 	// Try to load existing config
 	configPath := ".goca.yaml"
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fmt.Printf("❌ Configuration file not found: %s\n", configPath)
-		fmt.Println("💡 Run 'goca config init' to create a new one")
+		fmt.Printf("Configuration file not found: %s\n", configPath)
+		fmt.Println("Tip: Run 'goca config init' to create a new one")
 		return
 	}
 
 	// Read and display config
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("❌ Error reading configuration: %v\n", err)
+		fmt.Printf("Error reading configuration: %v\n", err)
 		return
 	}
 
 	// Parse YAML to validate structure
 	var config map[string]interface{}
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		fmt.Printf("❌ Invalid YAML file: %v\n", err)
+		fmt.Printf("Invalid YAML file: %v\n", err)
 		return
 	}
 
-	fmt.Printf("✅ File found: %s\n", configPath)
+	fmt.Printf("File found: %s\n", configPath)
 	fmt.Printf("📁 Directory: %s\n", getCurrentDir())
 	fmt.Println("\n--- Content ---")
 	fmt.Println(string(data))
@@ -139,11 +139,11 @@ func initializeConfig(cmd *cobra.Command) {
 
 	// Check if file exists
 	if _, err := os.Stat(configPath); err == nil && !force {
-		fmt.Printf("❌ File %s already exists. Use --force to overwrite.\n", configPath)
+		fmt.Printf("File %s already exists. Use --force to overwrite.\n", configPath)
 		return
 	}
 
-	fmt.Println("🚀 Initializing GOCA configuration...")
+	fmt.Println("Initializing GOCA configuration...")
 
 	// Generate config content based on template
 	var configContent string
@@ -162,45 +162,45 @@ func initializeConfig(cmd *cobra.Command) {
 
 	// Write config file
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
-		fmt.Printf("❌ Error writing configuration: %v\n", err)
+		fmt.Printf("Error writing configuration: %v\n", err)
 		return
 	}
 
-	fmt.Printf("✅ Configuration file created: %s\n", configPath)
+	fmt.Printf("Configuration file created: %s\n", configPath)
 	if template != "" {
-		fmt.Printf("📋 Template applied: %s\n", template)
+		fmt.Printf("Template applied: %s\n", template)
 	}
-	fmt.Println("💡 Run 'goca config show' to view the configuration")
+	fmt.Println("Tip: Run 'goca config show' to view the configuration")
 }
 
 // validateConfiguration validates the current config file
 func validateConfiguration() {
-	fmt.Println("🔍 Validating configuration...")
+	fmt.Println("Validating configuration...")
 
 	configPath := ".goca.yaml"
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fmt.Printf("❌ File not found: %s\n", configPath)
+		fmt.Printf("File not found: %s\n", configPath)
 		return
 	}
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("❌ Error reading file: %v\n", err)
+		fmt.Printf("Error reading file: %v\n", err)
 		return
 	}
 
 	var config map[string]interface{}
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		fmt.Printf("❌ Invalid YAML: %v\n", err)
+		fmt.Printf("Invalid YAML: %v\n", err)
 		return
 	}
 
 	// Validate structure
 	errors := validateConfigStructure(config)
 	if len(errors) == 0 {
-		fmt.Println("✅ Configuration is valid")
+		fmt.Println("Configuration is valid")
 	} else {
-		fmt.Printf("❌ Found %d errors:\n", len(errors))
+		fmt.Printf("Found %d errors:\n", len(errors))
 		for i, err := range errors {
 			fmt.Printf("  %d. %s\n", i+1, err)
 		}
@@ -209,7 +209,7 @@ func validateConfiguration() {
 
 // showTemplateOptions shows available configuration templates
 func showTemplateOptions() {
-	fmt.Println("📋 Available Configuration Templates")
+	fmt.Println("Available Configuration Templates")
 	fmt.Println("===================================")
 
 	templates := map[string]string{
@@ -442,9 +442,9 @@ func generateFullTemplate(database string, handlers []string) string {
 func validateConfigSilent(config map[string]interface{}) {
 	errors := validateConfigStructure(config)
 	if len(errors) == 0 {
-		fmt.Println("✅ Valid structure")
+		fmt.Println("Valid structure")
 	} else {
-		fmt.Printf("⚠️  %d warnings found\n", len(errors))
+		fmt.Printf("Warning: %d warnings found\n", len(errors))
 	}
 }
 
