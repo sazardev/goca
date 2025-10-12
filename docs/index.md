@@ -38,6 +38,11 @@ features:
     details: New features are automatically integrated with dependency injection and routing. No manual wiring needed.
   
   - icon:
+      src: /icons/shield.svg
+    title: Safety Features (v1.11.0)
+    details: Dry-run mode, conflict detection, automatic backups, and smart dependency management. Build with confidence.
+  
+  - icon:
       src: /icons/package.svg
     title: Multi-Protocol Support
     details: Generate handlers for HTTP REST, gRPC, CLI, Workers, and SOAP. All following the same clean architecture pattern.

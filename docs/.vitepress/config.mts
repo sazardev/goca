@@ -90,6 +90,7 @@ export default defineConfig({
             { text: 'Getting Started', link: '/getting-started' },
             { text: 'Guide', link: '/guide/introduction' },
             { text: 'Commands', link: '/commands/init' },
+            { text: 'Features', link: '/features/safety-and-dependencies' },
             { text: 'GitHub', link: 'https://github.com/sazardev/goca' }
         ],
 
@@ -136,6 +137,14 @@ export default defineConfig({
                         { text: 'goca interfaces', link: '/commands/interfaces' },
                         { text: 'goca messages', link: '/commands/messages' },
                         { text: 'goca version', link: '/commands/version' },
+                    ]
+                }
+            ],
+            '/features/': [
+                {
+                    text: 'Features',
+                    items: [
+                        { text: 'Safety & Dependencies', link: '/features/safety-and-dependencies' },
                     ]
                 }
             ]
