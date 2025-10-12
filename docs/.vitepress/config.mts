@@ -108,6 +108,7 @@ export default defineConfig({
                     text: 'Core Concepts',
                     items: [
                         { text: 'Clean Architecture', link: '/guide/clean-architecture' },
+                        { text: 'Configuration', link: '/guide/configuration' },
                         { text: 'Project Structure', link: '/guide/project-structure' },
                         { text: 'Best Practices', link: '/guide/best-practices' },
                     ]
