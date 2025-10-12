@@ -292,9 +292,9 @@ del C:\Windows\System32\goca.exe
 
 Now that you have Goca installed, you're ready to start building!
 
-- 🚀 [Quick Start Guide](/getting-started) - Create your first project
-- 📖 [Learn Clean Architecture](/guide/clean-architecture) - Understand the principles
-- 🎓 [Complete Tutorial](/tutorials/complete-tutorial) - Build a real application
+-  [Quick Start Guide](/getting-started) - Create your first project
+-  [Learn Clean Architecture](/guide/clean-architecture) - Understand the principles
+-  [Complete Tutorial](/tutorials/complete-tutorial) - Build a real application
 
 ## Troubleshooting
 
@@ -311,7 +311,7 @@ sudo chmod +x /usr/local/bin/goca
 Make sure your `$PATH` includes Go's bin directory:
 
 ```bash
-echo $PATH | grep -q "go/bin" && echo "✓ Go bin in PATH" || echo "✗ Add Go bin to PATH"
+echo $PATH | grep -q "go/bin" && echo " Go bin in PATH" || echo "✗ Add Go bin to PATH"
 ```
 
 ### Version Mismatch
@@ -337,6 +337,6 @@ Ensure you've added Go's bin directory to your system PATH:
 
 ## Need Help?
 
-- 📧 [GitHub Issues](https://github.com/sazardev/goca/issues) - Report bugs
-- 💬 [Discussions](https://github.com/sazardev/goca/discussions) - Ask questions
-- 📖 [Documentation](/) - Read the docs
+-  [GitHub Issues](https://github.com/sazardev/goca/issues) - Report bugs
+-  [Discussions](https://github.com/sazardev/goca/discussions) - Ask questions
+-  [Documentation](/) - Read the docs

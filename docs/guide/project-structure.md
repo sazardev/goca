@@ -176,7 +176,7 @@ Handler → Use Case → Repository → Domain
  HTTP    Business    Database   Entities
 ```
 
-**✅ Allowed:**
+** Allowed:**
 ```go
 // Handler imports use case
 import "myproject/internal/usecase"
@@ -185,7 +185,7 @@ import "myproject/internal/usecase"
 import "myproject/internal/repository"
 ```
 
-**❌ Not Allowed:**
+** Not Allowed:**
 ```go
 // Repository imports handler (wrong direction!)
 import "myproject/internal/handler/http"

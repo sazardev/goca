@@ -17,39 +17,48 @@ hero:
       link: https://github.com/sazardev/goca
 
 features:
-  - icon: 🏗️
+  - icon:
+      src: /icons/layers.svg
     title: Clean Architecture by Default
     details: Every line of code follows Uncle Bob's Clean Architecture principles. Proper layer separation, dependency rules, and clear boundaries guaranteed.
   
-  - icon: ⚡
+  - icon:
+      src: /icons/zap.svg
     title: Lightning Fast Setup
     details: Generate complete features with all layers in seconds. From entity to handler, repository to use case - everything configured and ready.
   
-  - icon: 🎯
+  - icon:
+      src: /icons/target.svg
     title: Best Practices Enforced
     details: Prevents common anti-patterns like fat controllers, god objects, and anemic domain models. Your code stays clean and maintainable.
   
-  - icon: 🔄
+  - icon:
+      src: /icons/refresh.svg
     title: Auto Integration
     details: New features are automatically integrated with dependency injection and routing. No manual wiring needed.
   
-  - icon: 📦
+  - icon:
+      src: /icons/package.svg
     title: Multi-Protocol Support
     details: Generate handlers for HTTP REST, gRPC, CLI, Workers, and SOAP. All following the same clean architecture pattern.
   
-  - icon: 🧪
+  - icon:
+      src: /icons/flask.svg
     title: Test-Ready
     details: Code generated with clear interfaces and dependency injection makes testing a breeze. TDD-friendly from the start.
   
-  - icon: 🔧
+  - icon:
+      src: /icons/database.svg
     title: Repository Pattern
     details: Abstracted data access with interchangeable implementations. Switch from PostgreSQL to MongoDB without touching business logic.
   
-  - icon: 📚
+  - icon:
+      src: /icons/book.svg
     title: Rich Documentation
     details: Comprehensive guides, tutorials, and examples. Learn Clean Architecture while building real applications.
   
-  - icon: 🚀
+  - icon:
+      src: /icons/rocket.svg
     title: Production Ready
     details: Used in production systems. Battle-tested patterns and code generation that scales from MVP to enterprise.
 ---
@@ -64,11 +73,11 @@ goca init my-api --module github.com/user/my-api
 goca feature User --fields "name:string,email:string,role:string"
 
 # That's it! You now have:
-# ✅ Domain entity with validations
-# ✅ Use cases with DTOs
-# ✅ Repository with PostgreSQL implementation
-# ✅ HTTP handlers with routing
-# ✅ Dependency injection configured
+# → Domain entity with validations
+# → Use cases with DTOs
+# → Repository with PostgreSQL implementation
+# → HTTP handlers with routing
+# → Dependency injection configured
 ```
 
 ## Why Clean Architecture?
@@ -93,7 +102,7 @@ Clean Architecture ensures your codebase remains:
 ## Ready to Build?
 
 <p style="text-align: center; margin: 2rem 0;">
-  <a href="/goca/getting-started.html" style="display: inline-block; padding: 12px 24px; background: #00ADD8; color: white; border-radius: 8px; text-decoration: none; font-weight: 600;">Get Started in 5 Minutes →</a>
+  <a href="/goca/getting-started.html" style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, #00ADD8, #00D9FF); color: white; border-radius: 0.75rem; text-decoration: none; font-weight: 600; box-shadow: 0 4px 12px rgba(0, 173, 216, 0.3); transition: all 0.3s ease;">Get Started in 5 Minutes →</a>
 </p>
 
 ## Trusted By

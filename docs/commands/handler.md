@@ -158,7 +158,7 @@ goca handler Email --type worker
 
 ## Best Practices
 
-### ✅ DO
+###  DO
 
 - Handle protocol-specific concerns only
 - Transform requests to use case DTOs
@@ -166,7 +166,7 @@ goca handler Email --type worker
 - Add proper error handling
 - Use middleware for cross-cutting concerns
 
-### ❌ DON'T
+###  DON'T
 
 - Include business logic
 - Access repositories directly

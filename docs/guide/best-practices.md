@@ -8,14 +8,14 @@ Guidelines and recommendations for building with Goca.
 
 Each layer should only depend on interfaces, not concrete implementations.
 
-**✅ Good:**
+** Good:**
 ```go
 type UserService struct {
     repo repository.UserRepository // Interface
 }
 ```
 
-**❌ Bad:**
+** Bad:**
 ```go
 type UserService struct {
     repo *repository.PostgresUserRepository // Concrete
@@ -37,12 +37,12 @@ func NewUserService(repo repository.UserRepository) usecase.UserService {
 Each struct should have one clear purpose:
 
 ```go
-// ✅ One responsibility: handle HTTP requests
+//  One responsibility: handle HTTP requests
 type UserHandler struct {
     service usecase.UserService
 }
 
-// ❌ Too many responsibilities
+//  Too many responsibilities
 type UserHandler struct {
     db      *gorm.DB
     cache   *redis.Client
@@ -184,7 +184,7 @@ func (r *PostgresUserRepository) FindByID(ctx context.Context, id uint) (*domain
 Don't expose domain entities directly:
 
 ```go
-// ✅ Use DTOs
+//  Use DTOs
 type CreateUserInput struct {
     Name  string `json:"name" binding:"required"`
     Email string `json:"email" binding:"required,email"`
@@ -226,10 +226,10 @@ type CreateUserInput struct {
 ### Don't Log Sensitive Data
 
 ```go
-// ❌ Bad - logs password
+//  Bad - logs password
 log.Printf("Creating user: %+v", input)
 
-// ✅ Good - excludes sensitive fields
+//  Good - excludes sensitive fields
 log.Printf("Creating user: name=%s, email=%s", input.Name, input.Email)
 ```
 

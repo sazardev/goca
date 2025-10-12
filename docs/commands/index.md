@@ -35,14 +35,14 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 
 | Command           | Purpose                  | Auto-Integration |
 | ----------------- | ------------------------ | ---------------- |
-| `goca init`       | Create new project       | ✅ Complete setup |
-| `goca feature`    | Generate full feature    | ✅ Automatic      |
-| `goca integrate`  | Wire existing features   | ✅ Automatic      |
-| `goca entity`     | Create entities only     | ❌ Manual         |
-| `goca usecase`    | Create use cases only    | ❌ Manual         |
-| `goca repository` | Create repositories only | ❌ Manual         |
-| `goca handler`    | Create handlers only     | ❌ Manual         |
-| `goca di`         | Generate DI container    | ❌ Manual         |
+| `goca init`       | Create new project       |  Complete setup |
+| `goca feature`    | Generate full feature    |  Automatic      |
+| `goca integrate`  | Wire existing features   |  Automatic      |
+| `goca entity`     | Create entities only     |  Manual         |
+| `goca usecase`    | Create use cases only    |  Manual         |
+| `goca repository` | Create repositories only |  Manual         |
+| `goca handler`    | Create handlers only     |  Manual         |
+| `goca di`         | Generate DI container    |  Manual         |
 
 ## Common Workflows
 
@@ -137,9 +137,9 @@ goca handler DataProcessor --type cli
 Choose a command to learn more:
 
 ### Essential Commands
-- 📦 [goca init](/commands/init) - Start here
-- ⚡ [goca feature](/commands/feature) - Fastest way to add features
-- 🔄 [goca integrate](/commands/integrate) - Wire everything together
+-  [goca init](/commands/init) - Start here
+-  [goca feature](/commands/feature) - Fastest way to add features
+-  [goca integrate](/commands/integrate) - Wire everything together
 
 ### Detailed Generation
 - 🟡 [goca entity](/commands/entity) - Domain layer
@@ -148,6 +148,6 @@ Choose a command to learn more:
 - 🟢 [goca handler](/commands/handler) - Adapter layer
 
 ### Utilities
-- 🔧 [goca di](/commands/di) - Dependency injection
+-  [goca di](/commands/di) - Dependency injection
 - 📝 [goca messages](/commands/messages) - Messages and constants
-- ℹ️ [goca version](/commands/version) - Version info
+-  [goca version](/commands/version) - Version info

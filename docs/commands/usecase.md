@@ -136,14 +136,14 @@ func (s *userService) CreateUser(ctx context.Context, input CreateUserInput) (*U
 
 ## Best Practices
 
-### ✅ DO
+###  DO
 
 - Define clear DTOs for each operation
 - Validate input at use case boundary
 - Coordinate multiple repositories
 - Transform entities to DTOs
 
-### ❌ DON'T
+###  DON'T
 
 - Include HTTP/gRPC logic
 - Write SQL queries

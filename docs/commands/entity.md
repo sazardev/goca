@@ -268,7 +268,7 @@ internal/
 
 ## Best Practices
 
-### ✅ DO
+###  DO
 
 - Keep entities pure (no external dependencies)
 - Include business validations
@@ -278,7 +278,7 @@ internal/
 
 **Example:**
 ```go
-// ✅ Good: Pure domain logic
+//  Good: Pure domain logic
 func (u *User) IsAdult() bool {
     return u.Age >= 18
 }
@@ -288,7 +288,7 @@ func (u *User) CanPlaceOrder() bool {
 }
 ```
 
-### ❌ DON'T
+###  DON'T
 
 - Import database packages
 - Import HTTP frameworks
@@ -297,14 +297,14 @@ func (u *User) CanPlaceOrder() bool {
 
 **Example:**
 ```go
-// ❌ Bad: Infrastructure dependency
+//  Bad: Infrastructure dependency
 import "database/sql"
 
 func (u *User) Save(db *sql.DB) error {
     // Wrong layer!
 }
 
-// ❌ Bad: Framework dependency
+//  Bad: Framework dependency
 import "github.com/gin-gonic/gin"
 
 func (u *User) ToJSON(c *gin.Context) {
@@ -355,11 +355,11 @@ goca feature Order --fields "customerID:int,total:float64,status:string"
 ### Naming Conventions
 
 ```bash
-# ✅ Good
+#  Good
 goca entity User --fields "firstName:string,lastName:string"
 goca entity Product --fields "productName:string,unitPrice:float64"
 
-# ❌ Avoid
+#  Avoid
 goca entity user --fields "first_name:string"  # Use PascalCase
 goca entity PRODUCT --fields "PRICE:float64"    # Too loud
 ```

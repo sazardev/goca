@@ -6,14 +6,14 @@ This guide will help you create your first project with Goca in **less than 5 mi
 
 In this guide we'll create:
 
-- ✅ A project with complete Clean Architecture structure
-- ✅ A `User` entity with domain validations
-- ✅ Full CRUD REST API with all layers
-- ✅ Dependency injection configured
-- ✅ Repository pattern with PostgreSQL
+- A project with complete Clean Architecture structure
+- A `User` entity with domain validations
+- Full CRUD REST API with all layers
+- Dependency injection configured
+- Repository pattern with PostgreSQL
 
 ::: tip Estimated Time
-⏱️ **5 minutes** from zero to running API
+**5 minutes** from zero to running API
 :::
 
 ## Prerequisites
@@ -85,9 +85,9 @@ go run cmd/server/main.go
 
 You should see:
 ```
-🚀 Server starting on :8080
-✅ Database connected
-✅ Routes registered
+→ Server starting on :8080
+→ Database connected
+→ Routes registered
 ```
 
 ## Step 5: Test Your API
@@ -215,14 +215,14 @@ The domain never knows about outer layers!
 
 ## Next Steps
 
-Congratulations! 🎉 You've created your first Clean Architecture API with Goca.
+Congratulations! You've created your first Clean Architecture API with Goca.
 
 Here's what you can do next:
 
-- 📖 [Learn Clean Architecture Concepts](/guide/clean-architecture)
-- 🏗️ [Add More Features](/tutorials/adding-features)
-- 🎓 [Complete Tutorial](/tutorials/complete-tutorial)
-- 📚 [Explore All Commands](/commands/)
+- [Learn Clean Architecture Concepts](/guide/clean-architecture)
+- [Add More Features](/tutorials/adding-features)
+- [Complete Tutorial](/tutorials/complete-tutorial)
+- [Explore All Commands](/commands/)
 
 ## Common Issues
 
@@ -253,6 +253,6 @@ go mod tidy
 
 ## Need Help?
 
-- 📧 [GitHub Issues](https://github.com/sazardev/goca/issues)
-- 💬 [Discussions](https://github.com/sazardev/goca/discussions)
-- 📖 [Full Documentation](/guide/introduction)
+- [GitHub Issues](https://github.com/sazardev/goca/issues)
+- [Discussions](https://github.com/sazardev/goca/discussions)
+- [Full Documentation](/guide/introduction)

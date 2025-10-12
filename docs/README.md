@@ -2,7 +2,7 @@
 
 This directory contains the VitePress documentation for Goca.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -146,7 +146,7 @@ func main() {
 ```
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 The documentation is automatically deployed to GitHub Pages when you push to the `master` branch.
 
@@ -164,7 +164,7 @@ npm run build
 ls .vitepress/dist
 ```
 
-## 📚 Resources
+##  Resources
 
 - [VitePress Documentation](https://vitepress.dev/)
 - [Markdown Extensions](https://vitepress.dev/guide/markdown)
@@ -179,7 +179,7 @@ When adding new documentation:
 3. Test locally with `npm run dev`
 4. Submit a pull request
 
-## 📧 Support
+##  Support
 
 - GitHub Issues: https://github.com/sazardev/goca/issues
 - Discussions: https://github.com/sazardev/goca/discussions

@@ -113,8 +113,8 @@ var (
 ```
 
 ::: tip Domain Layer Rules
-✅ **Do**: Pure business logic, no external dependencies  
-❌ **Don't**: Import HTTP, database, or framework packages
+ **Do**: Pure business logic, no external dependencies  
+ **Don't**: Import HTTP, database, or framework packages
 :::
 
 ### 🔴 Layer 2: Use Cases (Application Logic)
@@ -208,8 +208,8 @@ func (uc *userUseCase) CreateUser(ctx context.Context, req CreateUserRequest) (*
 ```
 
 ::: tip Use Case Layer Rules
-✅ **Do**: Application workflows, DTOs, coordinate repositories  
-❌ **Don't**: HTTP/gRPC details, SQL queries, framework-specific code
+ **Do**: Application workflows, DTOs, coordinate repositories  
+ **Don't**: HTTP/gRPC details, SQL queries, framework-specific code
 :::
 
 ### 🔵 Layer 3: Repository (Infrastructure)
@@ -295,8 +295,8 @@ func (r *postgresUserRepository) Update(ctx context.Context, user *domain.User) 
 ```
 
 ::: tip Repository Layer Rules
-✅ **Do**: Implement domain interfaces, handle persistence  
-❌ **Don't**: Business logic, validation rules
+ **Do**: Implement domain interfaces, handle persistence  
+ **Don't**: Business logic, validation rules
 :::
 
 ### 🟢 Layer 4: Handlers (Interface Adapters)
@@ -386,8 +386,8 @@ func respondError(w http.ResponseWriter, status int, message string) {
 ```
 
 ::: tip Handler Layer Rules
-✅ **Do**: Protocol-specific concerns, request/response formatting  
-❌ **Don't**: Business logic, direct database access
+ **Do**: Protocol-specific concerns, request/response formatting  
+ **Don't**: Business logic, direct database access
 :::
 
 ## Complete Data Flow
@@ -461,30 +461,30 @@ Changes are localized to specific layers:
 
 ## Common Mistakes to Avoid
 
-### ❌ Skip Layers
+###  Skip Layers
 
 ```go
 // BAD: Handler directly accessing database
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-    db.Exec("INSERT INTO users...") // ❌ Skipping use case!
+    db.Exec("INSERT INTO users...") //  Skipping use case!
 }
 ```
 
-### ❌ Wrong Dependencies
+###  Wrong Dependencies
 
 ```go
 // BAD: Domain depending on outer layer
 package domain
 
-import "net/http" // ❌ Domain shouldn't know about HTTP!
+import "net/http" //  Domain shouldn't know about HTTP!
 ```
 
-### ❌ Business Logic in Handlers
+###  Business Logic in Handlers
 
 ```go
 // BAD: Validation in handler
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-    if user.Name == "" { // ❌ This belongs in domain/usecase!
+    if user.Name == "" { //  This belongs in domain/usecase!
         return errors.New("name required")
     }
 }
@@ -492,9 +492,9 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 ## Learn More
 
-- 📖 [Project Structure](/guide/project-structure) - Directory organization
-- 🎓 [Complete Tutorial](/tutorials/complete-tutorial) - Build a real app
-- 📚 [Best Practices](/guide/best-practices) - Tips and conventions
+-  [Project Structure](/guide/project-structure) - Directory organization
+-  [Complete Tutorial](/tutorials/complete-tutorial) - Build a real app
+-  [Best Practices](/guide/best-practices) - Tips and conventions
 
 ## Resources
 

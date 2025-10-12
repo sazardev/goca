@@ -6,12 +6,12 @@
 
 Building Go applications with proper architecture is time-consuming:
 
-- ❌ Writing repetitive boilerplate code
-- ❌ Maintaining consistent structure across features
-- ❌ Ensuring proper layer separation
-- ❌ Setting up dependency injection
-- ❌ Configuring routing and handlers
-- ❌ Fighting architectural drift over time
+-  Writing repetitive boilerplate code
+-  Maintaining consistent structure across features
+-  Ensuring proper layer separation
+-  Setting up dependency injection
+-  Configuring routing and handlers
+-  Fighting architectural drift over time
 
 ## The Solution
 
@@ -23,11 +23,11 @@ goca feature Product --fields "name:string,price:float64"
 ```
 
 This creates:
-- ✅ Domain entities with business validations
-- ✅ Use cases with clear DTOs
-- ✅ Repository interfaces and implementations
-- ✅ HTTP handlers with proper routing
-- ✅ Dependency injection automatically configured
+-  Domain entities with business validations
+-  Use cases with clear DTOs
+-  Repository interfaces and implementations
+-  HTTP handlers with proper routing
+-  Dependency injection automatically configured
 
 ## Core Philosophy
 
@@ -61,7 +61,7 @@ Generated code is not a starting point - it's production-ready:
 
 ## Key Features
 
-### 🏗️ Complete Architecture Layers
+###  Complete Architecture Layers
 
 ```
 ┌─────────────────────────────────────┐
@@ -85,7 +85,7 @@ Generated code is not a starting point - it's production-ready:
 └─────────────────────────────────────┘
 ```
 
-### ⚡ Instant Feature Generation
+###  Instant Feature Generation
 
 Generate complete features in seconds:
 
@@ -101,7 +101,7 @@ Creates 10+ files with:
 - HTTP REST endpoints
 - Automatic integration
 
-### 🎯 Multi-Protocol Support
+###  Multi-Protocol Support
 
 Generate adapters for different protocols:
 
@@ -124,7 +124,7 @@ goca handler Product --type soap
 
 All following the same clean architecture pattern!
 
-### 🔄 Automatic Integration
+###  Automatic Integration
 
 New features are automatically integrated:
 
@@ -133,7 +133,7 @@ New features are automatically integrated:
 - Database connections configured
 - No manual wiring needed
 
-### 🧪 Test-Friendly
+###  Test-Friendly
 
 Generated code is designed for testing:
 
@@ -170,18 +170,18 @@ Clean Architecture provides:
 
 ### Perfect For:
 
-- ✅ New Go projects requiring solid architecture
-- ✅ Microservices with consistent structure
-- ✅ REST APIs with multiple resources
-- ✅ Projects that will grow over time
-- ✅ Teams learning Clean Architecture
-- ✅ MVPs that need to scale to production
+-  New Go projects requiring solid architecture
+-  Microservices with consistent structure
+-  REST APIs with multiple resources
+-  Projects that will grow over time
+-  Teams learning Clean Architecture
+-  MVPs that need to scale to production
 
 ### Maybe Not For:
 
-- ❌ Simple scripts or one-off tools
-- ❌ Extremely unique architectures
-- ❌ Projects with existing different patterns
+-  Simple scripts or one-off tools
+-  Extremely unique architectures
+-  Projects with existing different patterns
 
 ## Comparison
 
@@ -218,17 +218,17 @@ Goca is used in production for:
 - 🏢 Enterprise microservices
 - 🛒 E-commerce platforms
 - 📱 Mobile backend APIs
-- 🔧 Internal tools and services
+-  Internal tools and services
 - 📊 Data processing pipelines
 
 ## Next Steps
 
 Ready to start building clean Go applications?
 
-- 📦 [Install Goca](/guide/installation)
-- 🚀 [Quick Start Guide](/getting-started)
-- 📖 [Learn Clean Architecture](/guide/clean-architecture)
-- 🎓 [Complete Tutorial](/tutorials/complete-tutorial)
+-  [Install Goca](/guide/installation)
+-  [Quick Start Guide](/getting-started)
+-  [Learn Clean Architecture](/guide/clean-architecture)
+-  [Complete Tutorial](/tutorials/complete-tutorial)
 
 ## Philosophy
 

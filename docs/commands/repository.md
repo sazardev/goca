@@ -213,7 +213,7 @@ func (r *postgresUserRepository) Delete(ctx context.Context, id uint) error {
 
 ## Best Practices
 
-### ✅ DO
+###  DO
 
 - Keep repositories simple (CRUD + specific queries)
 - Return domain entities
@@ -221,7 +221,7 @@ func (r *postgresUserRepository) Delete(ctx context.Context, id uint) error {
 - Use prepared statements
 - Implement transactions when needed
 
-### ❌ DON'T
+###  DON'T
 
 - Include business logic
 - Return database-specific types

@@ -333,10 +333,10 @@ git commit -m "Initial commit with Clean Architecture structure"
 
 **Solution:** Ensure module name follows Go conventions:
 ```bash
-# ✅ Correct
+#  Correct
 --module github.com/user/project
 
-# ❌ Incorrect
+#  Incorrect
 --module my-project
 --module Project Name
 ```

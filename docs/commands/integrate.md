@@ -52,18 +52,18 @@ goca integrate --all
 
 **Output:**
 ```
-🔍 Scanning for features...
-✓ Found: User
-✓ Found: Product
-✓ Found: Order
+ Scanning for features...
+ Found: User
+ Found: Product
+ Found: Order
 
-🔧 Updating dependency injection...
-✓ Updated internal/di/container.go
+ Updating dependency injection...
+ Updated internal/di/container.go
 
-🔧 Registering routes...
-✓ Updated internal/handler/http/routes.go
+ Registering routes...
+ Updated internal/handler/http/routes.go
 
-✅ Integration complete! 3 features integrated.
+ Integration complete! 3 features integrated.
 ```
 
 ### Integrate Specific Feature

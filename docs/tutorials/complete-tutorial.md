@@ -226,10 +226,10 @@ go run cmd/server/main.go
 
 Output:
 ```
-🚀 Server starting on :8080
-✓ Database connected
-✓ Routes registered
-✓ Server running
+ Server starting on :8080
+ Database connected
+ Routes registered
+ Server running
 ```
 
 ## Step 12: Test the API
@@ -326,13 +326,13 @@ go test ./...
 - [Best Practices](/guide/best-practices) - Code quality guidelines
 - [Deployment Guide](https://github.com/sazardev/goca/wiki) - Production deployment
 
-## Congratulations! 🎉
+## Congratulations! 
 
 You've built a complete REST API with:
-- ✅ Clean Architecture
-- ✅ CRUD operations
-- ✅ Relationships
-- ✅ Business logic
-- ✅ Database integration
+-  Clean Architecture
+-  CRUD operations
+-  Relationships
+-  Business logic
+-  Database integration
 
-Keep exploring and building! 🚀
+Keep exploring and building! 

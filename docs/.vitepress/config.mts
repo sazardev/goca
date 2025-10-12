@@ -87,5 +87,13 @@ export default defineConfig({
             pattern: 'https://github.com/sazardev/goca/edit/master/docs/:path',
             text: 'Edit this page on GitHub'
         }
+    },
+    vite: {
+        server: {
+            port: 3567,
+            strictPort: true,
+            open: true,
+
+        }
     }
 })

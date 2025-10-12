@@ -1,28 +1,30 @@
 /**
- * Customize default theme styling by overriding CSS variables:
- * https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/vars.css
+ * Goca Documentation - Professional & Elegant Theme
+ * Based on VitePress with custom refinements for a polished look
  */
 
 /**
- * Colors - Go inspired theme
+ * Colors - Go inspired professional palette
  * -------------------------------------------------------------------------- */
 
 :root {
     --vp-c-brand-1: #00ADD8;
     --vp-c-brand-2: #00758F;
     --vp-c-brand-3: #00A29C;
-    --vp-c-brand-soft: rgba(0, 173, 216, 0.14);
+    --vp-c-brand-soft: rgba(0, 173, 216, 0.1);
+    --vp-c-bg-soft-rgb: 244, 244, 245;
 }
 
 .dark {
     --vp-c-brand-1: #00D9FF;
     --vp-c-brand-2: #00ADD8;
     --vp-c-brand-3: #00758F;
-    --vp-c-brand-soft: rgba(0, 173, 216, 0.16);
+    --vp-c-brand-soft: rgba(0, 173, 216, 0.12);
+    --vp-c-bg-soft-rgb: 31, 31, 33;
 }
 
 /**
- * Component: Button
+ * Component: Button - Elegant rounded design
  * -------------------------------------------------------------------------- */
 
 :root {
@@ -37,19 +39,35 @@
     --vp-button-brand-active-bg: var(--vp-c-brand-1);
 }
 
+/* Rounded buttons for elegance */
+.VPButton {
+    border-radius: 0.75rem !important;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.VPButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 173, 216, 0.2);
+}
+
+.VPButton.medium {
+    padding: 0.625rem 1.5rem;
+}
+
+.VPButton.big {
+    padding: 0.875rem 2rem;
+}
+
 /**
- * Component: Home
+ * Component: Home - Refined hero section
  * -------------------------------------------------------------------------- */
 
 :root {
     --vp-home-hero-name-color: transparent;
-    --vp-home-hero-name-background: -webkit-linear-gradient(120deg,
-            #00ADD8 30%,
-            #00D9FF);
-
-    --vp-home-hero-image-background-image: linear-gradient(-45deg,
-            #00ADD8 50%,
-            #00D9FF 50%);
+    --vp-home-hero-name-background: linear-gradient(120deg, #00ADD8 30%, #00D9FF);
+    --vp-home-hero-image-background-image: linear-gradient(-45deg, #00ADD8 50%, #00D9FF 50%);
     --vp-home-hero-image-filter: blur(44px);
 }
 
@@ -65,21 +83,109 @@
     }
 }
 
+.VPHero .actions {
+    gap: 1rem;
+}
+
+.VPHero .action {
+    border-radius: 0.75rem !important;
+}
+
 /**
- * Component: Custom Block
+ * Component: Custom Block - Refined containers
  * -------------------------------------------------------------------------- */
 
 :root {
-    --vp-custom-block-tip-border: transparent;
+    --vp-custom-block-tip-border: var(--vp-c-brand-2);
     --vp-custom-block-tip-text: var(--vp-c-text-1);
     --vp-custom-block-tip-bg: var(--vp-c-brand-soft);
     --vp-custom-block-tip-code-bg: var(--vp-c-brand-soft);
 }
 
+.custom-block {
+    border-radius: 0.75rem;
+    border-width: 1px;
+}
+
 /**
- * Component: Algolia
+ * Component: Features - Grid layout
+ * -------------------------------------------------------------------------- */
+
+.VPFeatures {
+    margin-top: 2rem;
+}
+
+.VPFeature {
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    border: 1px solid var(--vp-c-divider);
+}
+
+.VPFeature:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    border-color: var(--vp-c-brand-1);
+}
+
+.dark .VPFeature:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/**
+ * Component: Code blocks - Refined styling
+ * -------------------------------------------------------------------------- */
+
+div[class*='language-'] {
+    border-radius: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+div[class*='language-']:before {
+    border-radius: 0 0 0.5rem 0;
+}
+
+/**
+ * Component: Tables - Clean borders
+ * -------------------------------------------------------------------------- */
+
+.vp-doc table {
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+/**
+ * Component: Algolia Search
  * -------------------------------------------------------------------------- */
 
 .DocSearch {
     --docsearch-primary-color: var(--vp-c-brand-1) !important;
+}
+
+.DocSearch-Button {
+    border-radius: 0.75rem !important;
+}
+
+/**
+ * Custom refinements for professional look
+ * -------------------------------------------------------------------------- */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Link hover effects */
+.vp-doc a {
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.vp-doc a:hover {
+    color: var(--vp-c-brand-1);
+}
+
+/* Badge styles in text */
+.vp-doc code {
+    border-radius: 0.375rem;
+    padding: 0.2rem 0.4rem;
 }

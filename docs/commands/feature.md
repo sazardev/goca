@@ -257,11 +257,11 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 After generating a feature, Goca automatically:
 
-✅ Updates dependency injection container  
-✅ Registers HTTP routes  
-✅ Adds database migrations  
-✅ Configures repository connections  
-✅ Wires all dependencies
+ Updates dependency injection container  
+ Registers HTTP routes  
+ Adds database migrations  
+ Configures repository connections  
+ Wires all dependencies
 
 **You can immediately test your new feature!**
 
@@ -334,10 +334,10 @@ goca feature Product --fields "name:string,price:float64"
 ### Field Naming Conventions
 
 ```bash
-# ✅ Good
+#  Good
 --fields "firstName:string,lastName:string,emailAddress:string"
 
-# ❌ Avoid
+#  Avoid
 --fields "first_name:string,Last-Name:string,EMAIL:string"
 ```
 
@@ -390,6 +390,6 @@ goca integrate --feature User
 
 ## Next Steps
 
-- 📖 Learn about [individual layer commands](/commands/)
-- 🎓 Follow the [Complete Tutorial](/tutorials/complete-tutorial)
-- 🏗️ Understand [Clean Architecture](/guide/clean-architecture)
+-  Learn about [individual layer commands](/commands/)
+-  Follow the [Complete Tutorial](/tutorials/complete-tutorial)
+-  Understand [Clean Architecture](/guide/clean-architecture)

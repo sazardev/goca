@@ -8,6 +8,8 @@
         "preview": "vitepress preview"
     },
     "devDependencies": {
+        "@iconify-json/lucide": "^1.2.69",
+        "@iconify/vue": "^5.0.0",
         "vitepress": "^1.0.0-rc.31"
     },
     "repository": {
