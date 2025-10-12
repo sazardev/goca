@@ -6,20 +6,20 @@ export default defineConfig({
     description: "CLI code generator for Go that helps you build production-ready applications following Clean Architecture principles. Generate entities, use cases, repositories, and handlers in seconds.",
     base: '/goca/',
     lang: 'en-US',
-    
+
     head: [
         // Favicons - using existing files
         ['link', { rel: 'icon', type: 'image/x-icon', href: '/goca/favicon.ico' }],
         ['link', { rel: 'icon', type: 'image/svg+xml', href: '/goca/logo.svg' }],
         ['link', { rel: 'apple-touch-icon', href: '/goca/logo.svg' }],
         ['link', { rel: 'manifest', href: '/goca/site.webmanifest' }],
-        
+
         // Theme and Mobile
         ['meta', { name: 'theme-color', content: '#00ADD8' }],
         ['meta', { name: 'viewport', content: 'width=device-width, initial-scale=1.0, viewport-fit=cover' }],
         ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
         ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }],
-        
+
         // SEO Meta Tags
         ['meta', { name: 'author', content: 'sazardev' }],
         ['meta', { name: 'keywords', content: 'go, golang, clean architecture, code generator, cli tool, rest api, ddd, domain driven design, repository pattern, dependency injection, goca, hexagonal architecture, uncle bob, backend development, go framework' }],
@@ -27,7 +27,7 @@ export default defineConfig({
         ['meta', { name: 'googlebot', content: 'index, follow' }],
         ['meta', { name: 'language', content: 'English' }],
         ['meta', { name: 'revisit-after', content: '7 days' }],
-        
+
         // Open Graph / Facebook
         ['meta', { property: 'og:type', content: 'website' }],
         ['meta', { property: 'og:url', content: 'https://sazardev.github.io/goca/' }],
@@ -39,7 +39,7 @@ export default defineConfig({
         ['meta', { property: 'og:image:height', content: '630' }],
         ['meta', { property: 'og:image:alt', content: 'Goca - Go Clean Architecture Code Generator' }],
         ['meta', { property: 'og:locale', content: 'en_US' }],
-        
+
         // Twitter Card
         ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
         ['meta', { name: 'twitter:site', content: '@sazardev' }],
@@ -49,13 +49,13 @@ export default defineConfig({
         ['meta', { name: 'twitter:description', content: 'Build production-ready Go applications following Clean Architecture. Generate complete features with entities, use cases, repositories, and handlers in seconds.' }],
         ['meta', { name: 'twitter:image', content: 'https://sazardev.github.io/goca/og-image.png' }],
         ['meta', { name: 'twitter:image:alt', content: 'Goca - Go Clean Architecture Code Generator' }],
-        
+
         // Additional SEO
         ['link', { rel: 'canonical', href: 'https://sazardev.github.io/goca/' }],
         ['meta', { name: 'application-name', content: 'Goca' }],
         ['meta', { name: 'apple-mobile-web-app-title', content: 'Goca' }],
         ['meta', { name: 'format-detection', content: 'telephone=no' }],
-        
+
         // Schema.org structured data
         ['script', { type: 'application/ld+json' }, JSON.stringify({
             '@context': 'https://schema.org',
