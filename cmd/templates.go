@@ -10,7 +10,7 @@ type {{.Entity.Name}} struct {
 {{range .Fields}}	{{.Name}} {{.Type}} ` + "`" + `{{.JSONTag}} {{.GormTag}}` + "`" + `
 {{end}}{{if .Features.Timestamps}}	CreatedAt time.Time ` + "`" + `json:"created_at" gorm:"autoCreateTime"` + "`" + `
 	UpdatedAt time.Time ` + "`" + `json:"updated_at" gorm:"autoUpdateTime"` + "`" + `
-{{end}}{{if .Features.SoftDelete}}	DeletedAt *time.Time ` + "`" + `json:"deleted_at,omitempty" gorm:"index"` + "`" + `
+{{end}}{{if .Features.SoftDelete}}	DeletedAt gorm.DeletedAt ` + "`" + `json:"deleted_at,omitempty" gorm:"index"` + "`" + `
 {{end}}}
 
 {{if .Features.Validation}}

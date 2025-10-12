@@ -378,12 +378,11 @@ func writeSoftDeleteMethods(content *strings.Builder, entityName string) {
 	entityVar := strings.ToLower(string(entityName[0]))
 
 	fmt.Fprintf(content, "func (%s *%s) SoftDelete() {\n", entityVar, entityName)
-	content.WriteString("\tnow := time.Now()\n")
-	fmt.Fprintf(content, "\t%s.DeletedAt = &now\n", entityVar)
+	fmt.Fprintf(content, "\t%s.DeletedAt = gorm.DeletedAt{Time: time.Now(), Valid: true}\n", entityVar)
 	content.WriteString("}\n\n")
 
 	fmt.Fprintf(content, "func (%s *%s) IsDeleted() bool {\n", entityVar, entityName)
-	fmt.Fprintf(content, "\treturn %s.DeletedAt != nil\n", entityVar)
+	fmt.Fprintf(content, "\treturn %s.DeletedAt.Valid\n", entityVar)
 	content.WriteString("}\n\n")
 }
 

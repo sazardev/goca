@@ -40,7 +40,7 @@ var EntityTemplateComponents = map[string]TemplateComponent{
 	},
 	"softDelete": {
 		Name: "softDelete",
-		Template: `{{if .Features.SoftDelete}}	DeletedAt *time.Time ` + "`" + `json:"deleted_at,omitempty" gorm:"index"` + "`" + `
+		Template: `{{if .Features.SoftDelete}}	DeletedAt gorm.DeletedAt ` + "`" + `json:"deleted_at,omitempty" gorm:"index"` + "`" + `
 {{end}}`,
 		Required: false,
 	},

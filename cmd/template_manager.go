@@ -178,7 +178,7 @@ type {{.EntityName}} struct {
 	UpdatedAt time.Time ` + "`json:\"updated_at\" gorm:\"autoUpdateTime\"`" + `
 {{- end }}
 {{- if .Features.SoftDelete }}
-	DeletedAt *time.Time ` + "`json:\"deleted_at,omitempty\" gorm:\"index\"`" + `
+	DeletedAt gorm.DeletedAt ` + "`json:\"deleted_at,omitempty\" gorm:\"index\"`" + `
 {{- end }}
 }
 

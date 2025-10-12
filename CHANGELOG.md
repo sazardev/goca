@@ -5,6 +5,27 @@ All notable changes to Goca CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### 🎉 New Features
+
+#### Project Templates
+- **Predefined Templates** (`--template`): Quick start with optimized configurations
+  - **minimal**: Lightweight starter with essential features only
+  - **rest-api**: Production-ready REST API with validation and testing
+  - **microservice**: Microservice architecture with events and audit
+  - **monolith**: Full-featured monolithic application
+  - **enterprise**: Enterprise-grade with security and monitoring
+  - Auto-generates optimized `.goca.yaml` configurations
+  - `--list-templates` flag to display available templates
+
+### 🐛 Bug Fixes
+- **Fixed `gorm.DeletedAt` Type Issues**: Updated soft delete implementation
+  - Changed from `*time.Time` to `gorm.DeletedAt` for proper GORM compatibility
+  - Fixed `SoftDelete()` method to use `gorm.DeletedAt{Time: time.Now(), Valid: true}`
+  - Fixed `IsDeleted()` method to check `DeletedAt.Valid` instead of nil comparison
+  - Added automatic `gorm.io/gorm` import when soft delete is enabled
+
 ## [1.11.0] - 2025-01-12
 
 ### 🎉 Major Features Added
