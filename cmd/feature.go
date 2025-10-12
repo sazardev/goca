@@ -65,11 +65,11 @@ including domain, use cases, repository and handlers in a single operation.`,
 		} // Initialize dependency manager
 		depMgr := NewDependencyManager(projectRoot, dryRun)
 
-		// Usar validador centralizado
+		// Use centralized validator
 		validator := NewCommandValidator()
 
 		if err := validator.ValidateFeatureCommand(featureName, fields, effectiveDatabase, effectiveHandlers); err != nil {
-			validator.errorHandler.HandleError(err, "validación de parámetros")
+			validator.errorHandler.HandleError(err, "parameter validation")
 		}
 
 		if dryRun {
@@ -320,7 +320,7 @@ func addFeatureToDI(featureName string) {
 
 	content, err := os.ReadFile(diPath)
 	if err != nil {
-		fmt.Printf("   ⚠️  Could not read DI container: %v\n", err)
+		fmt.Printf("   Warning: Could not read DI container: %v\n", err)
 		return
 	}
 
@@ -329,22 +329,22 @@ func addFeatureToDI(featureName string) {
 
 	// Check if feature already exists
 	if strings.Contains(contentStr, fmt.Sprintf("%sRepo", featureLower)) {
-		fmt.Printf("   ✅ %s ya está en el contenedor DI\n", featureName)
+		fmt.Printf("   %s is already in the DI container\n", featureName)
 		return
 	}
 
-	fmt.Printf("   ➕ Agregando %s al contenedor DI...\n", featureName)
+	fmt.Printf("   Adding %s to DI container...\n", featureName)
 
 	updatedContent := addFieldsToDIContainer(contentStr, featureName, featureLower)
 	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower)
 	updatedContent = addGetterMethodsToDI(updatedContent, featureName, featureLower)
 
 	if err := os.WriteFile(diPath, []byte(updatedContent), 0644); err != nil {
-		fmt.Printf("   ⚠️  Could not update DI container: %v\n", err)
+		fmt.Printf("   Warning: Could not update DI container: %v\n", err)
 		return
 	}
 
-	fmt.Printf("   ✅ %s integrado en el contenedor DI\n", featureName)
+	fmt.Printf("   %s integrated into DI container\n", featureName)
 }
 
 // addFieldsToDIContainer adds the repository, use case, and handler fields to the DI container
@@ -432,7 +432,7 @@ func updateMainRoutes(featureName string) {
 
 	moduleName := getModuleName()
 	if moduleName == "" {
-		fmt.Println("   ⚠️  Could not determine module name from go.mod")
+		fmt.Println("   Warning: Could not determine module name from go.mod")
 		printManualIntegrationInstructions(featureName)
 		return
 	}
@@ -459,7 +459,7 @@ func findMainGoPath() (string, bool) {
 // handleMainGoNotFound handles the case when main.go is not found
 func handleMainGoNotFound(featureName string) {
 	fmt.Println("   Warning: main.go not found in any expected location, skipping route registration")
-	fmt.Println("   💡 You can manually add the routes to your main.go file")
+	fmt.Println("   Tip: You can manually add the routes to your main.go file")
 	printManualIntegrationInstructions(featureName)
 }
 
@@ -509,12 +509,12 @@ func printManualIntegrationInstructions(featureName string) {
 	featureLower := strings.ToLower(featureName)
 	moduleName := getModuleName()
 
-	fmt.Println("\n   📋 Instrucciones de integración manual:")
-	fmt.Println("   1. Agregar import en main.go:")
+	fmt.Println("\n   Manual integration instructions:")
+	fmt.Println("   1. Add import in main.go:")
 	fmt.Printf("      \"%s/internal/di\"\n", moduleName)
-	fmt.Println("\n   2. Agregar en main(), después de conectar la DB:")
+	fmt.Println("\n   2. Add in main(), after connecting the DB:")
 	fmt.Println("      container := di.NewContainer(db)")
-	fmt.Println("\n   3. Agregar las rutas del feature:")
+	fmt.Println("\n   3. Add the feature routes:")
 	fmt.Printf("      %sHandler := container.%sHandler()\n", featureLower, featureName)
 	fmt.Printf("      router.HandleFunc(\"/api/v1/%ss\", %sHandler.Create%s).Methods(\"POST\")\n", featureLower, featureLower, featureName)
 	fmt.Printf("      router.HandleFunc(\"/api/v1/%ss/{id}\", %sHandler.Get%s).Methods(\"GET\")\n", featureLower, featureLower, featureName)
