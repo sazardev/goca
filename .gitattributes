@@ -1,0 +1,65 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.go text eol=lf
+*.mod text eol=lf
+*.sum text eol=lf
+
+# Documentation
+*.md text eol=lf
+*.txt text eol=lf
+
+# Configuration
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+
+# Scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Makefiles
+Makefile text eol=lf
+*.mk text eol=lf
+
+# Git files
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitkeep text eol=lf
+
+# GitHub files
+.github/** text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.flv binary
+*.fla binary
+*.swf binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+*.exe binary
+
+# Go vendored dependencies
+vendor/** linguist-vendored
+vendor/** -diff
+
+# Generated files
+*.pb.go linguist-generated
+*_generated.go linguist-generated

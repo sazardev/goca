@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or Discussion
+    url: https://github.com/sazardev/goca/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Documentation
+    url: https://sazardev.github.io/goca
+    about: Check our comprehensive documentation
+  - name: Security Vulnerability
+    url: https://github.com/sazardev/goca/security
+    about: Report security vulnerabilities privately

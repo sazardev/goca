@@ -1,0 +1,48 @@
+# Authors and Contributors
+
+This file lists the authors and contributors to the Goca project.
+
+## Project Creator and Lead Maintainer
+
+- **sazardev** <sazardev@gmail.com>
+  - Project founder and lead developer
+  - Maintainer of core architecture and features
+
+## Core Contributors
+
+Contributors with significant ongoing involvement in the project.
+
+(This section will be updated as contributors make significant contributions)
+
+## Contributors
+
+We appreciate all contributions, large and small. The following people have contributed
+to Goca through code, documentation, bug reports, or other means:
+
+(Contributors will be added as pull requests are merged)
+
+## Acknowledgments
+
+Special thanks to:
+
+- The Go community for excellent tools and libraries
+- All users who provide feedback and report issues
+- Everyone who contributes to making Goca better
+
+## How to Be Listed
+
+Contributors are automatically recognized in several ways:
+
+1. **GitHub Contributions**: All merged pull requests are tracked by GitHub
+2. **Release Notes**: Contributors are mentioned in release notes
+3. **This File**: Significant contributors are added to this AUTHORS file
+
+To be listed as a Core Contributor:
+- Make multiple significant contributions to the codebase
+- Actively participate in issue discussions and code reviews
+- Demonstrate commitment to the project's goals and values
+
+## Attribution
+
+This project follows the [All Contributors](https://allcontributors.org/) specification.
+Contributions of any kind are welcome and will be recognized.
