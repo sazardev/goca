@@ -15,7 +15,7 @@ const (
 
 // Flag usage messages - Flag usage messages
 const (
-	DatabaseFlagUsage       = "Database type (postgres, postgres-json, mysql, mongodb, sqlserver, elasticsearch, dynamodb)"
+	DatabaseFlagUsage       = "Database type (postgres, postgres-json, mysql, mongodb, sqlite, sqlserver, elasticsearch, dynamodb)"
 	FieldsFlagUsage         = "Comma-separated list of fields (ex: name:string,age:int)"
 	InterfaceOnlyFlagUsage  = "Generate interfaces only"
 	ImplementationFlagUsage = "Generate implementation only"

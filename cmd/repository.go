@@ -194,6 +194,8 @@ func generateRepositoryImplementation(dir, entity, database string, cache, trans
 		generateMySQLRepository(dir, entity, cache, transactions)
 	case DBMongoDB:
 		generateMongoRepository(dir, entity, cache, transactions)
+	case DBSQLite:
+		generateSQLiteRepository(dir, entity, cache, transactions)
 	case DBSQLServer:
 		generateSQLServerRepository(dir, entity, cache, transactions)
 	case DBElasticsearch:
@@ -1214,6 +1216,92 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 
 	if err := writeGoFile(filename, content.String()); err != nil {
 		fmt.Printf("Error creating DynamoDB repository file: %v\n", err)
+	}
+}
+
+// generateSQLiteRepository genera un repository para SQLite con database/sql
+func generateSQLiteRepository(dir, entity string, cache, transactions bool) {
+	entityLower := strings.ToLower(entity)
+	filename := filepath.Join(dir, "sqlite_"+entityLower+"_repository.go")
+	moduleName := getModuleName()
+
+	var content strings.Builder
+	content.WriteString("package repository\n\n")
+	content.WriteString("import (\n")
+	content.WriteString("\t\"database/sql\"\n")
+	content.WriteString("\t\"encoding/json\"\n")
+	content.WriteString("\t\"fmt\"\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
+	content.WriteString(")\n\n")
+
+	repoName := fmt.Sprintf("sqlite%sRepository", entity)
+	content.WriteString(fmt.Sprintf("type %s struct {\n\tdb *sql.DB\n}\n\n", repoName))
+	content.WriteString(fmt.Sprintf("func NewSQLite%sRepository(db *sql.DB) %sRepository {\n", entity, entity))
+	content.WriteString(fmt.Sprintf("\treturn &%s{db: db}\n", repoName))
+	content.WriteString("}\n\n")
+
+	// Save method
+	content.WriteString(fmt.Sprintf("func (s *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity))
+	content.WriteString(fmt.Sprintf("\tvar data []byte\n"))
+	content.WriteString(fmt.Sprintf("\tdata, err := json.Marshal(%s)\n", entityLower))
+	content.WriteString(fmt.Sprintf("\tif err != nil {\n\t\treturn fmt.Errorf(\"failed to marshal: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\tquery := \"INSERT INTO %ss (data) VALUES (?)\"\n", entityLower))
+	content.WriteString(fmt.Sprintf("\tif _, err := s.db.Exec(query, data); err != nil {\n"))
+	content.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"failed to insert: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\treturn nil\n"))
+	content.WriteString("}\n\n")
+
+	// FindByID method
+	content.WriteString(fmt.Sprintf("func (s *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity))
+	content.WriteString(fmt.Sprintf("\tvar data []byte\n"))
+	content.WriteString(fmt.Sprintf("\tquery := \"SELECT data FROM %ss WHERE id = ? LIMIT 1\"\n", entityLower))
+	content.WriteString(fmt.Sprintf("\tif err := s.db.QueryRow(query, id).Scan(&data); err != nil {\n"))
+	content.WriteString(fmt.Sprintf("\t\tif err == sql.ErrNoRows {\n\t\t\treturn nil, fmt.Errorf(\"%s not found\")\n\t\t}\n", entity))
+	content.WriteString(fmt.Sprintf("\t\treturn nil, fmt.Errorf(\"failed to query: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\tvar %s domain.%s\n", entityLower, entity))
+	content.WriteString(fmt.Sprintf("\tif err := json.Unmarshal(data, &%s); err != nil {\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\treturn nil, fmt.Errorf(\"failed to unmarshal: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\treturn &%s, nil\n", entityLower))
+	content.WriteString("}\n\n")
+
+	// Update method
+	content.WriteString(fmt.Sprintf("func (s *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity))
+	content.WriteString(fmt.Sprintf("\tdata, err := json.Marshal(%s)\n", entityLower))
+	content.WriteString(fmt.Sprintf("\tif err != nil {\n\t\treturn fmt.Errorf(\"failed to marshal: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\tquery := \"UPDATE %ss SET data = ? WHERE id = ?\"\n", entityLower))
+	content.WriteString(fmt.Sprintf("\tif _, err := s.db.Exec(query, data, %s.ID); err != nil {\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"failed to update: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\treturn nil\n"))
+	content.WriteString("}\n\n")
+
+	// Delete method
+	content.WriteString(fmt.Sprintf("func (s *%s) Delete(id int) error {\n", repoName))
+	content.WriteString(fmt.Sprintf("\tquery := \"DELETE FROM %ss WHERE id = ?\"\n", entityLower))
+	content.WriteString(fmt.Sprintf("\tif _, err := s.db.Exec(query, id); err != nil {\n"))
+	content.WriteString(fmt.Sprintf("\t\treturn fmt.Errorf(\"failed to delete: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\treturn nil\n"))
+	content.WriteString("}\n\n")
+
+	// FindAll method
+	content.WriteString(fmt.Sprintf("func (s *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity))
+	content.WriteString(fmt.Sprintf("\tquery := \"SELECT data FROM %ss\"\n", entityLower))
+	content.WriteString(fmt.Sprintf("\trows, err := s.db.Query(query)\n"))
+	content.WriteString(fmt.Sprintf("\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"failed to query: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\tdefer rows.Close()\n"))
+	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
+	content.WriteString(fmt.Sprintf("\tfor rows.Next() {\n"))
+	content.WriteString(fmt.Sprintf("\t\tvar data []byte\n"))
+	content.WriteString(fmt.Sprintf("\t\tif err := rows.Scan(&data); err != nil {\n\t\t\treturn nil, fmt.Errorf(\"failed to scan: %%w\", err)\n\t\t}\n"))
+	content.WriteString(fmt.Sprintf("\t\tvar %s domain.%s\n", entityLower, entity))
+	content.WriteString(fmt.Sprintf("\t\tif err := json.Unmarshal(data, &%s); err != nil {\n\t\t\treturn nil, fmt.Errorf(\"failed to unmarshal: %%w\", err)\n\t\t}\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\t%ss = append(%ss, %s)\n", entityLower, entityLower, entityLower))
+	content.WriteString(fmt.Sprintf("\t}\n"))
+	content.WriteString(fmt.Sprintf("\tif err := rows.Err(); err != nil {\n\t\treturn nil, fmt.Errorf(\"rows error: %%w\", err)\n\t}\n"))
+	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
+	content.WriteString("}\n")
+
+	if err := writeGoFile(filename, content.String()); err != nil {
+		fmt.Printf("Error creating SQLite repository file: %v\n", err)
 	}
 }
 

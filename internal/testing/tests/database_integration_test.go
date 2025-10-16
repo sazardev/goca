@@ -11,6 +11,7 @@ import (
 // TestNewDatabaseIntegrations tests all newly added database support
 func TestNewDatabaseIntegrations(t *testing.T) {
 	databases := []string{
+		"sqlite",
 		"sqlserver",
 		"postgres-json",
 		"elasticsearch",
@@ -129,6 +130,8 @@ func testGenerateRepository(t *testing.T, entityName, database string) {
 
 	// Generate appropriate repository based on database
 	switch database {
+	case "sqlite":
+		generateTestSQLiteRepository(t, repositoryDir, entityName)
 	case "sqlserver":
 		generateTestSQLServerRepository(t, repositoryDir, entityName)
 	case "postgres-json":
@@ -147,6 +150,8 @@ func testRepositoryFileExists(t *testing.T, entityName, database string) {
 
 	var expectedFile string
 	switch database {
+	case "sqlite":
+		expectedFile = filepath.Join(repositoryDir, "sqlite_"+entityLower+"_repository.go")
 	case "sqlserver":
 		expectedFile = filepath.Join(repositoryDir, "sqlserver_"+entityLower+"_repository.go")
 	case "postgres-json":
@@ -195,6 +200,8 @@ func testRepositoryImplementsInterface(t *testing.T, entityName, database string
 
 	var filePath string
 	switch database {
+	case "sqlite":
+		filePath = filepath.Join(repositoryDir, "sqlite_"+entityLower+"_repository.go")
 	case "sqlserver":
 		filePath = filepath.Join(repositoryDir, "sqlserver_"+entityLower+"_repository.go")
 	case "postgres-json":
@@ -239,6 +246,9 @@ func testDatabaseSpecificMethods(t *testing.T, entityName, database string) {
 	var expectedMethods []string
 
 	switch database {
+	case "sqlite":
+		filePath = filepath.Join(repositoryDir, "sqlite_"+entityLower+"_repository.go")
+		expectedMethods = []string{} // Standard interface methods only
 	case "sqlserver":
 		filePath = filepath.Join(repositoryDir, "sqlserver_"+entityLower+"_repository.go")
 		expectedMethods = []string{} // Standard interface methods only
@@ -269,6 +279,106 @@ func testDatabaseSpecificMethods(t *testing.T, entityName, database string) {
 }
 
 // Helper functions to generate test repositories
+
+func generateTestSQLiteRepository(t *testing.T, dir, entity string) {
+	entityLower := strings.ToLower(entity)
+	filePath := filepath.Join(dir, "sqlite_"+entityLower+"_repository.go")
+
+	content := `package repository
+
+import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"` + getTestModuleName(t) + `/internal/domain"
+)
+
+type sqlite` + entity + `Repository struct {
+	db *sql.DB
+}
+
+func NewSQLite` + entity + `Repository(db *sql.DB) ` + entity + `Repository {
+	return &sqlite` + entity + `Repository{db: db}
+}
+
+func (s *sqlite` + entity + `Repository) Save(` + entityLower + ` *domain.` + entity + `) error {
+	data, err := json.Marshal(` + entityLower + `)
+	if err != nil {
+		return fmt.Errorf("failed to marshal: %w", err)
+	}
+	query := "INSERT INTO ` + entityLower + `s (data) VALUES (?)"
+	if _, err := s.db.Exec(query, data); err != nil {
+		return fmt.Errorf("failed to insert: %w", err)
+	}
+	return nil
+}
+
+func (s *sqlite` + entity + `Repository) FindByID(id int) (*domain.` + entity + `, error) {
+	var data []byte
+	query := "SELECT data FROM ` + entityLower + `s WHERE id = ? LIMIT 1"
+	if err := s.db.QueryRow(query, id).Scan(&data); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("` + entity + ` not found")
+		}
+		return nil, fmt.Errorf("failed to query: %w", err)
+	}
+	var ` + entityLower + ` domain.` + entity + `
+	if err := json.Unmarshal(data, &` + entityLower + `); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal: %w", err)
+	}
+	return &` + entityLower + `, nil
+}
+
+func (s *sqlite` + entity + `Repository) Update(` + entityLower + ` *domain.` + entity + `) error {
+	data, err := json.Marshal(` + entityLower + `)
+	if err != nil {
+		return fmt.Errorf("failed to marshal: %w", err)
+	}
+	query := "UPDATE ` + entityLower + `s SET data = ? WHERE id = ?"
+	if _, err := s.db.Exec(query, data, ` + entityLower + `.ID); err != nil {
+		return fmt.Errorf("failed to update: %w", err)
+	}
+	return nil
+}
+
+func (s *sqlite` + entity + `Repository) Delete(id int) error {
+	query := "DELETE FROM ` + entityLower + `s WHERE id = ?"
+	if _, err := s.db.Exec(query, id); err != nil {
+		return fmt.Errorf("failed to delete: %w", err)
+	}
+	return nil
+}
+
+func (s *sqlite` + entity + `Repository) FindAll() ([]domain.` + entity + `, error) {
+	query := "SELECT data FROM ` + entityLower + `s"
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %w", err)
+	}
+	defer rows.Close()
+	var ` + entityLower + `s []domain.` + entity + `
+	for rows.Next() {
+		var data []byte
+		if err := rows.Scan(&data); err != nil {
+			return nil, fmt.Errorf("failed to scan: %w", err)
+		}
+		var ` + entityLower + ` domain.` + entity + `
+		if err := json.Unmarshal(data, &` + entityLower + `); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal: %w", err)
+		}
+		` + entityLower + `s = append(` + entityLower + `s, ` + entityLower + `)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+	return ` + entityLower + `s, nil
+}
+`
+
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to create SQLite repository test file: %v", err)
+	}
+}
 
 func generateTestSQLServerRepository(t *testing.T, dir, entity string) {
 	entityLower := strings.ToLower(entity)
