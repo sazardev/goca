@@ -31,8 +31,13 @@ Before starting, make sure you have:
 mkdir my-first-api
 cd my-first-api
 
-# Initialize with Goca
-goca init my-api --module github.com/yourusername/my-api --database postgres
+# Initialize with Goca (default uses PostgreSQL)
+goca init my-api --module github.com/yourusername/my-api
+
+# Or choose a different database
+goca init my-api --module github.com/yourusername/my-api --database mysql
+goca init my-api --module github.com/yourusername/my-api --database mongodb
+goca init my-api --module github.com/yourusername/my-api --database sqlite
 
 # Navigate to generated directory
 cd my-api
@@ -44,6 +49,18 @@ Goca created a complete project structure with:
 - `cmd/` - Application entry points
 - `pkg/` - Shared packages
 - Configuration files for database, HTTP server, and more
+
+**Available Databases:**
+- PostgreSQL (default) - SQL, traditional business apps
+- MySQL - SQL, web applications
+- MongoDB - NoSQL, flexible schemas
+- SQLite - Embedded, development/testing
+- PostgreSQL JSON - SQL with semi-structured data
+- SQL Server - Enterprise T-SQL
+- Elasticsearch - Full-text search
+- DynamoDB - Serverless AWS
+
+[See Database Support Guide](/features/database-support) for details.
 :::
 
 ## Step 2: Generate Your First Feature

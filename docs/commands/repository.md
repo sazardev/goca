@@ -18,10 +18,20 @@ Creates repository pattern implementations for data persistence, abstracting dat
 
 Database type. Default: `postgres`
 
-**Options:** `postgres` | `mysql` | `mongodb` | `sqlite`
+**Options:** 
+- `postgres` - PostgreSQL (GORM)
+- `postgres-json` - PostgreSQL with JSONB support
+- `mysql` - MySQL (GORM)
+- `mongodb` - MongoDB (native driver)
+- `sqlite` - SQLite (embedded, database/sql)
+- `sqlserver` - SQL Server (GORM)
+- `elasticsearch` - Elasticsearch (v8 client)
+- `dynamodb` - DynamoDB (AWS SDK v2)
 
 ```bash
 goca repository Product --database postgres
+goca repository Config --database postgres-json
+goca repository Article --database elasticsearch
 ```
 
 ### `--interface-only`
@@ -48,10 +58,40 @@ goca repository User --implementation --database mysql
 goca repository User --database postgres
 ```
 
+### PostgreSQL JSON (Semi-structured Data)
+
+```bash
+goca repository Config --database postgres-json
+```
+
 ### MongoDB Repository
 
 ```bash
 goca repository Product --database mongodb
+```
+
+### Elasticsearch Full-Text Search
+
+```bash
+goca repository Article --database elasticsearch
+```
+
+### DynamoDB (AWS Serverless)
+
+```bash
+goca repository Order --database dynamodb
+```
+
+### SQL Server (Enterprise)
+
+```bash
+goca repository Employee --database sqlserver
+```
+
+### SQLite (Embedded)
+
+```bash
+goca repository Setting --database sqlite
 ```
 
 ### Interface Only

@@ -27,6 +27,7 @@ Goca is a powerful CLI code generator for Go that helps you create projects foll
 ### 🏗️ Architecture and Concepts
 - [**Clean Architecture**](Clean-Architecture) - Principles and structure
 - [**Project Structure**](Project-Structure) - Directory organization
+- [**Database Support**](Database-Support) - 8 supported databases
 - [**Implemented Patterns**](Design-Patterns) - Design patterns used
 - [**Best Practices**](Best-Practices) - Recommendations and conventions
 

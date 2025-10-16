@@ -21,19 +21,65 @@ Creates repositories to handle entity persistence:
 
 ## 🚩 Available Flags
 
-| Flag               | Type     | Required | Default Value | Description                                    |
-| ------------------ | -------- | -------- | ------------- | ---------------------------------------------- |
-| `--database`       | `string` | ❌ No     | -             | Database type (`postgres`, `mysql`, `mongodb`) |
-| `--interface-only` | `bool`   | ❌ No     | `false`       | Generate interfaces only                       |
-| `--implementation` | `bool`   | ❌ No     | `false`       | Generate implementation only                   |
-| `--transactions`   | `bool`   | ❌ No     | `false`       | Include transaction support                    |
-| `--cache`          | `bool`   | ❌ No     | `false`       | Include cache layer                            |
+| Flag               | Type     | Required | Default Value | Description                                                                                                         |
+| ------------------ | -------- | -------- | ------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--database`       | `string` | ❌ No     | -             | Database type (`postgres`, `postgres-json`, `mysql`, `mongodb`, `sqlite`, `sqlserver`, `elasticsearch`, `dynamodb`) |
+| `--interface-only` | `bool`   | ❌ No     | `false`       | Generate interfaces only                                                                                            |
+| `--implementation` | `bool`   | ❌ No     | `false`       | Generate implementation only                                                                                        |
+| `--transactions`   | `bool`   | ❌ No     | `false`       | Include transaction support                                                                                         |
+| `--cache`          | `bool`   | ❌ No     | `false`       | Include cache layer                                                                                                 |
+
+## 📖 Supported Databases
+
+### SQL Databases
+- **postgres** - PostgreSQL with full GORM support
+- **postgres-json** - PostgreSQL JSONB for semi-structured data
+- **mysql** - MySQL with InnoDB support
+- **sqlserver** - SQL Server for enterprise
+- **sqlite** - Embedded SQLite database
+
+### NoSQL Databases
+- **mongodb** - MongoDB document store
+- **dynamodb** - AWS serverless key-value store
+
+### Search Databases
+- **elasticsearch** - Full-text search and analytics (v8 client)
 
 ## 📖 Usage Examples
 
 ### Basic Repository with PostgreSQL
 ```bash
 goca repository User --database postgres
+```
+
+### PostgreSQL JSON (Semi-structured)
+```bash
+goca repository Config --database postgres-json
+```
+
+### MongoDB Repository
+```bash
+goca repository Product --database mongodb
+```
+
+### Elasticsearch Full-Text Search
+```bash
+goca repository Article --database elasticsearch
+```
+
+### DynamoDB (AWS Serverless)
+```bash
+goca repository Order --database dynamodb
+```
+
+### SQL Server (Enterprise)
+```bash
+goca repository Employee --database sqlserver
+```
+
+### SQLite (Embedded)
+```bash
+goca repository Setting --database sqlite
 ```
 
 ### Generate Interfaces Only
@@ -44,18 +90,6 @@ goca repository Product --interface-only
 ### With Transactions and Cache
 ```bash
 goca repository Order --database postgres --transactions --cache
-```
-
-### Different Databases
-```bash
-# PostgreSQL
-goca repository User --database postgres --transactions
-
-# MySQL
-goca repository Product --database mysql --cache
-
-# MongoDB
-goca repository Order --database mongodb
 ```
 
 ## 📂 Generated Files

@@ -66,10 +66,20 @@ Generates validation methods like:
 
 Specify database type for repository. Default: `postgres`
 
-**Options:** `postgres` | `mysql` | `mongodb` | `sqlite`
+**Options:** 
+- `postgres` - PostgreSQL (GORM)
+- `postgres-json` - PostgreSQL with JSONB
+- `mysql` - MySQL (GORM)
+- `mongodb` - MongoDB (native driver)
+- `sqlite` - SQLite (embedded)
+- `sqlserver` - SQL Server
+- `elasticsearch` - Elasticsearch (v8)
+- `dynamodb` - DynamoDB (AWS)
 
 ```bash
 goca feature Order --fields "total:float64" --database mysql
+goca feature Config --fields "name:string,value:string" --database postgres-json
+goca feature Article --fields "title:string,content:string" --database elasticsearch
 ```
 
 ### `--handlers`

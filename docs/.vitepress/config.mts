@@ -146,6 +146,7 @@ export default defineConfig({
                     text: 'Features',
                     items: [
                         { text: 'Safety & Dependencies', link: '/features/safety-and-dependencies' },
+                        { text: 'Database Support', link: '/features/database-support' },
                     ]
                 }
             ]

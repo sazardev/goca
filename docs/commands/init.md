@@ -54,11 +54,23 @@ Use your repository URL as the module name:
 
 Database system to use. Default: `postgres`
 
-**Options:** `postgres` | `mysql` | `mongodb` | `sqlite`
+**Options:**
+- `postgres` - PostgreSQL (GORM)
+- `postgres-json` - PostgreSQL with JSONB
+- `mysql` - MySQL (GORM)
+- `mongodb` - MongoDB (native driver)
+- `sqlite` - SQLite (embedded)
+- `sqlserver` - SQL Server
+- `elasticsearch` - Elasticsearch (v8)
+- `dynamodb` - DynamoDB (AWS)
 
 ```bash
 goca init myproject --module github.com/user/myproject --database mysql
+goca init config-server --module github.com/user/config --database postgres-json
+goca init search-app --module github.com/user/search --database elasticsearch
 ```
+
+See [Database Support](/features/database-support) for detailed comparison.
 
 ### `--auth`
 

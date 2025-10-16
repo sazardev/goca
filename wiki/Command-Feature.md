@@ -32,13 +32,13 @@ Generates a complete feature with **all Clean Architecture layers** and **automa
 
 ## 🚩 Available Flags
 
-| Flag               | Type     | Required  | Default Value | Description                                                  |
-| ------------------ | -------- | --------- | ------------- | ------------------------------------------------------------ |
-| `--fields`         | `string` | ✅ **Yes** | -             | Entity fields (`"name:string,email:string"`)                 |
-| `--database`       | `string` | ❌ No      | `postgres`    | Database type (`postgres`, `mysql`, `mongodb`)               |
-| `--handlers`       | `string` | ❌ No      | `http`        | Handler types (`http`, `grpc`, `cli`, `worker`, `http,grpc`) |
-| `--validation`     | `bool`   | ❌ No      | `true`        | Include validations in entity and DTOs                       |
-| `--business-rules` | `bool`   | ❌ No      | `false`       | Generate business rule methods                               |
+| Flag               | Type     | Required  | Default Value | Description                                                                                                         |
+| ------------------ | -------- | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--fields`         | `string` | ✅ **Yes** | -             | Entity fields (`"name:string,email:string"`)                                                                        |
+| `--database`       | `string` | ❌ No      | `postgres`    | Database type (`postgres`, `postgres-json`, `mysql`, `mongodb`, `sqlite`, `sqlserver`, `elasticsearch`, `dynamodb`) |
+| `--handlers`       | `string` | ❌ No      | `http`        | Handler types (`http`, `grpc`, `cli`, `worker`, `http,grpc`)                                                        |
+| `--validation`     | `bool`   | ❌ No      | `true`        | Include validations in entity and DTOs                                                                              |
+| `--business-rules` | `bool`   | ❌ No      | `false`       | Generate business rule methods                                                                                      |
 
 ## 📖 Usage Examples
 

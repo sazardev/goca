@@ -49,8 +49,8 @@ features:
   
   - icon:
       src: /icons/database.svg
-    title: Repository Pattern
-    details: Abstracted data access with interchangeable implementations. Switch from PostgreSQL to MongoDB without touching business logic.
+    title: 8 Databases Supported
+    details: PostgreSQL, MySQL, MongoDB, SQLite, SQL Server, PostgreSQL JSON, Elasticsearch, and DynamoDB. Switch between databases without changing business logic.
   
   - icon:
       src: /icons/book.svg

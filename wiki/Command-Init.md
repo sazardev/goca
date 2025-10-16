@@ -21,12 +21,12 @@ Creates the base structure of a Go project following Clean Architecture principl
 
 ## 🚩 Available Flags
 
-| Flag         | Type     | Required  | Default Value | Description                                     |
-| ------------ | -------- | --------- | ------------- | ----------------------------------------------- |
-| `--module`   | `string` | ✅ **Yes** | -             | Go module name (e.g: `github.com/user/project`) |
-| `--database` | `string` | ❌ No      | `postgres`    | Database type (`postgres`, `mysql`, `mongodb`)  |
-| `--auth`     | `bool`   | ❌ No      | `false`       | Include JWT authentication system               |
-| `--api`      | `string` | ❌ No      | `rest`        | API type (`rest`, `graphql`, `grpc`)            |
+| Flag         | Type     | Required  | Default Value | Description                                                                                                         |
+| ------------ | -------- | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `--module`   | `string` | ✅ **Yes** | -             | Go module name (e.g: `github.com/user/project`)                                                                     |
+| `--database` | `string` | ❌ No      | `postgres`    | Database type (`postgres`, `postgres-json`, `mysql`, `mongodb`, `sqlite`, `sqlserver`, `elasticsearch`, `dynamodb`) |
+| `--auth`     | `bool`   | ❌ No      | `false`       | Include JWT authentication system                                                                                   |
+| `--api`      | `string` | ❌ No      | `rest`        | API type (`rest`, `graphql`, `grpc`)                                                                                |
 
 ## 📖 Usage Examples
 

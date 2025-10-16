@@ -85,19 +85,36 @@ Generated code is not a starting point - it's production-ready:
 └─────────────────────────────────────┘
 ```
 
+###  8 Supported Databases
+
+Generate repositories for any of these databases:
+- **PostgreSQL** - Traditional SQL with advanced features
+- **PostgreSQL JSON** - Semi-structured data with JSONB
+- **MySQL** - Web application standard
+- **MongoDB** - Flexible document-oriented
+- **SQLite** - Embedded, development-friendly
+- **SQL Server** - Enterprise T-SQL systems
+- **Elasticsearch** - Full-text search & analytics
+- **DynamoDB** - Serverless AWS infrastructure
+
+Learn more in [Database Support Guide](/features/database-support)
+
 ###  Instant Feature Generation
 
 Generate complete features in seconds:
 
 ```bash
 # From zero to fully functional CRUD
-goca feature Order --fields "customer:string,total:float64,status:string"
+goca feature Order --fields "customer:string,total:float64,status:string" --database postgres
 ```
 
 Creates 10+ files with:
 - Domain entity
 - CRUD use cases
 - Repository interface + implementation
+- HTTP REST handlers
+- Dependency injection setup
+- Automatic routing
 - HTTP REST endpoints
 - Automatic integration
 
