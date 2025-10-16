@@ -97,9 +97,9 @@ func testGenerateEntity(t *testing.T, entityName string) {
 	entityContent := fmt.Sprintf(`package domain
 
 type %s struct {
-	ID    uint   ` + "`" + `json:"id" gorm:"primaryKey"` + "`" + `
-	Name  string ` + "`" + `json:"name" gorm:"type:varchar(255);not null"` + "`" + `
-	Price float64 ` + "`" + `json:"price" gorm:"type:decimal(10,2)"` + "`" + `
+	ID    uint   `+"`"+`json:"id" gorm:"primaryKey"`+"`"+`
+	Name  string `+"`"+`json:"name" gorm:"type:varchar(255);not null"`+"`"+`
+	Price float64 `+"`"+`json:"price" gorm:"type:decimal(10,2)"`+"`"+`
 }
 
 func (p *%s) Validate() error {

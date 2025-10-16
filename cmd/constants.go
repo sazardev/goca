@@ -28,19 +28,19 @@ const (
 
 // Database constants
 const (
-	DBPostgres         = "postgres"
-	DBPostgresJSON     = "postgres-json"
-	DBMySQL            = "mysql"
-	DBMongoDB          = "mongodb"
-	DBSQLite           = "sqlite"
-	DBSQLServer        = "sqlserver"
-	DBElasticsearch    = "elasticsearch"
-	DBDynamoDB         = "dynamodb"
+	DBPostgres      = "postgres"
+	DBPostgresJSON  = "postgres-json"
+	DBMySQL         = "mysql"
+	DBMongoDB       = "mongodb"
+	DBSQLite        = "sqlite"
+	DBSQLServer     = "sqlserver"
+	DBElasticsearch = "elasticsearch"
+	DBDynamoDB      = "dynamodb"
 )
 
 // ValidDatabases contains the list of supported database types for the CLI.
 var ValidDatabases = []string{
-	DBPostgres, DBPostgresJSON, DBMySQL, DBMongoDB, DBSQLite, 
+	DBPostgres, DBPostgresJSON, DBMySQL, DBMongoDB, DBSQLite,
 	DBSQLServer, DBElasticsearch, DBDynamoDB,
 }
 

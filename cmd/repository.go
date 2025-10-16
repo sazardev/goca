@@ -877,7 +877,7 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_json_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
-	
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
@@ -886,18 +886,18 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	content.WriteString("\t\"gorm.io/gorm\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString(")\n\n")
-	
+
 	repoName := fmt.Sprintf("postgresJSON%sRepository", entity)
 	content.WriteString(fmt.Sprintf("type %s struct {\n\tdb *gorm.DB\n}\n\n", repoName))
 	content.WriteString(fmt.Sprintf("func NewPostgresJSON%sRepository(db *gorm.DB) %sRepository {\n", entity, entity))
 	content.WriteString(fmt.Sprintf("\treturn &%s{db: db}\n", repoName))
 	content.WriteString("}\n\n")
-	
+
 	// Save method with JSONB support
 	content.WriteString(fmt.Sprintf("func (p *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity))
 	content.WriteString(fmt.Sprintf("\treturn p.db.Create(%s).Error\n", entityLower))
 	content.WriteString("}\n\n")
-	
+
 	// FindByID method
 	content.WriteString(fmt.Sprintf("func (p *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity))
 	content.WriteString(fmt.Sprintf("\tvar %s domain.%s\n", entityLower, entity))
@@ -906,7 +906,7 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	content.WriteString("\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn &%s, nil\n", entityLower))
 	content.WriteString("}\n\n")
-	
+
 	// FindByJSONField - Query nested JSON fields
 	content.WriteString(fmt.Sprintf("func (p *%s) FindByJSONField(jsonField, value string) ([]domain.%s, error) {\n", repoName, entity))
 	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
@@ -915,17 +915,17 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	content.WriteString("\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n\n")
-	
+
 	// Update method
 	content.WriteString(fmt.Sprintf("func (p *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity))
 	content.WriteString(fmt.Sprintf("\treturn p.db.Save(%s).Error\n", entityLower))
 	content.WriteString("}\n\n")
-	
+
 	// Delete method
 	content.WriteString(fmt.Sprintf("func (p *%s) Delete(id int) error {\n", repoName))
 	content.WriteString(fmt.Sprintf("\treturn p.db.Delete(&domain.%s{}, id).Error\n", entity))
 	content.WriteString("}\n\n")
-	
+
 	// FindAll method
 	content.WriteString(fmt.Sprintf("func (p *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity))
 	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
@@ -934,7 +934,7 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	content.WriteString("\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
-	
+
 	if err := writeGoFile(filename, content.String()); err != nil {
 		fmt.Printf("Error creating PostgreSQL JSON repository file: %v\n", err)
 	}
@@ -945,7 +945,7 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "sqlserver_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
-	
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
@@ -953,13 +953,13 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t\"gorm.io/gorm\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString(")\n\n")
-	
+
 	repoName := fmt.Sprintf("sqlserver%sRepository", entity)
 	content.WriteString(fmt.Sprintf("type %s struct {\n\tdb *gorm.DB\n}\n\n", repoName))
 	content.WriteString(fmt.Sprintf("func NewSQLServer%sRepository(db *gorm.DB) %sRepository {\n", entity, entity))
 	content.WriteString(fmt.Sprintf("\treturn &%s{db: db}\n", repoName))
 	content.WriteString("}\n\n")
-	
+
 	// Save method
 	content.WriteString(fmt.Sprintf("func (s *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity))
 	content.WriteString(fmt.Sprintf("\tif err := s.db.Create(%s).Error; err != nil {\n", entityLower))
@@ -967,7 +967,7 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t}\n")
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// FindByID method
 	content.WriteString(fmt.Sprintf("func (s *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity))
 	content.WriteString(fmt.Sprintf("\tvar %s domain.%s\n", entityLower, entity))
@@ -979,7 +979,7 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn &%s, nil\n", entityLower))
 	content.WriteString("}\n\n")
-	
+
 	// Update method
 	content.WriteString(fmt.Sprintf("func (s *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity))
 	content.WriteString(fmt.Sprintf("\tif err := s.db.Save(%s).Error; err != nil {\n", entityLower))
@@ -987,7 +987,7 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t}\n")
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// Delete method
 	content.WriteString(fmt.Sprintf("func (s *%s) Delete(id int) error {\n", repoName))
 	content.WriteString(fmt.Sprintf("\tif err := s.db.Delete(&domain.%s{}, id).Error; err != nil {\n", entity))
@@ -995,7 +995,7 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t}\n")
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// FindAll method
 	content.WriteString(fmt.Sprintf("func (s *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity))
 	content.WriteString(fmt.Sprintf("\tvar %ss []domain.%s\n", entityLower, entity))
@@ -1004,7 +1004,7 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
-	
+
 	if err := writeGoFile(filename, content.String()); err != nil {
 		fmt.Printf("Error creating SQL Server repository file: %v\n", err)
 	}
@@ -1015,7 +1015,7 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "elasticsearch_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
-	
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
@@ -1027,16 +1027,16 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\t\"strconv\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString(")\n\n")
-	
+
 	repoName := fmt.Sprintf("elasticsearch%sRepository", entity)
 	content.WriteString(fmt.Sprintf("type %s struct {\n\tclient *elasticsearch.Client\n\tindex  string\n}\n\n", repoName))
 	content.WriteString(fmt.Sprintf("func NewElasticsearch%sRepository(client *elasticsearch.Client) %sRepository {\n", entity, entity))
 	content.WriteString(fmt.Sprintf("\treturn &%s{\n\t\tclient: client,\n\t\tindex:  \"%s\",\n\t}\n", repoName, strings.ToLower(entity)))
 	content.WriteString("}\n\n")
-	
+
 	// Save method
 	content.WriteString(fmt.Sprintf("func (e *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity))
-	content.WriteString("\tdata, err := json.Marshal("+entityLower+")\n")
+	content.WriteString("\tdata, err := json.Marshal(" + entityLower + ")\n")
 	content.WriteString("\tif err != nil {\n\t\treturn err\n\t}\n")
 	content.WriteString("\treq := esapi.IndexRequest{\n")
 	content.WriteString("\t\tIndex: e.index,\n")
@@ -1047,7 +1047,7 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\tdefer res.Body.Close()\n")
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// FindByID method
 	content.WriteString(fmt.Sprintf("func (e *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity))
 	content.WriteString("\treq := esapi.GetRequest{\n")
@@ -1062,7 +1062,7 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\t\treturn nil, err\n\t}\n")
 	content.WriteString("\treturn &doc, nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// FullTextSearch method
 	content.WriteString(fmt.Sprintf("func (e *%s) FullTextSearch(query string) ([]domain.%s, error) {\n", repoName, entity))
 	content.WriteString("\tsearchBody := map[string]interface{}{\n")
@@ -1089,7 +1089,7 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\t\treturn nil, err\n\t}\n")
 	content.WriteString("\treturn results, nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// FindAll method
 	content.WriteString(fmt.Sprintf("func (e *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity))
 	content.WriteString("\tsearchBody := map[string]interface{}{\n")
@@ -1110,7 +1110,7 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString(fmt.Sprintf("\tvar results []domain.%s\n", entity))
 	content.WriteString("\treturn results, nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// Delete method
 	content.WriteString(fmt.Sprintf("func (e *%s) Delete(id int) error {\n", repoName))
 	content.WriteString("\treq := esapi.DeleteRequest{\n")
@@ -1122,12 +1122,12 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\tdefer res.Body.Close()\n")
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
-	
+
 	// Update method (stub)
 	content.WriteString(fmt.Sprintf("func (e *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity))
 	content.WriteString(fmt.Sprintf("\treturn e.Save(%s)\n", entityLower))
 	content.WriteString("}\n")
-	
+
 	if err := writeGoFile(filename, content.String()); err != nil {
 		fmt.Printf("Error creating Elasticsearch repository file: %v\n", err)
 	}
@@ -1138,7 +1138,7 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "dynamodb_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
-	
+
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
@@ -1151,13 +1151,13 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t\"strconv\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString(")\n\n")
-	
+
 	repoName := fmt.Sprintf("dynamodb%sRepository", entity)
 	content.WriteString(fmt.Sprintf("type %s struct {\n\tclient    *dynamodb.Client\n\ttableName string\n}\n\n", repoName))
 	content.WriteString(fmt.Sprintf("func NewDynamoDB%sRepository(client *dynamodb.Client) %sRepository {\n", entity, entity))
 	content.WriteString(fmt.Sprintf("\treturn &%s{\n\t\tclient:    client,\n\t\ttableName: \"%s\",\n\t}\n", repoName, strings.ToLower(entity)))
 	content.WriteString("}\n\n")
-	
+
 	// Save method
 	content.WriteString(fmt.Sprintf("func (d *%s) Save(%s *domain.%s) error {\n", repoName, entityLower, entity))
 	content.WriteString(fmt.Sprintf("\tav, err := attributevalue.MarshalMap(%s)\n", entityLower))
@@ -1168,7 +1168,7 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t})\n")
 	content.WriteString("\treturn err\n")
 	content.WriteString("}\n\n")
-	
+
 	// FindByID method
 	content.WriteString(fmt.Sprintf("func (d *%s) FindByID(id int) (*domain.%s, error) {\n", repoName, entity))
 	content.WriteString("\tresult, err := d.client.GetItem(context.Background(), &dynamodb.GetItemInput{\n")
@@ -1183,12 +1183,12 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"failed to unmarshal: %%w\", err)\n\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn &%s, nil\n", entityLower))
 	content.WriteString("}\n\n")
-	
+
 	// Update method
 	content.WriteString(fmt.Sprintf("func (d *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity))
 	content.WriteString(fmt.Sprintf("\treturn d.Save(%s)\n", entityLower))
 	content.WriteString("}\n\n")
-	
+
 	// Delete method
 	content.WriteString(fmt.Sprintf("func (d *%s) Delete(id int) error {\n", repoName))
 	content.WriteString("\t_, err := d.client.DeleteItem(context.Background(), &dynamodb.DeleteItemInput{\n")
@@ -1199,7 +1199,7 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t})\n")
 	content.WriteString("\treturn err\n")
 	content.WriteString("}\n\n")
-	
+
 	// FindAll method
 	content.WriteString(fmt.Sprintf("func (d *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity))
 	content.WriteString("\tresult, err := d.client.Scan(context.Background(), &dynamodb.ScanInput{\n")
@@ -1211,7 +1211,7 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"failed to unmarshal: %%w\", err)\n\t}\n")
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
-	
+
 	if err := writeGoFile(filename, content.String()); err != nil {
 		fmt.Printf("Error creating DynamoDB repository file: %v\n", err)
 	}
