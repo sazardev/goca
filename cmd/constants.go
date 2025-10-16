@@ -15,7 +15,7 @@ const (
 
 // Flag usage messages - Flag usage messages
 const (
-	DatabaseFlagUsage       = "Database type (postgres, mysql, mongodb)"
+	DatabaseFlagUsage       = "Database type (postgres, postgres-json, mysql, mongodb, sqlserver, elasticsearch, dynamodb)"
 	FieldsFlagUsage         = "Comma-separated list of fields (ex: name:string,age:int)"
 	InterfaceOnlyFlagUsage  = "Generate interfaces only"
 	ImplementationFlagUsage = "Generate implementation only"
@@ -28,14 +28,21 @@ const (
 
 // Database constants
 const (
-	DBPostgres = "postgres"
-	DBMySQL    = "mysql"
-	DBMongoDB  = "mongodb"
-	DBSQLite   = "sqlite"
+	DBPostgres         = "postgres"
+	DBPostgresJSON     = "postgres-json"
+	DBMySQL            = "mysql"
+	DBMongoDB          = "mongodb"
+	DBSQLite           = "sqlite"
+	DBSQLServer        = "sqlserver"
+	DBElasticsearch    = "elasticsearch"
+	DBDynamoDB         = "dynamodb"
 )
 
 // ValidDatabases contains the list of supported database types for the CLI.
-var ValidDatabases = []string{DBPostgres, DBMySQL, DBMongoDB, DBSQLite}
+var ValidDatabases = []string{
+	DBPostgres, DBPostgresJSON, DBMySQL, DBMongoDB, DBSQLite, 
+	DBSQLServer, DBElasticsearch, DBDynamoDB,
+}
 
 // Handler/Protocol constants
 const (
