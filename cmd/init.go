@@ -1404,10 +1404,6 @@ README.md
 bin/
 *.exe
 
-# Go files
-*.mod
-*.sum
-
 # IDE
 .vscode/
 .idea/
