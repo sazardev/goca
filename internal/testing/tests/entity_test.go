@@ -79,7 +79,7 @@ func testEntityWithRequiredFields(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando entidad 'User'") {
+	if !strings.Contains(output, "Generating entity 'User'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -119,8 +119,8 @@ func testEntityWithValidation(tc *framework.TestContext, t *testing.T) {
 
 	// Verificar salida
 	expectedOutputs := []string{
-		"Generando entidad 'Product'",
-		"Incluyendo validaciones",
+		"Generating entity 'Product'",
+		"Including validations",
 	}
 
 	for _, expected := range expectedOutputs {
@@ -166,8 +166,8 @@ func testEntityWithBusinessRules(tc *framework.TestContext, t *testing.T) {
 
 	// Verificar salida
 	expectedOutputs := []string{
-		"Generando entidad 'Order'",
-		"Incluyendo reglas de negocio",
+		"Generating entity 'Order'",
+		"Including business rules",
 	}
 
 	for _, expected := range expectedOutputs {
@@ -318,7 +318,7 @@ func testEntityWithDifferentFieldTypes(tc *framework.TestContext, t *testing.T) 
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando entidad 'Complex'") {
+	if !strings.Contains(output, "Generating entity 'Complex'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
