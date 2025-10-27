@@ -468,6 +468,6 @@ user := NewUserBuilder().
 
 ## Next Steps
 
-- Learn about [Unit Testing](unit-testing.md)
-- Explore [Test Coverage](test-coverage.md)
-- See [Complete Tutorial](../tutorials/complete-tutorial.md)
+- See [Complete Tutorial](../tutorials/complete-tutorial.md) for hands-on examples
+- Check [Database Support](./database-support.md) for database-specific configuration
+- Review [Best Practices](../guide/best-practices.md) for testing strategies
