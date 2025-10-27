@@ -25,6 +25,15 @@ func (m *MockProductRepository) FindByID(id int) (*domain.Product, error) {
 	return args.Get(0).(*domain.Product), args.Error(1)
 }
 
+// FindByName mocks the FindByName method
+func (m *MockProductRepository) FindByName(name string) (*domain.Product, error) {
+	args := m.Called(name)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.Product), args.Error(1)
+}
+
 // Update mocks the Update method
 func (m *MockProductRepository) Update(product *domain.Product) error {
 	args := m.Called(product)

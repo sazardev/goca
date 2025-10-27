@@ -25,6 +25,15 @@ func (m *MockUserRepository) FindByID(id int) (*domain.User, error) {
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
+// FindByEmail mocks the FindByEmail method
+func (m *MockUserRepository) FindByEmail(email string) (*domain.User, error) {
+	args := m.Called(email)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.User), args.Error(1)
+}
+
 // Update mocks the Update method
 func (m *MockUserRepository) Update(user *domain.User) error {
 	args := m.Called(user)
