@@ -53,7 +53,7 @@ func testInitWithDefaultOptions(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Inicializando proyecto 'test-default'") {
+	if !strings.Contains(output, "Initializing project 'test-default'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -118,7 +118,7 @@ func testInitWithDatabaseFlag(tc *framework.TestContext, t *testing.T) {
 		}
 
 		// Verificar salida
-		if !strings.Contains(output, "Base de datos: "+db) {
+		if !strings.Contains(output, "Database: "+db) {
 			t.Errorf("Base de datos no encontrada en la salida para %s: %s", db, output)
 		}
 
@@ -179,7 +179,7 @@ func testInitWithAuthFlag(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo autenticación") {
+	if !strings.Contains(output, "Including authentication") {
 		t.Errorf("Mensaje de autenticación no encontrado en la salida: %s", output)
 	}
 
@@ -213,10 +213,10 @@ func testInitWithAllOptions(tc *framework.TestContext, t *testing.T) {
 
 	// Verificar salida para cada opción
 	expectedOutputs := []string{
-		"Inicializando proyecto 'test-full'",
-		"Base de datos: postgres",
+		"Initializing project 'test-full'",
+		"Database: postgres",
 		"API: rest",
-		"Incluyendo autenticación",
+		"Including authentication",
 	}
 
 	for _, expected := range expectedOutputs {

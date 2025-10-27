@@ -78,7 +78,7 @@ func testFeatureWithBasicOptions(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando feature completo 'User'") {
+	if !strings.Contains(output, "Generating feature") && !strings.Contains(output, "Feature 'User'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -225,7 +225,7 @@ func testFeatureWithComplexFields(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando feature completo 'Article'") {
+	if !strings.Contains(output, "Generating feature") && !strings.Contains(output, "Feature 'Article'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 

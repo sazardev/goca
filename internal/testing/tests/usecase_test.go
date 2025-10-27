@@ -87,7 +87,7 @@ func testUseCaseWithDefaultOperations(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando caso de uso 'UserManagement' para entidad 'User'") {
+	if !strings.Contains(output, "Generating use case 'UserManagement' for entity 'User'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -138,8 +138,8 @@ func testUseCaseWithSpecificOperations(tc *framework.TestContext, t *testing.T) 
 
 	// Verificar salida
 	expectedOutputs := []string{
-		"Generando caso de uso 'ProductCatalog' para entidad 'Product'",
-		"Operaciones: " + operations,
+		"Generating use case 'ProductCatalog' for entity 'Product'",
+		"Operations: " + operations,
 	}
 
 	for _, expected := range expectedOutputs {
@@ -203,7 +203,7 @@ func testUseCaseWithDTOValidation(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo validaciones en DTOs") {
+	if !strings.Contains(output, "Including DTO validations") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -234,7 +234,7 @@ func testUseCaseWithAsync(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo operaciones asíncronas") {
+	if !strings.Contains(output, "Including asynchronous operations") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -265,10 +265,10 @@ func testUseCaseWithAllOptions(tc *framework.TestContext, t *testing.T) {
 
 	// Verificar salida
 	expectedOutputs := []string{
-		"Generando caso de uso 'FullProductService' para entidad 'Product'",
-		"Operaciones: create,read,update,list",
-		"Incluyendo validaciones en DTOs",
-		"Incluyendo operaciones asíncronas",
+		"Generating use case 'FullProductService' for entity 'Product'",
+		"Operations: create,read,update,list",
+		"Including DTO validations",
+		"Including asynchronous operations",
 	}
 
 	for _, expected := range expectedOutputs {

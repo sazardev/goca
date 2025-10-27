@@ -105,7 +105,7 @@ func testHTTPHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando handler 'http' para entidad 'User'") {
+	if !strings.Contains(output, "Generating handler 'http' for entity 'User'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -142,7 +142,7 @@ func testGRPCHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando handler 'grpc' para entidad 'Product'") {
+	if !strings.Contains(output, "Generating handler 'grpc' for entity 'Product'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -192,7 +192,7 @@ func testCLIHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando handler 'cli' para entidad 'Order'") {
+	if !strings.Contains(output, "Generating handler 'cli' for entity 'Order'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -227,7 +227,7 @@ func testWorkerHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Generando handler 'worker' para entidad 'Customer'") {
+	if !strings.Contains(output, "Generating handler 'worker' for entity 'Customer'") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -262,7 +262,7 @@ func testHandlerWithMiddleware(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo middleware") {
+	if !strings.Contains(output, "Including middleware") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -299,7 +299,7 @@ func testHandlerWithValidation(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo validación") {
+	if !strings.Contains(output, "Including validation") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -331,7 +331,7 @@ func testHandlerWithSwagger(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo documentación Swagger") {
+	if !strings.Contains(output, "Including Swagger documentation") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -369,10 +369,10 @@ func testHandlerWithAllOptions(tc *framework.TestContext, t *testing.T) {
 
 	// Verificar salida
 	expectedOutputs := []string{
-		"Generando handler 'http' para entidad 'Customer'",
-		"Incluyendo middleware",
-		"Incluyendo validación",
-		"Incluyendo documentación Swagger",
+		"Generating handler 'http' for entity 'Customer'",
+		"Including middleware",
+		"Including validation",
+		"Including Swagger documentation",
 	}
 
 	for _, expected := range expectedOutputs {
