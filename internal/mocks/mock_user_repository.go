@@ -1,8 +1,8 @@
 package mocks
 
 import (
-	"github.com/stretchr/testify/mock"
 	"github.com/sazardev/goca/internal/domain"
+	"github.com/stretchr/testify/mock"
 )
 
 // MockUserRepository is a mock implementation of repository.UserRepository
