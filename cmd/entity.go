@@ -485,7 +485,7 @@ func writeEntityErrors(content *strings.Builder, entityName string, fields []Fie
 
 // writeGeneralError writes the general entity error
 func writeGeneralError(content *strings.Builder, entityName string, existingErrors []string) {
-	generalError := fmt.Sprintf("\tErrInvalid%sData = errors.New(\"datos de %s inválidos\")",
+	generalError := fmt.Sprintf("\tErrInvalid%sData = errors.New(\"invalid %s data\")",
 		entityName, strings.ToLower(entityName))
 	if !contains(existingErrors, generalError) {
 		content.WriteString(generalError + "\n")
@@ -514,8 +514,8 @@ func writeFieldErrors(content *strings.Builder, entityName string, fields []Fiel
 // writeRequiredFieldError writes the required field error
 func writeRequiredFieldError(content *strings.Builder, entityName string, field Field, existingErrors []string) {
 	fieldLower := strings.ToLower(field.Name)
-	requiredError := fmt.Sprintf("\tErrInvalid%s%s = errors.New(\"%s es requerido\")",
-		entityName, field.Name, getSpanishFieldName(fieldLower))
+	requiredError := fmt.Sprintf("\tErrInvalid%s%s = errors.New(\"%s is required\")",
+		entityName, field.Name, fieldLower)
 	if !contains(existingErrors, requiredError) {
 		content.WriteString(requiredError + "\n")
 	}
@@ -546,8 +546,8 @@ func writeStringFieldErrors(content *strings.Builder, entityName string, field F
 	}
 
 	if strings.Contains(fieldLower, "name") {
-		lengthError := fmt.Sprintf("\tErrInvalid%s%sLength = errors.New(\"%s debe tener entre 2 y 100 caracteres\")",
-			entityName, field.Name, getSpanishFieldName(fieldLower))
+		lengthError := fmt.Sprintf("\tErrInvalid%s%sLength = errors.New(\"%s must be between 2 and 100 characters\")",
+			entityName, field.Name, fieldLower)
 		if !contains(existingErrors, lengthError) {
 			content.WriteString(lengthError + "\n")
 		}
@@ -558,11 +558,11 @@ func writeStringFieldErrors(content *strings.Builder, entityName string, field F
 func writeIntegerFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
 	var rangeError string
 	if strings.Contains(fieldLower, "age") {
-		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser mayor a 0\")",
-			entityName, field.Name, getSpanishFieldName(fieldLower))
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s must be greater than 0\")",
+			entityName, field.Name, fieldLower)
 	} else {
-		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser un número positivo\")",
-			entityName, field.Name, getSpanishFieldName(fieldLower))
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s must be a positive number\")",
+			entityName, field.Name, fieldLower)
 	}
 	if !contains(existingErrors, rangeError) {
 		content.WriteString(rangeError + "\n")
@@ -573,11 +573,11 @@ func writeIntegerFieldErrors(content *strings.Builder, entityName string, field 
 func writeFloatFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
 	var rangeError string
 	if strings.Contains(fieldLower, "price") || strings.Contains(fieldLower, "amount") {
-		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser mayor a 0 y menor a 999,999,999.99\")",
-			entityName, field.Name, getSpanishFieldName(fieldLower))
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s must be greater than 0 and less than 999,999,999.99\")",
+			entityName, field.Name, fieldLower)
 	} else {
-		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s debe ser un número positivo\")",
-			entityName, field.Name, getSpanishFieldName(fieldLower))
+		rangeError = fmt.Sprintf("\tErrInvalid%s%sRange = errors.New(\"%s must be a positive number\")",
+			entityName, field.Name, fieldLower)
 	}
 	if !contains(existingErrors, rangeError) {
 		content.WriteString(rangeError + "\n")
