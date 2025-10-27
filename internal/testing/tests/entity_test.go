@@ -196,7 +196,7 @@ func testEntityWithTimestamps(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo timestamps") {
+	if !strings.Contains(output, "Including timestamps") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -235,7 +235,7 @@ func testEntityWithSoftDelete(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar salida
-	if !strings.Contains(output, "Incluyendo eliminación suave") {
+	if !strings.Contains(output, "Including soft delete") {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
@@ -269,11 +269,11 @@ func testEntityWithAllOptions(tc *framework.TestContext, t *testing.T) {
 
 	// Verificar salida
 	expectedOutputs := []string{
-		"Generando entidad 'Invoice'",
-		"Incluyendo validaciones",
-		"Incluyendo reglas de negocio",
-		"Incluyendo timestamps",
-		"Incluyendo eliminación suave",
+		"Generating entity 'Invoice'",
+		"Including validations",
+		"Including business rules",
+		"Including timestamps",
+		"Including soft delete",
 	}
 
 	for _, expected := range expectedOutputs {
