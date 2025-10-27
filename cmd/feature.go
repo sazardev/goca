@@ -26,6 +26,9 @@ including domain, use cases, repository and handlers in a single operation.`,
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		force, _ := cmd.Flags().GetBool("force")
 		backup, _ := cmd.Flags().GetBool("backup")
+		integrationTests, _ := cmd.Flags().GetBool("integration-tests")
+		testFixtures, _ := cmd.Flags().GetBool("test-fixtures")
+		testContainer, _ := cmd.Flags().GetBool("test-container")
 
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
@@ -170,6 +173,16 @@ including domain, use cases, repository and handlers in a single operation.`,
 			fmt.Println("Tip: Run 'go mod tidy' manually")
 		}
 
+		// 8. Generate integration tests if requested
+		if integrationTests {
+			fmt.Println("\n8. Generating integration tests...")
+			if err := generateIntegrationTests(featureName, effectiveDatabase, testFixtures, testContainer); err != nil {
+				fmt.Printf("Warning: Could not generate integration tests: %v\n", err)
+			} else {
+				fmt.Println("   Integration tests generated successfully!")
+			}
+		}
+
 		fmt.Printf("\nFeature '%s' generated and integrated successfully!\n", featureName)
 		fmt.Println("\nGenerated structure:")
 		printFeatureStructure(featureName, handlers)
@@ -179,11 +192,17 @@ including domain, use cases, repository and handlers in a single operation.`,
 		fmt.Println("   - Routes registered in the server")
 		fmt.Println("   - Ready to use immediately")
 		fmt.Println("   - With seed data included")
+		if integrationTests {
+			fmt.Println("   - Integration tests generated")
+		}
 
 		fmt.Println("\nNext steps:")
 		fmt.Println("   1. Run: go mod tidy")
 		fmt.Printf("   2. Start server: go run cmd/server/main.go\n")
 		fmt.Printf("   3. Test endpoints: curl http://localhost:8080/api/v1/%ss\n", strings.ToLower(featureName))
+		if integrationTests {
+			fmt.Printf("   4. Run integration tests: go test ./internal/testing/integration -v\n")
+		}
 
 		fmt.Println("\nAdditional useful commands:")
 		fmt.Println("   goca integrate --all     # Integrate existing features")
@@ -491,6 +510,11 @@ func init() {
 	featureCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
 	featureCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
 	featureCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
+
+	// Testing flags
+	featureCmd.Flags().Bool("integration-tests", false, "Generate integration tests for the feature")
+	featureCmd.Flags().Bool("test-fixtures", true, "Generate test fixtures (used with --integration-tests)")
+	featureCmd.Flags().Bool("test-container", false, "Use test containers for database (used with --integration-tests)")
 
 	_ = featureCmd.MarkFlagRequired("fields")
 }

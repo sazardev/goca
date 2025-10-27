@@ -7,6 +7,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🎉 New Features
+
+#### Integration Testing Scaffolding
+- **Auto-generate Integration Tests** (`--integration-tests`): Comprehensive test generation for features
+  - Generate complete integration test suites with `goca test-integration` command
+  - Auto-generate tests when creating features with `--integration-tests` flag
+  - Tests verify use case ↔ repository interaction
+  - Tests verify handler ↔ use case interaction
+  - Tests verify database CRUD operations end-to-end
+  - Tests verify transaction rollback behavior
+
+- **Test Fixtures System**: Automatic test data generation
+  - `NewEntityFixture()` - Creates entities with default test values
+  - `NewEntityFixtureWithCustomFields()` - Customizable test data
+  - `NewEntityFixtureList()` - Generate multiple fixtures
+  - Reusable across all test types
+
+- **Database Test Helpers**: Multiple testing strategies supported
+  - SQLite in-memory for fast development testing
+  - Test database server setup for realistic testing
+  - Test containers integration (Docker) for CI/CD
+  - Transaction-based test isolation
+  - Automatic cleanup and teardown
+
+- **Generated Test Structure**:
+  - `internal/testing/integration/{entity}_integration_test.go` - Main tests
+  - `internal/testing/integration/fixtures/{entity}_fixtures.go` - Test data
+  - `internal/testing/integration/helpers.go` - Shared utilities
+
+### 📝 Example Usage
+
+```bash
+# Generate feature with integration tests
+goca feature User --fields "name:string,email:string" --integration-tests
+
+# Generate integration tests for existing feature
+goca test-integration Product
+
+# With test containers (CI/CD friendly)
+goca test-integration Order --container
+
+# Run integration tests
+go test ./internal/testing/integration -v
+```
+
+### 🎯 Testing Support
+- Supports PostgreSQL, MySQL, MongoDB, SQLite test databases
+- Test isolation via transactions or table truncation
+- Parallel test execution support
+- CI/CD integration examples (GitHub Actions)
+- Comprehensive documentation and best practices
+
 ## [1.14.1] - 2025-10-27
 
 ### 🐛 Bug Fixes

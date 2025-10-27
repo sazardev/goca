@@ -72,6 +72,7 @@ Goca guarantees that every generated file complies with:
 - **Repositories**: Generates interfaces and implementations following Repository Pattern
 - **Multi-Protocol Handlers**: Supports HTTP, gRPC, CLI maintaining layer separation
 - **Dependency Injection**: Structure prepared for DI from the start
+- **Integration Testing**: Auto-generate comprehensive integration tests with fixtures and helpers (v1.14.0+)
 
 ## 📦 Installation
 
