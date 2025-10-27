@@ -52,10 +52,10 @@ func TestHandlerCommand(t *testing.T) {
 	})
 
 	// Verificar que el proyecto completo compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 
 	// Verificar que pasa go vet
-	tc.AssertGoVet("test-project")
+	tc.AssertGoVet(".")
 
 	// Imprimir resumen
 	tc.PrintTestSummary()
@@ -68,6 +68,9 @@ func prepareFullProjectBase(tc *framework.TestContext, t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error al inicializar proyecto base: %v", err)
 	}
+
+	// Set the project directory for subsequent commands
+	tc.SetProjectDir("test-project")
 
 	// Crear entidades y casos de uso para las pruebas
 	entities := []struct {
@@ -93,7 +96,7 @@ func prepareFullProjectBase(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que se creó correctamente
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testHTTPHandler prueba el comando handler con tipo HTTP
@@ -109,8 +112,8 @@ func testHTTPHandler(tc *framework.TestContext, t *testing.T) {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
-	// Verificar archivos generados
-	basePath := filepath.Join("test-project", "internal", "handler", "http")
+	// Verificar archivos generados (now running from within test-project)
+	basePath := filepath.Join("internal", "handler", "http")
 	handlerPath := filepath.Join(basePath, "user_handler.go")
 	routerPath := filepath.Join(basePath, "router.go")
 	tc.AssertFileExists(handlerPath)
@@ -130,7 +133,7 @@ func testHTTPHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testGRPCHandler prueba el comando handler con tipo gRPC
@@ -147,9 +150,9 @@ func testGRPCHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar archivos generados
-	basePath := filepath.Join("test-project", "internal", "handler", "grpc")
+	basePath := filepath.Join("internal", "handler", "grpc")
 	handlerPath := filepath.Join(basePath, "product_handler.go")
-	protoPath := filepath.Join("test-project", "proto", "product.proto")
+	protoPath := filepath.Join("proto", "product.proto")
 	tc.AssertFileExists(handlerPath)
 	tc.AssertFileExists(protoPath)
 
@@ -180,7 +183,7 @@ func testGRPCHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testCLIHandler prueba el comando handler con tipo CLI
@@ -197,7 +200,7 @@ func testCLIHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar archivos generados
-	basePath := filepath.Join("test-project", "internal", "handler", "cli")
+	basePath := filepath.Join("internal", "handler", "cli")
 	handlerPath := filepath.Join(basePath, "order_cmd.go")
 	tc.AssertFileExists(handlerPath)
 
@@ -215,7 +218,7 @@ func testCLIHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testWorkerHandler prueba el comando handler con tipo worker
@@ -232,7 +235,7 @@ func testWorkerHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar archivos generados
-	basePath := filepath.Join("test-project", "internal", "handler", "worker")
+	basePath := filepath.Join("internal", "handler", "worker")
 	handlerPath := filepath.Join(basePath, "customer_worker.go")
 	tc.AssertFileExists(handlerPath)
 
@@ -250,7 +253,7 @@ func testWorkerHandler(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testHandlerWithMiddleware prueba el comando handler con middleware
@@ -267,7 +270,7 @@ func testHandlerWithMiddleware(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar archivos generados
-	middlewarePath := filepath.Join("test-project", "internal", "handler", "http", "middleware.go")
+	middlewarePath := filepath.Join("internal", "handler", "http", "middleware.go")
 	tc.AssertFileExists(middlewarePath)
 
 	// Verificar contenido del archivo de middleware
@@ -283,11 +286,11 @@ func testHandlerWithMiddleware(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el handler usa middleware
-	handlerPath := filepath.Join("test-project", "internal", "handler", "http", "user_handler.go")
+	handlerPath := filepath.Join("internal", "handler", "http", "user_handler.go")
 	tc.AssertFileContains(handlerPath, "AuthMiddleware()")
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testHandlerWithValidation prueba el comando handler con validación
@@ -304,7 +307,7 @@ func testHandlerWithValidation(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar archivos generados
-	handlerPath := filepath.Join("test-project", "internal", "handler", "http", "product_handler.go")
+	handlerPath := filepath.Join("internal", "handler", "http", "product_handler.go")
 	tc.AssertFileExists(handlerPath)
 
 	// Verificar contenido del archivo de validación
@@ -319,7 +322,7 @@ func testHandlerWithValidation(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testHandlerWithSwagger prueba el comando handler con documentación Swagger
@@ -336,7 +339,7 @@ func testHandlerWithSwagger(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar archivos generados
-	handlerPath := filepath.Join("test-project", "internal", "handler", "http", "order_handler.go")
+	handlerPath := filepath.Join("internal", "handler", "http", "order_handler.go")
 	tc.AssertFileExists(handlerPath)
 
 	// Verificar contenido de la documentación Swagger
@@ -356,7 +359,7 @@ func testHandlerWithSwagger(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }
 
 // testHandlerWithAllOptions prueba el comando handler con todas las opciones
@@ -382,7 +385,7 @@ func testHandlerWithAllOptions(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar archivos generados
-	handlerPath := filepath.Join("test-project", "internal", "handler", "http", "customer_handler.go")
+	handlerPath := filepath.Join("internal", "handler", "http", "customer_handler.go")
 	tc.AssertFileExists(handlerPath)
 
 	// Verificar todos los elementos esperados
@@ -398,5 +401,5 @@ func testHandlerWithAllOptions(tc *framework.TestContext, t *testing.T) {
 	}
 
 	// Verificar que el proyecto compila
-	tc.AssertGoBuild("test-project")
+	tc.AssertGoBuild(".")
 }

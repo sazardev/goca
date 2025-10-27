@@ -55,8 +55,7 @@ func (sm *SafetyManager) CheckFileConflict(filePath string) error {
 // BackupFile creates a backup of an existing file
 func (sm *SafetyManager) BackupFile(filePath string) error {
 	// Create backup directory if it doesn't exist
-	backupPath := filepath.Join(sm.BackupDir, filepath.Dir(filePath))
-	if err := os.MkdirAll(backupPath, 0755); err != nil {
+	if err := os.MkdirAll(sm.BackupDir, 0755); err != nil {
 		return err
 	}
 
@@ -66,8 +65,9 @@ func (sm *SafetyManager) BackupFile(filePath string) error {
 		return err
 	}
 
-	// Write to backup location with timestamp
-	backupFile := filepath.Join(sm.BackupDir, filePath+".backup")
+	// Use only the base filename for backup to avoid path issues
+	baseFileName := filepath.Base(filePath)
+	backupFile := filepath.Join(sm.BackupDir, baseFileName+".backup")
 	if err := os.WriteFile(backupFile, content, 0644); err != nil {
 		return err
 	}

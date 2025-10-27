@@ -37,9 +37,12 @@ func TestFullWorkflow(t *testing.T) {
 		t.Fatalf("❌ Error al inicializar proyecto: %v", err)
 	}
 
+	// Set the project directory for subsequent commands
+	tc.SetProjectDir(projectName)
+
 	t.Logf("✅ Proyecto inicializado: %s", projectName)
-	tc.AssertFileExists(filepath.Join(projectName, "go.mod"))
-	tc.AssertFileExists(filepath.Join(projectName, "cmd", "server", "main.go"))
+	tc.AssertFileExists("go.mod")
+	tc.AssertFileExists(filepath.Join("cmd", "server", "main.go"))
 
 	// Paso 2: Generar entidades de dominio
 	t.Log("🔹 PASO 2: Generar entidades de dominio")
@@ -75,13 +78,13 @@ func TestFullWorkflow(t *testing.T) {
 			t.Fatalf("❌ Error al generar entidad %s: %v", entity.name, err)
 		}
 
-		entityPath := filepath.Join(projectName, "internal", "domain", strings.ToLower(entity.name)+".go")
+		entityPath := filepath.Join("internal", "domain", strings.ToLower(entity.name)+".go")
 		tc.AssertFileExists(entityPath)
 		t.Logf("✅ Entidad generada: %s", entity.name)
 	}
 
 	// Compilar después de generar entidades
-	tc.AssertGoBuild(projectName)
+	tc.AssertGoBuild(".")
 
 	// Paso 3: Generar casos de uso
 	t.Log("🔹 PASO 3: Generar casos de uso")
@@ -121,13 +124,13 @@ func TestFullWorkflow(t *testing.T) {
 			t.Fatalf("❌ Error al generar caso de uso %s: %v", usecase.name, err)
 		}
 
-		usecasePath := filepath.Join(projectName, "internal", "usecase", strings.ToLower(strings.Replace(usecase.name, "Service", "_service", 1))+".go")
+		usecasePath := filepath.Join("internal", "usecase", strings.ToLower(strings.Replace(usecase.name, "Service", "_service", 1))+".go")
 		tc.AssertFileExists(usecasePath)
 		t.Logf("✅ Caso de uso generado: %s", usecase.name)
 	}
 
 	// Compilar después de generar casos de uso
-	tc.AssertGoBuild(projectName)
+	tc.AssertGoBuild(".")
 
 	// Paso 4: Generar repositorios
 	t.Log("🔹 PASO 4: Generar repositorios")
@@ -163,13 +166,13 @@ func TestFullWorkflow(t *testing.T) {
 			t.Fatalf("❌ Error al generar repositorio %s: %v", entity.name, err)
 		}
 
-		repoPath := filepath.Join(projectName, "internal", "repository", strings.ToLower(entity.name)+"_repository.go")
+		repoPath := filepath.Join("internal", "repository", strings.ToLower(entity.name)+"_repository.go")
 		tc.AssertFileExists(repoPath)
 		t.Logf("✅ Repositorio generado: %s", entity.name)
 	}
 
 	// Compilar después de generar repositorios
-	tc.AssertGoBuild(projectName)
+	tc.AssertGoBuild(".")
 
 	// Paso 5: Generar handlers
 	t.Log("🔹 PASO 5: Generar handlers")
@@ -210,13 +213,13 @@ func TestFullWorkflow(t *testing.T) {
 			t.Fatalf("❌ Error al generar handler %s para %s: %v", handler.htype, handler.entity, err)
 		}
 
-		handlerPath := filepath.Join(projectName, "internal", "handler", handler.htype, strings.ToLower(handler.entity)+"_handler.go")
+		handlerPath := filepath.Join("internal", "handler", handler.htype, strings.ToLower(handler.entity)+"_handler.go")
 		tc.AssertFileExists(handlerPath)
 		t.Logf("✅ Handler %s generado para %s", handler.htype, handler.entity)
 	}
 
 	// Compilar después de generar handlers
-	tc.AssertGoBuild(projectName)
+	tc.AssertGoBuild(".")
 
 	// Paso 6: Generar inyección de dependencias
 	t.Log("🔹 PASO 6: Generar inyección de dependencias")
@@ -226,24 +229,22 @@ func TestFullWorkflow(t *testing.T) {
 		t.Fatalf("❌ Error al generar inyección de dependencias: %v", err)
 	}
 
-	diPath := filepath.Join(projectName, "internal", "di", "container.go")
+	diPath := filepath.Join("internal", "di", "container.go")
 	tc.AssertFileExists(diPath)
-	tc.AssertFileExists(filepath.Join(projectName, "internal", "di", "wire.go"))
+	tc.AssertFileExists(filepath.Join("internal", "di", "wire.go"))
 	t.Logf("✅ Inyección de dependencias generada")
 
-	// Paso 7: Integrar todo el proyecto
-	t.Log("🔹 PASO 7: Integrar todas las capas")
+	// Paso 7: Integrar todo
+	t.Log("🔹 PASO 7: Integrar componentes")
 
 	_, err = tc.RunCommand("integrate", "--all")
 	if err != nil {
-		t.Fatalf("❌ Error al integrar proyecto: %v", err)
+		t.Fatalf("❌ Error al integrar componentes: %v", err)
 	}
 
-	mainPath := filepath.Join(projectName, "cmd", "server", "main.go")
-	tc.AssertFileContains(mainPath, "userHandler")
-	tc.AssertFileContains(mainPath, "productHandler")
-	tc.AssertFileContains(mainPath, "orderHandler")
-	t.Logf("✅ Proyecto integrado correctamente")
+	mainPath := filepath.Join("cmd", "server", "main.go")
+	tc.AssertFileExists(mainPath)
+	tc.AssertFileContains(mainPath, "container.NewContainer")
 
 	// Verificar compilación final
 	t.Log("🔹 PASO 8: Verificación de compilación final")
