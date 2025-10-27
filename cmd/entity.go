@@ -23,6 +23,7 @@ without external dependencies and with complete business validations.`,
 		businessRules, _ := cmd.Flags().GetBool("business-rules")
 		timestamps, _ := cmd.Flags().GetBool("timestamps")
 		softDelete, _ := cmd.Flags().GetBool("soft-delete")
+		tests, _ := cmd.Flags().GetBool("tests")
 
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
@@ -121,7 +122,7 @@ without external dependencies and with complete business validations.`,
 			fileNamingConvention = configIntegration.GetNamingConvention("file")
 		}
 
-		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, fileNamingConvention)
+		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, tests, fileNamingConvention)
 
 		// Generate seed data automatically
 		if fields != "" {
@@ -136,11 +137,14 @@ without external dependencies and with complete business validations.`,
 			fmt.Printf("   - internal/domain/errors.go\n")
 		}
 		fmt.Printf("   - internal/domain/%s_seeds.go\n", strings.ToLower(entityName))
+		if tests {
+			fmt.Printf("   - internal/domain/%s_test.go\n", strings.ToLower(entityName))
+		}
 		fmt.Println("\nAll set! Your entity is ready to use.")
 	},
 }
 
-func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete bool, fileNamingConvention string) {
+func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete, tests bool, fileNamingConvention string) {
 	// Crear directorio domain si no existe
 	domainDir := "internal/domain"
 	_ = os.MkdirAll(domainDir, 0755)
@@ -170,6 +174,11 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 
 	// Generate seed data automatically
 	generateSeedData(domainDir, entityName, fieldsList)
+
+	// Generate unit tests if requested
+	if tests {
+		generateEntityTests(domainDir, entityName, fieldsList, validation, businessRules, fileNamingConvention)
+	}
 }
 
 // Field represents a single field definition for an entity structure.
@@ -885,5 +894,6 @@ func init() {
 	entityCmd.Flags().BoolP("business-rules", "b", false, "Include advanced business rules")
 	entityCmd.Flags().BoolP("timestamps", "t", false, "Include CreatedAt and UpdatedAt fields")
 	entityCmd.Flags().BoolP("soft-delete", "s", false, "Include soft delete (DeletedAt)")
+	entityCmd.Flags().Bool("tests", true, "Generate unit tests for the entity")
 	_ = entityCmd.MarkFlagRequired("fields")
 }

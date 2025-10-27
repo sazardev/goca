@@ -98,6 +98,31 @@ Adds:
 - `DeletedAt *time.Time`
 - `IsDeleted() bool` method
 
+### `--tests`
+
+Generate unit tests for the entity (enabled by default).
+
+```bash
+goca entity User --fields "name:string,email:string,age:int" --validation --tests
+```
+
+**Generates:** `internal/domain/user_test.go`
+
+Creates comprehensive test suite including:
+- **Validation tests**: Table-driven tests for `Validate()` method
+- **Initialization tests**: Verify field assignment
+- **Edge case tests**: Test boundary conditions for each field
+- **Type-specific tests**: String length, numeric ranges, email format, etc.
+
+**Disable tests:**
+```bash
+goca entity User --fields "name:string,email:string" --tests=false
+```
+
+::: tip Testing Best Practices
+Generated tests use [testify/assert](https://github.com/stretchr/testify) for readable assertions and follow table-driven test patterns recommended by the Go community.
+:::
+
 ## Examples
 
 ### Basic Entity
@@ -256,15 +281,129 @@ var (
 )
 ```
 
+### Entity with Unit Tests
+
+```bash
+goca entity User \
+  --fields "name:string,email:string,age:int" \
+  --validation \
+  --tests
+```
+
+**Generates:** `internal/domain/user_test.go`
+
+```go
+package domain
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+// TestUser_Validate tests the Validate method with various scenarios
+func TestUser_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		user    User
+		wantErr bool
+		errMsg   string
+	}{
+		{
+			name: "valid entity",
+			user: User{
+				Name: "John Doe",
+				Email: "test@example.com",
+				Age: 25,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid user - empty name",
+			user: User{
+				Name: "",
+				Email: "test@example.com",
+				Age: 25,
+			},
+			wantErr: true,
+			errMsg: "name",
+		},
+		{
+			name: "invalid user - negative age",
+			user: User{
+				Name: "John Doe",
+				Email: "test@example.com",
+				Age: -1,
+			},
+			wantErr: true,
+			errMsg: "age",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.user.Validate()
+			if tt.wantErr {
+				assert.Error(t, err)
+				if tt.errMsg != "" {
+					assert.Contains(t, err.Error(), tt.errMsg)
+				}
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+// TestUser_Initialization tests entity field initialization
+func TestUser_Initialization(t *testing.T) {
+	user := &User{
+		Name: "John Doe",
+		Email: "test@example.com",
+		Age: 25,
+	}
+
+	assert.Equal(t, "John Doe", user.Name, "Name should be set correctly")
+	assert.Equal(t, "test@example.com", user.Email, "Email should be set correctly")
+	assert.Equal(t, 25, user.Age, "Age should be set correctly")
+}
+
+// Additional field-specific tests for edge cases...
+```
+
+**Run tests:**
+```bash
+cd internal/domain
+go test -v -run TestUser
+```
+
+**Expected output:**
+```
+=== RUN   TestUser_Validate
+=== RUN   TestUser_Validate/valid_entity
+=== RUN   TestUser_Validate/invalid_user_-_empty_name
+=== RUN   TestUser_Validate/invalid_user_-_negative_age
+--- PASS: TestUser_Validate (0.00s)
+=== RUN   TestUser_Initialization
+--- PASS: TestUser_Initialization (0.00s)
+PASS
+ok      yourproject/internal/domain    0.013s
+```
+
 ## Generated Structure
 
 ```
 internal/
 └── domain/
     ├── order.go           # Main entity
-    ├── order_errors.go    # Domain errors (if --validation)
-    └── order_rules.go     # Business rules (if --business-rules)
+    ├── order_test.go      # Unit tests (if --tests)
+    ├── order_seeds.go     # Seed data
+    └── errors.go          # Domain errors (if --validation)
 ```
+
+::: info Note
+The `--tests` flag is enabled by default. All generated tests use table-driven patterns and testify/assert for clean, maintainable test code.
+:::
 
 ## Best Practices
 

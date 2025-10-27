@@ -196,7 +196,7 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 1. Generate Entity (Domain layer)
 	fmt.Println("1. Generating domain entity...")
-	generateEntity(featureName, fields, true, businessRules, false, false, fileNamingConvention)
+	generateEntity(featureName, fields, true, businessRules, false, false, true, fileNamingConvention)
 
 	// 2. Generate Use Case
 	fmt.Println("2. Generating use cases...")
