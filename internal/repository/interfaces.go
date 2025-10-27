@@ -28,12 +28,3 @@ type OrderRepository interface {
 	Delete(id int) error
 	FindAll() ([]domain.Order, error)
 }
-
-type TestFeatureRepository interface {
-	Save(testfeature *domain.TestFeature) error
-	FindByID(id int) (*domain.TestFeature, error)
-	FindByEmail(email string) (*domain.TestFeature, error)
-	Update(testfeature *domain.TestFeature) error
-	Delete(id int) error
-	FindAll() ([]domain.TestFeature, error)
-}

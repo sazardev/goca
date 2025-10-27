@@ -72,26 +72,3 @@ type ListOrderOutput struct {
 	Total   int            `json:"total"`
 	Message string         `json:"message"`
 }
-
-type CreateTestFeatureInput struct {
-	Name  string `json:"name" validate:"required,min=2"`
-	Email string `json:"email" validate:"required,email"`
-	Age   int    `json:"age" validate:"required,min=1"`
-}
-
-type CreateTestFeatureOutput struct {
-	TestFeature domain.TestFeature `json:"testfeature"`
-	Message     string             `json:"message"`
-}
-
-type UpdateTestFeatureInput struct {
-	Name  *string `json:"name,omitempty" validate:"omitempty,min=2"`
-	Email *string `json:"email,omitempty" validate:"omitempty,email"`
-	Age   *int    `json:"age,omitempty" validate:"omitempty,min=1"`
-}
-
-type ListTestFeatureOutput struct {
-	TestFeatures []domain.TestFeature `json:"testfeatures"`
-	Total        int                  `json:"total"`
-	Message      string               `json:"message"`
-}

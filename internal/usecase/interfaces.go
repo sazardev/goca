@@ -26,11 +26,3 @@ type OrderUseCase interface {
 	Delete(id uint) error
 	List() (*ListOrderOutput, error)
 }
-
-type TestFeatureUseCase interface {
-	Create(input CreateTestFeatureInput) (*CreateTestFeatureOutput, error)
-	GetByID(id uint) (*domain.TestFeature, error)
-	Update(id uint, input UpdateTestFeatureInput) (*domain.TestFeature, error)
-	Delete(id uint) error
-	List() (*ListTestFeatureOutput, error)
-}
