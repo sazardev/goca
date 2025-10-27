@@ -29,6 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Simplified feature test validations to accept flexible message formats
   - Improved test robustness by accepting both English and Spanish variations
 
+- **Fixed Module Dependencies**: Corrected testify dependency declaration
+  - Moved `github.com/stretchr/testify` from indirect to direct dependencies in `go.mod`
+  - Fixes GitHub Actions CI failure on `go mod tidy` check
+  - Properly declares direct usage in test files (`internal/testing/tests/*.go`)
+
 ### ✅ Quality Improvements
 - **Test Success Rate**: Improved from 96% to 99.04% (310/313 tests passing)
 - **Error Reduction**: Reduced test failures from 40 to 3 (92.5% improvement)
