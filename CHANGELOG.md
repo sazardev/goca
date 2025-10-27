@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎉 New Features
 
+#### Mock Generation for Unit Testing
+- **Auto-generate Test Mocks** (`--mocks`): Comprehensive mock generation for interfaces
+  - Generate mocks for repository, use case, and handler interfaces
+  - New command: `goca mocks [Entity]` generates all interface mocks
+  - Integrated with `goca feature` via `--mocks` flag
+  - Uses `testify/mock` package for full assertion support
+  - Method call verification and argument matchers included
+
+- **Mock Structure**:
+  - `internal/mocks/mock_{entity}_repository.go` - Repository mocks
+  - `internal/mocks/mock_{entity}_usecase.go` - Use case mocks
+  - `internal/mocks/mock_{entity}_handler.go` - Handler mocks
+  - `internal/mocks/examples/{entity}_mock_examples_test.go` - Usage examples
+
+- **Mock Features**:
+  - Complete method stubs for all interface methods
+  - Return value configuration support
+  - Call verification and assertions
+  - Argument matchers (any, type-specific, custom)
+  - Example test files with best practices
+  - Thread-safe implementations
+
 #### Integration Testing Scaffolding
 - **Auto-generate Integration Tests** (`--integration-tests`): Comprehensive test generation for features
   - Generate complete integration test suites with `goca test-integration` command
@@ -39,8 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 📝 Example Usage
 
 ```bash
-# Generate feature with integration tests
-goca feature User --fields "name:string,email:string" --integration-tests
+# Generate feature with all testing support
+goca feature User --fields "name:string,email:string" --integration-tests --mocks
+
+# Generate mocks for existing feature
+goca mocks Product
+goca mocks Order --repository --usecase
 
 # Generate integration tests for existing feature
 goca test-integration Product
@@ -48,15 +74,18 @@ goca test-integration Product
 # With test containers (CI/CD friendly)
 goca test-integration Order --container
 
-# Run integration tests
-go test ./internal/testing/integration -v
+# Run tests
+go test ./internal/mocks/... -v              # Unit tests with mocks
+go test ./internal/testing/integration -v    # Integration tests
 ```
 
-### 🎯 Testing Support
-- Supports PostgreSQL, MySQL, MongoDB, SQLite test databases
-- Test isolation via transactions or table truncation
+### 🎯 Complete Testing Support
+- **Unit Testing**: Mock generation with testify/mock
+- **Integration Testing**: Full database testing with fixtures
+- **Test Isolation**: Transaction-based or container-based
+- **CI/CD Ready**: GitHub Actions examples included
+- Supports PostgreSQL, MySQL, MongoDB, SQLite
 - Parallel test execution support
-- CI/CD integration examples (GitHub Actions)
 - Comprehensive documentation and best practices
 
 ## [1.14.1] - 2025-10-27

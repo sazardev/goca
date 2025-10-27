@@ -29,6 +29,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 		integrationTests, _ := cmd.Flags().GetBool("integration-tests")
 		testFixtures, _ := cmd.Flags().GetBool("test-fixtures")
 		testContainer, _ := cmd.Flags().GetBool("test-container")
+		generateMocksFlag, _ := cmd.Flags().GetBool("mocks")
 
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
@@ -183,6 +184,16 @@ including domain, use cases, repository and handlers in a single operation.`,
 			}
 		}
 
+		// 9. Generate mocks if requested
+		if generateMocksFlag {
+			fmt.Println("\n9. Generating mocks...")
+			if err := generateMocks(featureName, true, false, false, false); err != nil {
+				fmt.Printf("Warning: Could not generate mocks: %v\n", err)
+			} else {
+				fmt.Println("   Mocks generated successfully!")
+			}
+		}
+
 		fmt.Printf("\nFeature '%s' generated and integrated successfully!\n", featureName)
 		fmt.Println("\nGenerated structure:")
 		printFeatureStructure(featureName, handlers)
@@ -195,6 +206,9 @@ including domain, use cases, repository and handlers in a single operation.`,
 		if integrationTests {
 			fmt.Println("   - Integration tests generated")
 		}
+		if generateMocksFlag {
+			fmt.Println("   - Mock implementations generated")
+		}
 
 		fmt.Println("\nNext steps:")
 		fmt.Println("   1. Run: go mod tidy")
@@ -203,10 +217,17 @@ including domain, use cases, repository and handlers in a single operation.`,
 		if integrationTests {
 			fmt.Printf("   4. Run integration tests: go test ./internal/testing/integration -v\n")
 		}
+		if generateMocksFlag {
+			fmt.Printf("   %d. Use mocks in tests: see internal/mocks/examples/ for examples\n", 
+				func() int { if integrationTests { return 5 } else { return 4 } }())
+		}
 
 		fmt.Println("\nAdditional useful commands:")
 		fmt.Println("   goca integrate --all     # Integrate existing features")
 		fmt.Printf("   goca feature Product --fields \"name:string,price:float64\"  # Add another feature\n")
+		if !generateMocksFlag {
+			fmt.Printf("   goca mocks %s           # Generate mocks for this feature\n", featureName)
+		}
 	},
 }
 
@@ -515,6 +536,7 @@ func init() {
 	featureCmd.Flags().Bool("integration-tests", false, "Generate integration tests for the feature")
 	featureCmd.Flags().Bool("test-fixtures", true, "Generate test fixtures (used with --integration-tests)")
 	featureCmd.Flags().Bool("test-container", false, "Use test containers for database (used with --integration-tests)")
+	featureCmd.Flags().Bool("mocks", false, "Generate mock implementations for unit testing")
 
 	_ = featureCmd.MarkFlagRequired("fields")
 }
