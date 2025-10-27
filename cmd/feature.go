@@ -218,8 +218,14 @@ including domain, use cases, repository and handlers in a single operation.`,
 			fmt.Printf("   4. Run integration tests: go test ./internal/testing/integration -v\n")
 		}
 		if generateMocksFlag {
-			fmt.Printf("   %d. Use mocks in tests: see internal/mocks/examples/ for examples\n", 
-				func() int { if integrationTests { return 5 } else { return 4 } }())
+			fmt.Printf("   %d. Use mocks in tests: see internal/mocks/examples/ for examples\n",
+				func() int {
+					if integrationTests {
+						return 5
+					} else {
+						return 4
+					}
+				}())
 		}
 
 		fmt.Println("\nAdditional useful commands:")

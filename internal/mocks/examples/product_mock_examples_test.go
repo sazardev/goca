@@ -129,8 +129,8 @@ func TestSaveproduct_WithArgumentMatchers(t *testing.T) {
 	mockRepo := mocks.NewMockProductRepository()
 
 	// Match any product with specific field value
-	mockRepo.On("Save", mock.MatchedBy(func(Product *domain.Product) bool {
-		return Product.ID > 0
+	mockRepo.On("Save", mock.MatchedBy(func(product *domain.Product) bool {
+		return product.ID > 0
 	})).Return(nil)
 
 	// Test with matching condition
@@ -147,9 +147,9 @@ func TestSaveproduct_WithArgumentMatchers(t *testing.T) {
 }
 
 // Example: Testing method call verification
-func TestDelete%!s(MISSING)_CallVerification(t *testing.T) {
-	mockRepo := mocks.NewMock%!s(MISSING)Repository()
-	service := usecase.New%!s(MISSING)Service(mockRepo)
+func TestDeleteProduct_CallVerification(t *testing.T) {
+	mockRepo := mocks.NewMockProductRepository()
+	service := usecase.NewProductService(mockRepo)
 
 	mockRepo.On("Delete", 1).Return(nil)
 

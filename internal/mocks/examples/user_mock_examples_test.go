@@ -129,8 +129,8 @@ func TestSaveuser_WithArgumentMatchers(t *testing.T) {
 	mockRepo := mocks.NewMockUserRepository()
 
 	// Match any user with specific field value
-	mockRepo.On("Save", mock.MatchedBy(func(User *domain.User) bool {
-		return User.ID > 0
+	mockRepo.On("Save", mock.MatchedBy(func(user *domain.User) bool {
+		return user.ID > 0
 	})).Return(nil)
 
 	// Test with matching condition
@@ -147,9 +147,9 @@ func TestSaveuser_WithArgumentMatchers(t *testing.T) {
 }
 
 // Example: Testing method call verification
-func TestDelete%!s(MISSING)_CallVerification(t *testing.T) {
-	mockRepo := mocks.NewMock%!s(MISSING)Repository()
-	service := usecase.New%!s(MISSING)Service(mockRepo)
+func TestDeleteUser_CallVerification(t *testing.T) {
+	mockRepo := mocks.NewMockUserRepository()
+	service := usecase.NewUserService(mockRepo)
 
 	mockRepo.On("Delete", 1).Return(nil)
 

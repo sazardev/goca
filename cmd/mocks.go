@@ -500,29 +500,33 @@ func TestDelete%s_CallVerification(t *testing.T) {
 	mockRepo.AssertNotCalled(t, "FindByID")
 }
 `,
-		entityName,
-		entityName, entityName, entityName,
-		entityName, entityName,
-		entityName,
-		lowerEntity, entityName, lowerEntity,
-		entityName, entityName,
-		entityName,
-		entityName,
-		entityName, entityName,
-		lowerEntity,
-		entityName,
-		entityName, entityName,
-		entityName, entityName,
-		entityName,
-		entityName, entityName,
-		entityName,
-		entityName, entityName, entityName, entityName,
-		entityName,
-		entityName,
-		entityName, lowerEntity, entityName, lowerEntity,
-		entityName, entityName, entityName,
-		entityName, entityName, entityName,
-		entityName,
-		entityName, entityName,
+		entityName,                                   // TestCreate%s_WithMockRepository
+		entityName, entityName, entityName,           // NewMock%sRepository, New%sService, Create%sInput
+		entityName, entityName,                       // expected%s, domain.%s
+		entityName,                                   // *domain.%s
+		lowerEntity, entityName, lowerEntity,         // %s := args.Get(0), domain.%s, %s.ID = 1
+		entityName, entityName,                       // expected%s.ID, output.%s.ID
+		entityName,                                   // *domain.%s
+		entityName,                                   // TestGet%sByID_NotFound
+		entityName, entityName,                       // NewMock%sRepository, New%sService
+		lowerEntity,                                  // %s not found
+		entityName,                                   // TestUpdate%s_WithMockRepository
+		entityName, entityName,                       // NewMock%sRepository, New%sService
+		entityName, entityName,                       // existing%s, domain.%s
+		entityName,                                   // Update%sInput
+		entityName, entityName,                       // existing%s, *domain.%s
+		entityName,                                   // TestCreate%sHandler
+		entityName, entityName, entityName,           // NewMock%sUseCase, New%sHandler, Create%sOutput
+		entityName, entityName,                       // %s: domain.%s
+		entityName,                                   // %s created successfully
+		entityName,                                   // Create%sInput
+		lowerEntity,                                  // TestSave%s_WithArgumentMatchers
+		entityName,                                   // NewMock%sRepository
+		lowerEntity,                                  // Match any %s with
+		lowerEntity, entityName, lowerEntity,         // func(%s *domain.%s) bool, %s.ID > 0
+		entityName, entityName, entityName,           // valid%s, domain.%s, valid%s
+		entityName, entityName, entityName,           // invalid%s, domain.%s, invalid%s
+		entityName,                                   // TestDelete%s_CallVerification
+		entityName, entityName,                       // NewMock%sRepository, New%sService
 	)
 }
