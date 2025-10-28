@@ -1,12 +1,11 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-    title: "Goca - Go Clean Architecture Generator",
+    title: "Goca",
     titleTemplate: ":title | Goca Docs",
     description: "CLI code generator for Go that helps you build production-ready applications following Clean Architecture principles. Generate entities, use cases, repositories, and handlers in seconds.",
     base: '/goca/',
     lang: 'en-US',
-
     head: [
         // Favicons - using existing files
         ['link', { rel: 'icon', type: 'image/x-icon', href: '/goca/favicon.ico' }],
