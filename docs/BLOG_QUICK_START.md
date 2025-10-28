@@ -15,11 +15,13 @@ A complete, professional blog system for the Goca documentation with:
 
 ## Quick Links
 
-- Blog Home: http://localhost:3567/goca/blog/
-- Articles: http://localhost:3567/goca/blog/articles/
-- Releases: http://localhost:3567/goca/blog/releases/
-- Latest Release: http://localhost:3567/goca/blog/releases/v1-14-1
-- Example Article: http://localhost:3567/goca/blog/articles/example-showcase
+- Blog Home: [http://localhost:3567/goca/blog/](http://localhost:3567/goca/blog/)
+- Articles: [http://localhost:3567/goca/blog/articles/](http://localhost:3567/goca/blog/articles/)
+- Releases: [http://localhost:3567/goca/blog/releases/](http://localhost:3567/goca/blog/releases/)
+- Latest Release: [http://localhost:3567/goca/blog/releases/v1-14-1](http://localhost:3567/goca/blog/releases/v1-14-1)
+- Example Article: [http://localhost:3567/goca/blog/articles/example-showcase](http://localhost:3567/goca/blog/articles/example-showcase)
+
+Note: These localhost links are for development only. In production, use relative paths without the base URL.
 
 ## File Structure
 

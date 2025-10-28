@@ -62,7 +62,7 @@ In-depth articles covering Clean Architecture patterns, best practices, testing 
 
 <div class="article-item">
   <h3>
-    <a href="/blog/articles/example-showcase">Advanced Features Showcase</a>
+    <a href="/goca/blog/articles/example-showcase">Advanced Features Showcase</a>
   </h3>
   <p>Demonstration of blog post capabilities including Mermaid diagrams, code blocks, and markdown features. Learn how to leverage VitePress features for technical documentation.</p>
   <div class="article-meta">Example • Tutorial</div>

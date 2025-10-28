@@ -88,7 +88,7 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
-      <a href="/blog/releases/v1-14-1">v1.14.1</a>
+      <a href="/goca/blog/releases/v1-14-1">v1.14.1</a>
       <span class="badge badge-latest">Latest</span>
     </h2>
     <span class="release-date">October 27, 2025</span>

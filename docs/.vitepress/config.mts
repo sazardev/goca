@@ -1,21 +1,23 @@
 import { defineConfig } from 'vitepress'
-import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default withMermaid(defineConfig({
+export default defineConfig({
     title: "Goca",
     titleTemplate: ":title | Goca Docs",
     description: "CLI code generator for Go that helps you build production-ready applications following Clean Architecture principles. Generate entities, use cases, repositories, and handlers in seconds.",
     base: '/goca/',
     lang: 'en-US',
+    ignoreDeadLinks: [
+        // Ignore localhost links in documentation
+        /^http:\/\/localhost/,
+        // Ignore relative links to files outside docs folder
+        /STYLE_GUIDE/
+    ],
     markdown: {
         theme: {
             light: 'github-light',
             dark: 'github-dark'
         },
-        lineNumbers: true,
-        config: (md) => {
-            // Mermaid support will be automatically handled by VitePress
-        }
+        lineNumbers: true
     },
     head: [
         // Favicons - using existing files
@@ -205,4 +207,4 @@ export default withMermaid(defineConfig({
 
         }
     }
-}))
+})

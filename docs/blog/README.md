@@ -191,6 +191,24 @@ More content...
 
 ## Styling Guidelines
 
+### CRITICAL: Link Format
+
+All internal blog links **MUST** include the `/goca/` base path:
+
+```markdown
+✅ CORRECT:
+[Article](/goca/blog/articles/example-showcase)
+<a href="/goca/blog/releases/v1-14-1">Release</a>
+
+❌ WRONG (causes 404):
+[Article](/blog/articles/example-showcase)
+<a href="/blog/releases/v1-14-1">Release</a>
+```
+
+**Why**: VitePress uses `base: '/goca/'` in config.mts. While navigation items get the base path automatically, HTML anchor tags and markdown links require explicit `/goca/` prefix.
+
+**Validation**: Run `npm run validate-links` before committing to catch broken links.
+
 ### Consistency
 
 - Use clean, professional language

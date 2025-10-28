@@ -10,25 +10,25 @@ hero:
   actions:
     - theme: brand
       text: Latest Release
-      link: /blog/releases/v1-14-1
+      link: /goca/blog/releases/v1-14-1
     - theme: alt
       text: All Articles
-      link: /blog/articles/
+      link: /goca/blog/articles/
 
 features:
   - title: Release Notes
     details: Comprehensive changelogs and release announcements for each version
-    link: /blog/releases/
+    link: /goca/blog/releases/
     linkText: View Releases
 
   - title: Articles
     details: In-depth articles on Clean Architecture patterns, best practices, and advanced techniques
-    link: /blog/articles/
+    link: /goca/blog/articles/
     linkText: Read Articles
 
   - title: Architecture Insights
     details: Deep dives into design decisions, trade-offs, and architectural patterns used in Goca
-    link: /guide/clean-architecture
+    link: /goca/guide/clean-architecture
     linkText: Learn More
 ---
 
@@ -44,12 +44,12 @@ features:
 
 ## Latest Release
 
-### [v1.14.1 - Test Suite Improvements](/blog/releases/v1-14-1)
+### [v1.14.1 - Test Suite Improvements](/goca/blog/releases/v1-14-1)
 *October 27, 2025*
 
 Major improvements to test reliability and Windows compatibility. Fixed path handling, working directory management, and module dependencies. Test success rate improved to 99.04%.
 
-[Read full release notes](/blog/releases/v1-14-1)
+[Read full release notes](/goca/blog/releases/v1-14-1)
 
 ---
 
