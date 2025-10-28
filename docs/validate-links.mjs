@@ -19,25 +19,25 @@ const BLOG_DIR = path.join(__dirname, 'blog');
  * Extract all links from markdown content (excluding code blocks)
  */
 function extractLinks(content) {
-  // Remove code blocks first
-  const withoutCodeBlocks = content.replace(/```[\s\S]*?```/g, '');
-  
-  const links = new Set();
-  
-  // [text](url)
-  const mdRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-  let match;
-  while ((match = mdRegex.exec(withoutCodeBlocks)) !== null) {
-    links.add(match[2]);
-  }
-  
-  // href="url"
-  const hrefRegex = /href=["']([^"']+)["']/g;
-  while ((match = hrefRegex.exec(withoutCodeBlocks)) !== null) {
-    links.add(match[1]);
-  }
-  
-  return Array.from(links);
+    // Remove code blocks first
+    const withoutCodeBlocks = content.replace(/```[\s\S]*?```/g, '');
+
+    const links = new Set();
+
+    // [text](url)
+    const mdRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let match;
+    while ((match = mdRegex.exec(withoutCodeBlocks)) !== null) {
+        links.add(match[2]);
+    }
+
+    // href="url"
+    const hrefRegex = /href=["']([^"']+)["']/g;
+    while ((match = hrefRegex.exec(withoutCodeBlocks)) !== null) {
+        links.add(match[1]);
+    }
+
+    return Array.from(links);
 }/**
  * Check if link needs base path validation
  */

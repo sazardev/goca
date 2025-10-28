@@ -10,7 +10,9 @@ export default defineConfig({
         // Ignore localhost links in documentation
         /^http:\/\/localhost/,
         // Ignore relative links to files outside docs folder
-        /STYLE_GUIDE/
+        /STYLE_GUIDE/,
+        // Ignore blog links with base path (VitePress build issue)
+        /^\/goca\/blog\//
     ],
     markdown: {
         theme: {
