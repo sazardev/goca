@@ -1,11 +1,22 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default defineConfig({
+export default withMermaid(defineConfig({
     title: "Goca",
     titleTemplate: ":title | Goca Docs",
     description: "CLI code generator for Go that helps you build production-ready applications following Clean Architecture principles. Generate entities, use cases, repositories, and handlers in seconds.",
     base: '/goca/',
     lang: 'en-US',
+    markdown: {
+        theme: {
+            light: 'github-light',
+            dark: 'github-dark'
+        },
+        lineNumbers: true,
+        config: (md) => {
+            // Mermaid support will be automatically handled by VitePress
+        }
+    },
     head: [
         // Favicons - using existing files
         ['link', { rel: 'icon', type: 'image/x-icon', href: '/goca/favicon.ico' }],
@@ -90,6 +101,7 @@ export default defineConfig({
             { text: 'Guide', link: '/guide/introduction' },
             { text: 'Commands', link: '/commands/init' },
             { text: 'Features', link: '/features/safety-and-dependencies' },
+            { text: 'Blog', link: '/blog/' },
             { text: 'GitHub', link: 'https://github.com/sazardev/goca' }
         ],
 
@@ -148,6 +160,22 @@ export default defineConfig({
                         { text: 'Database Support', link: '/features/database-support' },
                     ]
                 }
+            ],
+            '/blog/': [
+                {
+                    text: 'Blog',
+                    items: [
+                        { text: 'Overview', link: '/blog/' },
+                        { text: 'Articles', link: '/blog/articles/' },
+                        { text: 'Releases', link: '/blog/releases/' },
+                    ]
+                },
+                {
+                    text: 'Latest Release',
+                    items: [
+                        { text: 'v1.14.1', link: '/blog/releases/v1-14-1' },
+                    ]
+                }
             ]
         },
 
@@ -177,4 +205,4 @@ export default defineConfig({
 
         }
     }
-})
+}))
