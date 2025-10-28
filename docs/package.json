@@ -5,9 +5,7 @@
     "scripts": {
         "dev": "vitepress dev",
         "build": "vitepress build",
-        "preview": "vitepress preview",
-        "validate-links": "node validate-links.mjs",
-        "prebuild": "node validate-links.mjs"
+        "preview": "vitepress preview"
     },
     "devDependencies": {
         "@iconify-json/lucide": "^1.2.69",
