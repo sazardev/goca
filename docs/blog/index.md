@@ -55,6 +55,13 @@ Major improvements to test reliability and Windows compatibility. Fixed path han
 
 ## Recent Articles
 
+### [Mastering Use Cases in Clean Architecture](/blog/articles/mastering-use-cases)
+*October 29, 2025*
+
+A deep dive into use cases and application services. Learn what use cases are, how they differ from controllers, DTOs patterns, and how Goca generates complete application layer code with orchestration logic and best practices.
+
+[Read article](/blog/articles/mastering-use-cases)
+
 ### [Understanding Domain Entities in Clean Architecture](/blog/articles/understanding-domain-entities)
 *October 29, 2025*
 

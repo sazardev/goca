@@ -62,6 +62,20 @@ In-depth articles covering Clean Architecture patterns, best practices, testing 
 
 <div class="article-item">
   <h3>
+    <a href="/goca/blog/articles/mastering-use-cases">Mastering Use Cases in Clean Architecture</a>
+  </h3>
+  <p>A deep dive into use cases, application services, and DTOs. Learn what use cases are, how they orchestrate business workflows, and how Goca generates production-ready application layer code with comprehensive examples.</p>
+  <div class="article-meta">Architecture • Application Layer</div>
+  <div class="article-tags">
+    <span class="article-tag">Use Cases</span>
+    <span class="article-tag">Application Services</span>
+    <span class="article-tag">DTOs</span>
+    <span class="article-tag">Clean Architecture</span>
+  </div>
+</div>
+
+<div class="article-item">
+  <h3>
     <a href="/goca/blog/articles/understanding-domain-entities">Understanding Domain Entities in Clean Architecture</a>
   </h3>
   <p>A comprehensive guide to domain entities, their role in Clean Architecture, and how Goca generates production-ready entities following DDD principles. Learn the critical distinction between entities and models, best practices, and testing strategies.</p>
