@@ -171,7 +171,7 @@ Your conclusions and takeaways...
 
 ## Resources
 
-- **Full Documentation**: [OG-IMAGE-SYSTEM.md](./OG-IMAGE-SYSTEM.md)
+- **Full Documentation**: [OG-IMAGE-SYSTEM.md](../../OG-IMAGE-SYSTEM.md)
 - **VitePress Docs**: https://vitepress.dev/
 - **Social Media Image Specs**: https://www.designyourway.net/blog/social-media-image-sizes/
 
