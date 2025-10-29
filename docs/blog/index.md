@@ -55,7 +55,18 @@ Major improvements to test reliability and Windows compatibility. Fixed path han
 
 ## Recent Articles
 
-Coming soon. Stay tuned for articles on:
+### [Understanding Domain Entities in Clean Architecture](/blog/articles/understanding-domain-entities)
+*October 29, 2025*
+
+A comprehensive guide to domain entities in Clean Architecture. Learn what entities are, why they're not database models, DDD principles, and how Goca generates production-ready entities with validation and business rules.
+
+[Read article](/blog/articles/understanding-domain-entities)
+
+---
+
+## Coming Soon
+
+Stay tuned for more articles on:
 - Building scalable microservices with Clean Architecture
 - Advanced testing strategies with Goca
 - Database migration patterns and best practices

@@ -62,6 +62,20 @@ In-depth articles covering Clean Architecture patterns, best practices, testing 
 
 <div class="article-item">
   <h3>
+    <a href="/goca/blog/articles/understanding-domain-entities">Understanding Domain Entities in Clean Architecture</a>
+  </h3>
+  <p>A comprehensive guide to domain entities, their role in Clean Architecture, and how Goca generates production-ready entities following DDD principles. Learn the critical distinction between entities and models, best practices, and testing strategies.</p>
+  <div class="article-meta">Architecture • Domain-Driven Design</div>
+  <div class="article-tags">
+    <span class="article-tag">Domain Entities</span>
+    <span class="article-tag">Clean Architecture</span>
+    <span class="article-tag">DDD</span>
+    <span class="article-tag">Best Practices</span>
+  </div>
+</div>
+
+<div class="article-item">
+  <h3>
     <a href="/goca/blog/articles/example-showcase">Advanced Features Showcase</a>
   </h3>
   <p>Demonstration of blog post capabilities including Mermaid diagrams, code blocks, and markdown features. Learn how to leverage VitePress features for technical documentation.</p>
