@@ -3,6 +3,12 @@ layout: doc
 title: Understanding Domain Entities in Clean Architecture
 titleTemplate: Articles | Goca Blog
 description: A comprehensive guide to domain entities, their role in Clean Architecture, and how Goca generates production-ready entities following DDD principles
+tags:
+  - Domain Entities
+  - Clean Architecture
+  - DDD
+  - Go
+  - Goca
 ---
 
 <script setup>

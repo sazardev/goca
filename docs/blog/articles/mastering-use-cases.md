@@ -3,6 +3,12 @@ layout: doc
 title: Mastering Use Cases in Clean Architecture
 titleTemplate: Articles | Goca Blog
 description: A deep dive into use cases, application services, DTOs, and how they orchestrate business workflows while maintaining clean separation of concerns
+tags:
+  - Use Cases
+  - Application Services
+  - DTOs
+  - Clean Architecture
+  - Go
 ---
 
 <script setup>

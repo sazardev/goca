@@ -1,16 +1,25 @@
 {
     "name": "goca-docs",
     "version": "2.0.0",
+    "type": "module",
     "description": "Documentation for Goca - Go Clean Architecture Code Generator",
     "scripts": {
         "dev": "vitepress dev",
-        "build": "vitepress build",
+        "build": "npm run build:og-images && vitepress build",
+        "build:og-images": "node scripts/generate-og-images.js",
         "preview": "vitepress preview"
     },
     "devDependencies": {
         "@iconify-json/lucide": "^1.2.69",
         "@iconify/vue": "^5.0.0",
+        "@types/node": "^22.10.2",
+        "@vercel/og": "^0.6.2",
+        "fs-extra": "^11.2.0",
+        "glob": "^11.0.0",
+        "gray-matter": "^4.0.3",
         "mermaid": "^11.12.1",
+        "satori": "^0.10.14",
+        "sharp": "^0.33.5",
         "vitepress": "^1.0.0-rc.31",
         "vitepress-plugin-mermaid": "^2.0.17"
     },

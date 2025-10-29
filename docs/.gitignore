@@ -1,9 +1,13 @@
 node_modules
 .vitepress/dist
 .vitepress/cache
+.vitepress/og-images-map.json
 .DS_Store
 *.log
 yarn.lock
 pnpm-lock.yaml
 generate-og-image.html
 create-og-image.js
+
+# Generated OG images (created at build time)
+public/og-images/

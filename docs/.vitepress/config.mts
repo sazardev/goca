@@ -1,4 +1,21 @@
 import { defineConfig } from 'vitepress'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
+import { existsSync, readFileSync } from 'fs'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+// Load OG images mapping
+let ogImagesMap: Array<{ articlePath: string; imagePath: string }> = [];
+try {
+    const mapPath = resolve(__dirname, 'og-images-map.json');
+    if (existsSync(mapPath)) {
+        ogImagesMap = JSON.parse(readFileSync(mapPath, 'utf-8'));
+    }
+} catch (error) {
+    console.warn('⚠️  Could not load OG images map:', (error as Error).message);
+}
 
 export default defineConfig({
     title: "Goca",
@@ -96,6 +113,61 @@ export default defineConfig({
             'license': 'https://opensource.org/licenses/MIT'
         })],
     ],
+
+    // Transform head tags per page (dynamic OG images)
+    async transformHead({ pageData }) {
+        const head: any[] = [];
+
+        // Only apply to blog articles
+        if (pageData.relativePath.startsWith('blog/articles/') && !pageData.relativePath.endsWith('index.md')) {
+            // Find matching OG image
+            const articlePath = pageData.relativePath.replace(/\\/g, '/');
+            const ogImage = ogImagesMap.find(img => articlePath.includes(img.articlePath.replace('.md', '')));
+
+            if (ogImage) {
+                const ogImageUrl = `https://sazardev.github.io/goca${ogImage.imagePath}`;
+
+                // Override default OG image for this article
+                head.push(
+                    ['meta', { property: 'og:image', content: ogImageUrl }],
+                    ['meta', { property: 'og:image:width', content: '1200' }],
+                    ['meta', { property: 'og:image:height', content: '630' }],
+                    ['meta', { property: 'og:image:alt', content: pageData.title || 'Goca Blog Article' }],
+                    ['meta', { name: 'twitter:image', content: ogImageUrl }],
+                    ['meta', { name: 'twitter:image:alt', content: pageData.title || 'Goca Blog Article' }],
+                    ['meta', { name: 'twitter:card', content: 'summary_large_image' }]
+                );
+            }
+
+            // Add article-specific meta tags
+            if (pageData.title) {
+                head.push(
+                    ['meta', { property: 'og:title', content: `${pageData.title} | Goca Blog` }],
+                    ['meta', { name: 'twitter:title', content: `${pageData.title} | Goca Blog` }]
+                );
+            }
+
+            if (pageData.description) {
+                head.push(
+                    ['meta', { property: 'og:description', content: pageData.description }],
+                    ['meta', { name: 'twitter:description', content: pageData.description }]
+                );
+            }
+
+            // Add article type
+            head.push(
+                ['meta', { property: 'og:type', content: 'article' }],
+                ['meta', { property: 'article:author', content: 'sazardev' }]
+            );
+
+            // Canonical URL for article
+            const canonicalUrl = `https://sazardev.github.io/goca/${pageData.relativePath.replace(/\.md$/, '.html')}`;
+            head.push(['link', { rel: 'canonical', href: canonicalUrl }]);
+        }
+
+        return head;
+    },
+
     themeConfig: {
         logo: '/logo.svg',
 
