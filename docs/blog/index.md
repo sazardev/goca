@@ -55,6 +55,13 @@ Major improvements to test reliability and Windows compatibility. Fixed path han
 
 ## Recent Articles
 
+### [Mastering the Repository Pattern in Clean Architecture](/blog/articles/mastering-repository-pattern)
+*October 29, 2025*
+
+A comprehensive guide to the Repository pattern in Clean Architecture. Learn the difference between repositories and DAOs, how to design clean interfaces, implement database-specific code, and how Goca generates production-ready repositories with complete abstraction.
+
+[Read article](/blog/articles/mastering-repository-pattern)
+
 ### [Mastering Use Cases in Clean Architecture](/blog/articles/mastering-use-cases)
 *October 29, 2025*
 

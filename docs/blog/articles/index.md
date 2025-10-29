@@ -62,6 +62,20 @@ In-depth articles covering Clean Architecture patterns, best practices, testing 
 
 <div class="article-item">
   <h3>
+    <a href="/goca/blog/articles/mastering-repository-pattern">Mastering the Repository Pattern in Clean Architecture</a>
+  </h3>
+  <p>A comprehensive guide to the Repository pattern and data access abstraction. Learn what repositories are, how they differ from DAOs, interface design principles, and how Goca generates database-agnostic implementations that maintain Clean Architecture boundaries.</p>
+  <div class="article-meta">Architecture • Infrastructure Layer</div>
+  <div class="article-tags">
+    <span class="article-tag">Repository Pattern</span>
+    <span class="article-tag">Data Access</span>
+    <span class="article-tag">Infrastructure</span>
+    <span class="article-tag">Clean Architecture</span>
+  </div>
+</div>
+
+<div class="article-item">
+  <h3>
     <a href="/goca/blog/articles/mastering-use-cases">Mastering Use Cases in Clean Architecture</a>
   </h3>
   <p>A deep dive into use cases, application services, and DTOs. Learn what use cases are, how they orchestrate business workflows, and how Goca generates production-ready application layer code with comprehensive examples.</p>
