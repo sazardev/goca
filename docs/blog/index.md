@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: Latest Release
-      link: /blog/releases/v1-14-1
+      link: /blog/releases/v1-17-1
     - theme: alt
       text: All Articles
       link: /blog/articles/
@@ -44,10 +44,10 @@ features:
 
 ## Latest Release
 
-### [v1.14.1 - Test Suite Improvements](/blog/releases/v1-14-1)
-*October 27, 2025*
+### [v1.17.1 - Database Driver Configuration Fix](/blog/releases/v1-17-1)
+*January 11, 2026*
 
-Major improvements to test reliability and Windows compatibility. Fixed path handling, working directory management, and module dependencies. Test success rate improved to 99.04%.
+Critical bug fix resolving database driver configuration issues. SQLite and other non-PostgreSQL databases now properly configured during project initialization. Fixes issue #31.
 
 [Read full release notes](/blog/releases/v1-14-1)
 

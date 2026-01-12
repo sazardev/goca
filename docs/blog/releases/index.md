@@ -88,8 +88,29 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
-      <a href="/goca/blog/releases/v1-14-1">v1.14.1</a>
+      <a href="/goca/blog/releases/v1-17-1">v1.17.1</a>
       <span class="badge badge-latest">Latest</span>
+    </h2>
+    <span class="release-date">January 11, 2026</span>
+  </div>
+  <p class="release-description">
+    Critical Bug Fix - SQLite and other database drivers now properly configured during project initialization. Resolves issue #31.
+  </p>
+  <div class="release-highlights">
+    <strong>Bug Fixes:</strong>
+    <ul>
+      <li>✅ Fixed database driver configuration during <code>goca init</code></li>
+      <li>✅ SQLite, MySQL, SQL Server, MongoDB, DynamoDB, and Elasticsearch now generate correct dependencies</li>
+      <li>✅ Main.go now imports and uses correct database driver package</li>
+      <li>✅ All 8 supported database types verified working</li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-14-1">v1.14.1</a>
     </h2>
     <span class="release-date">October 27, 2025</span>
   </div>

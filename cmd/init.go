@@ -142,7 +142,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	createGoMod(projectName, module, database, auth)
 
 	// Create main.go
-	createMainGo(projectName, module, api)
+	createMainGo(projectName, module, database)
 
 	// Create .gitignore
 	createGitignore(projectName)
@@ -218,19 +218,42 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 func createGoMod(projectName, module, database string, auth bool) {
 	var dependencies string
 
-	// Base dependencies
-	baseDeps := `github.com/gorilla/mux v1.8.0
+	// Base dependencies (common to all)
+	baseDeps := `github.com/gorilla/mux v1.8.0`
+
+	// Add database-specific dependencies
+	switch database {
+	case DBPostgres, DBPostgresJSON:
+		baseDeps += `
 	gorm.io/gorm v1.25.5
 	gorm.io/driver/postgres v1.5.4`
-
-	switch database {
 	case DBMySQL:
 		baseDeps += `
+	gorm.io/gorm v1.25.5
 	gorm.io/driver/mysql v1.5.2`
+	case DBSQLite:
+		baseDeps += `
+	gorm.io/gorm v1.25.5
+	gorm.io/driver/sqlite v1.5.4`
+	case DBSQLServer:
+		baseDeps += `
+	gorm.io/gorm v1.25.5
+	gorm.io/driver/sqlserver v1.5.2`
 	case DBMongoDB:
 		baseDeps += `
 	go.mongodb.org/mongo-driver v1.12.1`
-	default: // postgres - already included above
+	case DBDynamoDB:
+		baseDeps += `
+	github.com/aws/aws-sdk-go-v2 v1.21.0
+	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.21.5
+	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.10.39`
+	case DBElasticsearch:
+		baseDeps += `
+	github.com/elastic/go-elasticsearch/v8 v8.10.1`
+	default: // postgres as fallback
+		baseDeps += `
+	gorm.io/gorm v1.25.5
+	gorm.io/driver/postgres v1.5.4`
 	}
 
 	// Add JWT dependency if auth is enabled
@@ -280,11 +303,50 @@ func downloadDependencies(projectName string) error {
 	return nil
 }
 
-func createMainGo(projectName, module, _ string) {
-	content := fmt.Sprintf(`package main
+func createMainGo(projectName, module, database string) {
+	// Determine database driver import based on database type
+	var dbDriverImport string
+	var dbDriverPackage string
+	var requiresGorm bool
 
-import (
-	"context"
+	switch database {
+	case DBPostgres, DBPostgresJSON:
+		dbDriverImport = `"gorm.io/driver/postgres"`
+		dbDriverPackage = "postgres"
+		requiresGorm = true
+	case DBMySQL:
+		dbDriverImport = `"gorm.io/driver/mysql"`
+		dbDriverPackage = "mysql"
+		requiresGorm = true
+	case DBSQLite:
+		dbDriverImport = `"gorm.io/driver/sqlite"`
+		dbDriverPackage = "sqlite"
+		requiresGorm = true
+	case DBSQLServer:
+		dbDriverImport = `"gorm.io/driver/sqlserver"`
+		dbDriverPackage = "sqlserver"
+		requiresGorm = true
+	case DBMongoDB:
+		dbDriverImport = `"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"`
+		dbDriverPackage = "mongo"
+		requiresGorm = false
+	case DBDynamoDB:
+		dbDriverImport = `"github.com/aws/aws-sdk-go-v2/service/dynamodb"`
+		dbDriverPackage = "dynamodb"
+		requiresGorm = false
+	case DBElasticsearch:
+		dbDriverImport = `"github.com/elastic/go-elasticsearch/v8"`
+		dbDriverPackage = "elasticsearch"
+		requiresGorm = false
+	default:
+		dbDriverImport = `"gorm.io/driver/postgres"`
+		dbDriverPackage = "postgres"
+		requiresGorm = true
+	}
+
+	// Build imports
+	importLines := `"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -294,11 +356,23 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/mux"
-	"gorm.io/gorm"
-	"gorm.io/driver/postgres"
+	"github.com/gorilla/mux"`
+
+	if requiresGorm {
+		importLines += `
+	"gorm.io/gorm"`
+	}
+
+	importLines += fmt.Sprintf(`
+	%s
 	"%s/pkg/config"
-	"%s/pkg/logger"
+	"%s/pkg/logger"`, dbDriverImport, module, module)
+
+	// Generate main.go content with database-specific connection
+	content := fmt.Sprintf(`package main
+
+import (
+	%s
 )
 
 type HealthStatus struct {
@@ -322,14 +396,14 @@ func main() {
 	// Initialize logger
 	logger.Init()
 	
-	log.Printf("Starting application v%%s (built: %%s)", Version, BuildTime)
-	log.Printf("Environment: %%s", cfg.Environment)
+	log.Printf("Starting application v%%%%s (built: %%%%s)", Version, BuildTime)
+	log.Printf("Environment: %%%%s", cfg.Environment)
 	
 	// Connect to database with retry
 	var err error
 	db, err = connectToDatabase(cfg)
 	if err != nil {
-		log.Printf("Warning: Database connection failed: %%v", err)
+		log.Printf("Warning: Database connection failed: %%%%v", err)
 		log.Printf("Server will start in degraded mode. Check your database configuration.")
 		log.Printf("Tip: Configure database environment variables in .env file")
 		db = nil // Ensure db is nil for health checks
@@ -338,7 +412,7 @@ func main() {
 		
 		// Run auto-migrations if database is connected
 		if err := runAutoMigrations(db); err != nil {
-			log.Printf("Warning: Auto-migration failed: %%v", err)
+			log.Printf("Warning: Auto-migration failed: %%%%v", err)
 			log.Printf("Tip: You may need to run migrations manually")
 		} else {
 			log.Printf("Database schema is up to date")
@@ -364,9 +438,9 @@ func main() {
 	
 	// Start server in goroutine
 	go func() {
-		log.Printf("Server starting on port %%s", cfg.Port)
+		log.Printf("Server starting on port %%%%s", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server startup failed: %%v", err)
+			log.Fatalf("Server startup failed: %%%%v", err)
 		}
 	}()
 	
@@ -382,7 +456,7 @@ func main() {
 	defer cancel()
 	
 	if err := server.Shutdown(ctx); err != nil {
-		log.Printf("Server forced to shutdown: %%v", err)
+		log.Printf("Server forced to shutdown: %%%%v", err)
 	}
 	
 	log.Println("Server exited")
@@ -391,15 +465,15 @@ func main() {
 func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
 	dsn := cfg.GetDatabaseURL()
 	
-	log.Printf("Connecting to database at %%s:%%s/%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
+	log.Printf("Connecting to database at %%%%s:%%%%s/%%%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
 	
 	// Check if this is development mode without database
 	if cfg.Environment == "development" && cfg.Database.Password == "" {
 		log.Println("Warning: Development mode detected: No database password set")
-		log.Println("To connect to PostgreSQL, set environment variables:")
+		log.Println("To connect to database, set environment variables:")
 		log.Println("   DB_HOST=localhost")
-		log.Println("   DB_PORT=5432") 
-		log.Println("   DB_USER=postgres")
+		log.Println("   DB_PORT=<port>") 
+		log.Println("   DB_USER=<user>")
 		log.Println("   DB_PASSWORD=your_password")
 		log.Println("   DB_NAME=your_database")
 		log.Println("Server will continue without database connection...")
@@ -408,9 +482,9 @@ func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
 	
 	// Retry connection up to 5 times
 	for i := 0; i < 5; i++ {
-		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		db, err := gorm.Open(%s.Open(dsn), &gorm.Config{})
 		if err != nil {
-			log.Printf("Attempt %%d: Failed to open database connection: %%v", i+1, err)
+			log.Printf("Attempt %%%%d: Failed to open database connection: %%%%v", i+1, err)
 			time.Sleep(time.Duration(i+1) * time.Second)
 			continue
 		}
@@ -539,7 +613,7 @@ func runAutoMigrations(database *gorm.DB) error {
 	return nil
 }
 
-`, module, module)
+`, importLines, dbDriverPackage)
 
 	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
 		fmt.Printf("Error writing main.go: %v\n", err)

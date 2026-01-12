@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🐛 Bug Fixes
+
+#### Database Driver Configuration  
+- **Fixed SQLite (and other databases) not being properly configured during project initialization** ([#31](https://github.com/sazardev/goca/issues/31))
+  - When using `goca init --database sqlite`, the generated `go.mod` and `main.go` were incorrectly using PostgreSQL driver
+  - Fixed `createGoMod()` function to conditionally include correct database drivers based on `--database` flag
+  - Fixed `createMainGo()` function to generate appropriate imports and connection code for each database type
+  - Now properly supports all 8 database types: PostgreSQL, MySQL, SQLite, SQL Server, MongoDB, DynamoDB, Elasticsearch
+  - Each database now gets its correct GORM driver or native client library
+  
+  **Impact**: This bug was blocking project setup for users wanting to use SQLite or other non-PostgreSQL databases
+  
+  **Example - Before (Bug)**:
+  ```bash
+  goca init my-api --database sqlite
+  # go.mod incorrectly contained: gorm.io/driver/postgres
+  ```
+  
+  **Example - After (Fixed)**:
+  ```bash
+  goca init my-api --database sqlite
+  # go.mod correctly contains: gorm.io/driver/sqlite v1.5.4
+  # main.go correctly imports: "gorm.io/driver/sqlite"
+  # Connection uses: sqlite.Open(dsn)
+  ```
+
 ### 🎉 New Features
 
 #### Mock Generation for Unit Testing
