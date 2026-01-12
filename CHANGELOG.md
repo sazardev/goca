@@ -7,32 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 🐛 Bug Fixes
-
-#### Database Driver Configuration  
-- **Fixed SQLite (and other databases) not being properly configured during project initialization** ([#31](https://github.com/sazardev/goca/issues/31))
-  - When using `goca init --database sqlite`, the generated `go.mod` and `main.go` were incorrectly using PostgreSQL driver
-  - Fixed `createGoMod()` function to conditionally include correct database drivers based on `--database` flag
-  - Fixed `createMainGo()` function to generate appropriate imports and connection code for each database type
-  - Now properly supports all 8 database types: PostgreSQL, MySQL, SQLite, SQL Server, MongoDB, DynamoDB, Elasticsearch
-  - Each database now gets its correct GORM driver or native client library
-  
-  **Impact**: This bug was blocking project setup for users wanting to use SQLite or other non-PostgreSQL databases
-  
-  **Example - Before (Bug)**:
-  ```bash
-  goca init my-api --database sqlite
-  # go.mod incorrectly contained: gorm.io/driver/postgres
-  ```
-  
-  **Example - After (Fixed)**:
-  ```bash
-  goca init my-api --database sqlite
-  # go.mod correctly contains: gorm.io/driver/sqlite v1.5.4
-  # main.go correctly imports: "gorm.io/driver/sqlite"
-  # Connection uses: sqlite.Open(dsn)
-  ```
-
 ### 🎉 New Features
 
 #### Mock Generation for Unit Testing
@@ -113,6 +87,55 @@ go test ./internal/testing/integration -v    # Integration tests
 - Supports PostgreSQL, MySQL, MongoDB, SQLite
 - Parallel test execution support
 - Comprehensive documentation and best practices
+
+## [1.17.1] - 2026-01-12
+
+### 🐛 Bug Fixes
+
+#### Database Driver Configuration  
+- **Fixed SQLite (and other databases) not being properly configured during project initialization** ([#31](https://github.com/sazardev/goca/issues/31))
+  - When using `goca init --database sqlite`, the generated `go.mod` and `main.go` were incorrectly using PostgreSQL driver
+  - Fixed `createGoMod()` function to conditionally include correct database drivers based on `--database` flag
+  - Fixed `createMainGo()` function to generate appropriate imports and connection code for each database type
+  - Now properly supports all 8 database types: PostgreSQL, MySQL, SQLite, SQL Server, MongoDB, DynamoDB, Elasticsearch
+  - Each database now gets its correct GORM driver or native client library
+  
+  **Impact**: This bug was blocking project setup for users wanting to use SQLite or other non-PostgreSQL databases
+  
+  **Example - Before (Bug)**:
+  ```bash
+  goca init my-api --database sqlite
+  # go.mod incorrectly contained: gorm.io/driver/postgres
+  ```
+  
+  **Example - After (Fixed)**:
+  ```bash
+  goca init my-api --database sqlite
+  # go.mod correctly contains: gorm.io/driver/sqlite v1.5.4
+  # main.go correctly imports: "gorm.io/driver/sqlite"
+  # Connection uses: sqlite.Open(dsn)
+  ```
+
+### ✅ Verified Database Support
+All database types have been tested and verified to generate correct configuration:
+
+| Database            | Driver Package                           | Status    |
+| ------------------- | ---------------------------------------- | --------- |
+| **PostgreSQL**      | `gorm.io/driver/postgres`                | ✅ Working |
+| **PostgreSQL JSON** | `gorm.io/driver/postgres`                | ✅ Working |
+| **MySQL**           | `gorm.io/driver/mysql`                   | ✅ Working |
+| **SQLite**          | `gorm.io/driver/sqlite`                  | ✅ Fixed   |
+| **SQL Server**      | `gorm.io/driver/sqlserver`               | ✅ Fixed   |
+| **MongoDB**         | `go.mongodb.org/mongo-driver`            | ✅ Fixed   |
+| **DynamoDB**        | AWS SDK v2                               | ✅ Fixed   |
+| **Elasticsearch**   | `github.com/elastic/go-elasticsearch/v8` | ✅ Fixed   |
+
+### 🧪 Testing
+- Added automated integration tests for database driver configuration
+- Created `TestInitSQLiteDriverFix` - Verifies Issue #31 resolution
+- Created `TestInitMySQLDriverFix` - Verifies MySQL configuration
+- Created `TestInitPostgreSQLStillWorks` - Prevents regression
+- All tests passing with 100% success rate
 
 ## [1.14.1] - 2025-10-27
 
