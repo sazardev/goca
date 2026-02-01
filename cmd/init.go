@@ -304,7 +304,24 @@ func downloadDependencies(projectName string) error {
 }
 
 func createMainGo(projectName, module, database string) {
-	// Determine database driver import based on database type
+	// For MongoDB and other NoSQL databases, generate a different main.go
+	if database == DBMongoDB {
+		createMongoDBMainGo(projectName, module)
+		return
+	}
+
+	// For DynamoDB and Elasticsearch, generate specific implementations
+	if database == DBDynamoDB {
+		createDynamoDBMainGo(projectName, module)
+		return
+	}
+
+	if database == DBElasticsearch {
+		createElasticsearchMainGo(projectName, module)
+		return
+	}
+
+	// Determine database driver import based on database type (GORM databases)
 	var dbDriverImport string
 	var dbDriverPackage string
 	var requiresGorm bool
@@ -326,22 +343,9 @@ func createMainGo(projectName, module, database string) {
 		dbDriverImport = `"gorm.io/driver/sqlserver"`
 		dbDriverPackage = "sqlserver"
 		requiresGorm = true
-	case DBMongoDB:
-		dbDriverImport = `"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"`
-		dbDriverPackage = "mongo"
-		requiresGorm = false
-	case DBDynamoDB:
-		dbDriverImport = `"github.com/aws/aws-sdk-go-v2/service/dynamodb"`
-		dbDriverPackage = "dynamodb"
-		requiresGorm = false
-	case DBElasticsearch:
-		dbDriverImport = `"github.com/elastic/go-elasticsearch/v8"`
-		dbDriverPackage = "elasticsearch"
-		requiresGorm = false
 	default:
-		dbDriverImport = `"gorm.io/driver/postgres"`
-		dbDriverPackage = "postgres"
+		dbDriverImport = `"gorm.io/driver/sqlite"`
+		dbDriverPackage = "sqlite"
 		requiresGorm = true
 	}
 
@@ -614,6 +618,378 @@ func runAutoMigrations(database *gorm.DB) error {
 }
 
 `, importLines, dbDriverPackage)
+
+	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
+		fmt.Printf("Error writing main.go: %v\n", err)
+		return
+	}
+}
+
+func createMongoDBMainGo(projectName, module string) {
+	content := fmt.Sprintf(`package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"%s/pkg/config"
+	"%s/pkg/logger"
+)
+
+type HealthStatus struct {
+	Status    string            `+"`"+`json:"status"`+"`"+`
+	Timestamp time.Time         `+"`"+`json:"timestamp"`+"`"+`
+	Services  map[string]string `+"`"+`json:"services"`+"`"+`
+	Version   string            `+"`"+`json:"version"`+"`"+`
+}
+
+var (
+	// Build information (set by build flags)
+	Version   = "dev"
+	BuildTime = "unknown"
+	mongoClient *mongo.Client
+)
+
+func main() {
+	// Load configuration
+	cfg := config.Load()
+	
+	// Initialize logger
+	logger.Init()
+	
+	log.Printf("Starting application v%%s (built: %%s)", Version, BuildTime)
+	log.Printf("Environment: %%s", cfg.Environment)
+	
+	// Connect to MongoDB with retry
+	var err error
+	mongoClient, err = connectToMongoDB(cfg)
+	if err != nil {
+		log.Printf("Warning: MongoDB connection failed: %%v", err)
+		log.Printf("Server will start in degraded mode. Check your database configuration.")
+		log.Printf("Tip: Configure MongoDB environment variables in .env file")
+		mongoClient = nil
+	} else {
+		log.Printf("MongoDB connected successfully")
+	}
+	
+	// Setup router
+	router := mux.NewRouter()
+	
+	// Health check endpoint with comprehensive checks
+	router.HandleFunc("/health", healthCheckHandler).Methods("GET")
+	router.HandleFunc("/health/ready", readinessHandler).Methods("GET")
+	router.HandleFunc("/health/live", livenessHandler).Methods("GET")
+	
+	// Setup HTTP server with timeouts
+	server := &http.Server{
+		Addr:         ":" + cfg.Port,
+		Handler:      router,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
+	}
+	
+	// Start server in goroutine
+	go func() {
+		log.Printf("Server starting on port %%s", cfg.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server startup failed: %%v", err)
+		}
+	}()
+	
+	// Wait for interrupt signal to gracefully shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	
+	log.Println("Shutting down server...")
+	
+	// Graceful shutdown with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %%v", err)
+	}
+	
+	// Disconnect MongoDB
+	if mongoClient != nil {
+		if err := mongoClient.Disconnect(ctx); err != nil {
+			log.Printf("Error disconnecting from MongoDB: %%v", err)
+		}
+	}
+	
+	log.Println("Server exited")
+}
+
+func connectToMongoDB(cfg *config.Config) (*mongo.Client, error) {
+	dsn := cfg.GetDatabaseURL()
+	
+	log.Printf("Connecting to MongoDB at %%s", cfg.Database.Host)
+	
+	// Check if this is development mode without database
+	if cfg.Environment == "development" && cfg.Database.Password == "" {
+		log.Println("Warning: Development mode detected: No database password set")
+		log.Println("To connect to MongoDB, set environment variables:")
+		log.Println("   DB_HOST=localhost")
+		log.Println("   DB_PORT=27017")
+		log.Println("   DB_USER=<user>")
+		log.Println("   DB_PASSWORD=your_password")
+		log.Println("   DB_NAME=your_database")
+		log.Println("Server will continue without database connection...")
+		return nil, fmt.Errorf("development mode: database not configured")
+	}
+	
+	// Create MongoDB client options
+	clientOptions := options.Client().ApplyURI(dsn)
+	
+	// Retry connection up to 5 times
+	for i := 0; i < 5; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		client, err := mongo.Connect(ctx, clientOptions)
+		
+		if err != nil {
+			cancel()
+			log.Printf("Attempt %%d: Failed to connect to MongoDB: %%v", i+1, err)
+			time.Sleep(time.Duration(i+1) * time.Second)
+			continue
+		}
+		
+		// Ping the database
+		err = client.Ping(ctx, readpref.Primary())
+		cancel()
+		
+		if err == nil {
+			return client, nil
+		}
+		
+		log.Printf("Attempt %%d: MongoDB ping failed: %%v", i+1, err)
+		client.Disconnect(context.Background())
+		time.Sleep(time.Duration(i+1) * time.Second)
+	}
+	
+	return nil, fmt.Errorf("failed to connect to MongoDB after 5 attempts")
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	status := HealthStatus{
+		Status:    "healthy",
+		Timestamp: time.Now(),
+		Services:  make(map[string]string),
+		Version:   Version,
+	}
+	
+	// Check database
+	if err := checkMongoDB(); err != nil {
+		status.Status = "degraded"
+		status.Services["database"] = fmt.Sprintf("error: %%v", err)
+		log.Printf("MongoDB health check failed: %%v", err)
+	} else {
+		status.Services["database"] = "healthy"
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(status)
+}
+
+func readinessHandler(w http.ResponseWriter, r *http.Request) {
+	// Check if all dependencies are ready
+	if err := checkMongoDB(); err != nil {
+		http.Error(w, fmt.Sprintf("MongoDB not ready: %%v", err), http.StatusServiceUnavailable)
+		return
+	}
+	
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Ready"))
+}
+
+func livenessHandler(w http.ResponseWriter, r *http.Request) {
+	// Basic liveness check
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Alive"))
+}
+
+func checkMongoDB() error {
+	if mongoClient == nil {
+		return fmt.Errorf("MongoDB client is nil")
+	}
+	
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	
+	return mongoClient.Ping(ctx, readpref.Primary())
+}
+`, module, module)
+
+	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
+		fmt.Printf("Error writing main.go: %v\n", err)
+		return
+	}
+}
+
+func createDynamoDBMainGo(projectName, module string) {
+	// Placeholder for DynamoDB implementation
+	// For now, create a simple main.go that warns about missing implementation
+	content := fmt.Sprintf(`package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gorilla/mux"
+	"%s/pkg/config"
+	"%s/pkg/logger"
+)
+
+type HealthStatus struct {
+	Status    string            `+"`"+`json:"status"`+"`"+`
+	Timestamp time.Time         `+"`"+`json:"timestamp"`+"`"+`
+	Version   string            `+"`"+`json:"version"`+"`"+`
+}
+
+var (
+	Version   = "dev"
+	BuildTime = "unknown"
+)
+
+func main() {
+	cfg := config.Load()
+	logger.Init()
+	
+	log.Printf("Starting application v%%s (built: %%s)", Version, BuildTime)
+	log.Println("Warning: DynamoDB integration is not yet fully implemented")
+	log.Println("Please implement DynamoDB client initialization in main.go")
+	
+	router := mux.NewRouter()
+	router.HandleFunc("/health", healthCheckHandler).Methods("GET")
+	
+	server := &http.Server{
+		Addr:         ":" + cfg.Port,
+		Handler:      router,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
+	}
+	
+	go func() {
+		log.Printf("Server starting on port %%s", cfg.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server startup failed: %%v", err)
+		}
+	}()
+	
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Server exited")
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	status := HealthStatus{
+		Status:    "healthy",
+		Timestamp: time.Now(),
+		Version:   Version,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(status)
+}
+`, module, module)
+
+	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
+		fmt.Printf("Error writing main.go: %v\n", err)
+		return
+	}
+}
+
+func createElasticsearchMainGo(projectName, module string) {
+	// Placeholder for Elasticsearch implementation
+	content := fmt.Sprintf(`package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gorilla/mux"
+	"%s/pkg/config"
+	"%s/pkg/logger"
+)
+
+type HealthStatus struct {
+	Status    string            `+"`"+`json:"status"`+"`"+`
+	Timestamp time.Time         `+"`"+`json:"timestamp"`+"`"+`
+	Version   string            `+"`"+`json:"version"`+"`"+`
+}
+
+var (
+	Version   = "dev"
+	BuildTime = "unknown"
+)
+
+func main() {
+	cfg := config.Load()
+	logger.Init()
+	
+	log.Printf("Starting application v%%s (built: %%s)", Version, BuildTime)
+	log.Println("Warning: Elasticsearch integration is not yet fully implemented")
+	log.Println("Please implement Elasticsearch client initialization in main.go")
+	
+	router := mux.NewRouter()
+	router.HandleFunc("/health", healthCheckHandler).Methods("GET")
+	
+	server := &http.Server{
+		Addr:         ":" + cfg.Port,
+		Handler:      router,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
+	}
+	
+	go func() {
+		log.Printf("Server starting on port %%s", cfg.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server startup failed: %%v", err)
+		}
+	}()
+	
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Server exited")
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	status := HealthStatus{
+		Status:    "healthy",
+		Timestamp: time.Now(),
+		Version:   Version,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(status)
+}
+`, module, module)
 
 	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
 		fmt.Printf("Error writing main.go: %v\n", err)
@@ -1536,7 +1912,7 @@ func getDatabaseHealthCheck(database string) string {
 
 func init() {
 	initCmd.Flags().StringP("module", "m", "", "Go module name (e.g: github.com/user/project)")
-	initCmd.Flags().StringP("database", "d", "postgres", "Database type (postgres, mysql, mongodb)")
+	initCmd.Flags().StringP("database", "d", "sqlite", "Database type (postgres, mysql, sqlite, mongodb, sqlserver, dynamodb, elasticsearch)")
 	initCmd.Flags().StringP("api", "a", "rest", "API type (rest, graphql, grpc)")
 	initCmd.Flags().Bool("auth", false, "Include authentication system")
 	initCmd.Flags().Bool("config", true, "Generate .goca.yaml configuration file")
