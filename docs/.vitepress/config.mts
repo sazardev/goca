@@ -249,7 +249,7 @@ export default defineConfig({
                 {
                     text: 'Latest Release',
                     items: [
-                        { text: 'v1.14.2', link: '/blog/releases/v1-14-2' },
+                        { text: 'v1.17.2', link: '/blog/releases/v1-17-2' },
                     ]
                 }
             ]

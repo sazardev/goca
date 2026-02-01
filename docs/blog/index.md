@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: Latest Release
-      link: /blog/releases/v1-14-2
+      link: /blog/releases/v1-17-2
     - theme: alt
       text: All Articles
       link: /blog/articles/
@@ -44,12 +44,12 @@ features:
 
 ## Latest Release
 
-### [v1.14.2 - Database Defaults and MongoDB Fixes](/blog/releases/v1-14-2)
+### [v1.17.2 - Database Defaults and MongoDB Fixes](/blog/releases/v1-17-2)
 *February 1, 2026*
 
 Changed default database to SQLite for easier setup and fixed MongoDB code generation issues. MongoDB projects now use mongo-driver correctly without GORM conflicts.
 
-[Read full release notes](/blog/releases/v1-14-1)
+[Read full release notes](/blog/releases/v1-17-2)
 
 ---
 
