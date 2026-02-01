@@ -197,8 +197,9 @@ func TestInitDefaultDatabase(t *testing.T) {
 	}
 
 	// Check that database is sqlite
-	if !strings.Contains(string(configContent), "type: \"sqlite\"") {
-		t.Errorf("Default database is not sqlite. Config content:\n%s", string(configContent))
+	configStr := string(configContent)
+	if !strings.Contains(configStr, "type: sqlite") && !strings.Contains(configStr, "type: \"sqlite\"") {
+		t.Errorf("Default database is not sqlite. Config content:\n%s", configStr)
 	}
 
 	// Verify go.mod has sqlite driver
