@@ -169,3 +169,115 @@ func TestInitPostgreSQLStillWorks(t *testing.T) {
 
 	t.Logf("✅ PostgreSQL sigue funcionando correctamente (sin regresión)")
 }
+
+// TestInitDefaultDatabase tests that the default database is SQLite
+func TestInitDefaultDatabase(t *testing.T) {
+	tc := framework.NewTestContext(t)
+	defer tc.Cleanup()
+
+	projectName := "test-default-db"
+	projectPath := filepath.Join(tc.TempDir, projectName)
+
+	// Execute init command without database flag (should use default)
+	_, err := tc.RunCommand("init", projectName, "--module", "testmodule")
+	if err != nil {
+		t.Fatalf("Failed to execute init command: %v", err)
+	}
+
+	// Verify project was created
+	if _, err := os.Stat(projectPath); os.IsNotExist(err) {
+		t.Fatalf("Project directory was not created: %s", projectPath)
+	}
+
+	// Read .goca.yaml to verify default database
+	configPath := filepath.Join(projectPath, ".goca.yaml")
+	configContent, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("Failed to read config file: %v", err)
+	}
+
+	// Check that database is sqlite
+	if !strings.Contains(string(configContent), "type: \"sqlite\"") {
+		t.Errorf("Default database is not sqlite. Config content:\n%s", string(configContent))
+	}
+
+	// Verify go.mod has sqlite driver
+	goModPath := filepath.Join(projectPath, "go.mod")
+	goModContent, err := os.ReadFile(goModPath)
+	if err != nil {
+		t.Fatalf("Failed to read go.mod: %v", err)
+	}
+
+	if !strings.Contains(string(goModContent), "gorm.io/driver/sqlite") {
+		t.Errorf("go.mod does not contain sqlite driver")
+	}
+
+	t.Logf("✓ Default database is SQLite as expected")
+}
+
+// TestInitMongoDBNoGorm tests that MongoDB projects don't use GORM
+func TestInitMongoDBNoGorm(t *testing.T) {
+	tc := framework.NewTestContext(t)
+	defer tc.Cleanup()
+
+	projectName := "test-mongodb"
+	projectPath := filepath.Join(tc.TempDir, projectName)
+
+	// Execute init command with MongoDB
+	_, err := tc.RunCommand("init", projectName, "--module", "testmodule", "--database", "mongodb")
+	if err != nil {
+		t.Fatalf("Failed to execute init command: %v", err)
+	}
+
+	// Verify project was created
+	if _, err := os.Stat(projectPath); os.IsNotExist(err) {
+		t.Fatalf("Project directory was not created: %s", projectPath)
+	}
+
+	// Read main.go
+	mainGoPath := filepath.Join(projectPath, "cmd", "server", "main.go")
+	mainGoContent, err := os.ReadFile(mainGoPath)
+	if err != nil {
+		t.Fatalf("Failed to read main.go: %v", err)
+	}
+
+	mainGoStr := string(mainGoContent)
+
+	// Verify MongoDB driver is imported
+	if !strings.Contains(mainGoStr, "go.mongodb.org/mongo-driver/mongo") {
+		t.Errorf("main.go does not import MongoDB driver")
+	}
+
+	// Verify GORM is NOT imported
+	if strings.Contains(mainGoStr, "gorm.io/gorm") {
+		t.Errorf("main.go incorrectly imports GORM for MongoDB")
+	}
+
+	// Verify mongo client variable is used (not gorm.DB)
+	if strings.Contains(mainGoStr, "*gorm.DB") {
+		t.Errorf("main.go incorrectly uses gorm.DB type for MongoDB")
+	}
+
+	if !strings.Contains(mainGoStr, "*mongo.Client") {
+		t.Errorf("main.go does not use mongo.Client type")
+	}
+
+	// Verify go.mod has mongo driver and NOT gorm
+	goModPath := filepath.Join(projectPath, "go.mod")
+	goModContent, err := os.ReadFile(goModPath)
+	if err != nil {
+		t.Fatalf("Failed to read go.mod: %v", err)
+	}
+
+	goModStr := string(goModContent)
+
+	if !strings.Contains(goModStr, "go.mongodb.org/mongo-driver") {
+		t.Errorf("go.mod does not contain mongo-driver")
+	}
+
+	if strings.Contains(goModStr, "gorm.io/gorm") {
+		t.Errorf("go.mod incorrectly contains gorm for MongoDB project")
+	}
+
+	t.Logf("✓ MongoDB project correctly uses mongo-driver without GORM")
+}
