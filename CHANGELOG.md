@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.2] - 2026-02-01
+
+### 🐛 Bug Fixes
+
+#### Default Database Changed to SQLite
+- **Changed default database from PostgreSQL to SQLite** for faster and easier setup
+  - New projects now default to SQLite instead of PostgreSQL
+  - SQLite provides zero-configuration local development experience
+  - No external database server required to get started
+  - Perfect for prototyping, testing, and small applications
+  - All other databases still fully supported via `--database` flag
+
+#### MongoDB Code Generation Fixed
+- **Fixed MongoDB project generation to use mongo-driver correctly**
+  - MongoDB projects no longer incorrectly import GORM
+  - Main.go now uses `*mongo.Client` instead of `*gorm.DB` for MongoDB
+  - Proper MongoDB driver imports (`go.mongodb.org/mongo-driver/mongo`)
+  - Correct connection handling with context and ping verification
+  - Health check endpoints adapted for MongoDB
+  - go.mod no longer includes GORM dependencies for MongoDB projects
+  - DynamoDB and Elasticsearch placeholders also improved
+
+### 🧪 Testing
+
+- Added comprehensive database initialization tests
+- `TestInitDefaultDatabase` - Verifies SQLite is the default
+- `TestInitMongoDBNoGorm` - Ensures MongoDB projects don't use GORM
+- Tests verify correct driver imports and dependencies for each database type
+
+### 📝 Documentation
+
+- Updated flag descriptions to include all supported databases
+- Added release notes for v1.14.2
+
+## [1.14.1] - 2025-10-27
+
 ### 🎉 New Features
 
 #### Mock Generation for Unit Testing
