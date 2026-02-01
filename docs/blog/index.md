@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: Latest Release
-      link: /blog/releases/v1-17-1
+      link: /blog/releases/v1-14-2
     - theme: alt
       text: All Articles
       link: /blog/articles/
@@ -44,10 +44,10 @@ features:
 
 ## Latest Release
 
-### [v1.17.1 - Database Driver Configuration Fix](/blog/releases/v1-17-1)
-*January 11, 2026*
+### [v1.14.2 - Database Defaults and MongoDB Fixes](/blog/releases/v1-14-2)
+*February 1, 2026*
 
-Critical bug fix resolving database driver configuration issues. SQLite and other non-PostgreSQL databases now properly configured during project initialization. Fixes issue #31.
+Changed default database to SQLite for easier setup and fixed MongoDB code generation issues. MongoDB projects now use mongo-driver correctly without GORM conflicts.
 
 [Read full release notes](/blog/releases/v1-14-1)
 

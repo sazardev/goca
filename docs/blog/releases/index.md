@@ -88,6 +88,27 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-14-2">v1.14.2</a>
+    </h2>
+    <span class="release-date">February 1, 2026</span>
+  </div>
+  <p class="release-description">
+    Database Defaults and MongoDB Fixes - Changed default database to SQLite and fixed MongoDB code generation issues.
+  </p>
+  <div class="release-highlights">
+    <strong>Key Changes:</strong>
+    <ul>
+      <li>🎯 SQLite is now the default database (was PostgreSQL)</li>
+      <li>✅ Fixed MongoDB code generation to use mongo-driver correctly</li>
+      <li>✅ MongoDB projects no longer import GORM incorrectly</li>
+      <li>🧪 Added comprehensive database initialization tests</li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
       <a href="/goca/blog/releases/v1-17-1">v1.17.1</a>
       <span class="badge badge-latest">Latest</span>
     </h2>
