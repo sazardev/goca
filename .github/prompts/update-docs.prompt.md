@@ -1,14 +1,10 @@
 ---
-mode: agent
+agent: agent
 description: Update VitePress documentation and GitHub Wiki after adding or modifying a Goca command. Ensures docs match implementation exactly.
 tools:
-  - mcp_oraios_serena_find_symbol
-  - mcp_oraios_serena_get_symbols_overview
-  - mcp_context7_resolve-library-id
-  - mcp_context7_get-library-docs
-  - read_file
-  - create_file
-  - replace_string_in_file
+  - codebase
+  - editFiles
+  - runCommands
 ---
 
 # Update Documentation

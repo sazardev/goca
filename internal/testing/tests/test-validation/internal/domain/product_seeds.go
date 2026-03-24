@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"time"
-)
-
 // GetProductSeeds retorna datos de ejemplo para product
 func GetProductSeeds() []Product {
 	return []Product{

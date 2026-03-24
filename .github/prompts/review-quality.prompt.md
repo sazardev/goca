@@ -1,15 +1,11 @@
 ---
-mode: agent
+agent: agent
 description: Full code quality review of a Goca file or package. Check microfunctions, error handling, security, test coverage, and Clean Architecture compliance.
 tools:
-  - mcp_oraios_serena_get_symbols_overview
-  - mcp_oraios_serena_find_symbol
-  - mcp_oraios_serena_find_referencing_symbols
-  - mcp_context7_resolve-library-id
-  - mcp_context7_get-library-docs
-  - run_in_terminal
-  - read_file
-  - replace_string_in_file
+  - codebase
+  - editFiles
+  - runCommands
+  - problems
 ---
 
 # Code Quality Review

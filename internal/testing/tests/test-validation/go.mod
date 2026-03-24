@@ -1,2 +1,2 @@
-﻿module testvalidation
+module testvalidation
 go 1.23

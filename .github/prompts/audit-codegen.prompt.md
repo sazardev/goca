@@ -1,16 +1,11 @@
 ---
-mode: agent
+agent: agent
 description: Audit the code that Goca generates. Verify all templates produce compilable, vet-clean Go code for every database backend and handler type. Find and fix template bugs.
 tools:
-  - mcp_oraios_serena_get_symbols_overview
-  - mcp_oraios_serena_find_symbol
-  - mcp_oraios_serena_find_referencing_symbols
-  - mcp_oraios_serena_replace_symbol_body
-  - mcp_context7_resolve-library-id
-  - mcp_context7_get-library-docs
-  - run_in_terminal
-  - read_file
-  - replace_string_in_file
+  - codebase
+  - editFiles
+  - runCommands
+  - problems
 ---
 
 # Audit Generated Code

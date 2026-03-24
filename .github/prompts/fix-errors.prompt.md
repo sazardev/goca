@@ -1,14 +1,11 @@
 ---
-mode: agent
+agent: agent
 description: Fix all go build errors, go vet warnings, and test failures across the Goca codebase. Runs diagnostics first, then applies targeted fixes.
 tools:
-  - mcp_oraios_serena_get_symbols_overview
-  - mcp_oraios_serena_find_symbol
-  - mcp_oraios_serena_find_referencing_symbols
-  - mcp_oraios_serena_replace_symbol_body
-  - run_in_terminal
-  - read_file
-  - replace_string_in_file
+  - codebase
+  - editFiles
+  - runCommands
+  - problems
 ---
 
 # Fix Build Errors and Test Failures

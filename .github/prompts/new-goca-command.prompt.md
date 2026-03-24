@@ -1,18 +1,11 @@
 ---
-mode: agent
+agent: agent
 description: Implement a new goca CLI command with all required layers — cobra command, tests, docs, and CHANGELOG entry.
 tools:
-  - mcp_oraios_serena_get_symbols_overview
-  - mcp_oraios_serena_find_symbol
-  - mcp_oraios_serena_find_referencing_symbols
-  - mcp_oraios_serena_replace_symbol_body
-  - mcp_oraios_serena_insert_after_symbol
-  - mcp_context7_resolve-library-id
-  - mcp_context7_get-library-docs
-  - run_in_terminal
-  - read_file
-  - create_file
-  - replace_string_in_file
+  - codebase
+  - editFiles
+  - runCommands
+  - problems
 ---
 
 # New Goca Command

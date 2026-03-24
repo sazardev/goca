@@ -1,16 +1,11 @@
 ---
-mode: agent
+agent: agent
 description: Add comprehensive tests to a Goca command or internal package. Covers unit tests, integration tests, security tests, and compilation verification.
 tools:
-  - mcp_oraios_serena_get_symbols_overview
-  - mcp_oraios_serena_find_symbol
-  - mcp_oraios_serena_find_referencing_symbols
-  - mcp_context7_resolve-library-id
-  - mcp_context7_get-library-docs
-  - run_in_terminal
-  - read_file
-  - create_file
-  - replace_string_in_file
+  - codebase
+  - editFiles
+  - runCommands
+  - problems
 ---
 
 # Add Tests
