@@ -176,7 +176,7 @@ func (dm *DependencyManager) CheckGoVersion(requiredVersion string) error {
 
 	// Simple version comparison (assumes format X.Y)
 	if !dm.isVersionCompatible(currentVersion, requiredVersion) {
-		return fmt.Errorf("Go version %s required, but found %s", requiredVersion, currentVersion)
+		return fmt.Errorf("go version %s required, but found %s", requiredVersion, currentVersion)
 	}
 
 	return nil

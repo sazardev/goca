@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -85,6 +86,9 @@ func (cm *ConfigManager) loadFromFile(filePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read config file %s: %w", filePath, err)
 	}
+
+	// Strip UTF-8 BOM if present (files edited on Windows may include one)
+	data = bytes.TrimPrefix(data, []byte{0xEF, 0xBB, 0xBF})
 
 	// Parse YAML
 	config := &GocaConfig{}
@@ -184,7 +188,7 @@ func (cm *ConfigManager) createDefaultConfig(projectPath string) *GocaConfig {
 					Enabled:     true,
 					Version:     "3.0.0",
 					Output:      "docs/swagger.yaml",
-					Title:       fmt.Sprintf("%s API", strings.Title(projectName)),
+					Title:       fmt.Sprintf("%s API", strings.ToUpper(projectName[:1])+strings.ToLower(projectName[1:])),
 					Description: fmt.Sprintf("API documentation for %s", projectName),
 					Host:        "localhost:8080",
 					BasePath:    "/api/v1",
@@ -508,7 +512,7 @@ func (cm *ConfigManager) applyDefaults(config *GocaConfig) {
 	}
 
 	// Set intelligent defaults based on project type
-	if config.Features.Auth.Enabled && config.Features.Security.RateLimit == false {
+	if config.Features.Auth.Enabled && !config.Features.Security.RateLimit {
 		config.Features.Security.RateLimit = true
 		cm.addWarning("features.security.rate_limit", "automatically enabled due to auth", "false", "true")
 	}

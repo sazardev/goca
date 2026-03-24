@@ -543,7 +543,8 @@ func toCamelCase(s string) string {
 
 	result := strings.ToLower(words[0])
 	for i := 1; i < len(words); i++ {
-		result += strings.Title(strings.ToLower(words[i]))
+		w := strings.ToLower(words[i])
+		result += strings.ToUpper(w[:1]) + w[1:]
 	}
 
 	return result
@@ -560,7 +561,8 @@ func toPascalCase(s string) string {
 
 	var result string
 	for _, word := range words {
-		result += strings.Title(strings.ToLower(word))
+		w := strings.ToLower(word)
+		result += strings.ToUpper(w[:1]) + w[1:]
 	}
 
 	return result
