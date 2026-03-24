@@ -1,0 +1,456 @@
+% goca, go, clean-architecture, codegen
+
+; ── INFO ─────────────────────────────────────────────────────────────────────
+
+# Show goca version
+goca version
+
+# Show goca help
+goca help
+
+# Show help for a specific command
+goca <command> --help
+
+; ── DOCTOR & UPGRADE ─────────────────────────────────────────────────────────
+
+# Check project health (go.mod, .goca.yaml, Clean Architecture dirs, build, vet)
+goca doctor
+
+# Fix missing Clean Architecture directories automatically
+goca doctor --fix
+
+# Check if .goca.yaml is up-to-date with the current binary version
+goca upgrade
+
+# Write current Goca binary version to .goca.yaml metadata
+goca upgrade --update
+
+# Preview upgrade changes without writing to disk
+goca upgrade --update --dry-run
+
+# Show instructions to regenerate boilerplate for a feature
+goca upgrade --regenerate <entity>
+
+; ── PROJECT INIT ─────────────────────────────────────────────────────────────
+
+# Initialize a new project (interactive wizard)
+goca init <project_name>
+
+# Initialize project with all options specified (no wizard)
+goca init <project_name> --module <module_path> --database <database> --api <api_type> --no-interactive
+
+# Initialize project with authentication scaffold
+goca init <project_name> --module <module_path> --auth
+
+# Initialize project with a predefined template
+goca init <project_name> --module <module_path> --template <init_template>
+
+# List available project templates
+goca init --list-templates
+
+# Preview project initialization without creating files
+goca init <project_name> --module <module_path> --dry-run
+
+# Force overwrite existing project files
+goca init <project_name> --module <module_path> --force
+
+# Initialize project with backup of existing files
+goca init <project_name> --module <module_path> --backup
+
+# Full-featured enterprise init (PostgreSQL + REST + auth + config)
+goca init <project_name> --module <module_path> --database postgres --api rest --auth --template enterprise
+
+; ── FEATURE (all layers at once) ─────────────────────────────────────────────
+
+# Generate a complete feature (all Clean Architecture layers)
+goca feature <entity> --fields "<fields>"
+
+# Feature with database selection
+goca feature <entity> --fields "<fields>" --database <database>
+
+# Feature with handler type selection
+goca feature <entity> --fields "<fields>" --handlers <handler_type>
+
+# Feature with validation in all layers
+goca feature <entity> --fields "<fields>" --validation
+
+# Feature with business rules
+goca feature <entity> --fields "<fields>" --business-rules
+
+# Feature with integration tests
+goca feature <entity> --fields "<fields>" --integration-tests
+
+# Feature with integration tests + test containers
+goca feature <entity> --fields "<fields>" --integration-tests --test-container
+
+# Feature with mock generation
+goca feature <entity> --fields "<fields>" --mocks
+
+# Full-featured generation (all options)
+goca feature <entity> --fields "<fields>" --database <database> --validation --business-rules --integration-tests --mocks
+
+# Preview feature generation without creating files
+goca feature <entity> --fields "<fields>" --dry-run
+
+# Force overwrite all feature files
+goca feature <entity> --fields "<fields>" --force
+
+# Feature generation with backup of existing files
+goca feature <entity> --fields "<fields>" --backup
+
+; ── ENTITY (domain layer) ────────────────────────────────────────────────────
+
+# Generate a domain entity
+goca entity <entity> --fields "<fields>"
+
+# Entity with business validations
+goca entity <entity> --fields "<fields>" --validation
+
+# Entity with advanced business rules
+goca entity <entity> --fields "<fields>" --business-rules
+
+# Entity with timestamp fields (CreatedAt, UpdatedAt)
+goca entity <entity> --fields "<fields>" --timestamps
+
+# Entity with soft delete (DeletedAt)
+goca entity <entity> --fields "<fields>" --soft-delete
+
+# Entity with all optional features enabled
+goca entity <entity> --fields "<fields>" --validation --business-rules --timestamps --soft-delete
+
+# Entity without generated unit tests
+goca entity <entity> --fields "<fields>" --tests=false
+
+# Preview entity generation without creating files
+goca entity <entity> --fields "<fields>" --dry-run
+
+# Force overwrite existing entity files
+goca entity <entity> --fields "<fields>" --force
+
+# Entity generation with backup of existing files
+goca entity <entity> --fields "<fields>" --backup
+
+; ── USE CASE (application layer) ─────────────────────────────────────────────
+
+# Generate a use case for an entity
+goca usecase <entity> --entity <entity>
+
+# Use case with specific CRUD operations
+goca usecase <entity> --entity <entity> --operations "<operations>"
+
+# Use case with DTO validation
+goca usecase <entity> --entity <entity> --dto-validation
+
+# Use case with async operations
+goca usecase <entity> --entity <entity> --async
+
+# Full use case (all operations + validation + async)
+goca usecase <entity> --entity <entity> --operations "create,read,update,delete,list" --dto-validation --async
+
+# Preview use case generation without creating files
+goca usecase <entity> --entity <entity> --dry-run
+
+# Force overwrite existing use case files
+goca usecase <entity> --entity <entity> --force
+
+# Use case generation with backup
+goca usecase <entity> --entity <entity> --backup
+
+; ── REPOSITORY (data layer) ──────────────────────────────────────────────────
+
+# Generate a repository interface + implementation
+goca repository <entity> --database <database>
+
+# Generate repository interface only
+goca repository <entity> --database <database> --interface-only
+
+# Generate repository implementation only
+goca repository <entity> --database <database> --implementation
+
+# Repository with cache layer
+goca repository <entity> --database <database> --cache
+
+# Repository with transaction support
+goca repository <entity> --database <database> --transactions
+
+# Repository with fields for typed queries
+goca repository <entity> --database <database> --fields "<fields>"
+
+# Full repository (cache + transactions)
+goca repository <entity> --database <database> --fields "<fields>" --cache --transactions
+
+# Preview repository generation without creating files
+goca repository <entity> --database <database> --dry-run
+
+# Force overwrite existing repository files
+goca repository <entity> --database <database> --force
+
+# Repository generation with backup
+goca repository <entity> --database <database> --backup
+
+; ── HANDLER (delivery layer) ─────────────────────────────────────────────────
+
+# Generate an HTTP handler
+goca handler <entity>
+
+# Generate a specific handler type
+goca handler <entity> --type <handler_type>
+
+# Handler with middleware setup
+goca handler <entity> --middleware
+
+# Handler with input validation
+goca handler <entity> --validation
+
+# HTTP handler with Swagger documentation
+goca handler <entity> --type http --swagger
+
+# Full HTTP handler (middleware + validation + swagger)
+goca handler <entity> --type http --middleware --validation --swagger
+
+# Preview handler generation without creating files
+goca handler <entity> --dry-run
+
+# Force overwrite existing handler files
+goca handler <entity> --force
+
+# Handler generation with backup
+goca handler <entity> --backup
+
+; ── DEPENDENCY INJECTION ─────────────────────────────────────────────────────
+
+# Generate DI container for all features
+goca di
+
+# DI for specific features
+goca di --features "<features>"
+
+# DI with specific database
+goca di --database <database>
+
+# DI with Google Wire
+goca di --wire
+
+# Preview DI generation without creating files
+goca di --dry-run
+
+# Force overwrite existing DI files
+goca di --force
+
+# DI generation with backup
+goca di --backup
+
+; ── INTEGRATE ────────────────────────────────────────────────────────────────
+
+# Integrate all detected features into main.go and DI container
+goca integrate --all
+
+# Integrate specific features
+goca integrate --features "<integrate_features>"
+
+# Preview integration without modifying files
+goca integrate --all --dry-run
+
+# Force integration (overwrite main.go and container)
+goca integrate --all --force
+
+# Integration with backup of existing files
+goca integrate --all --backup
+
+; ── INTERFACES ───────────────────────────────────────────────────────────────
+
+# Generate all interfaces for an entity
+goca interfaces <entity> --all
+
+# Generate use case interfaces only
+goca interfaces <entity> --usecase
+
+# Generate repository interfaces only
+goca interfaces <entity> --repository
+
+# Generate handler interfaces only
+goca interfaces <entity> --handler
+
+# Preview interface generation without creating files
+goca interfaces <entity> --dry-run
+
+# Force overwrite existing interface files
+goca interfaces <entity> --force
+
+# Interface generation with backup
+goca interfaces <entity> --backup
+
+; ── MESSAGES ─────────────────────────────────────────────────────────────────
+
+# Generate all message types for an entity
+goca messages <entity> --all
+
+# Generate error messages only
+goca messages <entity> --errors
+
+# Generate response messages only
+goca messages <entity> --responses
+
+# Generate feature constants only
+goca messages <entity> --constants
+
+# Preview message generation without creating files
+goca messages <entity> --dry-run
+
+# Force overwrite existing message files
+goca messages <entity> --force
+
+# Message generation with backup
+goca messages <entity> --backup
+
+; ── MOCKS ────────────────────────────────────────────────────────────────────
+
+# Generate all mocks (repository + use case + handler)
+goca mocks <entity> --all
+
+# Generate repository mock only
+goca mocks <entity> --repository
+
+# Generate use case mock only
+goca mocks <entity> --usecase
+
+# Generate handler mock only
+goca mocks <entity> --handler
+
+# Preview mock generation without creating files
+goca mocks <entity> --dry-run
+
+# Force overwrite existing mock files
+goca mocks <entity> --force
+
+# Mock generation with backup
+goca mocks <entity> --backup
+
+; ── INTEGRATION TESTS ────────────────────────────────────────────────────────
+
+# Generate integration tests for an entity
+goca test-integration <entity>
+
+# Integration tests with specific database
+goca test-integration <entity> --database <database>
+
+# Integration tests with test fixtures
+goca test-integration <entity> --fixtures
+
+# Integration tests with test containers
+goca test-integration <entity> --container
+
+# Full integration tests (fixtures + container)
+goca test-integration <entity> --database <database> --fixtures --container
+
+# Preview integration test generation without creating files
+goca test-integration <entity> --dry-run
+
+# Force overwrite existing test files
+goca test-integration <entity> --force
+
+# Integration test generation with backup
+goca test-integration <entity> --backup
+
+; ── CONFIG MANAGEMENT ────────────────────────────────────────────────────────
+
+# Show current .goca.yaml configuration
+goca config show
+
+# Initialize a new .goca.yaml configuration file
+goca config init
+
+# Initialize config from a predefined template
+goca config init --template <config_template>
+
+# Initialize config with database and handlers
+goca config init --database <database> --handlers http,grpc
+
+# Force overwrite existing config file
+goca config init --force
+
+# Validate current .goca.yaml
+goca config validate
+
+# Show available config templates
+goca config template
+
+; ── CUSTOM TEMPLATES ─────────────────────────────────────────────────────────
+
+# Initialize custom templates directory
+goca template init
+
+# List available custom templates
+goca template list
+
+; ── GLOBAL FLAGS (apply to all commands) ─────────────────────────────────────
+
+# Run any command in quiet mode (only errors and success)
+goca <command> --quiet
+
+# Run any command in verbose mode (debug details)
+goca <command> --verbose
+
+# Run any command with no color output
+goca <command> --no-color
+
+# Run any command without interactive prompts
+goca <command> --no-interactive
+
+; ── COMMON FIELD TYPE EXAMPLES ───────────────────────────────────────────────
+
+# Entity with basic string and int fields
+goca entity <entity> --fields "Name:string,Age:int,Email:string"
+
+# Entity with time and float fields
+goca entity <entity> --fields "Title:string,Price:float64,CreatedAt:time.Time"
+
+# Entity with optional pointer fields
+goca entity <entity> --fields "Name:string,Bio:*string,Score:*float64"
+
+# Entity with boolean and uint fields
+goca entity <entity> --fields "Name:string,Active:bool,Rank:uint"
+
+# Entity with slice fields
+goca entity <entity> --fields "Name:string,Tags:[]string,Scores:[]int"
+
+# Entity with uuid primary key
+goca entity <entity> --fields "ID:uuid.UUID,Name:string,Email:string"
+
+; ── WORKFLOWS ────────────────────────────────────────────────────────────────
+
+# Full project bootstrap (init → feature → integrate)
+goca init <project_name> --module <module_path> --database <database> && \
+  cd <project_name> && \
+  goca feature <entity> --fields "<fields>" --database <database> && \
+  goca integrate --all
+
+# Add a new feature to existing project (dry-run first)
+goca feature <entity> --fields "<fields>" --database <database> --dry-run && \
+  goca feature <entity> --fields "<fields>" --database <database>
+
+# Layer-by-layer generation (manual control)
+goca entity <entity> --fields "<fields>" --timestamps --soft-delete && \
+  goca usecase <entity> --entity <entity> --operations "create,read,update,delete,list" && \
+  goca repository <entity> --database <database> && \
+  goca handler <entity> --type http --validation && \
+  goca di --database <database> && \
+  goca integrate --all
+
+# Full feature with tests and mocks
+goca feature <entity> --fields "<fields>" --database <database> \
+  --validation --integration-tests --mocks
+
+$ command: echo -e "init\nfeature\nentity\nusecase\nrepository\nhandler\ndi\nintegrate\ninterfaces\nmessages\nmocks\ntest-integration\nconfig\ntemplate\ndoctor\nupgrade\nversion"
+$ entity: echo -e "Product\nUser\nOrder\nCategory\nPayment\nInvoice\nCustomer\nAddress\nTag\nRole\nPermission\nSession\nAudit\nNotification\nSubscription"
+$ fields: echo -e "Name:string,Price:float64\nName:string,Email:string,Age:int\nTitle:string,Description:string,Active:bool\nName:string,CreatedAt:time.Time,UpdatedAt:time.Time\nID:uuid.UUID,Name:string,Email:string\nName:string,Price:float64,Stock:int,Active:bool\nFirstName:string,LastName:string,Email:string,Phone:string\nName:string,Description:string,Price:float64,Category:string"
+$ module_path: echo -e "github.com/user/myproject\ngithub.com/company/service\ngithub.com/org/app"
+$ project_name: echo -e "myapp\nmyservice\nmyproject\nbackend\napi-server"
+$ database: echo -e "postgres\nmysql\nsqlite\nmongodb\nsqlserver\nelasticsearch\ndynamodb\npostgres-json"
+$ handler_type: echo -e "http\ngrpc\ncli\nworker"
+$ api_type: echo -e "rest\ngrpc\ngraphql"
+$ operations: echo -e "create,read,update,delete,list\ncreate,read\nread,list\ncreate,read,update,delete"
+$ integrate_features: echo -e "User,Product,Order\nProduct,Category\nUser,Role,Permission\nOrder,Payment,Invoice"
+$ features: echo -e "crud,auth,validation\ncrud,validation\ncrud,auth,validation,cache"
+$ init_template: echo -e "minimal\nrest-api\nmicroservice\nmonolith\nenterprise"
+$ config_template: echo -e "web\napi\nmicroservice\nfull"
