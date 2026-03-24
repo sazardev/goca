@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the new safety and dependency management features implemented in Goca CLI v1.11.0.
+Goca's safety and dependency management system protects your project from accidental overwrites and automates `go.mod` maintenance. As of **v1.18.7**, the `--dry-run`, `--force`, and `--backup` flags are fully wired through **all 12 file-generating commands**.
 
 ## New Features
 
@@ -10,9 +10,12 @@ This document describes the new safety and dependency management features implem
 
 Preview all changes before they are made to your project.
 
-**Usage:**
+**Usage (any file-generating command):**
 ```bash
 goca feature User --fields "name:string,email:string" --dry-run
+goca entity Product --fields "Name:string,Price:float64" --dry-run
+goca usecase Order --dry-run
+goca init myapp --module github.com/acme/myapp --dry-run
 ```
 
 **Output:**
@@ -189,15 +192,35 @@ Intelligently suggests dependencies based on feature characteristics.
 
 ### Updated Files
 
-1. **`cmd/feature.go`**
-   - Added `--dry-run`, `--force`, `--backup` flags
-   - Integrated SafetyManager
-   - Integrated DependencyManager
-   - Added name conflict checking
+1. **All 12 generator commands** (`cmd/entity.go`, `cmd/usecase.go`, `cmd/repository.go`, `cmd/handler.go`, `cmd/di.go`, `cmd/messages.go`, `cmd/interfaces.go`, `cmd/mocks.go`, `cmd/init.go`, `cmd/integrate.go`, `cmd/feature.go`, `cmd/test_integration.go`)
+   - `--dry-run`, `--force`, `--backup` flags registered on each
+   - SafetyManager threaded through all sub-generators
+   - `feature` and `integrate` forward SafetyManager to every generator they call
+
+2. **`cmd/utils.go`** (v1.18.7)
+   - `writeFile()` and `writeGoFile()` accept variadic `*SafetyManager` parameter
+   - When provided, all writes route through `SafetyManager.WriteFile()`
 
 ## Command Flag Reference
 
 ### All Commands Support
+
+As of v1.18.7, `--dry-run`, `--force`, and `--backup` are registered and fully functional on every file-generating command:
+
+| Command | `--dry-run` | `--force` | `--backup` |
+|---|---|---|---|
+| `goca entity` | ✅ | ✅ | ✅ |
+| `goca usecase` | ✅ | ✅ | ✅ |
+| `goca repository` | ✅ | ✅ | ✅ |
+| `goca handler` | ✅ | ✅ | ✅ |
+| `goca di` | ✅ | ✅ | ✅ |
+| `goca messages` | ✅ | ✅ | ✅ |
+| `goca interfaces` | ✅ | ✅ | ✅ |
+| `goca mocks` | ✅ | ✅ | ✅ |
+| `goca init` | ✅ | ✅ | ✅ |
+| `goca integrate` | ✅ | ✅ | ✅ |
+| `goca feature` | ✅ | ✅ | ✅ |
+| `goca test-integration` | ✅ | ✅ | ✅ |
 
 | Flag        | Type | Description                             |
 | ----------- | ---- | --------------------------------------- |

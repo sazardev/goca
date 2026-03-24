@@ -88,8 +88,54 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
-      <a href="/goca/blog/releases/v1-18-0">v1.18.0</a>
+      <a href="/goca/blog/releases/v1-18-7">v1.18.7</a>
       <span class="badge badge-latest">Latest</span>
+    </h2>
+    <span class="release-date">March 24, 2026</span>
+  </div>
+  <p class="release-description">
+    Universal Safety Flags - <code>--dry-run</code>, <code>--force</code>, and <code>--backup</code> now correctly wired through all 12 file-generating commands. SafetyManager fully connected to every sub-generator.
+  </p>
+  <div class="release-highlights">
+    <strong>Key Changes:</strong>
+    <ul>
+      <li>Fixed <code>goca init --dry-run</code> failing with "unknown flag" error</li>
+      <li><code>--dry-run</code>, <code>--force</code>, <code>--backup</code> registered on all 12 commands: entity, usecase, repository, handler, di, messages, interfaces, mocks, init, integrate, feature, test-integration</li>
+      <li><code>writeFile()</code> and <code>writeGoFile()</code> now accept variadic <code>*SafetyManager</code> — backward-compatible</li>
+      <li>SafetyManager forwarded from <code>feature</code> into all 8 sub-generators</li>
+      <li>SafetyManager threaded through <code>integrate</code> DI and main.go generation paths</li>
+      <li>15 files modified across <code>cmd/</code> package</li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-18-2">v1.18.1 — v1.18.6</a>
+    </h2>
+    <span class="release-date">March 24–25, 2026</span>
+  </div>
+  <p class="release-description">
+    Patch series: interactive wizard fix, version display fix, <code>goca doctor</code>, <code>goca upgrade</code>, global <code>--quiet</code>/<code>--verbose</code> flags, improved dry-run table, and CI fixes.
+  </p>
+  <div class="release-highlights">
+    <strong>Key Changes:</strong>
+    <ul>
+      <li><a href="/goca/blog/releases/v1-18-1">v1.18.1</a>: <code>goca init</code> no-arg wizard fix; <code>goca version</code> reads correct installed version via <code>runtime/debug.ReadBuildInfo</code></li>
+      <li><a href="/goca/blog/releases/v1-18-2">v1.18.2</a>: New <code>goca doctor</code> command (6 health checks, <code>--fix</code>); new <code>goca upgrade</code> command; <code>--quiet</code>/<code>--verbose</code> global flags; improved 3-column dry-run table</li>
+      <li>v1.18.3: Resolved CI failures from v1.18.2</li>
+      <li>v1.18.4: Removed conflicting <code>-v</code> shorthand from <code>--validation</code> flag</li>
+      <li>v1.18.5: Restored missing <code>--business-rules</code> and <code>--dry-run</code> flags in <code>feature</code> command</li>
+      <li>v1.18.6: YAML workflow formatting fix</li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-18-0">v1.18.0</a>
     </h2>
     <span class="release-date">March 24, 2026</span>
   </div>
