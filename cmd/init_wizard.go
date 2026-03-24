@@ -7,20 +7,45 @@ import (
 )
 
 // runInitWizard launches an interactive form to gather project init parameters.
-// Returns module, database, api, auth, config values or an error if cancelled.
-func runInitWizard(projectName string) (module, database, api string, auth, config bool, err error) {
-	module = fmt.Sprintf("github.com/user/%s", projectName)
+// When projectName is empty, also prompts for the project name.
+// Returns name, module, database, api, auth, config values or an error if cancelled.
+func runInitWizard(projectName string) (name, module, database, api string, auth, config bool, err error) {
+	name = projectName
+	modulePlaceholder := "github.com/user/myproject"
+	if projectName != "" {
+		module = fmt.Sprintf("github.com/user/%s", projectName)
+		modulePlaceholder = module
+	}
 	database = "sqlite"
 	api = "rest"
 	auth = false
 	config = true
 
-	form := huh.NewForm(
+	var formGroups []*huh.Group
+
+	// When no project name was provided on the CLI, ask for it first
+	if projectName == "" {
+		formGroups = append(formGroups, huh.NewGroup(
+			huh.NewInput().
+				Title("Project name").
+				Description("Directory name for your new project").
+				Placeholder("myproject").
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("project name is required")
+					}
+					return nil
+				}).
+				Value(&name),
+		).Title("New Project"))
+	}
+
+	formGroups = append(formGroups,
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Go module path").
 				Description("The import path for your Go module").
-				Placeholder(fmt.Sprintf("github.com/user/%s", projectName)).
+				Placeholder(modulePlaceholder).
 				Value(&module),
 
 			huh.NewSelect[string]().
@@ -59,10 +84,15 @@ func runInitWizard(projectName string) (module, database, api string, auth, conf
 		).Title("Options"),
 	)
 
-	err = form.Run()
+	err = huh.NewForm(formGroups...).Run()
 	if err != nil {
-		return "", "", "", false, false, err
+		return "", "", "", "", false, false, err
 	}
 
-	return module, database, api, auth, config, nil
+	// When projectName was collected interactively, use it as module default if left blank
+	if module == "" && name != "" {
+		module = fmt.Sprintf("github.com/user/%s", name)
+	}
+
+	return name, module, database, api, auth, config, nil
 }

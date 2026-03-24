@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-03-24
+
+### Fixed
+
+- `goca init` with no arguments now launches the interactive wizard correctly instead of failing with "accepts 1 arg(s), received 0"; the wizard also prompts for project name when it is not provided
+- `goca version` now correctly displays the release version (e.g. `v1.18.1`) when installed via `go install` by reading the module version embedded by the Go toolchain at install time (`runtime/debug.ReadBuildInfo`)
+
 ## [1.18.0] - 2026-03-24
 
 ### Added

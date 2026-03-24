@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -38,5 +40,12 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
+	// When Version is still the default "dev", try to read the module version
+	// embedded by the Go toolchain (set when using `go install module@version`).
+	if Version == "dev" {
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+			Version = strings.TrimPrefix(info.Main.Version, "v")
+		}
+	}
 	versionCmd.Flags().BoolP("short", "s", false, "Display only the version number")
 }

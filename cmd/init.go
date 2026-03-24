@@ -26,8 +26,12 @@ Use --template to initialize with predefined configurations:
 		if listTemplates {
 			return nil
 		}
-		// Otherwise require exactly 1 argument
-		return cobra.ExactArgs(1)(cmd, args)
+		// Allow 0 args in interactive mode (wizard will prompt for project name)
+		noInteractive, _ := cmd.Root().PersistentFlags().GetBool("no-interactive")
+		if noInteractive {
+			return cobra.ExactArgs(1)(cmd, args)
+		}
+		return cobra.MaximumNArgs(1)(cmd, args)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		module, _ := cmd.Flags().GetString("module")
@@ -44,25 +48,27 @@ Use --template to initialize with predefined configurations:
 			return
 		}
 
-		// Ensure project name is provided when not listing templates
-		if len(args) == 0 {
-			ui.Error("project name is required")
-			cmd.Usage()
-			os.Exit(1)
+		// Determine project name from args or interactive wizard
+		projectName := ""
+		if len(args) > 0 {
+			projectName = args[0]
 		}
 
-		projectName := args[0]
-
-		if module == "" {
+		if projectName == "" || module == "" {
 			if ui.IsInteractive() {
-				// Launch interactive wizard
+				// Launch interactive wizard; also collects projectName when not in args
 				var err error
-				module, database, api, auth, config, err = runInitWizard(projectName)
+				projectName, module, database, api, auth, config, err = runInitWizard(projectName)
 				if err != nil {
 					ui.Error(fmt.Sprintf("Interactive setup cancelled: %v", err))
 					os.Exit(1)
 				}
 			} else {
+				if projectName == "" {
+					ui.Error("project name is required")
+					cmd.Usage()
+					os.Exit(1)
+				}
 				ui.Error("--module flag is required (or run without --no-interactive for guided setup)")
 				os.Exit(1)
 			}
