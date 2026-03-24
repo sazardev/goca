@@ -2,83 +2,83 @@ name: Test
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version-file: 'go.mod'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: "go.mod"
 
-    - name: Cache Go modules
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Download dependencies
-      run: go mod download
+      - name: Download dependencies
+        run: go mod download
 
-    - name: Tidy dependencies
-      run: go mod tidy
+      - name: Tidy dependencies
+        run: go mod tidy
 
-    - name: Verify dependencies
-      run: |
-        go mod verify
-        if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
-          echo "Go module files were modified during 'go mod tidy'"
-          git diff go.mod go.sum
-          exit 1
-        fi
+      - name: Verify dependencies
+        run: |
+          go mod verify
+          if [ -n "$(git status --porcelain go.mod go.sum)" ]; then
+            echo "Go module files were modified during 'go mod tidy'"
+            git diff go.mod go.sum
+            exit 1
+          fi
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Build CLI Binary
-      run: |
-        go build -o goca .
-        echo "$(pwd)" >> $GITHUB_PATH
+      - name: Build CLI Binary
+        run: |
+          go build -o goca .
+          echo "$(pwd)" >> $GITHUB_PATH
 
-    - name: Test
-      run: |
-        # Run specific optimized test that handles CI environment properly
-        go test -v ./internal/testing -run TestGocaCLIComprehensive
-        
-        # Run other non-problematic tests excluding the old framework tests
-        go test -v ./cmd/...
+      - name: Test
+        run: |
+          # Run specific optimized test that handles CI environment properly
+          go test -v ./internal/testing -run TestGocaCLIComprehensive
 
-    - name: Test CLI Commands
-      run: |
-        # Test basic commands
-        ./goca help
-        ./goca version
-        
-        # Test init command in clean directory
-        mkdir -p test-workspace
-        cd test-workspace
-        
-        # Create test project
-        ../goca init testapp --module github.com/test/testapp
-        
-        # Verify structure was created
-        [ -d "testapp" ] || exit 1
-        [ -f "testapp/go.mod" ] || exit 1
-        [ -d "testapp/internal" ] || exit 1
-        [ -d "testapp/cmd" ] || exit 1
-        [ -d "testapp/pkg" ] || exit 1
-        
-        # Verify generated project compiles
-        cd testapp
-        go mod tidy
-        go build ./...
+          # Run other non-problematic tests excluding the old framework tests
+          go test -v ./cmd/...
+
+      - name: Test CLI Commands
+        run: |
+          # Test basic commands
+          ./goca help
+          ./goca version
+
+          # Test init command in clean directory
+          mkdir -p test-workspace
+          cd test-workspace
+
+          # Create test project
+          ../goca init testapp --module github.com/test/testapp
+
+          # Verify structure was created
+          [ -d "testapp" ] || exit 1
+          [ -f "testapp/go.mod" ] || exit 1
+          [ -d "testapp/internal" ] || exit 1
+          [ -d "testapp/cmd" ] || exit 1
+          [ -d "testapp/pkg" ] || exit 1
+
+          # Verify generated project compiles
+          cd testapp
+          go mod tidy
+          go build ./...
