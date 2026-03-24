@@ -140,6 +140,6 @@ It is plain text and can be edited or extended locally to add project-specific s
 
 ## Related
 
-- [Safety & Dependency Management](/goca/features/safety-and-dependencies) — `--dry-run`, `--force`, `--backup` flags
-- [Commands Overview](/goca/commands/) — full command reference
+- [Safety & Dependency Management](/features/safety-and-dependencies) — `--dry-run`, `--force`, `--backup` flags
+- [Commands Overview](/commands/) — full command reference
 - [Navi GitHub repository](https://github.com/denisidoro/navi) — Navi documentation and installation
