@@ -44,7 +44,11 @@ func (ci *ConfigIntegration) LoadConfigForProject() error {
 		ci.templateManager = NewTemplateManager(&ci.config.Templates, wd)
 		if err := ci.templateManager.LoadTemplates(); err != nil {
 			// Don't fail if templates can't be loaded, just warn
-			fmt.Printf("Warning: Could not load custom templates: %v\n", err)
+			if ui != nil {
+				ui.Warning(fmt.Sprintf("Could not load custom templates: %v", err))
+			} else {
+				fmt.Printf("Warning: Could not load custom templates: %v\n", err)
+			}
 		}
 	}
 
@@ -279,7 +283,11 @@ func (ci *ConfigIntegration) PrintConfigSummary() {
 	if ci.manager != nil {
 		ci.manager.PrintSummary()
 	} else {
-		fmt.Println("Using default configuration (.goca.yaml not found)")
+		if ui != nil {
+			ui.Dim("Using default configuration (.goca.yaml not found)")
+		} else {
+			fmt.Println("Using default configuration (.goca.yaml not found)")
+		}
 	}
 }
 
@@ -472,8 +480,13 @@ func (ci *ConfigIntegration) InitializeTemplateSystem() error {
 		return fmt.Errorf("failed to initialize templates: %w", err)
 	}
 
-	fmt.Printf("Template system initialized in: %s\n", ci.config.Templates.Directory)
-	fmt.Printf("Available templates: %v\n", ci.templateManager.GetAvailableTemplates())
+	if ui != nil {
+		ui.Success(fmt.Sprintf("Template system initialized in: %s", ci.config.Templates.Directory))
+		ui.Info(fmt.Sprintf("Available templates: %v", ci.templateManager.GetAvailableTemplates()))
+	} else {
+		fmt.Printf("Template system initialized in: %s\n", ci.config.Templates.Directory)
+		fmt.Printf("Available templates: %v\n", ci.templateManager.GetAvailableTemplates())
+	}
 
 	return nil
 }
@@ -505,6 +518,10 @@ func (ci *ConfigIntegration) GenerateProjectDocumentation() error {
 		return fmt.Errorf("failed to write README.md: %w", err)
 	}
 
-	fmt.Printf("📖 Generated enhanced README.md using custom template\n")
+	if ui != nil {
+		ui.Info("Generated enhanced README.md using custom template")
+	} else {
+		fmt.Printf("Generated enhanced README.md using custom template\n")
+	}
 	return nil
 }

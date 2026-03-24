@@ -26,25 +26,25 @@ all layers of the system using Google Wire.`,
 		wire, _ := cmd.Flags().GetBool("wire")
 
 		if features == "" {
-			fmt.Println("Error: --features flag is required")
+			ui.Error("--features flag is required")
 			os.Exit(1)
 		}
 
-		fmt.Printf("Generating DI container for features: %s\n", features)
-		fmt.Printf("Database: %s\n", database)
+		ui.Header(fmt.Sprintf("Generating DI container for features: %s", features))
+		ui.KeyValue("Database", database)
 
 		if wire {
-			fmt.Println("✓ Usando Google Wire")
+			ui.Feature("Using Google Wire", false)
 		}
 
 		generateDI(features, database, wire)
-		fmt.Printf("\nDI container generated successfully!\n")
+		ui.Success("DI container generated successfully!")
 	},
 }
 
 func generateDI(features, database string, wire bool) {
 	diDir := "internal/di"
-	// Crear directorio di si no existe
+	// Create di directory if it doesn't exist
 	_ = os.MkdirAll(diDir, 0755)
 
 	// Parse features
@@ -121,7 +121,7 @@ func generateManualDI(dir string, features []string, database string) {
 	generateGetters(&content, features)
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing DI file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing DI file: %v", err))
 		return
 	}
 }
@@ -222,7 +222,7 @@ func generateWireFile(dir string, features []string, database string) {
 	writeWireFunctions(&content, features)
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing Wire file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing Wire file: %v", err))
 		return
 	}
 }
@@ -368,7 +368,7 @@ func generateWireGenTemplate(dir string, features []string) {
 	}
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing Wire generator file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing Wire generator file: %v", err))
 		return
 	}
 }

@@ -28,8 +28,8 @@ without external dependencies and with complete business validations.`,
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
 		if err := configIntegration.LoadConfigForProject(); err != nil {
-			fmt.Printf("Warning: Could not load configuration: %v\n", err)
-			fmt.Println("Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+			ui.Warning(fmt.Sprintf("Could not load configuration: %v", err))
+			ui.Dim("Using default values. Consider running 'goca init --config' to generate .goca.yaml")
 		}
 
 		// Merge CLI flags with configuration (CLI flags take precedence)
@@ -75,41 +75,25 @@ without external dependencies and with complete business validations.`,
 		validator := NewCommandValidator()
 
 		if err := validator.ValidateEntityCommand(entityName, fields); err != nil {
-			validator.errorHandler.HandleError(err, "validación de parámetros")
+			validator.errorHandler.HandleError(err, "parameter validation")
 		}
 
 		validator.errorHandler.ValidateRequiredFlag(fields, "fields")
 
-		fmt.Printf("Generating entity '%s'\n", entityName)
-		fmt.Printf("Fields: %s\n", fields)
+		ui.Header(fmt.Sprintf("Generating entity '%s'", entityName))
+		ui.KeyValue("Fields", fields)
 
 		if effectiveValidation {
-			fmt.Print("Including validations")
-			if configIntegration.HasConfigFile() {
-				fmt.Printf(" (from config)")
-			}
-			fmt.Println()
+			ui.Feature("Including validations", configIntegration.HasConfigFile())
 		}
 		if effectiveBusinessRules {
-			fmt.Print("🧠 Including business rules")
-			if configIntegration.HasConfigFile() {
-				fmt.Printf(" (from config)")
-			}
-			fmt.Println()
+			ui.Feature("Including business rules", configIntegration.HasConfigFile())
 		}
 		if effectiveTimestamps {
-			fmt.Print("⏰ Including timestamps")
-			if configIntegration.HasConfigFile() && !cmd.Flags().Changed("timestamps") {
-				fmt.Printf(" (from config)")
-			}
-			fmt.Println()
+			ui.Feature("Including timestamps", configIntegration.HasConfigFile() && !cmd.Flags().Changed("timestamps"))
 		}
 		if effectiveSoftDelete {
-			fmt.Print("🗑️  Including soft delete")
-			if configIntegration.HasConfigFile() && !cmd.Flags().Changed("soft-delete") {
-				fmt.Printf(" (from config)")
-			}
-			fmt.Println()
+			ui.Feature("Including soft delete", configIntegration.HasConfigFile() && !cmd.Flags().Changed("soft-delete"))
 		}
 
 		if configIntegration.HasConfigFile() {
@@ -127,29 +111,33 @@ without external dependencies and with complete business validations.`,
 		// Generate seed data automatically
 		if fields != "" {
 			generateSeedData("internal/domain", entityName, parseFields(fields))
-			fmt.Println("Seed data generated")
+			ui.Info("Seed data generated")
 		}
 
-		fmt.Printf("\nEntity '%s' generated successfully!\n", entityName)
-		fmt.Printf("Files created:\n")
-		fmt.Printf("   - internal/domain/%s.go\n", strings.ToLower(entityName))
+		ui.Success(fmt.Sprintf("Entity '%s' generated successfully!", entityName))
+
+		rows := [][]string{
+			{fmt.Sprintf("internal/domain/%s.go", strings.ToLower(entityName)), "Entity"},
+		}
 		if effectiveValidation {
-			fmt.Printf("   - internal/domain/errors.go\n")
+			rows = append(rows, []string{"internal/domain/errors.go", "Domain errors"})
 		}
-		fmt.Printf("   - internal/domain/%s_seeds.go\n", strings.ToLower(entityName))
+		rows = append(rows, []string{fmt.Sprintf("internal/domain/%s_seeds.go", strings.ToLower(entityName)), "Seed data"})
 		if tests {
-			fmt.Printf("   - internal/domain/%s_test.go\n", strings.ToLower(entityName))
+			rows = append(rows, []string{fmt.Sprintf("internal/domain/%s_test.go", strings.ToLower(entityName)), "Unit tests"})
 		}
-		fmt.Println("\nAll set! Your entity is ready to use.")
+		ui.Table([]string{"File", "Description"}, rows)
+		ui.Blank()
+		ui.Success("All set! Your entity is ready to use.")
 	},
 }
 
 func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete, tests bool, fileNamingConvention string) {
-	// Crear directorio domain si no existe
+	// Create domain directory if it doesn't exist
 	domainDir := "internal/domain"
 	_ = os.MkdirAll(domainDir, 0755)
 
-	// Parse fields - ahora genera campos reales basados en el input
+	// Parse fields - generates real fields based on the input
 	// Note: ParseFieldsWithValidation already adds the ID field
 	fieldsList := parseFieldsWithValidation(fields, validation)
 
@@ -196,7 +184,7 @@ func parseFieldsWithValidation(fields string, withValidation bool) []Field {
 	validator := NewFieldValidator()
 	fieldsList, err := validator.ParseFieldsWithValidation(fields)
 	if err != nil {
-		fmt.Printf("Error in field validation: %v\n", err)
+		ui.Error(fmt.Sprintf("Error in field validation: %v", err))
 		os.Exit(1)
 	}
 
@@ -305,7 +293,7 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 	}
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing entity file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing entity file: %v", err))
 		return
 	}
 }
@@ -444,7 +432,7 @@ func generateErrorsFile(dir, entityName string, fields []Field) {
 	writeEntityErrors(&content, entityName, fields, existingErrors)
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing errors file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing errors file: %v", err))
 	}
 }
 
@@ -453,7 +441,7 @@ func readExistingErrors(filename, entityName string) []string {
 	var existingErrors []string
 
 	if _, err := os.Stat(filename); err == nil {
-		fmt.Printf("Warning: errors.go already exists, adding new errors for %s\n", entityName)
+		ui.Warning(fmt.Sprintf("errors.go already exists, adding new errors for %s", entityName))
 
 		if existingContent, err := os.ReadFile(filename); err == nil {
 			lines := strings.Split(string(existingContent), "\n")
@@ -538,8 +526,8 @@ func writeTypeSpecificErrors(content *strings.Builder, entityName string, field 
 // writeStringFieldErrors writes string-specific validation errors
 func writeStringFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
 	if strings.Contains(fieldLower, FieldEmailType) {
-		emailError := fmt.Sprintf("\tErrInvalid%s%sFormat = errors.New(\"formato de %s inválido\")",
-			entityName, field.Name, getSpanishFieldName(fieldLower))
+		emailError := fmt.Sprintf("\tErrInvalid%s%sFormat = errors.New(\"invalid %s format\")",
+			entityName, field.Name, getFieldDisplayName(fieldLower))
 		if !contains(existingErrors, emailError) {
 			content.WriteString(emailError + "\n")
 		}
@@ -584,23 +572,23 @@ func writeFloatFieldErrors(content *strings.Builder, entityName string, field Fi
 	}
 }
 
-// getSpanishFieldName converts common field names to Spanish for error messages
-func getSpanishFieldName(fieldName string) string {
+// getFieldDisplayName converts field names to human-readable display names for error messages
+func getFieldDisplayName(fieldName string) string {
 	fieldTranslations := map[string]string{
-		"name":        "el nombre",
-		"email":       "el email",
-		"age":         "la edad",
-		"price":       "el precio",
-		"amount":      "el monto",
-		"description": "la descripción",
-		"title":       "el título",
-		"status":      "el estado",
-		"category":    "la categoría",
-		"stock":       "el stock",
-		"quantity":    "la cantidad",
-		"phone":       "el teléfono",
-		"address":     "la dirección",
-		"password":    "la contraseña",
+		"name":        "name",
+		"email":       "email",
+		"age":         "age",
+		"price":       "price",
+		"amount":      "amount",
+		"description": "description",
+		"title":       "title",
+		"status":      "status",
+		"category":    "category",
+		"stock":       "stock",
+		"quantity":    "quantity",
+		"phone":       "phone",
+		"address":     "address",
+		"password":    "password",
 	}
 
 	for key, value := range fieldTranslations {
@@ -609,7 +597,7 @@ func getSpanishFieldName(fieldName string) string {
 		}
 	}
 
-	return "el campo " + fieldName
+	return fieldName
 }
 
 // Helper function to check if a slice contains a string
@@ -632,7 +620,7 @@ func generateSeedData(dir, entityName string, fields []Field) {
 	writeSQLSeeds(&content, entityName, fields)
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing seed file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing seed file: %v", err))
 	}
 }
 
@@ -760,22 +748,22 @@ func generateStringSampleValue(fieldName string, index int) string {
 
 	switch {
 	case strings.Contains(fieldLower, "name"):
-		names := []string{"Juan Pérez", "María García", "Carlos López"}
+		names := []string{"John Smith", "Jane Doe", "Bob Johnson"}
 		return fmt.Sprintf("\"%s\"", names[(index-1)%len(names)])
 	case strings.Contains(fieldLower, FieldEmailType):
-		emails := []string{"juan@ejemplo.com", "maria@ejemplo.com", "carlos@ejemplo.com"}
+		emails := []string{"john@example.com", "jane@example.com", "bob@example.com"}
 		return fmt.Sprintf("\"%s\"", emails[(index-1)%len(emails)])
 	case strings.Contains(fieldLower, "description"):
-		descriptions := []string{"Descripción detallada del primer elemento", "Información completa del segundo item", "Detalles específicos del tercer registro"}
+		descriptions := []string{"Detailed description of the first item", "Complete information about the second item", "Specific details of the third record"}
 		return fmt.Sprintf("\"%s\"", descriptions[(index-1)%len(descriptions)])
 	case strings.Contains(fieldLower, "title"):
-		titles := []string{"Título Principal", "Elemento Secundario", "Item Terciario"}
+		titles := []string{"Main Title", "Secondary Item", "Third Entry"}
 		return fmt.Sprintf("\"%s\"", titles[(index-1)%len(titles)])
 	case strings.Contains(fieldLower, "status"):
-		statuses := []string{"activo", "pendiente", "completado"}
+		statuses := []string{"active", "pending", "completed"}
 		return fmt.Sprintf("\"%s\"", statuses[(index-1)%len(statuses)])
 	case strings.Contains(fieldLower, "category"):
-		categories := []string{"tecnología", "educación", "salud"}
+		categories := []string{"technology", "education", "health"}
 		return fmt.Sprintf("\"%s\"", categories[(index-1)%len(categories)])
 	default:
 		return fmt.Sprintf("\"Ejemplo %s %d\"", fieldName, index)
@@ -841,19 +829,19 @@ func generateSQLSampleValue(field Field, index int) string {
 	case "string":
 		switch {
 		case strings.Contains(fieldLower, "name"):
-			names := []string{"Juan Pérez", "María García", "Carlos López"}
+			names := []string{"John Smith", "Jane Doe", "Bob Johnson"}
 			return fmt.Sprintf("'%s'", names[(index-1)%len(names)])
 		case strings.Contains(fieldLower, "email"):
-			emails := []string{"juan@ejemplo.com", "maria@ejemplo.com", "carlos@ejemplo.com"}
+			emails := []string{"john@example.com", "jane@example.com", "bob@example.com"}
 			return fmt.Sprintf("'%s'", emails[(index-1)%len(emails)])
 		case strings.Contains(fieldLower, "description"):
-			descriptions := []string{"Descripción detallada del primer elemento", "Información completa del segundo item", "Detalles específicos del tercer registro"}
+			descriptions := []string{"Detailed description of the first item", "Complete information about the second item", "Specific details of the third record"}
 			return fmt.Sprintf("'%s'", descriptions[(index-1)%len(descriptions)])
 		case strings.Contains(fieldLower, "status"):
-			statuses := []string{"activo", "pendiente", "completado"}
+			statuses := []string{"active", "pending", "completed"}
 			return fmt.Sprintf("'%s'", statuses[(index-1)%len(statuses)])
 		default:
-			return fmt.Sprintf("'Ejemplo %s %d'", field.Name, index)
+			return fmt.Sprintf("'Sample %s %d'", field.Name, index)
 		}
 
 	case "int", "int64", "uint", "uint64":

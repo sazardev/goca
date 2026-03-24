@@ -29,7 +29,7 @@ clear interfaces and encapsulated business logic.`,
 		async, _ := cmd.Flags().GetBool("async")
 
 		if entity == "" {
-			fmt.Println("Error: --entity flag is required")
+			ui.Error("--entity flag is required")
 			os.Exit(1)
 		}
 
@@ -61,27 +61,27 @@ clear interfaces and encapsulated business logic.`,
 		}
 
 		// Print configuration summary
-		fmt.Printf("Generating use case '%s' for entity '%s'\n", usecaseName, entity)
-		fmt.Printf("Operations: %s\n", operations)
+		ui.Header(fmt.Sprintf("Generating use case '%s' for entity '%s'", usecaseName, entity))
+		ui.KeyValue("Operations", operations)
 
 		if configIntegration.config != nil {
 			if !cmd.Flags().Changed("dto-validation") {
-				fmt.Printf("  DTO Validation: %v (from config)\n", effectiveDtoValidation)
+				ui.KeyValueFromConfig("DTO Validation", fmt.Sprintf("%v", effectiveDtoValidation))
 			}
 			if effectiveBusinessRules {
-				fmt.Printf("  Business Rules: enabled (from config)\n")
+				ui.KeyValueFromConfig("Business Rules", "enabled")
 			}
 		}
 
 		if effectiveDtoValidation {
-			fmt.Println("✓ Including DTO validations")
+			ui.Feature("Including DTO validations", false)
 		}
 		if async {
-			fmt.Println("✓ Including asynchronous operations")
+			ui.Feature("Including asynchronous operations", false)
 		}
 
 		generateUseCase(usecaseName, entity, operations, effectiveDtoValidation, async)
-		fmt.Printf("\nUse case '%s' generated successfully!\n", usecaseName)
+		ui.Success(fmt.Sprintf("Use case '%s' generated successfully!", usecaseName))
 	},
 }
 
@@ -183,7 +183,7 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 	}
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error creating DTO file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error creating DTO file: %v", err))
 	}
 }
 
@@ -247,8 +247,6 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 	content.WriteString("package usecase\n\n")
 	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
 
-	// DEBUG: Print what interface name is being used
-	fmt.Printf("DEBUG: Generating interface with name: %s\n", usecaseName)
 	content.WriteString(fmt.Sprintf("type %s interface {\n", usecaseName))
 
 	for _, op := range operations {
@@ -270,7 +268,7 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error creating use case file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error creating use case file: %v", err))
 	}
 }
 
@@ -333,7 +331,7 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 	}
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error creating use case service with fields: %v\n", err)
+		ui.Error(fmt.Sprintf("Error creating use case service with fields: %v", err))
 	}
 }
 
@@ -344,7 +342,7 @@ func generateCreateMethod(content *strings.Builder, serviceName, entity string) 
 	fmt.Fprintf(content, "func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
 		serviceVar, serviceName, entity, entity, entity)
 	fmt.Fprintf(content, "\t%s := domain.%s{\n", entityLower, entity)
-	content.WriteString("\t\t// Mapeo automático de campos - ajustar según tu entidad\n")
+	content.WriteString("\t\t// Automatic field mapping - adjust according to your entity\n")
 	content.WriteString("\t\t// Nombre: input.Nombre,\n")
 	content.WriteString("\t\t// Email: input.Email,\n")
 	content.WriteString("\t\t// Edad: input.Edad,\n")
@@ -458,7 +456,7 @@ func generateUpdateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n\n")
 
-	content.WriteString("\t// Actualizar campos según tu entidad\n")
+	content.WriteString("\t// Update fields according to your entity\n")
 	content.WriteString("\tif input.Nombre != \"\" {\n")
 	fmt.Fprintf(content, "\t\t%s.Nombre = input.Nombre\n", entityVar)
 	content.WriteString("\t}\n")
@@ -520,7 +518,7 @@ func generateUseCaseInterfaces(dir, entity string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error creating interfaces file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error creating interfaces file: %v", err))
 	}
 }
 
@@ -565,23 +563,23 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 			case "string":
 				if strings.Contains(strings.ToLower(field.Name), "email") {
 					fmt.Fprintf(content, "\tif r.%s == \"\" {\n", field.Name)
-					fmt.Fprintf(content, "\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
+					fmt.Fprintf(content, "\t\treturn errors.New(\"%s is required\")\n", getFieldDisplayName(strings.ToLower(field.Name)))
 					content.WriteString("\t}\n")
 					fmt.Fprintf(content, "\tif !strings.Contains(r.%s, \"@\") {\n", field.Name)
-					fmt.Fprintf(content, "\t\treturn errors.New(\"formato de %s inválido\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
+					fmt.Fprintf(content, "\t\treturn errors.New(\"invalid %s format\")\n", getFieldDisplayName(strings.ToLower(field.Name)))
 					content.WriteString("\t}\n")
 				} else {
 					fmt.Fprintf(content, "\tif strings.TrimSpace(r.%s) == \"\" {\n", field.Name)
-					fmt.Fprintf(content, "\t\treturn errors.New(\"%s es requerido\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
+					fmt.Fprintf(content, "\t\treturn errors.New(\"%s is required\")\n", getFieldDisplayName(strings.ToLower(field.Name)))
 					content.WriteString("\t}\n")
 				}
 			case "int", "int64", "uint", "uint64":
 				fmt.Fprintf(content, "\tif r.%s < 0 {\n", field.Name)
-				fmt.Fprintf(content, "\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
+				fmt.Fprintf(content, "\t\treturn errors.New(\"%s must be a positive number\")\n", getFieldDisplayName(strings.ToLower(field.Name)))
 				content.WriteString("\t}\n")
 			case "float64", "float32":
 				fmt.Fprintf(content, "\tif r.%s < 0 {\n", field.Name)
-				fmt.Fprintf(content, "\t\treturn errors.New(\"%s debe ser un número positivo\")\n", getSpanishFieldName(strings.ToLower(field.Name)))
+				fmt.Fprintf(content, "\t\treturn errors.New(\"%s must be a positive number\")\n", getFieldDisplayName(strings.ToLower(field.Name)))
 				content.WriteString("\t}\n")
 			}
 		}
@@ -591,7 +589,7 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 	}
 
 	// Generate Create Output DTO
-	fmt.Fprintf(content, "// Create%sOutput DTO para la respuesta de creación\n", entity)
+	fmt.Fprintf(content, "// Create%sOutput DTO for the creation response\n", entity)
 	fmt.Fprintf(content, "type Create%sOutput struct {\n", entity)
 	content.WriteString("\tID      uint   `json:\"id\"`\n")
 

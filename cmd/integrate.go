@@ -22,32 +22,32 @@ Useful for projects that have unintegrated features.`,
 		features, _ := cmd.Flags().GetString("features")
 
 		if all {
-			fmt.Println("Detecting existing features...")
+			ui.Info("Detecting existing features...")
 			autoDetectedFeatures := detectExistingFeatures()
 			if len(autoDetectedFeatures) == 0 {
-				fmt.Println("No features found to integrate")
+				ui.Warning("No features found to integrate")
 				return
 			}
 
-			fmt.Printf("Features detected: %s\n", strings.Join(autoDetectedFeatures, ", "))
+			ui.Info(fmt.Sprintf("Features detected: %s", strings.Join(autoDetectedFeatures, ", ")))
 			integrateFeatures(autoDetectedFeatures)
 		} else if features != "" {
 			featureList := strings.Split(features, ",")
 			for i, feature := range featureList {
 				featureList[i] = strings.TrimSpace(feature)
 			}
-			fmt.Printf("Integrating specified features: %s\n", strings.Join(featureList, ", "))
+			ui.Info(fmt.Sprintf("Integrating specified features: %s", strings.Join(featureList, ", ")))
 			integrateFeatures(featureList)
 		} else {
-			fmt.Println("Must specify --all or --features")
+			ui.Error("Must specify --all or --features")
 			os.Exit(1)
 		}
 
-		fmt.Println("\nIntegration completed!")
-		fmt.Println("All features are now:")
-		fmt.Println("   - Connected in the DI container")
-		fmt.Println("   - With routes registered in main.go")
-		fmt.Println("   - Ready to use")
+		ui.Success("Integration completed!")
+		ui.Println("All features are now:")
+		ui.Dim("   - Connected in the DI container")
+		ui.Dim("   - With routes registered in main.go")
+		ui.Dim("   - Ready to use")
 	},
 }
 
@@ -102,18 +102,19 @@ func detectExistingFeatures() []string {
 
 // integrateFeatures integrates multiple features
 func integrateFeatures(features []string) {
-	fmt.Println("\nStarting integration process...")
+	ui.Blank()
+	ui.Info("Starting integration process...")
 
 	// Step 1: Create or update DI container
-	fmt.Println("\n1. Configuring DI container...")
+	ui.Step(1, "Configuring DI container...")
 	createOrUpdateDIContainer(features)
 
 	// Step 2: Update main.go
-	fmt.Println("\n2. Updating main.go...")
+	ui.Step(2, "Updating main.go...")
 	updateMainGoWithAllFeatures(features)
 
 	// Step 3: Verify integration
-	fmt.Println("\n3. Verifying integration...")
+	ui.Step(3, "Verifying integration...")
 	verifyIntegration(features)
 }
 
@@ -122,10 +123,10 @@ func createOrUpdateDIContainer(features []string) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
-		fmt.Println("   Creating DI container...")
+		ui.Dim("   Creating DI container...")
 		generateDI(strings.Join(features, ","), DBPostgres, false)
 	} else {
-		fmt.Println("   Updating existing DI container...")
+		ui.Dim("   Updating existing DI container...")
 		for _, feature := range features {
 			addFeatureToDI(feature)
 		}
@@ -153,17 +154,17 @@ func updateMainGoWithAllFeatures(features []string) {
 	}
 
 	if !found {
-		fmt.Println("   Warning: main.go not found, creating new...")
+		ui.Warning("main.go not found, creating new...")
 		createCompleteMainGo(features)
 		return
 	}
 
-	fmt.Printf("   Updating main.go at: %s\n", mainPath)
+	ui.Dim(fmt.Sprintf("   Updating main.go at: %s", mainPath))
 
 	// Read existing content
 	content, err := os.ReadFile(mainPath)
 	if err != nil {
-		fmt.Printf("   Warning: Could not read main.go: %v\n", err)
+		ui.Warning(fmt.Sprintf("Could not read main.go: %v", err))
 		return
 	}
 
@@ -175,10 +176,10 @@ func updateMainGoWithAllFeatures(features []string) {
 		!strings.Contains(contentStr, "/internal/di")
 
 	if needsCompleteRewrite {
-		fmt.Println("   Rewriting complete main.go...")
+		ui.Dim("   Rewriting complete main.go...")
 		createCompleteMainGoWithFeatures(mainPath, features, moduleName)
 	} else {
-		fmt.Println("   Adding missing features...")
+		ui.Dim("   Adding missing features...")
 		addMissingFeaturesToMain(mainPath, features, contentStr, moduleName)
 	}
 }
@@ -441,9 +442,9 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 `, moduleName, moduleName, moduleName, routesSB.String())
 
 	if err := os.WriteFile(mainPath, []byte(newMainContent), 0644); err != nil {
-		fmt.Printf("   Warning: Could not create main.go: %v\n", err)
+		ui.Warning(fmt.Sprintf("Could not create main.go: %v", err))
 	} else {
-		fmt.Printf("   main.go created with %d features\n", len(features))
+		ui.Info(fmt.Sprintf("main.go created with %d features", len(features)))
 	}
 }
 
@@ -513,12 +514,12 @@ func addMissingFeaturesToMain(mainPath string, features []string, contentStr, mo
 
 	if addedFeatures > 0 {
 		if err := os.WriteFile(mainPath, []byte(newContent), 0644); err != nil {
-			fmt.Printf("   Warning: Could not update main.go: %v\n", err)
+			ui.Warning(fmt.Sprintf("Could not update main.go: %v", err))
 		} else {
-			fmt.Printf("   %d features added to main.go\n", addedFeatures)
+			ui.Info(fmt.Sprintf("%d features added to main.go", addedFeatures))
 		}
 	} else {
-		fmt.Println("   All features are already integrated")
+		ui.Dim("   All features are already integrated")
 	}
 }
 
@@ -550,10 +551,10 @@ func verifyIntegration(features []string) {
 	// Check DI container
 	diPath := filepath.Join("internal", "di", "container.go")
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
-		fmt.Println("   DI container not found")
+		ui.Warning("DI container not found")
 		issues++
 	} else {
-		fmt.Println("   DI container exists")
+		ui.Dim("   DI container exists")
 	}
 
 	// Check main.go integration
@@ -564,16 +565,16 @@ func verifyIntegration(features []string) {
 		if content, err := os.ReadFile(path); err == nil {
 			contentStr := string(content)
 			if strings.Contains(contentStr, "di.NewContainer") {
-				fmt.Printf("   main.go integrated (%s)\n", path)
+				ui.Dim(fmt.Sprintf("   main.go integrated (%s)", path))
 				mainFound = true
 
 				// Check individual feature routes
 				for _, feature := range features {
 					featureLower := strings.ToLower(feature)
 					if strings.Contains(contentStr, fmt.Sprintf("/api/v1/%ss", featureLower)) {
-						fmt.Printf("   %s routes integrated\n", feature)
+						ui.Dim(fmt.Sprintf("   %s routes integrated", feature))
 					} else {
-						fmt.Printf("   Warning: %s routes missing\n", feature)
+						ui.Warning(fmt.Sprintf("%s routes missing", feature))
 						issues++
 					}
 				}
@@ -583,14 +584,14 @@ func verifyIntegration(features []string) {
 	}
 
 	if !mainFound {
-		fmt.Println("   main.go not found or not integrated")
+		ui.Warning("main.go not found or not integrated")
 		issues++
 	}
 
 	if issues == 0 {
-		fmt.Println("\nPerfect integration! Everything is ready.")
+		ui.Success("Perfect integration! Everything is ready.")
 	} else {
-		fmt.Printf("\nIntegration completed with %d warnings\n", issues)
+		ui.Warning(fmt.Sprintf("Integration completed with %d warnings", issues))
 	}
 }
 

@@ -17,7 +17,11 @@ func getModuleName() string {
 	}
 	defer func() {
 		if err := goMod.Close(); err != nil {
-			fmt.Printf("Error closing go.mod file: %v\n", err)
+			if ui != nil {
+				ui.Error(fmt.Sprintf("Error closing go.mod file: %v", err))
+			} else {
+				fmt.Printf("Error closing go.mod file: %v\n", err)
+			}
 		}
 	}()
 
@@ -44,7 +48,11 @@ func writeFile(path, content string) error {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			fmt.Printf("Error closing file %s: %v\n", path, err)
+			if ui != nil {
+				ui.Error(fmt.Sprintf("Error closing file %s: %v", path, err))
+			} else {
+				fmt.Printf("Error closing file %s: %v\n", path, err)
+			}
 		}
 	}()
 
@@ -62,7 +70,11 @@ func writeGoFile(path, content string) error {
 	if strings.HasSuffix(path, ".go") {
 		formatted, err := format.Source([]byte(content))
 		if err != nil {
-			fmt.Printf("Warning: Could not format Go code for %s: %v\n", path, err)
+			if ui != nil {
+				ui.Warning(fmt.Sprintf("Could not format Go code for %s: %v", path, err))
+			} else {
+				fmt.Printf("Warning: Could not format Go code for %s: %v\n", path, err)
+			}
 			// Continue with unformatted code
 		} else {
 			content = string(formatted)
@@ -80,7 +92,11 @@ func writeGoFile(path, content string) error {
 	}
 	defer func() {
 		if err := file.Close(); err != nil {
-			fmt.Printf("Error closing file %s: %v\n", path, err)
+			if ui != nil {
+				ui.Error(fmt.Sprintf("Error closing file %s: %v", path, err))
+			} else {
+				fmt.Printf("Error closing file %s: %v\n", path, err)
+			}
 		}
 	}()
 
@@ -105,16 +121,16 @@ func getImportPath(moduleName string) string {
 	return moduleName
 }
 
-// generateSearchMethods genera métodos de búsqueda basados en los campos de la entidad
+// generateSearchMethods generates search methods based on entity fields
 func generateSearchMethods(fields []Field, entity string) []SearchMethod {
 	var methods []SearchMethod
 
 	for _, field := range fields {
 		if field.Name == "ID" {
-			continue // ID ya tiene FindByID por defecto
+			continue // ID already has FindByID by default
 		}
 
-		// Generar métodos para campos que comúnmente se usan para búsquedas
+		// Generate methods for fields commonly used for searches
 		if isSearchableField(field.Name, field.Type) {
 			method := SearchMethod{
 				MethodName: fmt.Sprintf("FindBy%s", field.Name),
@@ -130,20 +146,20 @@ func generateSearchMethods(fields []Field, entity string) []SearchMethod {
 	return methods
 }
 
-// isSearchableField determina si un campo debería tener un método de búsqueda
+// isSearchableField determines if a field should have a search method
 func isSearchableField(fieldName, fieldType string) bool {
-	// Tipos que no son apropiados para búsquedas
+	// Types that are not suitable for searches
 	if fieldType == "[]byte" || fieldType == "interface{}" {
 		return false
 	}
 
 	fieldLower := strings.ToLower(fieldName)
 
-	// Campos comunes que suelen usarse para búsquedas
+	// Common fields typically used for searches
 	searchableFields := []string{
-		"email", "username", "nombre", "name", "codigo", "code",
-		"sku", "slug", "telefono", "phone", "documento", "dni",
-		"cedula", "passport", "license", "titulo", "title",
+		"email", "username", "name", "code",
+		"sku", "slug", "phone", "document", "dni",
+		"passport", "license", "title",
 	}
 
 	for _, searchable := range searchableFields {
@@ -152,16 +168,16 @@ func isSearchableField(fieldName, fieldType string) bool {
 		}
 	}
 
-	// Solo campos string, int y uint son buenos para búsquedas
+	// Only string, int and uint fields are good for searches
 	return fieldType == "string" || fieldType == "int" || fieldType == "uint"
 }
 
-// isUniqueField determina si un campo probablemente debería ser único
+// isUniqueField determines if a field should likely be unique
 func isUniqueField(fieldName string) bool {
 	fieldLower := strings.ToLower(fieldName)
 	uniqueFields := []string{
-		"email", "username", "codigo", "code", "sku", "slug",
-		"documento", "dni", "cedula", "passport", "license",
+		"email", "username", "code", "sku", "slug",
+		"document", "dni", "passport", "license",
 	}
 
 	for _, unique := range uniqueFields {
@@ -173,22 +189,22 @@ func isUniqueField(fieldName string) bool {
 	return false
 }
 
-// SearchMethod representa un método de búsqueda generado dinámicamente
+// SearchMethod represents a dynamically generated search method
 type SearchMethod struct {
 	MethodName string // FindByEmail, FindByUsername, etc.
 	FieldName  string // Email, Username, etc.
 	FieldType  string // string, int, etc.
 	ReturnType string // (*domain.User, error)
-	IsUnique   bool   // true si debería retornar un solo resultado
+	IsUnique   bool   // true if it should return a single result
 }
 
-// generateSearchMethodSignature genera la firma del método de búsqueda
+// generateSearchMethodSignature generates the search method signature
 func (sm SearchMethod) generateSearchMethodSignature() string {
 	paramName := strings.ToLower(sm.FieldName)
 	return fmt.Sprintf("\t%s(%s %s) %s", sm.MethodName, paramName, sm.FieldType, sm.ReturnType)
 }
 
-// generateSearchMethodImplementation genera la implementación del método de búsqueda
+// generateSearchMethodImplementation generates the search method implementation
 func (sm SearchMethod) generateSearchMethodImplementation(receiverName, receiverType, entity string) string {
 	paramName := strings.ToLower(sm.FieldName)
 	entityVar := strings.ToLower(entity)

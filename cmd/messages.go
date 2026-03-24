@@ -37,20 +37,20 @@ organized by feature to maintain consistency in the application.`,
 			constants = true
 		}
 
-		fmt.Printf("Generating messages for entity '%s'\n", entity)
+		ui.Header(fmt.Sprintf("Generating messages for entity '%s'", entity))
 
 		if errors {
-			fmt.Println("✓ Generating error messages")
+			ui.Feature("Generating error messages", false)
 		}
 		if responses {
-			fmt.Println("✓ Generating response messages")
+			ui.Feature("Generating response messages", false)
 		}
 		if constants {
-			fmt.Println("✓ Generating constants")
+			ui.Feature("Generating constants", false)
 		}
 
 		generateMessages(entity, errors, responses, constants)
-		fmt.Printf("\nMessages for '%s' generated successfully!\n", entity)
+		ui.Success(fmt.Sprintf("Messages for '%s' generated successfully!", entity))
 	},
 }
 

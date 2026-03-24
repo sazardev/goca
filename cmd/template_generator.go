@@ -241,7 +241,7 @@ func (g *TemplateGenerator) generateValidations(fields []FieldData, features Fea
 			validations = append(validations, ValidationData{
 				Field:    field.Name,
 				Rule:     "required",
-				Message:  fmt.Sprintf("%s es requerido", strings.ToLower(field.Name)),
+				Message:  fmt.Sprintf("%s is required", strings.ToLower(field.Name)),
 				Priority: 1,
 			})
 		}

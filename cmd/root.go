@@ -32,6 +32,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	noColor       bool
+	noInteractive bool
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "goca",
 	Short: "Go Clean Architecture Code Generator",
@@ -40,18 +45,30 @@ Clean Architecture projects following best practices.
 
 It generates clean, well-structured layered code, allowing you to 
 focus on business logic instead of repetitive configuration tasks.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		initUI(noColor)
+		ui.SetInteractive(!noInteractive)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		if ui != nil {
+			ui.Error(err.Error())
+		} else {
+			fmt.Println(err)
+		}
 		os.Exit(1)
 	}
 }
 
 func init() {
+	// Global flags
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
+	rootCmd.PersistentFlags().BoolVar(&noInteractive, "no-interactive", false, "Disable interactive prompts")
+
 	// Add subcommands
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
@@ -65,5 +82,4 @@ func init() {
 	rootCmd.AddCommand(integrateCmd)
 	rootCmd.AddCommand(interfacesCmd)
 	rootCmd.AddCommand(templateManagementCmd)
-	rootCmd.AddCommand(configCmd)
 }

@@ -33,13 +33,13 @@ func NewTestCommandValidator() *CommandValidator {
 func (v *CommandValidator) ValidateEntityCommand(entityName, fields string) error {
 	// Validate entity name
 	if err := v.fieldValidator.ValidateEntityName(entityName); err != nil {
-		return fmt.Errorf("nombre de entidad: %w", err)
+		return fmt.Errorf("entity name: %w", err)
 	}
 
 	// Validate fields if provided
 	if fields != "" {
 		if err := v.fieldValidator.ValidateFields(fields); err != nil {
-			return fmt.Errorf("campos: %w", err)
+			return fmt.Errorf("fields: %w", err)
 		}
 	}
 
@@ -50,7 +50,7 @@ func (v *CommandValidator) ValidateEntityCommand(entityName, fields string) erro
 func (v *CommandValidator) ValidateFeatureCommand(featureName, fields, database, handlers string) error {
 	// Validate feature name (same as entity)
 	if err := v.fieldValidator.ValidateEntityName(featureName); err != nil {
-		return fmt.Errorf("nombre de feature: %w", err)
+		return fmt.Errorf("feature name: %w", err)
 	}
 
 	// Validate required fields
@@ -99,15 +99,15 @@ func (v *CommandValidator) ValidateRepositoryCommand(entityName, database string
 func (v *CommandValidator) ValidateUseCaseCommand(usecaseName, entity, operations string) error {
 	// Validate use case name
 	if err := v.fieldValidator.ValidateEntityName(usecaseName); err != nil {
-		return fmt.Errorf("nombre de caso de uso: %w", err)
+		return fmt.Errorf("use case name: %w", err)
 	}
 
 	// Validate entity name
 	if entity == "" {
-		return fmt.Errorf("entidad es requerida")
+		return fmt.Errorf("entity is required")
 	}
 	if err := v.fieldValidator.ValidateEntityName(entity); err != nil {
-		return fmt.Errorf("nombre de entidad: %w", err)
+		return fmt.Errorf("entity name: %w", err)
 	}
 
 	// Validate operations if provided
@@ -124,7 +124,7 @@ func (v *CommandValidator) ValidateUseCaseCommand(usecaseName, entity, operation
 func (v *CommandValidator) ValidateHandlerCommand(entity, handlerType string) error {
 	// Validate entity name
 	if err := v.fieldValidator.ValidateEntityName(entity); err != nil {
-		return fmt.Errorf("nombre de entidad: %w", err)
+		return fmt.Errorf("entity name: %w", err)
 	}
 
 	// Validate handler type

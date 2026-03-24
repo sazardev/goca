@@ -127,22 +127,22 @@ func (v *FieldValidator) ValidateField(fieldDef string) (*Field, error) {
 // ValidateFieldName validates a field name
 func (v *FieldValidator) ValidateFieldName(name string) error {
 	if name == "" {
-		return fmt.Errorf("nombre de campo no puede estar vacío")
+		return fmt.Errorf("field name cannot be empty")
 	}
 
 	if len(name) < MinFieldNameLength || len(name) > MaxFieldNameLength {
-		return fmt.Errorf("nombre de campo debe tener entre %d y %d caracteres", MinFieldNameLength, MaxFieldNameLength)
+		return fmt.Errorf("field name must be between %d and %d characters", MinFieldNameLength, MaxFieldNameLength)
 	}
 
 	// Check if it starts with a letter
 	if !unicode.IsLetter(rune(name[0])) {
-		return fmt.Errorf("nombre de campo debe empezar con una letra: %s", name)
+		return fmt.Errorf("field name must start with a letter: %s", name)
 	}
 
 	// Check if it contains only valid characters (letters, numbers, underscore)
 	validName := regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]*$`)
 	if !validName.MatchString(name) {
-		return fmt.Errorf("nombre de campo contiene caracteres inválidos: %s. Solo se permiten letras, números y guiones bajos", name)
+		return fmt.Errorf("field name contains invalid characters: %s. Only letters, numbers and underscores are allowed", name)
 	}
 
 	return nil
@@ -151,7 +151,7 @@ func (v *FieldValidator) ValidateFieldName(name string) error {
 // ValidateFieldType validates a field type with comprehensive Go type support
 func (v *FieldValidator) ValidateFieldType(fieldType string) error {
 	if fieldType == "" {
-		return fmt.Errorf("tipo de campo no puede estar vacío")
+		return fmt.Errorf("field type cannot be empty")
 	}
 
 	// Check if it's a valid basic type
@@ -232,7 +232,7 @@ func (v *FieldValidator) validateMapType(fieldType string) error {
 	matches := mapPattern.FindStringSubmatch(fieldType)
 
 	if len(matches) != 3 {
-		return fmt.Errorf("formato de map inválido: %s. Formato esperado: map[keyType]valueType", fieldType)
+		return fmt.Errorf("invalid map format: %s. Expected format: map[keyType]valueType", fieldType)
 	}
 
 	keyType := matches[1]
@@ -240,12 +240,12 @@ func (v *FieldValidator) validateMapType(fieldType string) error {
 
 	// Validate key type (must be comparable in Go)
 	if err := v.validateMapKeyType(keyType); err != nil {
-		return fmt.Errorf("tipo de clave de map inválido: %w", err)
+		return fmt.Errorf("invalid map key type: %w", err)
 	}
 
 	// Validate value type (can be any type)
 	if err := v.ValidateFieldType(valueType); err != nil {
-		return fmt.Errorf("tipo de valor de map inválido: %w", err)
+		return fmt.Errorf("invalid map value type: %w", err)
 	}
 
 	return nil
@@ -293,7 +293,7 @@ func (v *FieldValidator) validateMapKeyType(keyType string) error {
 
 	// Slices, maps, and functions are not comparable
 	if strings.HasPrefix(keyType, "[]") || strings.HasPrefix(keyType, "map[") || strings.HasPrefix(keyType, "func") {
-		return fmt.Errorf("tipo %s no es comparable y no puede usarse como clave de map", keyType)
+		return fmt.Errorf("type %s is not comparable and cannot be used as a map key", keyType)
 	}
 
 	return nil
@@ -333,7 +333,7 @@ func (v *FieldValidator) validateChannelType(fieldType string) error {
 		}
 	}
 
-	return fmt.Errorf("formato de channel inválido: %s", fieldType)
+	return fmt.Errorf("invalid channel format: %s", fieldType)
 }
 
 // validateFunctionType validates function types
@@ -345,7 +345,7 @@ func (v *FieldValidator) validateFunctionType(fieldType string) error {
 		return nil // Basic function signature is valid
 	}
 
-	return fmt.Errorf("formato de función inválido: %s", fieldType)
+	return fmt.Errorf("invalid function format: %s", fieldType)
 }
 
 // isChannelType checks if a type is a channel type
@@ -376,22 +376,22 @@ func (v *FieldValidator) isCustomType(fieldType string) bool {
 // ValidateEntityName validates an entity name
 func (v *FieldValidator) ValidateEntityName(name string) error {
 	if name == "" {
-		return fmt.Errorf("nombre de entidad no puede estar vacío")
+		return fmt.Errorf("entity name cannot be empty")
 	}
 
 	if len(name) < MinEntityNameLength || len(name) > MaxEntityNameLength {
-		return fmt.Errorf("nombre de entidad debe tener entre %d y %d caracteres", MinEntityNameLength, MaxEntityNameLength)
+		return fmt.Errorf("entity name must be between %d and %d characters", MinEntityNameLength, MaxEntityNameLength)
 	}
 
 	// Check if it starts with a capital letter
 	if !unicode.IsUpper(rune(name[0])) {
-		return fmt.Errorf("nombre de entidad debe empezar con mayúscula: %s", name)
+		return fmt.Errorf("entity name must start with an uppercase letter: %s", name)
 	}
 
 	// Check if it contains only valid characters (letters and numbers)
 	validName := regexp.MustCompile(`^[A-Z][a-zA-Z0-9]*$`)
 	if !validName.MatchString(name) {
-		return fmt.Errorf("nombre de entidad contiene caracteres inválidos: %s. Solo se permiten letras y números", name)
+		return fmt.Errorf("entity name contains invalid characters: %s. Only letters and numbers are allowed", name)
 	}
 
 	return nil

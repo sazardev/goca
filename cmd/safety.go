@@ -72,7 +72,11 @@ func (sm *SafetyManager) BackupFile(filePath string) error {
 		return err
 	}
 
-	fmt.Printf("Backed up: %s -> %s\n", filePath, backupFile)
+	if ui != nil {
+		ui.FileBackedUp(filePath, backupFile)
+	} else {
+		fmt.Printf("Backed up: %s -> %s\n", filePath, backupFile)
+	}
 	return nil
 }
 
@@ -84,7 +88,11 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	}
 
 	if sm.DryRun {
-		fmt.Printf("[DRY-RUN] Would create: %s (%d bytes)\n", filePath, len(content))
+		if ui != nil {
+			ui.DryRun(fmt.Sprintf("Would create: %s (%d bytes)", filePath, len(content)))
+		} else {
+			fmt.Printf("[DRY-RUN] Would create: %s (%d bytes)\n", filePath, len(content))
+		}
 		sm.createdFiles = append(sm.createdFiles, filePath)
 		return nil
 	}
@@ -101,7 +109,11 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	}
 
 	sm.createdFiles = append(sm.createdFiles, filePath)
-	fmt.Printf("Created: %s\n", filePath)
+	if ui != nil {
+		ui.FileCreated(filePath)
+	} else {
+		fmt.Printf("Created: %s\n", filePath)
+	}
 	return nil
 }
 
@@ -117,6 +129,50 @@ func (sm *SafetyManager) GetCreatedFiles() []string {
 
 // PrintSummary prints a summary of the operation
 func (sm *SafetyManager) PrintSummary() {
+	if ui != nil {
+		sm.printSummaryStyled()
+	} else {
+		sm.printSummaryPlain()
+	}
+}
+
+func (sm *SafetyManager) printSummaryStyled() {
+	ui.Blank()
+	if sm.DryRun {
+		ui.Section("DRY-RUN SUMMARY")
+		ui.Info(fmt.Sprintf("Would create %d files", len(sm.createdFiles)))
+		if len(sm.createdFiles) > 0 {
+			rows := make([][]string, len(sm.createdFiles))
+			for i, f := range sm.createdFiles {
+				rows[i] = []string{f, "would create"}
+			}
+			ui.Table([]string{"File", "Status"}, rows)
+		}
+		if len(sm.conflicts) > 0 {
+			ui.Warning(fmt.Sprintf("%d conflicts detected:", len(sm.conflicts)))
+			for _, conflict := range sm.conflicts {
+				ui.Dim("  - " + conflict)
+			}
+		}
+		ui.Blank()
+		ui.NextSteps([]string{
+			"Run without --dry-run to actually create files",
+			"Use --force to overwrite existing files",
+			"Use --backup to backup files before overwriting",
+		})
+	} else {
+		ui.Success(fmt.Sprintf("Successfully created %d files", len(sm.createdFiles)))
+		if len(sm.createdFiles) > 0 {
+			rows := make([][]string, len(sm.createdFiles))
+			for i, f := range sm.createdFiles {
+				rows[i] = []string{f, "created"}
+			}
+			ui.Table([]string{"File", "Status"}, rows)
+		}
+	}
+}
+
+func (sm *SafetyManager) printSummaryPlain() {
 	if sm.DryRun {
 		fmt.Println("\nDRY-RUN SUMMARY:")
 		fmt.Printf("   Would create %d files\n", len(sm.createdFiles))

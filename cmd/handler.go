@@ -74,34 +74,51 @@ var handlerCmd = &cobra.Command{
 		}
 
 		// Print configuration summary
-		fmt.Printf("Generating handler '%s' for entity '%s'\n", effectiveHandlerType, entity)
+		ui.Header(fmt.Sprintf("Generating handler '%s' for entity '%s'", effectiveHandlerType, entity))
 		if configIntegration.config != nil {
 			if !cmd.Flags().Changed("type") {
 				handlers := configIntegration.GetHandlerTypes(handlerType)
 				if len(handlers) > 0 {
-					fmt.Printf("  Handler type: %s (from config)\n", effectiveHandlerType)
+					ui.KeyValueFromConfig("Handler type", effectiveHandlerType)
 				}
 			}
 			if !cmd.Flags().Changed("validation") {
-				fmt.Printf("  Validation: %v (from config)\n", effectiveValidation)
+				ui.KeyValueFromConfig("Validation", fmt.Sprintf("%v", effectiveValidation))
 			}
 			if !cmd.Flags().Changed("swagger") {
-				fmt.Printf("  Swagger: %v (from config)\n", effectiveSwagger)
+				ui.KeyValueFromConfig("Swagger", fmt.Sprintf("%v", effectiveSwagger))
 			}
 		}
 
 		if effectiveMiddleware {
-			fmt.Println("✓ Including middleware")
+			ui.Feature("Including middleware", false)
 		}
 		if effectiveValidation {
-			fmt.Println("✓ Including validation")
+			ui.Feature("Including validation", false)
 		}
 		if effectiveSwagger && effectiveHandlerType == HandlerHTTP {
-			fmt.Println("✓ Including Swagger documentation")
+			ui.Feature("Including Swagger documentation", false)
 		}
 
 		generateHandler(entity, effectiveHandlerType, effectiveMiddleware, effectiveValidation, effectiveSwagger, fileNamingConvention)
-		fmt.Printf("\nHandler '%s' for '%s' generated successfully!\n", effectiveHandlerType, entity)
+
+		// Add required dependencies
+		projectRoot, _ := os.Getwd()
+		depMgr := NewDependencyManager(projectRoot, false)
+		features := map[string]bool{"validation": effectiveValidation}
+		requiredDeps := depMgr.GetRequiredDependenciesForFeature(effectiveHandlerType, features)
+		for _, dep := range requiredDeps {
+			if err := depMgr.AddDependency(dep); err != nil {
+				ui.Warning(fmt.Sprintf("Could not add dependency %s: %v", dep.Module, err))
+			}
+		}
+		if len(requiredDeps) > 0 {
+			if err := depMgr.UpdateGoMod(); err != nil {
+				ui.Warning(fmt.Sprintf("Could not update go.mod: %v", err))
+			}
+		}
+
+		ui.Success(fmt.Sprintf("Handler '%s' for '%s' generated successfully!", effectiveHandlerType, entity))
 	},
 }
 
@@ -118,7 +135,7 @@ func generateHandler(entity, handlerType string, middleware, validation, swagger
 	case "soap":
 		generateSOAPHandler(entity, fileNamingConvention)
 	default:
-		fmt.Printf("Unsupported handler type: %s\n", handlerType)
+		ui.Error(fmt.Sprintf("Unsupported handler type: %s", handlerType))
 		os.Exit(1)
 	}
 }
@@ -193,7 +210,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	generateListHandlerMethod(&content, entity, handlerName)
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing handler file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing handler file: %v", err))
 		return
 	}
 }
@@ -385,7 +402,7 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 	}
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing routes file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing routes file: %v", err))
 		return
 	}
 }
@@ -436,7 +453,7 @@ func generateHTTPDTOFile(dir, entity string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing types file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing types file: %v", err))
 		return
 	}
 }
@@ -522,7 +539,7 @@ components:
 `, entity, entityLower, entityLower, entityLower, entity, entityLower, entity, entity, entity, entityLower, entityLower, entity, entity, entity)
 
 	if err := writeFile(filename, content); err != nil {
-		fmt.Printf("Error writing swagger file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing swagger file: %v", err))
 		return
 	}
 }
@@ -613,7 +630,7 @@ func generateProtoFile(dir, entity string, fileNamingConvention string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing proto file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing proto file: %v", err))
 		return
 	}
 }
@@ -689,7 +706,7 @@ func generateGRPCServerFile(dir, entity string, fileNamingConvention string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing grpc server file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing grpc server file: %v", err))
 		return
 	}
 }
@@ -794,7 +811,7 @@ func generateCLIHandler(entity string, fileNamingConvention string) {
 	content.WriteString("}\n")
 
 	if err := writeGoFile(filename, content.String()); err != nil {
-		fmt.Printf("Error writing cli handler file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing cli handler file: %v", err))
 		return
 	}
 }
@@ -875,7 +892,7 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entity, entityLower, entity)
 
 	if err := writeFile(filename, content); err != nil {
-		fmt.Printf("Error writing worker file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing worker file: %v", err))
 		return
 	}
 }
@@ -986,7 +1003,7 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity)
 
 	if err := writeFile(filename, content); err != nil {
-		fmt.Printf("Error writing soap file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing soap file: %v", err))
 		return
 	}
 }

@@ -535,21 +535,40 @@ func GetTemplateConfig(name string) (string, error) {
 // ListAvailableTemplates prints all available templates with descriptions
 func ListAvailableTemplates() {
 	templates := GetProjectTemplates()
-	fmt.Println("\nAvailable project templates:")
-	fmt.Println()
+	if ui != nil {
+		ui.Blank()
+		ui.Header("Available project templates")
+		ui.Blank()
 
-	// Define order for consistent output
-	order := []string{"minimal", "rest-api", "microservice", "monolith", "enterprise"}
+		// Define order for consistent output
+		order := []string{"minimal", "rest-api", "microservice", "monolith", "enterprise"}
 
-	for _, name := range order {
-		if template, exists := templates[name]; exists {
-			fmt.Printf("  %s\n", name)
-			fmt.Printf("    %s\n", template.Description)
-			fmt.Println()
+		for _, name := range order {
+			if template, exists := templates[name]; exists {
+				ui.KeyValue(name, template.Description)
+			}
 		}
-	}
 
-	fmt.Println("Usage:")
-	fmt.Println("  goca init myproject --module github.com/user/myproject --template rest-api")
-	fmt.Println()
+		ui.Blank()
+		ui.Section("Usage")
+		ui.Dim("  goca init myproject --module github.com/user/myproject --template rest-api")
+		ui.Blank()
+	} else {
+		fmt.Println("\nAvailable project templates:")
+		fmt.Println()
+
+		order := []string{"minimal", "rest-api", "microservice", "monolith", "enterprise"}
+
+		for _, name := range order {
+			if template, exists := templates[name]; exists {
+				fmt.Printf("  %s\n", name)
+				fmt.Printf("    %s\n", template.Description)
+				fmt.Println()
+			}
+		}
+
+		fmt.Println("Usage:")
+		fmt.Println("  goca init myproject --module github.com/user/myproject --template rest-api")
+		fmt.Println()
+	}
 }

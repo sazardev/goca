@@ -88,8 +88,33 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
-      <a href="/goca/blog/releases/v1-17-2">v1.17.2</a>
+      <a href="/goca/blog/releases/v2-0-0">v2.0.0</a>
       <span class="badge badge-latest">Latest</span>
+      <span class="badge badge-major">Major</span>
+    </h2>
+    <span class="release-date">March 24, 2026</span>
+  </div>
+  <p class="release-description">
+    CLI UX Overhaul - Centralized output rendering system, interactive initialization wizard, global --no-color and --no-interactive flags, unified English output, and multiple bug fixes.
+  </p>
+  <div class="release-highlights">
+    <strong>Key Changes:</strong>
+    <ul>
+      <li>New UIRenderer system replaces all raw fmt.Printf calls across every command</li>
+      <li>Interactive wizard for goca init using huh forms</li>
+      <li>Global --no-color and --no-interactive flags on every command</li>
+      <li>Table output for generated file summaries in entity, feature, and di commands</li>
+      <li>Spinner animations for long-running operations</li>
+      <li>goca handler now auto-injects go-playground/validator/v10 when validation is enabled</li>
+      <li>Removed duplicate configCmd registration and spurious DEBUG: output</li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-17-2">v1.17.2</a>
     </h2>
     <span class="release-date">February 1, 2026</span>
   </div>

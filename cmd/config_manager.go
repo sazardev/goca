@@ -651,27 +651,56 @@ func (cm *ConfigManager) contains(slice []string, item string) bool {
 // PrintSummary prints configuration summary
 func (cm *ConfigManager) PrintSummary() {
 	if cm.config == nil {
-		fmt.Println("No configuration loaded")
+		if ui != nil {
+			ui.Warning("No configuration loaded")
+		} else {
+			fmt.Println("No configuration loaded")
+		}
 		return
 	}
 
-	fmt.Printf("Project Configuration: %s\n", cm.config.Project.Name)
-	fmt.Printf("   Module: %s\n", cm.config.Project.Module)
-	fmt.Printf("   Database: %s\n", cm.config.Database.Type)
-	fmt.Printf("   Layers: %d enabled\n", cm.countEnabledLayers())
-	fmt.Printf("   Tests: %t\n", cm.config.Testing.Enabled)
+	if ui != nil {
+		ui.Section("Project Configuration")
+		ui.KeyValue("Name", cm.config.Project.Name)
+		ui.KeyValue("Module", cm.config.Project.Module)
+		ui.KeyValue("Database", cm.config.Database.Type)
+		ui.KeyValue("Layers", fmt.Sprintf("%d enabled", cm.countEnabledLayers()))
+		ui.KeyValue("Tests", fmt.Sprintf("%t", cm.config.Testing.Enabled))
 
-	if len(cm.warnings) > 0 {
-		fmt.Printf("\nWarnings (%d):\n", len(cm.warnings))
-		for _, warning := range cm.warnings {
-			fmt.Printf("   - %s: %s\n", warning.Field, warning.Message)
+		if len(cm.warnings) > 0 {
+			ui.Blank()
+			ui.Warning(fmt.Sprintf("Warnings (%d):", len(cm.warnings)))
+			for _, warning := range cm.warnings {
+				ui.Dim(fmt.Sprintf("   - %s: %s", warning.Field, warning.Message))
+			}
 		}
-	}
 
-	if len(cm.errors) > 0 {
-		fmt.Printf("\nErrors (%d):\n", len(cm.errors))
-		for _, error := range cm.errors {
-			fmt.Printf("   - %s: %s\n", error.Field, error.Message)
+		if len(cm.errors) > 0 {
+			ui.Blank()
+			ui.Error(fmt.Sprintf("Errors (%d):", len(cm.errors)))
+			for _, error := range cm.errors {
+				ui.Dim(fmt.Sprintf("   - %s: %s", error.Field, error.Message))
+			}
+		}
+	} else {
+		fmt.Printf("Project Configuration: %s\n", cm.config.Project.Name)
+		fmt.Printf("   Module: %s\n", cm.config.Project.Module)
+		fmt.Printf("   Database: %s\n", cm.config.Database.Type)
+		fmt.Printf("   Layers: %d enabled\n", cm.countEnabledLayers())
+		fmt.Printf("   Tests: %t\n", cm.config.Testing.Enabled)
+
+		if len(cm.warnings) > 0 {
+			fmt.Printf("\nWarnings (%d):\n", len(cm.warnings))
+			for _, warning := range cm.warnings {
+				fmt.Printf("   - %s: %s\n", warning.Field, warning.Message)
+			}
+		}
+
+		if len(cm.errors) > 0 {
+			fmt.Printf("\nErrors (%d):\n", len(cm.errors))
+			for _, error := range cm.errors {
+				fmt.Printf("   - %s: %s\n", error.Field, error.Message)
+			}
 		}
 	}
 }

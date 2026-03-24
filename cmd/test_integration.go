@@ -55,14 +55,16 @@ Examples:
 			return
 		}
 
-		fmt.Printf("\n✅ Integration tests generated successfully for '%s'\n", entityName)
-		fmt.Println("\nGenerated files:")
-		fmt.Printf("   - internal/testing/integration/%s_integration_test.go\n", strings.ToLower(entityName))
+		ui.Success(fmt.Sprintf("Integration tests generated successfully for '%s'", entityName))
+		ui.Blank()
+		ui.Section("Generated files")
+		ui.FileCreated(fmt.Sprintf("internal/testing/integration/%s_integration_test.go", strings.ToLower(entityName)))
 		if integrationTestFixtures {
-			fmt.Printf("   - internal/testing/integration/fixtures/%s_fixtures.go\n", strings.ToLower(entityName))
+			ui.FileCreated(fmt.Sprintf("internal/testing/integration/fixtures/%s_fixtures.go", strings.ToLower(entityName)))
 		}
-		fmt.Println("\nRun tests:")
-		fmt.Printf("   go test ./internal/testing/integration -v\n")
+		ui.Blank()
+		ui.Section("Run tests")
+		ui.Dim("   go test ./internal/testing/integration -v")
 	},
 }
 

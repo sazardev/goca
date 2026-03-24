@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-03-24
+
+### Added
+
+#### CLI Output Rendering System
+- Introduced `UIRenderer` (`cmd/ui.go`) as the centralized output layer for all CLI commands
+- Methods: `Header`, `Step`, `Success`, `Error`, `Warning`, `Info`, `DryRun`, `FileCreated`, `FileBackedUp`, `KeyValue`, `KeyValueFromConfig`, `Feature`, `Table`, `Section`, `NextSteps`, `Dim`, `Println`, `Printf`, `Blank`
+- Spinner support via `Spinner(text string) func()` using goroutine-based braille animation
+- Full color theming via `lipgloss` and `termenv`; respects `NO_COLOR` environment variable
+
+#### Interactive Initialization Wizard
+- Added `cmd/init_wizard.go`: interactive project setup using `huh` forms when `--module` is not provided
+- Prompts: module path (text input), database selection, API type selection, optional auth and config flags
+- Falls back to direct creation when `--no-interactive` is set or the terminal is not a TTY
+
+#### Global Flags
+- `--no-color`: disables all ANSI color and styling output; useful for log redirection and CI
+- `--no-interactive`: disables all interactive prompts; forces non-interactive code paths
+
+#### Dependency Auto-injection for `goca handler`
+- `goca handler --type http --validation` now automatically adds `github.com/go-playground/validator/v10` to `go.mod` and runs `go mod tidy`
+
+### Changed
+
+#### Unified Output Migration
+- All `cmd/*.go` files migrated from raw `fmt.Printf` / `fmt.Println` calls to `UIRenderer` methods
+- All 20 `fmt.Printf("Error ...")` calls in `cmd/init.go` migrated to `ui.Warning`
+- Table output introduced for generated file listings in `goca entity`, `goca feature`, and safety summary
+- `goca feature` output uses numbered step progress (`ui.Step`) and a structured layer table
+
+#### Internationalization
+- All user-facing output messages standardised to English; Spanish strings removed from all `cmd/*.go` files
+
+### Fixed
+
+- **Duplicate `configCmd` registration**: `rootCmd.AddCommand(configCmd)` was called in both `root.go` and `config_debug.go`; removed the duplicate in `root.go`
+- **Debug output in production**: `DEBUG: Generating interface with name: ...` line removed from `cmd/usecase.go`
+- **Success printed on error**: `goca init` no longer reports success when file creation errors occur; errors are surfaced via `ui.Warning`
+
+### Dependencies
+
+- Added `github.com/charmbracelet/lipgloss v1.1.0`
+- Added `github.com/charmbracelet/huh v1.0.0`
+- Added `github.com/charmbracelet/bubbletea v1.3.10`
+- Added `github.com/charmbracelet/bubbles v1.0.0`
+- Added `github.com/muesli/termenv v0.16.0`
+
+### Migration Notes
+
+This is a major release. The following changes may affect scripts consuming `goca` CLI output:
+
+- All output is now styled with ANSI escape codes by default. Use `--no-color` or set `NO_COLOR=1` to suppress
+- File creation messages follow a consistent `Created: <path>` format
+- Generated file summaries are now rendered as tables instead of plain lists
+
+---
+
 ## [1.17.2] - 2026-02-01
 
 ### 🐛 Bug Fixes

@@ -84,18 +84,18 @@ func (g *DataGenerator) generateEmail(entity string) string {
 func (g *DataGenerator) generateName(entity, field string) string {
 	switch entity {
 	case "user", "employee", "customer":
-		names := []string{"Juan Pérez", "María García", "Carlos López", "Ana Martín", "Luis Rodríguez"}
+		names := []string{"John Smith", "Jane Doe", "Bob Johnson", "Alice Brown", "Charlie Wilson"}
 		return names[g.rand.Intn(len(names))]
 	case "product":
 		if field == "name" {
-			products := []string{"Laptop Pro", "Smartphone X", "Tablet Ultra", "Auriculares Premium", "Monitor 4K"}
+			products := []string{"Laptop Pro", "Smartphone X", "Tablet Ultra", "Premium Headphones", "4K Monitor"}
 			return products[g.rand.Intn(len(products))]
 		}
 	case StringProject:
-		projects := []string{"Sistema de Gestión", "App Móvil", "Portal Web", "API Rest", "Dashboard Analytics"}
+		projects := []string{"Management System", "Mobile App", "Web Portal", "REST API", "Dashboard Analytics"}
 		return projects[g.rand.Intn(len(projects))]
 	case "order":
-		return fmt.Sprintf("Pedido #%d", g.rand.Intn(10000))
+		return fmt.Sprintf("Order #%d", g.rand.Intn(10000))
 	}
 
 	// Use cases.Title for proper word capitalization
@@ -108,22 +108,22 @@ func (g *DataGenerator) generateDescription(entity string) string {
 	switch entity {
 	case "product":
 		descriptions := []string{
-			"Producto de alta calidad con excelentes características",
-			"Diseño innovador y funcionalidad superior",
-			"Perfecto para uso profesional y personal",
-			"Tecnología avanzada y fácil de usar",
+			"High quality product with excellent features",
+			"Innovative design and superior functionality",
+			"Perfect for professional and personal use",
+			"Advanced technology and easy to use",
 		}
 		return descriptions[g.rand.Intn(len(descriptions))]
 	case "project":
 		descriptions := []string{
-			"Proyecto estratégico para mejorar la eficiencia operacional",
-			"Iniciativa de transformación digital",
-			"Desarrollo de nueva funcionalidad core",
-			"Optimización de procesos existentes",
+			"Strategic project to improve operational efficiency",
+			"Digital transformation initiative",
+			"New core functionality development",
+			"Existing process optimization",
 		}
 		return descriptions[g.rand.Intn(len(descriptions))]
 	default:
-		return fmt.Sprintf("Descripción detallada del %s con información relevante", entity)
+		return fmt.Sprintf("Detailed description of %s with relevant information", entity)
 	}
 }
 

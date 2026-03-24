@@ -42,11 +42,19 @@ func generateEntityTests(domainDir, entityName string, fields []Field, validatio
 
 	// Write file
 	if err := os.WriteFile(testFile, []byte(content.String()), 0644); err != nil {
-		fmt.Printf("Error writing test file: %v\n", err)
+		if ui != nil {
+			ui.Error(fmt.Sprintf("Error writing test file: %v", err))
+		} else {
+			fmt.Printf("Error writing test file: %v\n", err)
+		}
 		return
 	}
 
-	fmt.Printf("✓ Generated test file: %s\n", testFile)
+	if ui != nil {
+		ui.FileCreated(testFile)
+	} else {
+		fmt.Printf("\u2713 Generated test file: %s\n", testFile)
+	}
 }
 
 // generateValidationTests creates table-driven tests for Validate() method

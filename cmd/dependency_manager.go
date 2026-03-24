@@ -119,7 +119,11 @@ func (dm *DependencyManager) SuggestDependencies(features []string) []Dependency
 // AddDependency adds a dependency to go.mod
 func (dm *DependencyManager) AddDependency(dep Dependency) error {
 	if dm.dryRun {
-		fmt.Printf("[DRY-RUN] Would add dependency: %s %s\n", dep.Module, dep.Version)
+		if ui != nil {
+			ui.DryRun(fmt.Sprintf("Would add dependency: %s %s", dep.Module, dep.Version))
+		} else {
+			fmt.Printf("[DRY-RUN] Would add dependency: %s %s\n", dep.Module, dep.Version)
+		}
 		return nil
 	}
 
@@ -130,19 +134,34 @@ func (dm *DependencyManager) AddDependency(dep Dependency) error {
 	}
 
 	if exists {
-		fmt.Printf("Dependency %s already exists\n", dep.Module)
+		if ui != nil {
+			ui.Dim(fmt.Sprintf("Dependency %s already exists", dep.Module))
+		} else {
+			fmt.Printf("Dependency %s already exists\n", dep.Module)
+		}
 		return nil
 	}
 
 	// Use go get to add dependency
+	var stop func()
+	if ui != nil {
+		stop = ui.Spinner(fmt.Sprintf("Installing %s", dep.Module))
+	}
 	cmd := exec.Command("go", "get", dep.Module+"@"+dep.Version)
 	cmd.Dir = dm.projectRoot
 	output, err := cmd.CombinedOutput()
+	if stop != nil {
+		stop()
+	}
 	if err != nil {
 		return fmt.Errorf("failed to add dependency %s: %v\n%s", dep.Module, err, string(output))
 	}
 
-	fmt.Printf("Added dependency: %s %s\n", dep.Module, dep.Version)
+	if ui != nil {
+		ui.Success(fmt.Sprintf("Added dependency: %s %s", dep.Module, dep.Version))
+	} else {
+		fmt.Printf("Added dependency: %s %s\n", dep.Module, dep.Version)
+	}
 	return nil
 }
 
@@ -201,18 +220,33 @@ func (dm *DependencyManager) isVersionCompatible(current, required string) bool 
 // UpdateGoMod runs go mod tidy to update go.mod and go.sum
 func (dm *DependencyManager) UpdateGoMod() error {
 	if dm.dryRun {
-		fmt.Println("[DRY-RUN] Would run: go mod tidy")
+		if ui != nil {
+			ui.DryRun("Would run: go mod tidy")
+		} else {
+			fmt.Println("[DRY-RUN] Would run: go mod tidy")
+		}
 		return nil
 	}
 
+	var stop func()
+	if ui != nil {
+		stop = ui.Spinner("Running go mod tidy")
+	}
 	cmd := exec.Command("go", "mod", "tidy")
 	cmd.Dir = dm.projectRoot
 	output, err := cmd.CombinedOutput()
+	if stop != nil {
+		stop()
+	}
 	if err != nil {
 		return fmt.Errorf("go mod tidy failed: %v\n%s", err, string(output))
 	}
 
-	fmt.Println("Updated go.mod and go.sum")
+	if ui != nil {
+		ui.Success("Updated go.mod and go.sum")
+	} else {
+		fmt.Println("Updated go.mod and go.sum")
+	}
 	return nil
 }
 
@@ -222,13 +256,25 @@ func (dm *DependencyManager) PrintDependencySuggestions(suggestions []Dependency
 		return
 	}
 
-	fmt.Println("\nOPTIONAL DEPENDENCIES:")
-	fmt.Println("   The following dependencies might be useful for your feature:")
-
-	for _, dep := range suggestions {
-		fmt.Printf("   %s %s\n", dep.Module, dep.Version)
-		fmt.Printf("      Reason: %s\n", dep.Reason)
-		fmt.Printf("      Install: go get %s@%s\n\n", dep.Module, dep.Version)
+	if ui != nil {
+		ui.Blank()
+		ui.Section("OPTIONAL DEPENDENCIES")
+		ui.Dim("The following dependencies might be useful for your feature:")
+		ui.Blank()
+		for _, dep := range suggestions {
+			ui.KeyValue(dep.Module, dep.Version)
+			ui.Dim(fmt.Sprintf("   Reason: %s", dep.Reason))
+			ui.Dim(fmt.Sprintf("   Install: go get %s@%s", dep.Module, dep.Version))
+			ui.Blank()
+		}
+	} else {
+		fmt.Println("\nOPTIONAL DEPENDENCIES:")
+		fmt.Println("   The following dependencies might be useful for your feature:")
+		for _, dep := range suggestions {
+			fmt.Printf("   %s %s\n", dep.Module, dep.Version)
+			fmt.Printf("      Reason: %s\n", dep.Reason)
+			fmt.Printf("      Install: go get %s@%s\n\n", dep.Module, dep.Version)
+		}
 	}
 }
 

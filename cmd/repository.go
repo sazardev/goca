@@ -28,8 +28,8 @@ well-defined interfaces and database-specific implementations.`,
 		// Initialize config integration
 		configIntegration := NewConfigIntegration()
 		if err := configIntegration.LoadConfigForProject(); err != nil {
-			fmt.Printf("Warning: Could not load configuration: %v\n", err)
-			fmt.Println("Using default values. Consider running 'goca init --config' to generate .goca.yaml")
+			ui.Warning(fmt.Sprintf("Could not load configuration: %v", err))
+			ui.Dim("Using default values. Consider running 'goca init --config' to generate .goca.yaml")
 		} // Merge CLI flags with configuration (only explicitly changed flags)
 		flags := map[string]interface{}{}
 		if cmd.Flags().Changed("database") {
@@ -51,44 +51,44 @@ well-defined interfaces and database-specific implementations.`,
 			effectiveDatabase = configIntegration.config.Database.Type
 		}
 
-		// Validar con el nuevo validador robusto
+		// Validate with the robust validator
 		validator := NewFieldValidator()
 
 		if err := validator.ValidateEntityName(entity); err != nil {
-			fmt.Printf("Error in entity name: %v\n", err)
+			ui.Error(fmt.Sprintf("Invalid entity name: %v", err))
 			return
 		}
 
 		if effectiveDatabase != "" {
 			if err := validator.ValidateDatabase(effectiveDatabase); err != nil {
-				fmt.Printf("Error in database: %v\n", err)
+				ui.Error(fmt.Sprintf("Invalid database: %v", err))
 				return
 			}
 		}
 
-		fmt.Printf("Generating repository for entity '%s'\n", entity)
+		ui.Header(fmt.Sprintf("Generating repository for entity '%s'", entity))
 
 		if effectiveDatabase != "" && !interfaceOnly {
-			fmt.Printf("Database: %s", effectiveDatabase)
 			if configIntegration.HasConfigFile() && !cmd.Flags().Changed("database") {
-				fmt.Printf(" (from config)")
+				ui.KeyValueFromConfig("Database", effectiveDatabase)
+			} else {
+				ui.KeyValue("Database", effectiveDatabase)
 			}
-			fmt.Println()
 		}
 		if interfaceOnly {
-			fmt.Println("✓ Interface only")
+			ui.Feature("Interface only", false)
 		}
 		if implementation {
-			fmt.Println("✓ Implementation only")
+			ui.Feature("Implementation only", false)
 		}
 		if cache {
-			fmt.Println("✓ Including cache")
+			ui.Feature("Including cache", false)
 		}
 		if transactions {
-			fmt.Println("✓ Including transactions")
+			ui.Feature("Including transactions", false)
 		}
 		if fields != "" {
-			fmt.Printf("✓ Custom fields: %s\n", fields)
+			ui.Feature(fmt.Sprintf("Custom fields: %s", fields), false)
 		}
 
 		if configIntegration.HasConfigFile() {
@@ -96,12 +96,12 @@ well-defined interfaces and database-specific implementations.`,
 		}
 
 		generateRepository(entity, effectiveDatabase, interfaceOnly, implementation, cache, transactions, fields)
-		fmt.Printf("\nRepository for '%s' generated successfully!\n", entity)
+		ui.Success(fmt.Sprintf("Repository for '%s' generated successfully!", entity))
 	},
 }
 
 func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool, fields string) {
-	// Crear directorio repositories si no existe
+	// Create repository directory if it doesn't exist
 	repoDir := "internal/repository"
 	_ = os.MkdirAll(repoDir, 0755)
 
@@ -526,11 +526,11 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\t\"time\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
-		content.WriteString("\t// Imports para cache de MongoDB\n")
+		content.WriteString("\t// MongoDB cache imports\n")
 		content.WriteString("\t// \"github.com/go-redis/redis/v8\"\n")
 	}
 	if transactions {
-		content.WriteString("\t// Soporte para transacciones de MongoDB\n")
+		content.WriteString("\t// MongoDB transaction support\n")
 		content.WriteString("\t// \"go.mongodb.org/mongo-driver/mongo/options\"\n")
 		content.WriteString("\t// \"go.mongodb.org/mongo-driver/mongo/writeconcern\"\n")
 	}
@@ -571,7 +571,7 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	}
 }
 
-// generateRepositoryInterfaceWithFields genera interfaces de repository con métodos dinámicos basados en campos
+// generateRepositoryInterfaceWithFields generates repository interfaces with dynamic methods based on fields
 func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, transactions bool) {
 	filename := filepath.Join(dir, "interfaces.go")
 
@@ -602,7 +602,7 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", strings.ToLower(entity), entity))
 	content.WriteString(fmt.Sprintf("\tFindByID(id int) (*domain.%s, error)\n", entity))
 
-	// Generar métodos de búsqueda dinámicos basados en los campos reales
+	// Generate dynamic search methods based on actual fields
 	searchMethods := generateSearchMethods(fields, entity)
 	for _, method := range searchMethods {
 		content.WriteString(method.generateSearchMethodSignature() + "\n")
@@ -639,7 +639,7 @@ func generateRepositoryImplementationWithFields(dir, entity, database string, fi
 	}
 }
 
-// generatePostgresRepositoryWithFields genera repository PostgreSQL con métodos dinámicos
+// generatePostgresRepositoryWithFields generates PostgreSQL repository with dynamic methods
 func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_"+entityLower+"_repository.go")
@@ -652,11 +652,11 @@ func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, ca
 	content.WriteString("import (\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
-		content.WriteString("\t// Imports para cache (Redis, etc.)\n")
+		content.WriteString("\t// Cache imports (Redis, etc.)\n")
 		content.WriteString("\t// \"github.com/go-redis/redis/v8\"\n")
 	}
 	if transactions {
-		content.WriteString("\t// Soporte para transacciones SQL\n")
+		content.WriteString("\t// SQL transaction support\n")
 		content.WriteString("\t// \"database/sql/driver\"\n")
 	}
 	content.WriteString("\n\t\"gorm.io/gorm\"\n")
@@ -692,7 +692,7 @@ func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, ca
 	}
 }
 
-// generateBasicCRUDMethods genera los métodos CRUD básicos
+// generateBasicCRUDMethods generates basic CRUD methods
 func generateBasicCRUDMethods(content *strings.Builder, entity, repoName string) {
 	entityLower := strings.ToLower(entity)
 
@@ -735,7 +735,7 @@ func generateBasicCRUDMethods(content *strings.Builder, entity, repoName string)
 	content.WriteString("}\n\n")
 }
 
-// generateTransactionMethods genera métodos que soportan transacciones
+// generateTransactionMethods generates methods that support transactions
 func generateTransactionMethods(content *strings.Builder, entity, repoName string) {
 	entityLower := strings.ToLower(entity)
 
@@ -763,13 +763,13 @@ func generateTransactionMethods(content *strings.Builder, entity, repoName strin
 	content.WriteString("}\n\n")
 }
 
-// generateMySQLRepositoryWithFields genera repository MySQL con métodos dinámicos
+// generateMySQLRepositoryWithFields generates MySQL repository with dynamic methods
 func generateMySQLRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool) {
-	// Para MySQL usamos la misma lógica que PostgreSQL ya que ambos usan GORM
+	// For MySQL we use the same logic as PostgreSQL since both use GORM
 	generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions)
 }
 
-// generateMongoRepositoryWithFields genera repository MongoDB con métodos dinámicos
+// generateMongoRepositoryWithFields generates MongoDB repository with dynamic methods
 func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "mongo_"+entityLower+"_repository.go")
@@ -784,11 +784,11 @@ func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache
 	content.WriteString("\t\"time\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	if cache {
-		content.WriteString("\t// Imports para cache de MongoDB\n")
+		content.WriteString("\t// MongoDB cache imports\n")
 		content.WriteString("\t// \"github.com/go-redis/redis/v8\"\n")
 	}
 	if transactions {
-		content.WriteString("\t// Soporte para transacciones de MongoDB\n")
+		content.WriteString("\t// MongoDB transaction support\n")
 		content.WriteString("\t// \"go.mongodb.org/mongo-driver/mongo/options\"\n")
 		content.WriteString("\t// \"go.mongodb.org/mongo-driver/mongo/writeconcern\"\n")
 	}
@@ -823,7 +823,7 @@ func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache
 	}
 }
 
-// generateBasicMongoCRUDMethods genera métodos CRUD básicos para MongoDB
+// generateBasicMongoCRUDMethods generates basic CRUD methods for MongoDB
 func generateBasicMongoCRUDMethods(content *strings.Builder, entity, repoName string) {
 	entityLower := strings.ToLower(entity)
 
@@ -848,10 +848,10 @@ func generateBasicMongoCRUDMethods(content *strings.Builder, entity, repoName st
 	content.WriteString("}\n\n")
 
 	// Add other basic methods (Update, Delete, FindAll) - simplified
-	content.WriteString("// Otros métodos CRUD básicos para MongoDB...\n\n")
+	content.WriteString("// Other basic CRUD methods for MongoDB...\n\n")
 }
 
-// generateMongoSearchMethodImplementation genera implementación de método de búsqueda para MongoDB
+// generateMongoSearchMethodImplementation generates search method implementation for MongoDB
 func generateMongoSearchMethodImplementation(method SearchMethod, repoName, entity string) string {
 	paramName := strings.ToLower(method.FieldName)
 	entityVar := strings.ToLower(entity)
@@ -874,7 +874,7 @@ func generateMongoSearchMethodImplementation(method SearchMethod, repoName, enti
 	return implementation.String()
 }
 
-// generatePostgresJSONRepository genera un repository para PostgreSQL con soporte JSONB
+// generatePostgresJSONRepository generates a repository for PostgreSQL with JSONB support
 func generatePostgresJSONRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_json_"+entityLower+"_repository.go")
@@ -942,7 +942,7 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	}
 }
 
-// generateSQLServerRepository genera un repository para SQL Server con GORM + mssql
+// generateSQLServerRepository generates a repository for SQL Server with GORM + mssql
 func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "sqlserver_"+entityLower+"_repository.go")
@@ -1012,7 +1012,7 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	}
 }
 
-// generateElasticsearchRepository genera un repository para Elasticsearch con búsqueda full-text
+// generateElasticsearchRepository generates a repository for Elasticsearch with full-text search
 func generateElasticsearchRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "elasticsearch_"+entityLower+"_repository.go")
@@ -1135,7 +1135,7 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	}
 }
 
-// generateDynamoDBRepository genera un repository para DynamoDB con AWS SDK v2
+// generateDynamoDBRepository generates a repository for DynamoDB with AWS SDK v2
 func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "dynamodb_"+entityLower+"_repository.go")
@@ -1219,7 +1219,7 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	}
 }
 
-// generateSQLiteRepository genera un repository para SQLite con database/sql
+// generateSQLiteRepository generates a repository for SQLite with database/sql
 func generateSQLiteRepository(dir, entity string, cache, transactions bool) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "sqlite_"+entityLower+"_repository.go")

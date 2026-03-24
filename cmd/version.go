@@ -27,12 +27,12 @@ var versionCmd = &cobra.Command{
 		short, _ := cmd.Flags().GetBool("short")
 
 		if short {
-			fmt.Println(Version)
+			ui.Println(Version)
 		} else {
-			fmt.Printf("Goca v%s\n", Version)
-			fmt.Printf("Build: %s\n", BuildTime)
-			fmt.Printf("Go Version: %s\n", GoVersion)
-			fmt.Printf("Git Commit: %s\n", GitCommit)
+			ui.Header(fmt.Sprintf("Goca v%s", Version))
+			ui.KeyValue("Build", BuildTime)
+			ui.KeyValue("Go Version", GoVersion)
+			ui.KeyValue("Git Commit", GitCommit)
 		}
 	},
 }

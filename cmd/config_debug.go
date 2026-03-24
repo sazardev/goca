@@ -94,37 +94,38 @@ func init() {
 
 // showCurrentConfig displays the current configuration
 func showCurrentConfig() {
-	fmt.Println("=== Current GOCA Configuration ===")
+	ui.Header("Current GOCA Configuration")
 
 	// Try to load existing config
 	configPath := ".goca.yaml"
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fmt.Printf("Configuration file not found: %s\n", configPath)
-		fmt.Println("Tip: Run 'goca config init' to create a new one")
+		ui.Warning(fmt.Sprintf("Configuration file not found: %s", configPath))
+		ui.Dim("Tip: Run 'goca config init' to create a new one")
 		return
 	}
 
 	// Read and display config
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("Error reading configuration: %v\n", err)
+		ui.Error(fmt.Sprintf("Error reading configuration: %v", err))
 		return
 	}
 
 	// Parse YAML to validate structure
 	var config map[string]interface{}
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		fmt.Printf("Invalid YAML file: %v\n", err)
+		ui.Error(fmt.Sprintf("Invalid YAML file: %v", err))
 		return
 	}
 
-	fmt.Printf("File found: %s\n", configPath)
-	fmt.Printf("📁 Directory: %s\n", getCurrentDir())
-	fmt.Println("\n--- Content ---")
-	fmt.Println(string(data))
+	ui.Info(fmt.Sprintf("File found: %s", configPath))
+	ui.KeyValue("Directory", getCurrentDir())
+	ui.Blank()
+	ui.Section("Content")
+	ui.Println(string(data))
 
 	// Show validation status
-	fmt.Println("\n--- Validation ---")
+	ui.Section("Validation")
 	validateConfigSilent(config)
 }
 
@@ -139,11 +140,11 @@ func initializeConfig(cmd *cobra.Command) {
 
 	// Check if file exists
 	if _, err := os.Stat(configPath); err == nil && !force {
-		fmt.Printf("File %s already exists. Use --force to overwrite.\n", configPath)
+		ui.Warning(fmt.Sprintf("File %s already exists. Use --force to overwrite.", configPath))
 		return
 	}
 
-	fmt.Println("Initializing GOCA configuration...")
+	ui.Info("Initializing GOCA configuration...")
 
 	// Generate config content based on template
 	var configContent string
@@ -162,55 +163,54 @@ func initializeConfig(cmd *cobra.Command) {
 
 	// Write config file
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
-		fmt.Printf("Error writing configuration: %v\n", err)
+		ui.Error(fmt.Sprintf("Error writing configuration: %v", err))
 		return
 	}
 
-	fmt.Printf("Configuration file created: %s\n", configPath)
+	ui.Success(fmt.Sprintf("Configuration file created: %s", configPath))
 	if template != "" {
-		fmt.Printf("Template applied: %s\n", template)
+		ui.Info(fmt.Sprintf("Template applied: %s", template))
 	}
-	fmt.Println("Tip: Run 'goca config show' to view the configuration")
+	ui.Dim("Tip: Run 'goca config show' to view the configuration")
 }
 
 // validateConfiguration validates the current config file
 func validateConfiguration() {
-	fmt.Println("Validating configuration...")
+	ui.Info("Validating configuration...")
 
 	configPath := ".goca.yaml"
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		fmt.Printf("File not found: %s\n", configPath)
+		ui.Warning(fmt.Sprintf("File not found: %s", configPath))
 		return
 	}
 
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("Error reading file: %v\n", err)
+		ui.Error(fmt.Sprintf("Error reading file: %v", err))
 		return
 	}
 
 	var config map[string]interface{}
 	if err := yaml.Unmarshal(data, &config); err != nil {
-		fmt.Printf("Invalid YAML: %v\n", err)
+		ui.Error(fmt.Sprintf("Invalid YAML: %v", err))
 		return
 	}
 
 	// Validate structure
 	errors := validateConfigStructure(config)
 	if len(errors) == 0 {
-		fmt.Println("Configuration is valid")
+		ui.Success("Configuration is valid")
 	} else {
-		fmt.Printf("Found %d errors:\n", len(errors))
+		ui.Warning(fmt.Sprintf("Found %d errors:", len(errors)))
 		for i, err := range errors {
-			fmt.Printf("  %d. %s\n", i+1, err)
+			ui.Println(fmt.Sprintf("  %d. %s", i+1, err))
 		}
 	}
 }
 
 // showTemplateOptions shows available configuration templates
 func showTemplateOptions() {
-	fmt.Println("Available Configuration Templates")
-	fmt.Println("===================================")
+	ui.Header("Available Configuration Templates")
 
 	templates := map[string]string{
 		"web":          "Complete web application with frontend and backend",
@@ -221,12 +221,12 @@ func showTemplateOptions() {
 	}
 
 	for name, desc := range templates {
-		fmt.Printf("• %s\n  %s\n\n", name, desc)
+		ui.Printf("  %s\n    %s\n\n", name, desc)
 	}
 
-	fmt.Println("Usage:")
-	fmt.Println("  goca config init --template <name>")
-	fmt.Println("  goca config init --template web --database postgres --handlers http,grpc")
+	ui.Section("Usage")
+	ui.Dim("  goca config init --template <name>")
+	ui.Dim("  goca config init --template web --database postgres --handlers http,grpc")
 }
 
 // Helper functions for config generation
@@ -442,9 +442,9 @@ func generateFullTemplate(database string, handlers []string) string {
 func validateConfigSilent(config map[string]interface{}) {
 	errors := validateConfigStructure(config)
 	if len(errors) == 0 {
-		fmt.Println("Valid structure")
+		ui.Success("Valid structure")
 	} else {
-		fmt.Printf("Warning: %d warnings found\n", len(errors))
+		ui.Warning(fmt.Sprintf("%d warnings found", len(errors)))
 	}
 }
 

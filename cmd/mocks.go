@@ -46,7 +46,7 @@ Examples:
 
 		// Check if we're in a Goca project
 		if _, err := os.Stat("go.mod"); os.IsNotExist(err) {
-			fmt.Println("❌ Error: Not in a Go module directory. Run 'go mod init' first.")
+			ui.Error("Not in a Go module directory. Run 'go mod init' first.")
 			return
 		}
 
@@ -57,23 +57,22 @@ Examples:
 
 		// Generate mocks
 		if err := generateMocks(entityName, mockAll, mockRepository, mockUseCase, mockHandler); err != nil {
-			fmt.Printf("❌ Error generating mocks: %v\n", err)
+			ui.Error(fmt.Sprintf("Error generating mocks: %v", err))
 			return
 		}
 
-		fmt.Printf("\n✅ Mocks generated successfully for '%s'\n", entityName)
-		fmt.Println("\nGenerated files:")
+		ui.Success(fmt.Sprintf("Mocks generated successfully for '%s'", entityName))
+		ui.Println("\nGenerated files:")
 		if mockAll || mockRepository {
-			fmt.Printf("   - internal/mocks/mock_%s_repository.go\n", strings.ToLower(entityName))
+			ui.FileCreated(fmt.Sprintf("internal/mocks/mock_%s_repository.go", strings.ToLower(entityName)))
 		}
 		if mockAll || mockUseCase {
-			fmt.Printf("   - internal/mocks/mock_%s_usecase.go\n", strings.ToLower(entityName))
+			ui.FileCreated(fmt.Sprintf("internal/mocks/mock_%s_usecase.go", strings.ToLower(entityName)))
 		}
 		if mockAll || mockHandler {
-			fmt.Printf("   - internal/mocks/mock_%s_handler.go\n", strings.ToLower(entityName))
+			ui.FileCreated(fmt.Sprintf("internal/mocks/mock_%s_handler.go", strings.ToLower(entityName)))
 		}
-		fmt.Println("\nUsage example:")
-		fmt.Printf("   See internal/mocks/examples/ for unit test examples\n")
+		ui.Dim("See internal/mocks/examples/ for unit test examples")
 	},
 }
 
