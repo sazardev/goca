@@ -201,6 +201,12 @@ export default defineConfig({
                     ]
                 },
                 {
+                    text: 'Tooling',
+                    items: [
+                        { text: 'Navi Integration', link: '/guide/navi-integration' },
+                    ]
+                },
+                {
                     text: 'Tutorials',
                     items: [
                         { text: 'Complete Tutorial', link: '/tutorials/complete-tutorial' },
@@ -224,6 +230,8 @@ export default defineConfig({
                         { text: 'goca integrate', link: '/commands/integrate' },
                         { text: 'goca interfaces', link: '/commands/interfaces' },
                         { text: 'goca messages', link: '/commands/messages' },
+                        { text: 'goca mocks', link: '/commands/mocks' },
+                        { text: 'goca test-integration', link: '/commands/test-integration' },
                         { text: 'goca doctor', link: '/commands/doctor' },
                         { text: 'goca upgrade', link: '/commands/upgrade' },
                         { text: 'goca version', link: '/commands/version' },
@@ -251,7 +259,23 @@ export default defineConfig({
                 {
                     text: 'Latest Release',
                     items: [
+                        { text: 'v1.18.7', link: '/blog/releases/v1-18-7' },
+                    ]
+                },
+                {
+                    text: 'v1.18.x Releases',
+                    items: [
+                        { text: 'v1.18.1 — v1.18.6', link: '/blog/releases/v1-18-2' },
+                        { text: 'v1.18.1', link: '/blog/releases/v1-18-1' },
+                        { text: 'v1.18.0', link: '/blog/releases/v1-18-0' },
+                    ]
+                },
+                {
+                    text: 'Previous Releases',
+                    items: [
                         { text: 'v1.17.2', link: '/blog/releases/v1-17-2' },
+                        { text: 'v1.17.1', link: '/blog/releases/v1-17-1' },
+                        { text: 'v1.14.1', link: '/blog/releases/v1-14-1' },
                     ]
                 }
             ]
