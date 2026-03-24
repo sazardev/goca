@@ -511,11 +511,7 @@ func init() {
 	featureCmd.Flags().StringP("fields", "f", "", "Entity fields \"field:type,field2:type\" (required)")
 	featureCmd.Flags().StringP("database", "d", DBPostgres, fmt.Sprintf("Database type (%s)", strings.Join(ValidDatabases, ", ")))
 	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Handler types (%s)", strings.Join(ValidHandlers, ", ")))
-	featureCmd.Flags().BoolP("validation", "v", false, "Include validations in all layers")
-	featureCmd.Flags().BoolP("business-rules", "b", false, "Include business rule methods")
-
-	// Safety flags
-	featureCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+		featureCmd.Flags().Bool("validation", false, "Include validations in all layers")
 	featureCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
 	featureCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 

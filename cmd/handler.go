@@ -1011,6 +1011,6 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 func init() {
 	handlerCmd.Flags().StringP("type", "t", "http", "Handler type (http, grpc, cli, worker, soap)")
 	handlerCmd.Flags().BoolP("middleware", "m", false, "Include middleware setup")
-	handlerCmd.Flags().BoolP("validation", "v", false, "Input validation in handler")
+	handlerCmd.Flags().Bool("validation", false, "Input validation in handler")
 	handlerCmd.Flags().BoolP("swagger", "s", false, "Generate Swagger documentation (HTTP only)")
 }
