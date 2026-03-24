@@ -5,6 +5,9 @@
 # Show goca version
 goca version
 
+# Show only the version number (short)
+goca version --short
+
 # Show goca help
 goca help
 
@@ -316,6 +319,9 @@ goca mocks <entity> --usecase
 
 # Generate handler mock only
 goca mocks <entity> --handler
+
+# Generate mocks for all entities in project at once
+goca mocks <entity> --all --force
 
 # Preview mock generation without creating files
 goca mocks <entity> --dry-run
