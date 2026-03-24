@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.2] - 2026-03-25
+
+### Added
+
+#### `goca doctor` command
+- New `cmd/doctor.go`: runs 6 automated project health checks and displays results in a styled table
+- Checks: `go.mod` presence, `.goca.yaml` presence, Clean Architecture directory structure (`internal/domain`, `internal/usecase`, `internal/repository`, `internal/handler`), `go build ./...`, `go vet ./...`, and DI container detection
+- Each check reports `✓` (pass), `⚠` (warning), or `✗` (failure) with an actionable suggestion
+- `--fix` flag automatically creates any missing Clean Architecture directories
+- Exits with code 1 when any check fails (CI-friendly)
+
+#### `goca upgrade` command
+- New `cmd/upgrade.go`: inspects `.goca.yaml` and compares the recorded `goca_version` in metadata with the installed binary version
+- Reports config section completeness (project, architecture, database, generation, testing, features, templates, deploy) with `✓ set` / `○ default` status
+- `--update` flag writes the current Goca version to `project.metadata.goca_version` in `.goca.yaml` using a low-level YAML node edit (preserves existing formatting and comments)
+- `--regenerate <feature>` flag prints the exact `goca feature <name> --force` command to re-run code generation
+- `--dry-run` flag previews any writes without touching the file
+
+#### Global `--quiet` / `--verbose` flags
+- `--quiet` (`-q`): suppresses all output except `Success` and `Error` messages (verbosity level 0)
+- `--verbose` (`-v`): enables additional `Debug` and `Trace` output (verbosity level 2)
+- Default verbosity 1 (normal) is unchanged from previous behavior
+- New `Debug(text)` and `Trace(text)` methods on `UIRenderer` (only print at verbosity ≥ 2)
+- All non-critical UI methods (`Header`, `Step`, `Info`, `Warning`, `DryRun`, `KeyValue`, `KeyValueFromConfig`, `Feature`, `Blank`, `Dim`, `Section`, `NextSteps`) gated by `verbosity >= 1`
+
+#### Improved Dry-Run Preview
+- `SafetyManager` now tracks `DryRunEntry{Path, Action, Size}` for each pending file
+- Dry-run mode distinguishes `create` vs `overwrite` actions
+- `printSummaryStyled()` now shows a three-column table (File / Action / Size) instead of the previous two-column table (File / Status)
+
+### Fixed
+- `docs/guide/installation.md` version example updated from stale `v2.0.0` to `v1.18.2`
+
 ## [1.18.1] - 2026-03-24
 
 ### Fixed

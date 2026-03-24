@@ -224,6 +224,8 @@ export default defineConfig({
                         { text: 'goca integrate', link: '/commands/integrate' },
                         { text: 'goca interfaces', link: '/commands/interfaces' },
                         { text: 'goca messages', link: '/commands/messages' },
+                        { text: 'goca doctor', link: '/commands/doctor' },
+                        { text: 'goca upgrade', link: '/commands/upgrade' },
                         { text: 'goca version', link: '/commands/version' },
                     ]
                 }

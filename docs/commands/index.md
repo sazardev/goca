@@ -27,9 +27,11 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 - [`goca handler`](/commands/handler) - Generate handlers (HTTP, gRPC, CLI, etc.)
 
 ### Utilities
-- [`goca di`](/commands/di) - Generate dependency injection container
-- [`goca messages`](/commands/messages) - Generate error messages and constants
-- [`goca version`](/commands/version) - Display version information
+- [`goca di`](/goca/commands/di) - Generate dependency injection container
+- [`goca messages`](/goca/commands/messages) - Generate error messages and constants
+- [`goca doctor`](/goca/commands/doctor) - Check project health and Clean Architecture structure
+- [`goca upgrade`](/goca/commands/upgrade) - Upgrade project configuration to current Goca version
+- [`goca version`](/goca/commands/version) - Display version information
 
 ## Quick Reference
 
@@ -43,6 +45,8 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 | `goca repository` | Create repositories only |  Manual         |
 | `goca handler`    | Create handlers only     |  Manual         |
 | `goca di`         | Generate DI container    |  Manual         |
+| `goca doctor`     | Project health checks    |  —              |
+| `goca upgrade`    | Upgrade config/metadata  |  —              |
 
 ## Common Workflows
 
@@ -93,9 +97,12 @@ goca feature Payment --fields "amount:float64,method:string"
 All commands support these flags:
 
 ```bash
---help, -h      Show help for command
---verbose, -v   Enable verbose output
---dry-run       Show what would be generated without creating files
+--help, -h          Show help for command
+--verbose, -v       Enable verbose output (includes debug details)
+--quiet, -q         Suppress all output except errors and success messages
+--dry-run           Show what would be generated without creating files
+--no-color          Disable colored output
+--no-interactive    Disable interactive prompts
 ```
 
 ## Examples by Use Case

@@ -36,7 +36,7 @@ goca version
 **Expected output:**
 
 ```
-Goca v2.0.0
+Goca v1.18.2
 Build: 2025-10-11T10:00:00Z
 Go Version: go1.24.5
 OS/Arch: linux/amd64

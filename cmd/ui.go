@@ -18,6 +18,7 @@ type UIRenderer struct {
 	writer      io.Writer
 	noColor     bool
 	interactive bool
+	verbosity   int // 0=quiet, 1=normal, 2=verbose
 }
 
 // Global UI instance used by all commands
@@ -36,7 +37,8 @@ var (
 
 // NewUIRenderer creates a new UIRenderer.
 // If noColor is true, all styling is disabled.
-func NewUIRenderer(writer io.Writer, noColor bool) *UIRenderer {
+// verbosity: 0=quiet (only Success/Error), 1=normal, 2=verbose (adds Debug/Trace)
+func NewUIRenderer(writer io.Writer, noColor bool, verbosity int) *UIRenderer {
 	if writer == nil {
 		writer = os.Stdout
 	}
@@ -47,6 +49,7 @@ func NewUIRenderer(writer io.Writer, noColor bool) *UIRenderer {
 		writer:      writer,
 		noColor:     noColor || os.Getenv("NO_COLOR") != "",
 		interactive: true,
+		verbosity:   verbosity,
 	}
 }
 
@@ -62,12 +65,18 @@ func (u *UIRenderer) IsInteractive() bool {
 
 // Header prints a bold header line
 func (u *UIRenderer) Header(text string) {
+	if u.verbosity < 1 {
+		return
+	}
 	style := lipgloss.NewStyle().Bold(true)
 	fmt.Fprintln(u.writer, style.Render(text))
 }
 
 // Step prints a numbered step indicator
 func (u *UIRenderer) Step(number int, text string) {
+	if u.verbosity < 1 {
+		return
+	}
 	numStyle := lipgloss.NewStyle().Foreground(colorCyan).Bold(true)
 	fmt.Fprintf(u.writer, "%s %s\n", numStyle.Render(fmt.Sprintf("%d.", number)), text)
 }
@@ -86,18 +95,27 @@ func (u *UIRenderer) Error(text string) {
 
 // Warning prints a warning message with a yellow indicator
 func (u *UIRenderer) Warning(text string) {
+	if u.verbosity < 1 {
+		return
+	}
 	prefix := lipgloss.NewStyle().Foreground(colorYellow).Bold(true).Render("⚠")
 	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
 // Info prints an informational message with a cyan indicator
 func (u *UIRenderer) Info(text string) {
+	if u.verbosity < 1 {
+		return
+	}
 	prefix := lipgloss.NewStyle().Foreground(colorCyan).Render("ℹ")
 	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
 // DryRun prints a dry-run prefixed message
 func (u *UIRenderer) DryRun(text string) {
+	if u.verbosity < 1 {
+		return
+	}
 	tag := lipgloss.NewStyle().
 		Foreground(colorMagenta).
 		Bold(true).
@@ -120,12 +138,18 @@ func (u *UIRenderer) FileBackedUp(from, to string) {
 
 // KeyValue prints a key-value pair with styled key
 func (u *UIRenderer) KeyValue(key, value string) {
+	if u.verbosity < 1 {
+		return
+	}
 	k := lipgloss.NewStyle().Foreground(colorCyan).Render(key + ":")
 	fmt.Fprintf(u.writer, "%s %s\n", k, value)
 }
 
 // KeyValueFromConfig prints a key-value pair with a "from config" annotation
 func (u *UIRenderer) KeyValueFromConfig(key, value string) {
+	if u.verbosity < 1 {
+		return
+	}
 	k := lipgloss.NewStyle().Foreground(colorCyan).Render(key + ":")
 	dimTag := lipgloss.NewStyle().Foreground(colorDim).Render("(from config)")
 	fmt.Fprintf(u.writer, "%s %s %s\n", k, value, dimTag)
@@ -133,6 +157,9 @@ func (u *UIRenderer) KeyValueFromConfig(key, value string) {
 
 // Feature prints a feature toggle line (e.g., "✓ Including validation")
 func (u *UIRenderer) Feature(text string, fromConfig bool) {
+	if u.verbosity < 1 {
+		return
+	}
 	check := lipgloss.NewStyle().Foreground(colorGreen).Render("✓")
 	if fromConfig {
 		dimTag := lipgloss.NewStyle().Foreground(colorDim).Render("(from config)")
@@ -216,17 +243,26 @@ func (u *UIRenderer) Printf(format string, args ...any) {
 
 // Blank prints an empty line
 func (u *UIRenderer) Blank() {
+	if u.verbosity < 1 {
+		return
+	}
 	fmt.Fprintln(u.writer)
 }
 
 // Dim prints dimmed text
 func (u *UIRenderer) Dim(text string) {
+	if u.verbosity < 1 {
+		return
+	}
 	style := lipgloss.NewStyle().Foreground(colorDim)
 	fmt.Fprintln(u.writer, style.Render(text))
 }
 
 // Section prints a section with a title and indented content
 func (u *UIRenderer) Section(title string) {
+	if u.verbosity < 1 {
+		return
+	}
 	style := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(colorWhite).
@@ -238,6 +274,9 @@ func (u *UIRenderer) Section(title string) {
 
 // NextSteps prints a formatted "Next steps" block
 func (u *UIRenderer) NextSteps(steps []string) {
+	if u.verbosity < 1 {
+		return
+	}
 	title := lipgloss.NewStyle().Bold(true).Foreground(colorCyan).Render("Next steps:")
 	fmt.Fprintln(u.writer, title)
 	for _, step := range steps {
@@ -245,9 +284,28 @@ func (u *UIRenderer) NextSteps(steps []string) {
 	}
 }
 
-// initUI initializes the global UI renderer
-func initUI(noColor bool) {
-	ui = NewUIRenderer(os.Stdout, noColor)
+// initUI initializes the global UI renderer.
+// verbosity: 0=quiet, 1=normal, 2=verbose
+func initUI(noColor bool, verbosity int) {
+	ui = NewUIRenderer(os.Stdout, noColor, verbosity)
+}
+
+// Debug prints a debug message (verbosity >= 2)
+func (u *UIRenderer) Debug(text string) {
+	if u.verbosity < 2 {
+		return
+	}
+	prefix := lipgloss.NewStyle().Foreground(colorDim).Render("[debug]")
+	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
+}
+
+// Trace prints a trace message (verbosity >= 2)
+func (u *UIRenderer) Trace(text string) {
+	if u.verbosity < 2 {
+		return
+	}
+	prefix := lipgloss.NewStyle().Foreground(colorDim).Render("[trace]")
+	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
 // Spinner starts a spinner animation with the given text.

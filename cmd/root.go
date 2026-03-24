@@ -35,6 +35,8 @@ import (
 var (
 	noColor       bool
 	noInteractive bool
+	quietMode     bool
+	verboseMode   bool
 )
 
 var rootCmd = &cobra.Command{
@@ -46,7 +48,14 @@ Clean Architecture projects following best practices.
 It generates clean, well-structured layered code, allowing you to 
 focus on business logic instead of repetitive configuration tasks.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		initUI(noColor)
+		verbosity := 1
+		if quietMode {
+			verbosity = 0
+		}
+		if verboseMode {
+			verbosity = 2
+		}
+		initUI(noColor, verbosity)
 		ui.SetInteractive(!noInteractive)
 	},
 }
@@ -68,6 +77,8 @@ func init() {
 	// Global flags
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 	rootCmd.PersistentFlags().BoolVar(&noInteractive, "no-interactive", false, "Disable interactive prompts")
+	rootCmd.PersistentFlags().BoolVarP(&quietMode, "quiet", "q", false, "Suppress all output except errors and success messages")
+	rootCmd.PersistentFlags().BoolVarP(&verboseMode, "verbose", "v", false, "Enable verbose output with debug details")
 
 	// Add subcommands
 	rootCmd.AddCommand(versionCmd)
@@ -82,4 +93,6 @@ func init() {
 	rootCmd.AddCommand(integrateCmd)
 	rootCmd.AddCommand(interfacesCmd)
 	rootCmd.AddCommand(templateManagementCmd)
+	rootCmd.AddCommand(doctorCmd)
+	rootCmd.AddCommand(upgradeCmd)
 }

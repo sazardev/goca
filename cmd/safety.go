@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+// DryRunEntry represents a file that would be created or modified in dry-run mode.
+type DryRunEntry struct {
+	Path   string
+	Action string // "create" or "overwrite"
+	Size   int
+}
+
 // SafetyManager handles file safety operations like conflict detection,
 // backups, and dry-run mode
 type SafetyManager struct {
@@ -16,6 +23,7 @@ type SafetyManager struct {
 	BackupDir    string
 	conflicts    []string
 	createdFiles []string
+	pendingFiles []DryRunEntry
 }
 
 // NewSafetyManager creates a new safety manager instance
@@ -27,6 +35,7 @@ func NewSafetyManager(dryRun, force, backup bool) *SafetyManager {
 		BackupDir:    ".goca-backup",
 		conflicts:    make([]string, 0),
 		createdFiles: make([]string, 0),
+		pendingFiles: make([]DryRunEntry, 0),
 	}
 }
 
@@ -88,11 +97,12 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	}
 
 	if sm.DryRun {
-		if ui != nil {
-			ui.DryRun(fmt.Sprintf("Would create: %s (%d bytes)", filePath, len(content)))
-		} else {
-			fmt.Printf("[DRY-RUN] Would create: %s (%d bytes)\n", filePath, len(content))
+		action := "create"
+		if _, statErr := os.Stat(filePath); statErr == nil {
+			action = "overwrite"
 		}
+		entry := DryRunEntry{Path: filePath, Action: action, Size: len(content)}
+		sm.pendingFiles = append(sm.pendingFiles, entry)
 		sm.createdFiles = append(sm.createdFiles, filePath)
 		return nil
 	}
@@ -117,6 +127,11 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	return nil
 }
 
+// GetPendingFiles returns the dry-run entries (files that would be created/overwritten).
+func (sm *SafetyManager) GetPendingFiles() []DryRunEntry {
+	return sm.pendingFiles
+}
+
 // GetConflicts returns list of file conflicts found
 func (sm *SafetyManager) GetConflicts() []string {
 	return sm.conflicts
@@ -139,15 +154,15 @@ func (sm *SafetyManager) PrintSummary() {
 func (sm *SafetyManager) printSummaryStyled() {
 	ui.Blank()
 	if sm.DryRun {
-		ui.Section("DRY-RUN SUMMARY")
-		ui.Info(fmt.Sprintf("Would create %d files", len(sm.createdFiles)))
-		if len(sm.createdFiles) > 0 {
-			rows := make([][]string, len(sm.createdFiles))
-			for i, f := range sm.createdFiles {
-				rows[i] = []string{f, "would create"}
+		ui.Section("DRY-RUN PREVIEW")
+		if len(sm.pendingFiles) > 0 {
+			rows := make([][]string, len(sm.pendingFiles))
+			for i, e := range sm.pendingFiles {
+				rows[i] = []string{e.Path, e.Action, fmt.Sprintf("%d B", e.Size)}
 			}
-			ui.Table([]string{"File", "Status"}, rows)
+			ui.Table([]string{"File", "Action", "Size"}, rows)
 		}
+		ui.Info(fmt.Sprintf("%d files would be written", len(sm.pendingFiles)))
 		if len(sm.conflicts) > 0 {
 			ui.Warning(fmt.Sprintf("%d conflicts detected:", len(sm.conflicts)))
 			for _, conflict := range sm.conflicts {
