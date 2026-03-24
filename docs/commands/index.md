@@ -27,11 +27,11 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 - [`goca handler`](/commands/handler) - Generate handlers (HTTP, gRPC, CLI, etc.)
 
 ### Utilities
-- [`goca di`](/goca/commands/di) - Generate dependency injection container
-- [`goca messages`](/goca/commands/messages) - Generate error messages and constants
-- [`goca doctor`](/goca/commands/doctor) - Check project health and Clean Architecture structure
-- [`goca upgrade`](/goca/commands/upgrade) - Upgrade project configuration to current Goca version
-- [`goca version`](/goca/commands/version) - Display version information
+- [`goca di`](/commands/di) - Generate dependency injection container
+- [`goca messages`](/commands/messages) - Generate error messages and constants
+- [`goca doctor`](/commands/doctor) - Check project health and Clean Architecture structure
+- [`goca upgrade`](/commands/upgrade) - Upgrade project configuration to current Goca version
+- [`goca version`](/commands/version) - Display version information
 
 ## Quick Reference
 
