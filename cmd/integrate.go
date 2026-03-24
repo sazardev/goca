@@ -21,6 +21,16 @@ Useful for projects that have unintegrated features.`,
 		all, _ := cmd.Flags().GetBool("all")
 		features, _ := cmd.Flags().GetString("features")
 
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
 		if all {
 			ui.Info("Detecting existing features...")
 			autoDetectedFeatures := detectExistingFeatures()
@@ -30,17 +40,22 @@ Useful for projects that have unintegrated features.`,
 			}
 
 			ui.Info(fmt.Sprintf("Features detected: %s", strings.Join(autoDetectedFeatures, ", ")))
-			integrateFeatures(autoDetectedFeatures)
+			integrateFeatures(autoDetectedFeatures, sm)
 		} else if features != "" {
 			featureList := strings.Split(features, ",")
 			for i, feature := range featureList {
 				featureList[i] = strings.TrimSpace(feature)
 			}
 			ui.Info(fmt.Sprintf("Integrating specified features: %s", strings.Join(featureList, ", ")))
-			integrateFeatures(featureList)
+			integrateFeatures(featureList, sm)
 		} else {
 			ui.Error("Must specify --all or --features")
 			os.Exit(1)
+		}
+
+		if dryRun {
+			sm.PrintSummary()
+			return
 		}
 
 		ui.Success("Integration completed!")
@@ -101,17 +116,17 @@ func detectExistingFeatures() []string {
 }
 
 // integrateFeatures integrates multiple features
-func integrateFeatures(features []string) {
+func integrateFeatures(features []string, sm ...*SafetyManager) {
 	ui.Blank()
 	ui.Info("Starting integration process...")
 
 	// Step 1: Create or update DI container
 	ui.Step(1, "Configuring DI container...")
-	createOrUpdateDIContainer(features)
+	createOrUpdateDIContainer(features, sm...)
 
 	// Step 2: Update main.go
 	ui.Step(2, "Updating main.go...")
-	updateMainGoWithAllFeatures(features)
+	updateMainGoWithAllFeatures(features, sm...)
 
 	// Step 3: Verify integration
 	ui.Step(3, "Verifying integration...")
@@ -119,12 +134,12 @@ func integrateFeatures(features []string) {
 }
 
 // createOrUpdateDIContainer creates or updates the DI container with all features
-func createOrUpdateDIContainer(features []string) {
+func createOrUpdateDIContainer(features []string, sm ...*SafetyManager) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		ui.Dim("   Creating DI container...")
-		generateDI(strings.Join(features, ","), DBPostgres, false)
+		generateDI(strings.Join(features, ","), DBPostgres, false, sm...)
 	} else {
 		ui.Dim("   Updating existing DI container...")
 		for _, feature := range features {
@@ -134,7 +149,7 @@ func createOrUpdateDIContainer(features []string) {
 }
 
 // updateMainGoWithAllFeatures updates main.go to include all features
-func updateMainGoWithAllFeatures(features []string) {
+func updateMainGoWithAllFeatures(features []string, sm ...*SafetyManager) {
 	// Try multiple possible locations for main.go
 	possiblePaths := []string{
 		"main.go",
@@ -155,7 +170,7 @@ func updateMainGoWithAllFeatures(features []string) {
 
 	if !found {
 		ui.Warning("main.go not found, creating new...")
-		createCompleteMainGo(features)
+		createCompleteMainGo(features, sm...)
 		return
 	}
 
@@ -177,22 +192,22 @@ func updateMainGoWithAllFeatures(features []string) {
 
 	if needsCompleteRewrite {
 		ui.Dim("   Rewriting complete main.go...")
-		createCompleteMainGoWithFeatures(mainPath, features, moduleName)
+		createCompleteMainGoWithFeatures(mainPath, features, moduleName, sm...)
 	} else {
 		ui.Dim("   Adding missing features...")
-		addMissingFeaturesToMain(mainPath, features, contentStr, moduleName)
+		addMissingFeaturesToMain(mainPath, features, contentStr, moduleName, sm...)
 	}
 }
 
 // createCompleteMainGo creates a new main.go with all features
-func createCompleteMainGo(features []string) {
+func createCompleteMainGo(features []string, sm ...*SafetyManager) {
 	mainPath := "main.go"
 	moduleName := getModuleName()
-	createCompleteMainGoWithFeatures(mainPath, features, moduleName)
+	createCompleteMainGoWithFeatures(mainPath, features, moduleName, sm...)
 }
 
 // createCompleteMainGoWithFeatures creates a complete main.go with DI and all feature routes
-func createCompleteMainGoWithFeatures(mainPath string, features []string, moduleName string) {
+func createCompleteMainGoWithFeatures(mainPath string, features []string, moduleName string, sm ...*SafetyManager) {
 	var routesSB strings.Builder
 
 	// Generate routes for all features
@@ -441,7 +456,7 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 }
 `, moduleName, moduleName, moduleName, routesSB.String())
 
-	if err := os.WriteFile(mainPath, []byte(newMainContent), 0644); err != nil {
+	if err := writeFile(mainPath, newMainContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Could not create main.go: %v", err))
 	} else {
 		ui.Info(fmt.Sprintf("main.go created with %d features", len(features)))
@@ -449,7 +464,7 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // addMissingFeaturesToMain adds missing feature routes to existing main.go
-func addMissingFeaturesToMain(mainPath string, features []string, contentStr, moduleName string) {
+func addMissingFeaturesToMain(mainPath string, features []string, contentStr, moduleName string, sm ...*SafetyManager) {
 	newContent := contentStr
 
 	// Add DI import if missing
@@ -513,7 +528,7 @@ func addMissingFeaturesToMain(mainPath string, features []string, contentStr, mo
 	}
 
 	if addedFeatures > 0 {
-		if err := os.WriteFile(mainPath, []byte(newContent), 0644); err != nil {
+		if err := writeFile(mainPath, newContent, sm...); err != nil {
 			ui.Warning(fmt.Sprintf("Could not update main.go: %v", err))
 		} else {
 			ui.Info(fmt.Sprintf("%d features added to main.go", addedFeatures))
@@ -598,4 +613,7 @@ func verifyIntegration(features []string) {
 func init() {
 	integrateCmd.Flags().BoolP("all", "a", false, "Integrate all detected features automatically")
 	integrateCmd.Flags().StringP("features", "f", "", "Specific features to integrate \"User,Product,Order\"")
+	integrateCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	integrateCmd.Flags().Bool("force", false, "Overwrite existing files without confirmation")
+	integrateCmd.Flags().Bool("backup", false, "Create backup of existing files before overwriting")
 }

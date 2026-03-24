@@ -80,16 +80,32 @@ clear interfaces and encapsulated business logic.`,
 			ui.Feature("Including asynchronous operations", false)
 		}
 
-		generateUseCase(usecaseName, entity, operations, effectiveDtoValidation, async)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		generateUseCase(usecaseName, entity, operations, effectiveDtoValidation, async, sm)
+
+		if dryRun {
+			sm.PrintSummary()
+			return
+		}
+
 		ui.Success(fmt.Sprintf("Use case '%s' generated successfully!", usecaseName))
 	},
 }
 
-func generateUseCase(usecaseName, entity, operations string, dtoValidation, async bool) {
-	generateUseCaseWithFields(usecaseName, entity, operations, dtoValidation, async, "")
+func generateUseCase(usecaseName, entity, operations string, dtoValidation, async bool, sm ...*SafetyManager) {
+	generateUseCaseWithFields(usecaseName, entity, operations, dtoValidation, async, "", sm...)
 }
 
-func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValidation, async bool, fields string) {
+func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValidation, async bool, fields string, sm ...*SafetyManager) {
 	// Create usecase directory
 	usecaseDir := filepath.Join(DirInternal, DirUseCase)
 	_ = os.MkdirAll(usecaseDir, 0755)
@@ -98,10 +114,10 @@ func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValida
 	ops := parseOperations(operations)
 
 	// Generate files
-	generateDTOFileWithFields(usecaseDir, entity, ops, dtoValidation, fields)
-	generateUseCaseInterface(usecaseDir, usecaseName, entity, ops)
-	generateUseCaseServiceWithFields(usecaseDir, usecaseName, entity, ops, async, fields)
-	generateUseCaseInterfaces(usecaseDir, entity)
+	generateDTOFileWithFields(usecaseDir, entity, ops, dtoValidation, fields, sm...)
+	generateUseCaseInterface(usecaseDir, usecaseName, entity, ops, sm...)
+	generateUseCaseServiceWithFields(usecaseDir, usecaseName, entity, ops, async, fields, sm...)
+	generateUseCaseInterfaces(usecaseDir, entity, sm...)
 }
 
 func parseOperations(operations string) []string {
@@ -117,7 +133,7 @@ func parseOperations(operations string) []string {
 	return result
 }
 
-func generateDTOFileWithFields(dir, entity string, operations []string, validation bool, fields string) {
+func generateDTOFileWithFields(dir, entity string, operations []string, validation bool, fields string, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "dto.go")
 
 	// Get the module name from go.mod
@@ -182,7 +198,7 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 		}
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error creating DTO file: %v", err))
 	}
 }
@@ -236,7 +252,7 @@ func generateListDTO(content *strings.Builder, entity string) {
 	content.WriteString("}\n\n")
 }
 
-func generateUseCaseInterface(dir, usecaseName, entity string, operations []string) {
+func generateUseCaseInterface(dir, usecaseName, entity string, operations []string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -267,12 +283,12 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error creating use case file: %v", err))
 	}
 }
 
-func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operations []string, async bool, fields string) {
+func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operations []string, async bool, fields string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -330,7 +346,7 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 		}
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error creating use case service with fields: %v", err))
 	}
 }
@@ -497,7 +513,7 @@ func generateListMethod(content *strings.Builder, serviceName, entity string) {
 	content.WriteString("}\n\n")
 }
 
-func generateUseCaseInterfaces(dir, entity string) {
+func generateUseCaseInterfaces(dir, entity string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -517,7 +533,7 @@ func generateUseCaseInterfaces(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error creating interfaces file: %v", err))
 	}
 }
@@ -703,6 +719,9 @@ func init() {
 	usecaseCmd.Flags().StringP("operations", "o", "create,read", "CRUD operations \"create,read,update,delete,list\"")
 	usecaseCmd.Flags().BoolP("dto-validation", "d", false, "DTOs with specific validations")
 	usecaseCmd.Flags().BoolP("async", "a", false, "Include asynchronous operations")
+	usecaseCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	usecaseCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	usecaseCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 
 	_ = usecaseCmd.MarkFlagRequired("entity")
 }

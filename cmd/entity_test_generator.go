@@ -2,13 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 )
 
 // generateEntityTests generates unit tests for entity validation and business logic
-func generateEntityTests(domainDir, entityName string, fields []Field, validation, businessRules bool, fileNamingConvention string) {
+func generateEntityTests(domainDir, entityName string, fields []Field, validation, businessRules bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Determine filename based on naming convention
 	var filename string
 	switch fileNamingConvention {
@@ -41,7 +40,7 @@ func generateEntityTests(domainDir, entityName string, fields []Field, validatio
 	generateFieldTests(&content, entityName, fields)
 
 	// Write file
-	if err := os.WriteFile(testFile, []byte(content.String()), 0644); err != nil {
+	if err := writeFile(testFile, content.String(), sm...); err != nil {
 		if ui != nil {
 			ui.Error(fmt.Sprintf("Error writing test file: %v", err))
 		} else {

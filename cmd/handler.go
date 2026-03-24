@@ -100,7 +100,22 @@ var handlerCmd = &cobra.Command{
 			ui.Feature("Including Swagger documentation", false)
 		}
 
-		generateHandler(entity, effectiveHandlerType, effectiveMiddleware, effectiveValidation, effectiveSwagger, fileNamingConvention)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		generateHandler(entity, effectiveHandlerType, effectiveMiddleware, effectiveValidation, effectiveSwagger, fileNamingConvention, sm)
+
+		if dryRun {
+			sm.PrintSummary()
+			return
+		}
 
 		// Add required dependencies
 		projectRoot, _ := os.Getwd()
@@ -122,47 +137,47 @@ var handlerCmd = &cobra.Command{
 	},
 }
 
-func generateHandler(entity, handlerType string, middleware, validation, swagger bool, fileNamingConvention string) {
+func generateHandler(entity, handlerType string, middleware, validation, swagger bool, fileNamingConvention string, sm ...*SafetyManager) {
 	switch handlerType {
 	case HandlerHTTP:
-		generateHTTPHandler(entity, middleware, validation, swagger, fileNamingConvention)
+		generateHTTPHandler(entity, middleware, validation, swagger, fileNamingConvention, sm...)
 	case HandlerGRPC:
-		generateGRPCHandler(entity, fileNamingConvention)
+		generateGRPCHandler(entity, fileNamingConvention, sm...)
 	case HandlerCLI:
-		generateCLIHandler(entity, fileNamingConvention)
+		generateCLIHandler(entity, fileNamingConvention, sm...)
 	case "worker":
-		generateWorkerHandler(entity, fileNamingConvention)
+		generateWorkerHandler(entity, fileNamingConvention, sm...)
 	case "soap":
-		generateSOAPHandler(entity, fileNamingConvention)
+		generateSOAPHandler(entity, fileNamingConvention, sm...)
 	default:
 		ui.Error(fmt.Sprintf("Unsupported handler type: %s", handlerType))
 		os.Exit(1)
 	}
 }
 
-func generateHTTPHandler(entity string, middleware, validation, swagger bool, fileNamingConvention string) {
+func generateHTTPHandler(entity string, middleware, validation, swagger bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create handlers directory if it doesn't exist
 	handlerDir := filepath.Join(DirInternal, DirHandler, DirHTTP)
 	_ = os.MkdirAll(handlerDir, 0755)
 
 	// Generate handler file
-	generateHTTPHandlerFile(handlerDir, entity, validation, fileNamingConvention)
+	generateHTTPHandlerFile(handlerDir, entity, validation, fileNamingConvention, sm...)
 
 	// Generate routes file
-	generateHTTPRoutesFile(handlerDir, entity, middleware)
+	generateHTTPRoutesFile(handlerDir, entity, middleware, sm...)
 
 	// Generate DTOs for HTTP if validation is enabled
 	if validation {
-		generateHTTPDTOFile(handlerDir, entity)
+		generateHTTPDTOFile(handlerDir, entity, sm...)
 	}
 
 	// Generate Swagger docs if requested
 	if swagger {
-		generateSwaggerFile(handlerDir, entity)
+		generateSwaggerFile(handlerDir, entity, sm...)
 	}
 }
 
-func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConvention string) {
+func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Apply naming convention to filename
 	var filename string
 	if fileNamingConvention == "snake_case" {
@@ -209,7 +224,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	generateDeleteHandlerMethod(&content, entity, handlerName)
 	generateListHandlerMethod(&content, entity, handlerName)
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing handler file: %v", err))
 		return
 	}
@@ -340,7 +355,7 @@ func generateListHandlerMethod(content *strings.Builder, entity, handlerName str
 	content.WriteString("}\n\n")
 }
 
-func generateHTTPRoutesFile(dir, entity string, middleware bool) {
+func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "routes.go")
 
 	// Get the module name from go.mod
@@ -401,7 +416,7 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool) {
 		generateMiddlewareFunctions(&content)
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing routes file: %v", err))
 		return
 	}
@@ -433,7 +448,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 `)
 }
 
-func generateHTTPDTOFile(dir, entity string) {
+func generateHTTPDTOFile(dir, entity string, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "dto.go")
 
 	var content strings.Builder
@@ -452,13 +467,13 @@ func generateHTTPDTOFile(dir, entity string) {
 	content.WriteString("\tMessage string `json:\"message,omitempty\"`\n")
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing types file: %v", err))
 		return
 	}
 }
 
-func generateSwaggerFile(dir, entity string) {
+func generateSwaggerFile(dir, entity string, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "swagger.yaml")
 	entityLower := strings.ToLower(entity)
 
@@ -538,22 +553,22 @@ components:
           type: string
 `, entity, entityLower, entityLower, entityLower, entity, entityLower, entity, entity, entity, entityLower, entityLower, entity, entity, entity)
 
-	if err := writeFile(filename, content); err != nil {
+	if err := writeFile(filename, content, sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing swagger file: %v", err))
 		return
 	}
 }
 
-func generateGRPCHandler(entity string, fileNamingConvention string) {
+func generateGRPCHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create gRPC directory
 	grpcDir := filepath.Join(DirInternal, DirHandler, DirGRPC)
 	_ = os.MkdirAll(grpcDir, 0755)
 
-	generateProtoFile(grpcDir, entity, fileNamingConvention)
-	generateGRPCServerFile(grpcDir, entity, fileNamingConvention)
+	generateProtoFile(grpcDir, entity, fileNamingConvention, sm...)
+	generateGRPCServerFile(grpcDir, entity, fileNamingConvention, sm...)
 }
 
-func generateProtoFile(dir, entity string, fileNamingConvention string) {
+func generateProtoFile(dir, entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 
 	// Apply naming convention to filename
@@ -629,13 +644,13 @@ func generateProtoFile(dir, entity string, fileNamingConvention string) {
 	content.WriteString("  int32 total = 2;\n")
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing proto file: %v", err))
 		return
 	}
 }
 
-func generateGRPCServerFile(dir, entity string, fileNamingConvention string) {
+func generateGRPCServerFile(dir, entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)
@@ -705,13 +720,13 @@ func generateGRPCServerFile(dir, entity string, fileNamingConvention string) {
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing grpc server file: %v", err))
 		return
 	}
 }
 
-func generateCLIHandler(entity string, fileNamingConvention string) {
+func generateCLIHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create CLI directory
 	cliDir := filepath.Join(DirInternal, DirHandler, DirCLI)
 	_ = os.MkdirAll(cliDir, 0755)
@@ -810,13 +825,13 @@ func generateCLIHandler(entity string, fileNamingConvention string) {
 	content.WriteString("\t}\n")
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing cli handler file: %v", err))
 		return
 	}
 }
 
-func generateWorkerHandler(entity string, fileNamingConvention string) {
+func generateWorkerHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create worker directory
 	workerDir := filepath.Join(DirInternal, DirHandler, DirWorker)
 	_ = os.MkdirAll(workerDir, 0755)
@@ -891,13 +906,13 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 }
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entityLower, entity, entity, entity, entity, entity, entityLower, entity)
 
-	if err := writeFile(filename, content); err != nil {
+	if err := writeFile(filename, content, sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing worker file: %v", err))
 		return
 	}
 }
 
-func generateSOAPHandler(entity string, fileNamingConvention string) {
+func generateSOAPHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create SOAP directory
 	soapDir := filepath.Join(DirInternal, DirHandler, DirSOAP)
 	_ = os.MkdirAll(soapDir, 0755)
@@ -1002,7 +1017,7 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 }
 `, moduleName, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity, entity)
 
-	if err := writeFile(filename, content); err != nil {
+	if err := writeFile(filename, content, sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing soap file: %v", err))
 		return
 	}
@@ -1013,4 +1028,7 @@ func init() {
 	handlerCmd.Flags().BoolP("middleware", "m", false, "Include middleware setup")
 	handlerCmd.Flags().Bool("validation", false, "Input validation in handler")
 	handlerCmd.Flags().BoolP("swagger", "s", false, "Generate Swagger documentation (HTTP only)")
+	handlerCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	handlerCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	handlerCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 }

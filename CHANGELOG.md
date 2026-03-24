@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.7] - 2026-03-24
+
+### Fixed
+
+#### SafetyManager integration across all commands
+- `goca init --dry-run` previously failed with "Error: unknown flag: --dry-run"; now works correctly
+- Added `--dry-run`, `--force`, and `--backup` flags to **all 12 file-generating commands**: `entity`, `usecase`, `repository`, `handler`, `di`, `messages`, `interfaces`, `mocks`, `init`, `integrate`, `feature`, `test-integration`
+- Previously only `feature` had these flags registered; all other commands silently ignored them
+
+#### SafetyManager actually wired through all generators
+- `writeFile()` and `writeGoFile()` in `cmd/utils.go` now accept an optional `*SafetyManager` parameter (backward-compatible variadic)
+- When SafetyManager is provided, file writes route through `SafetyManager.WriteFile()` which handles dry-run interception, conflict checking, and backups
+- Previously, even in `feature` command, SafetyManager was created but generators called `writeGoFile()` directly — bypassing dry-run/force/backup entirely
+- `feature` command now passes `safetyMgr` to all sub-generators: `generateEntity`, `generateUseCaseWithFields`, `generateRepository`, `generateHandler`, `generateMessages`, `generateMocks`, `generateIntegrationTests`, `addEntityToAutoMigration`
+- `integrate` command now threads SafetyManager through: `integrateFeatures` → `createOrUpdateDIContainer` → `generateDI`, and `updateMainGoWithAllFeatures` → `createCompleteMainGoWithFeatures` / `addMissingFeaturesToMain`
+
+### Changed
+
+- **15 files modified** across `cmd/` package to implement comprehensive SafetyManager threading
+- Replaced all `os.WriteFile` calls in generator code paths with `writeFile(..., sm...)` or `writeGoFile(..., sm...)`
+- All generator function signatures updated to accept variadic `sm ...*SafetyManager` (backward-compatible — callers without SafetyManager continue to work unchanged)
+
+## [1.18.6] - 2026-03-24
+
+### Fixed
+- Format YAML workflow file for consistency
+
+## [1.18.5] - 2026-03-24
+
+### Fixed
+- Restore missing `--business-rules` and `--dry-run` flags in feature command
+
+## [1.18.4] - 2026-03-24
+
+### Fixed
+- Remove conflicting `-v` shorthand from `--validation` flags (conflicts with global `--verbose`)
+
+## [1.18.3] - 2026-03-24
+
+### Fixed
+- Resolve CI failures on v1.18.2
+
 ## [1.18.2] - 2026-03-25
 
 ### Added

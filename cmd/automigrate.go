@@ -8,7 +8,7 @@ import (
 )
 
 // addEntityToAutoMigration adds a domain entity to the auto-migration list in main.go
-func addEntityToAutoMigration(entity string) error {
+func addEntityToAutoMigration(entity string, sm ...*SafetyManager) error {
 	mainPath, err := findMainGoFile()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func addEntityToAutoMigration(entity string) error {
 		return err
 	}
 
-	if err := os.WriteFile(mainPath, []byte(updatedContent), 0644); err != nil {
+	if err := writeFile(mainPath, updatedContent, sm...); err != nil {
 		return fmt.Errorf("failed to update main.go: %w", err)
 	}
 

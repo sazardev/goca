@@ -112,8 +112,23 @@ Use --template to initialize with predefined configurations:
 		configIntegration.MergeWithCLIFlags(flags)
 
 		stop := ui.Spinner(fmt.Sprintf("Creating project '%s'", projectName))
-		createProjectStructure(projectName, module, database, auth, api, configIntegration, config, template)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		createProjectStructure(projectName, module, database, auth, api, configIntegration, config, template, sm)
 		stop()
+
+		if dryRun {
+			sm.PrintSummary()
+			return
+		}
 
 		ui.Success(fmt.Sprintf("Project '%s' created successfully!", projectName))
 		ui.KeyValue("Directory", fmt.Sprintf("./%s", projectName))
@@ -137,7 +152,7 @@ Use --template to initialize with predefined configurations:
 	},
 }
 
-func createProjectStructure(projectName, module, database string, auth bool, api string, configIntegration *ConfigIntegration, generateConfig bool, template string) {
+func createProjectStructure(projectName, module, database string, auth bool, api string, configIntegration *ConfigIntegration, generateConfig bool, template string, sm ...*SafetyManager) {
 	// Create main directories
 	dirs := []string{
 		filepath.Join(projectName, "cmd", "server"),
@@ -158,35 +173,35 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 
 	// Create go.mod
-	createGoMod(projectName, module, database, auth)
+	createGoMod(projectName, module, database, auth, sm...)
 
 	// Create main.go
-	createMainGo(projectName, module, database)
+	createMainGo(projectName, module, database, sm...)
 
 	// Create .gitignore
-	createGitignore(projectName)
+	createGitignore(projectName, sm...)
 
 	// Create README.md
-	createReadme(projectName, module)
+	createReadme(projectName, module, sm...)
 
 	// Create config
-	createConfig(projectName, module, database)
+	createConfig(projectName, module, database, sm...)
 
 	// Create environment files
-	createEnvFiles(projectName, database)
+	createEnvFiles(projectName, database, sm...)
 
 	// Create migrations
-	createMigrations(projectName)
+	createMigrations(projectName, sm...)
 
 	// Create Makefile and Docker files
-	createMakefile(projectName)
-	createDockerfiles(projectName, database)
+	createMakefile(projectName, sm...)
+	createDockerfiles(projectName, database, sm...)
 
 	// Create logger
-	createLogger(projectName, module)
+	createLogger(projectName, module, sm...)
 
 	if auth {
-		createAuth(projectName, module)
+		createAuth(projectName, module, sm...)
 	}
 
 	// Generate .goca.yaml configuration file if requested or template is used
@@ -202,7 +217,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 				// Replace placeholders in template
 				configContent := strings.ReplaceAll(templateConfig, "project:", fmt.Sprintf("project:\n  name: %s\n  module: %s", projectName, module))
 
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := writeFile(configPath, configContent, sm...); err != nil {
 					ui.Warning(fmt.Sprintf("Failed to write config file: %v", err))
 				} else {
 					ui.FileCreated(fmt.Sprintf("Generated configuration file from template '%s': %s", template, configPath))
@@ -234,7 +249,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 }
 
-func createGoMod(projectName, module, database string, auth bool) {
+func createGoMod(projectName, module, database string, auth bool, sm ...*SafetyManager) {
 	var dependencies string
 
 	// Base dependencies (common to all)
@@ -299,7 +314,7 @@ replace github.com/goca/testproject => ./
 `
 	}
 
-	if err := writeFile(filepath.Join(projectName, "go.mod"), content); err != nil {
+	if err := writeFile(filepath.Join(projectName, "go.mod"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing go.mod: %v", err))
 		return
 	}
@@ -322,21 +337,21 @@ func downloadDependencies(projectName string) error {
 	return nil
 }
 
-func createMainGo(projectName, module, database string) {
+func createMainGo(projectName, module, database string, sm ...*SafetyManager) {
 	// For MongoDB and other NoSQL databases, generate a different main.go
 	if database == DBMongoDB {
-		createMongoDBMainGo(projectName, module)
+		createMongoDBMainGo(projectName, module, sm...)
 		return
 	}
 
 	// For DynamoDB and Elasticsearch, generate specific implementations
 	if database == DBDynamoDB {
-		createDynamoDBMainGo(projectName, module)
+		createDynamoDBMainGo(projectName, module, sm...)
 		return
 	}
 
 	if database == DBElasticsearch {
-		createElasticsearchMainGo(projectName, module)
+		createElasticsearchMainGo(projectName, module, sm...)
 		return
 	}
 
@@ -638,13 +653,13 @@ func runAutoMigrations(database *gorm.DB) error {
 
 `, importLines, dbDriverPackage)
 
-	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
+	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing main.go: %v", err))
 		return
 	}
 }
 
-func createMongoDBMainGo(projectName, module string) {
+func createMongoDBMainGo(projectName, module string, sm ...*SafetyManager) {
 	content := fmt.Sprintf(`package main
 
 import (
@@ -851,13 +866,13 @@ func checkMongoDB() error {
 }
 `, module, module)
 
-	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
+	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing main.go: %v", err))
 		return
 	}
 }
 
-func createDynamoDBMainGo(projectName, module string) {
+func createDynamoDBMainGo(projectName, module string, sm ...*SafetyManager) {
 	// Placeholder for DynamoDB implementation
 	// For now, create a simple main.go that warns about missing implementation
 	content := fmt.Sprintf(`package main
@@ -931,13 +946,13 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 `, module, module)
 
-	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
+	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing main.go: %v", err))
 		return
 	}
 }
 
-func createElasticsearchMainGo(projectName, module string) {
+func createElasticsearchMainGo(projectName, module string, sm ...*SafetyManager) {
 	// Placeholder for Elasticsearch implementation
 	content := fmt.Sprintf(`package main
 
@@ -1010,13 +1025,13 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 `, module, module)
 
-	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content); err != nil {
+	if err := writeGoFile(filepath.Join(projectName, "cmd", "server", "main.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing main.go: %v", err))
 		return
 	}
 }
 
-func createGitignore(projectName string) {
+func createGitignore(projectName string, sm ...*SafetyManager) {
 	content := `# Binaries for programs and plugins
 *.exe
 *.exe~
@@ -1060,7 +1075,7 @@ Thumbs.db
 /tmp/
 /dist/
 `
-	if err := writeFile(filepath.Join(projectName, ".gitignore"), content); err != nil {
+	if err := writeFile(filepath.Join(projectName, ".gitignore"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing .gitignore: %v", err))
 		return
 	}
@@ -1100,7 +1115,7 @@ func initializeGitRepository(projectName string) error {
 	return nil
 }
 
-func createReadme(projectName, module string) {
+func createReadme(projectName, module string, sm ...*SafetyManager) {
 	content := fmt.Sprintf(`# %s
 
 Generated with Goca - Go Clean Architecture Code Generator
@@ -1283,13 +1298,13 @@ This project was generated with Goca. To contribute:
 Generated with [Goca](https://github.com/sazardev/goca)
 `, cases.Title(language.English).String(projectName), projectName, projectName, projectName, projectName, projectName, projectName, projectName)
 
-	if err := writeFile(filepath.Join(projectName, "README.md"), content); err != nil {
+	if err := writeFile(filepath.Join(projectName, "README.md"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing README.md: %v", err))
 		return
 	}
 }
 
-func createConfig(projectName, _, database string) {
+func createConfig(projectName, _, database string, sm ...*SafetyManager) {
 	content := fmt.Sprintf(`package config
 
 import (
@@ -1390,13 +1405,13 @@ func getEnvAsDuration(key string, defaultValue string) time.Duration {
 }
 `, projectName)
 
-	if err := writeGoFile(filepath.Join(projectName, "pkg", "config", "config.go"), content); err != nil {
+	if err := writeGoFile(filepath.Join(projectName, "pkg", "config", "config.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing config.go: %v", err))
 		return
 	}
 }
 
-func createLogger(projectName, _ string) {
+func createLogger(projectName, _ string, sm ...*SafetyManager) {
 	content := `package logger
 
 import (
@@ -1422,13 +1437,13 @@ func Error(v ...interface{}) {
 	ErrorLogger.Println(v...)
 }
 `
-	if err := writeGoFile(filepath.Join(projectName, "pkg", "logger", "logger.go"), content); err != nil {
+	if err := writeGoFile(filepath.Join(projectName, "pkg", "logger", "logger.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing logger.go: %v", err))
 		return
 	}
 }
 
-func createAuth(projectName, module string) {
+func createAuth(projectName, module string, sm ...*SafetyManager) {
 	content := `package auth
 
 import (
@@ -1476,12 +1491,12 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	return nil, errors.New("invalid token")
 }
 `
-	if err := writeGoFile(filepath.Join(projectName, "pkg", "auth", "jwt.go"), content); err != nil {
+	if err := writeGoFile(filepath.Join(projectName, "pkg", "auth", "jwt.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating JWT file: %v", err))
 	}
 }
 
-func createEnvFiles(projectName, database string) {
+func createEnvFiles(projectName, database string, sm ...*SafetyManager) {
 	// Create .env.example
 	envExampleContent := fmt.Sprintf(`# Server Configuration
 PORT=8080
@@ -1518,7 +1533,7 @@ JWT_EXPIRY=24h
 # SMTP_PASSWORD=
 `, getDatabasePort(database), getDatabaseUser(database), projectName, projectName)
 
-	if err := writeFile(filepath.Join(projectName, ".env.example"), envExampleContent); err != nil {
+	if err := writeFile(filepath.Join(projectName, ".env.example"), envExampleContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating .env.example file: %v", err))
 	}
 
@@ -1550,7 +1565,7 @@ JWT_ISSUER=%s
 JWT_EXPIRY=24h
 `, getDatabasePort(database), getDatabaseUser(database), projectName, projectName)
 
-	if err := writeFile(filepath.Join(projectName, ".env"), envContent); err != nil {
+	if err := writeFile(filepath.Join(projectName, ".env"), envContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating .env file: %v", err))
 	}
 }
@@ -1577,7 +1592,7 @@ func getDatabaseUser(database string) string {
 	}
 }
 
-func createMigrations(projectName string) {
+func createMigrations(projectName string, sm ...*SafetyManager) {
 	// Create migrations directory
 	migrationDir := filepath.Join(projectName, "migrations")
 	if err := os.MkdirAll(migrationDir, 0755); err != nil {
@@ -1610,7 +1625,7 @@ CREATE INDEX idx_users_email ON users(email);
 -- Remember to create corresponding down migration files for rollbacks
 `
 
-	if err := writeFile(filepath.Join(migrationDir, "001_initial.up.sql"), migrationContent); err != nil {
+	if err := writeFile(filepath.Join(migrationDir, "001_initial.up.sql"), migrationContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating up migration: %v", err))
 	}
 
@@ -1624,7 +1639,7 @@ CREATE INDEX idx_users_email ON users(email);
 -- Add your down migration here
 `
 
-	if err := writeFile(filepath.Join(migrationDir, "001_initial.down.sql"), downMigrationContent); err != nil {
+	if err := writeFile(filepath.Join(migrationDir, "001_initial.down.sql"), downMigrationContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating down migration: %v", err))
 	}
 
@@ -1666,12 +1681,12 @@ psql -h localhost -U postgres -d your_db -f migrations/001_initial.down.sql
 3. Add the reverse changes in the .down.sql file
 `
 
-	if err := writeFile(filepath.Join(migrationDir, "README.md"), migrationReadme); err != nil {
+	if err := writeFile(filepath.Join(migrationDir, "README.md"), migrationReadme, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating migration README: %v", err))
 	}
 }
 
-func createMakefile(projectName string) {
+func createMakefile(projectName string, sm ...*SafetyManager) {
 	makefileContent := fmt.Sprintf(`# Makefile for %s
 .PHONY: help build run test clean docker-build docker-run deps lint migrate-up migrate-down
 
@@ -1764,12 +1779,12 @@ api-docs: ## Generate API documentation
 	swag init -g cmd/server/main.go
 `, projectName, projectName, projectName, projectName, projectName, projectName, projectName, projectName)
 
-	if err := writeFile(filepath.Join(projectName, "Makefile"), makefileContent); err != nil {
+	if err := writeFile(filepath.Join(projectName, "Makefile"), makefileContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating Makefile: %v", err))
 	}
 }
 
-func createDockerfiles(projectName, database string) {
+func createDockerfiles(projectName, database string, sm ...*SafetyManager) {
 	// Dockerfile
 	dockerfileContent := fmt.Sprintf(`# Build stage
 FROM golang:1.21-alpine AS builder
@@ -1811,7 +1826,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 CMD ["./%s"]
 `, projectName, projectName, projectName)
 
-	if err := writeFile(filepath.Join(projectName, "Dockerfile"), dockerfileContent); err != nil {
+	if err := writeFile(filepath.Join(projectName, "Dockerfile"), dockerfileContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating Dockerfile: %v", err))
 	}
 
@@ -1851,7 +1866,7 @@ volumes:
   db_data:
 `, projectName, getDatabaseUser(database), projectName, getDatabaseImage(database), getDatabaseEnvVars(database, projectName), getDatabasePort(database), getDatabasePort(database), getDatabaseHealthCheck(database))
 
-	if err := writeFile(filepath.Join(projectName, "docker-compose.yml"), dockerComposeContent); err != nil {
+	if err := writeFile(filepath.Join(projectName, "docker-compose.yml"), dockerComposeContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating docker-compose.yml: %v", err))
 	}
 
@@ -1891,7 +1906,7 @@ coverage.out
 coverage.html
 `
 
-	if err := writeFile(filepath.Join(projectName, ".dockerignore"), dockerignoreContent); err != nil {
+	if err := writeFile(filepath.Join(projectName, ".dockerignore"), dockerignoreContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating .dockerignore: %v", err))
 	}
 }
@@ -1937,5 +1952,7 @@ func init() {
 	initCmd.Flags().Bool("config", true, "Generate .goca.yaml configuration file")
 	initCmd.Flags().StringP("template", "t", "", "Use predefined template (minimal, rest-api, microservice, monolith, enterprise)")
 	initCmd.Flags().Bool("list-templates", false, "List available project templates")
-	// Note: module flag is required for project initialization but not for --list-templates
+	initCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	initCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	initCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 }

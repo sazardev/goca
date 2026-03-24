@@ -49,9 +49,24 @@ Examples:
 			return
 		}
 
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
 		// Generate integration tests
-		if err := generateIntegrationTests(entityName, integrationTestDatabase, integrationTestFixtures, integrationTestContainer); err != nil {
+		if err := generateIntegrationTests(entityName, integrationTestDatabase, integrationTestFixtures, integrationTestContainer, sm); err != nil {
 			validator.errorHandler.HandleError(err, "test-integration")
+			return
+		}
+
+		if dryRun {
+			sm.PrintSummary()
 			return
 		}
 
@@ -74,10 +89,13 @@ func init() {
 	testIntegrationCmd.Flags().StringVar(&integrationTestDatabase, "database", "postgres", "Database type for integration tests")
 	testIntegrationCmd.Flags().BoolVar(&integrationTestFixtures, "fixtures", true, "Generate test fixtures")
 	testIntegrationCmd.Flags().BoolVar(&integrationTestContainer, "container", false, "Use test containers for database")
+	testIntegrationCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	testIntegrationCmd.Flags().Bool("force", false, "Overwrite existing files without confirmation")
+	testIntegrationCmd.Flags().Bool("backup", false, "Create backup of existing files before overwriting")
 }
 
 // generateIntegrationTests generates integration test files
-func generateIntegrationTests(entityName, database string, withFixtures, withContainer bool) error {
+func generateIntegrationTests(entityName, database string, withFixtures, withContainer bool, sm ...*SafetyManager) error {
 	// Create integration test directory
 	integrationDir := filepath.Join("internal", "testing", "integration")
 	if err := os.MkdirAll(integrationDir, 0755); err != nil {
@@ -87,7 +105,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 	// Generate main integration test file
 	testFile := filepath.Join(integrationDir, strings.ToLower(entityName)+"_integration_test.go")
 	content := generateIntegrationTestContent(entityName, database, withContainer)
-	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+	if err := writeFile(testFile, content, sm...); err != nil {
 		return fmt.Errorf("failed to write integration test file: %v", err)
 	}
 
@@ -100,7 +118,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 
 		fixtureFile := filepath.Join(fixturesDir, strings.ToLower(entityName)+"_fixtures.go")
 		fixtureContent := generateFixtureContent(entityName)
-		if err := os.WriteFile(fixtureFile, []byte(fixtureContent), 0644); err != nil {
+		if err := writeFile(fixtureFile, fixtureContent, sm...); err != nil {
 			return fmt.Errorf("failed to write fixture file: %v", err)
 		}
 	}
@@ -109,7 +127,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 	helpersFile := filepath.Join(integrationDir, "helpers.go")
 	if _, err := os.Stat(helpersFile); os.IsNotExist(err) {
 		helpersContent := generateHelpersContent(database, withContainer)
-		if err := os.WriteFile(helpersFile, []byte(helpersContent), 0644); err != nil {
+		if err := writeFile(helpersFile, helpersContent, sm...); err != nil {
 			return fmt.Errorf("failed to write helpers file: %v", err)
 		}
 	}

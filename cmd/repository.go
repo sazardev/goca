@@ -95,12 +95,28 @@ well-defined interfaces and database-specific implementations.`,
 			configIntegration.PrintConfigSummary()
 		}
 
-		generateRepository(entity, effectiveDatabase, interfaceOnly, implementation, cache, transactions, fields)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		generateRepository(entity, effectiveDatabase, interfaceOnly, implementation, cache, transactions, fields, sm)
+
+		if dryRun {
+			sm.PrintSummary()
+			return
+		}
+
 		ui.Success(fmt.Sprintf("Repository for '%s' generated successfully!", entity))
 	},
 }
 
-func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool, fields string) {
+func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool, fields string, sm ...*SafetyManager) {
 	// Create repository directory if it doesn't exist
 	repoDir := "internal/repository"
 	_ = os.MkdirAll(repoDir, 0755)
@@ -117,22 +133,22 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 	// - interfaceOnly=false, implementation=true: both
 	// - interfaceOnly=false, implementation=false: both (default)
 	if fields != "" {
-		generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions)
+		generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions, sm...)
 	} else {
-		generateRepositoryInterface(repoDir, entity, transactions)
+		generateRepositoryInterface(repoDir, entity, transactions, sm...)
 	}
 
 	// Generate implementation if not interface-only and database is specified
 	if !interfaceOnly && database != "" {
 		if fields != "" {
-			generateRepositoryImplementationWithFields(repoDir, entity, database, parsedFields, cache, transactions)
+			generateRepositoryImplementationWithFields(repoDir, entity, database, parsedFields, cache, transactions, sm...)
 		} else {
-			generateRepositoryImplementation(repoDir, entity, database, cache, transactions)
+			generateRepositoryImplementation(repoDir, entity, database, cache, transactions, sm...)
 		}
 	}
 }
 
-func generateRepositoryInterface(dir, entity string, transactions bool) {
+func generateRepositoryInterface(dir, entity string, transactions bool, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "interfaces.go")
 
 	// Get the module name from go.mod
@@ -179,36 +195,36 @@ func generateRepositoryInterface(dir, entity string, transactions bool) {
 
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error writing file %s: %v\n", filename, err)
 	}
 }
 
-func generateRepositoryImplementation(dir, entity, database string, cache, transactions bool) {
+func generateRepositoryImplementation(dir, entity, database string, cache, transactions bool, sm ...*SafetyManager) {
 	switch database {
 	case DBPostgres:
-		generatePostgresRepository(dir, entity, cache, transactions)
+		generatePostgresRepository(dir, entity, cache, transactions, sm...)
 	case DBPostgresJSON:
-		generatePostgresJSONRepository(dir, entity, cache, transactions)
+		generatePostgresJSONRepository(dir, entity, cache, transactions, sm...)
 	case DBMySQL:
-		generateMySQLRepository(dir, entity, cache, transactions)
+		generateMySQLRepository(dir, entity, cache, transactions, sm...)
 	case DBMongoDB:
-		generateMongoRepository(dir, entity, cache, transactions)
+		generateMongoRepository(dir, entity, cache, transactions, sm...)
 	case DBSQLite:
-		generateSQLiteRepository(dir, entity, cache, transactions)
+		generateSQLiteRepository(dir, entity, cache, transactions, sm...)
 	case DBSQLServer:
-		generateSQLServerRepository(dir, entity, cache, transactions)
+		generateSQLServerRepository(dir, entity, cache, transactions, sm...)
 	case DBElasticsearch:
-		generateElasticsearchRepository(dir, entity, cache, transactions)
+		generateElasticsearchRepository(dir, entity, cache, transactions, sm...)
 	case DBDynamoDB:
-		generateDynamoDBRepository(dir, entity, cache, transactions)
+		generateDynamoDBRepository(dir, entity, cache, transactions, sm...)
 	default:
 		fmt.Printf("Database not supported: %s\n", database)
 		os.Exit(1)
 	}
 }
 
-func generatePostgresRepository(dir, entity string, cache, transactions bool) {
+func generatePostgresRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_"+entityLower+"_repository.go")
 
@@ -265,7 +281,7 @@ func generatePostgresRepository(dir, entity string, cache, transactions bool) {
 		generatePostgresTransactionMethods(&content, entity, repoName)
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating PostgreSQL repository file: %v\n", err)
 	}
 }
@@ -412,7 +428,7 @@ func generatePostgresTransactionMethods(content *strings.Builder, entity, repoNa
 	content.WriteString("}\n\n")
 }
 
-func generateMySQLRepository(dir, entity string, cache, transactions bool) {
+func generateMySQLRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "mysql_"+entityLower+"_repository.go")
 
@@ -507,12 +523,12 @@ func generateMySQLRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating MySQL repository file: %v\n", err)
 	}
 }
 
-func generateMongoRepository(dir, entity string, cache, transactions bool) {
+func generateMongoRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "mongo_"+entityLower+"_repository.go")
 
@@ -566,13 +582,13 @@ func generateMongoRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString("\treturn nil\n")
 	content.WriteString("}\n\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating MongoDB repository file: %v\n", err)
 	}
 }
 
 // generateRepositoryInterfaceWithFields generates repository interfaces with dynamic methods based on fields
-func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, transactions bool) {
+func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, transactions bool, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "interfaces.go")
 
 	// Get the module name from go.mod
@@ -620,27 +636,27 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 
 	content.WriteString("}\n\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error writing file %s: %v\n", filename, err)
 	}
 }
 
 // generateRepositoryImplementationWithFields generates repository implementations with dynamic methods
-func generateRepositoryImplementationWithFields(dir, entity, database string, fields []Field, cache, transactions bool) {
+func generateRepositoryImplementationWithFields(dir, entity, database string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	switch database {
 	case DBPostgres:
-		generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions)
+		generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	case DBMySQL:
-		generateMySQLRepositoryWithFields(dir, entity, fields, cache, transactions)
+		generateMySQLRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	case DBMongoDB:
-		generateMongoRepositoryWithFields(dir, entity, fields, cache, transactions)
+		generateMongoRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	default:
-		generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions)
+		generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	}
 }
 
 // generatePostgresRepositoryWithFields generates PostgreSQL repository with dynamic methods
-func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool) {
+func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_"+entityLower+"_repository.go")
 
@@ -687,7 +703,7 @@ func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, ca
 		generateTransactionMethods(&content, entity, repoName)
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating PostgreSQL repository with fields: %v\n", err)
 	}
 }
@@ -764,13 +780,13 @@ func generateTransactionMethods(content *strings.Builder, entity, repoName strin
 }
 
 // generateMySQLRepositoryWithFields generates MySQL repository with dynamic methods
-func generateMySQLRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool) {
+func generateMySQLRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	// For MySQL we use the same logic as PostgreSQL since both use GORM
-	generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions)
+	generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 }
 
 // generateMongoRepositoryWithFields generates MongoDB repository with dynamic methods
-func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool) {
+func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "mongo_"+entityLower+"_repository.go")
 
@@ -818,7 +834,7 @@ func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache
 		content.WriteString(generateMongoSearchMethodImplementation(method, repoName, entity))
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating MongoDB repository with fields: %v\n", err)
 	}
 }
@@ -875,7 +891,7 @@ func generateMongoSearchMethodImplementation(method SearchMethod, repoName, enti
 }
 
 // generatePostgresJSONRepository generates a repository for PostgreSQL with JSONB support
-func generatePostgresJSONRepository(dir, entity string, cache, transactions bool) {
+func generatePostgresJSONRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_json_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
@@ -937,13 +953,13 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating PostgreSQL JSON repository file: %v\n", err)
 	}
 }
 
 // generateSQLServerRepository generates a repository for SQL Server with GORM + mssql
-func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
+func generateSQLServerRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "sqlserver_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
@@ -1007,13 +1023,13 @@ func generateSQLServerRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating SQL Server repository file: %v\n", err)
 	}
 }
 
 // generateElasticsearchRepository generates a repository for Elasticsearch with full-text search
-func generateElasticsearchRepository(dir, entity string, cache, transactions bool) {
+func generateElasticsearchRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "elasticsearch_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
@@ -1130,13 +1146,13 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString(fmt.Sprintf("\treturn e.Save(%s)\n", entityLower))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating Elasticsearch repository file: %v\n", err)
 	}
 }
 
 // generateDynamoDBRepository generates a repository for DynamoDB with AWS SDK v2
-func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
+func generateDynamoDBRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "dynamodb_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
@@ -1214,13 +1230,13 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating DynamoDB repository file: %v\n", err)
 	}
 }
 
 // generateSQLiteRepository generates a repository for SQLite with database/sql
-func generateSQLiteRepository(dir, entity string, cache, transactions bool) {
+func generateSQLiteRepository(dir, entity string, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "sqlite_"+entityLower+"_repository.go")
 	moduleName := getModuleName()
@@ -1300,7 +1316,7 @@ func generateSQLiteRepository(dir, entity string, cache, transactions bool) {
 	content.WriteString(fmt.Sprintf("\treturn %ss, nil\n", entityLower))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating SQLite repository file: %v\n", err)
 	}
 }
@@ -1312,4 +1328,7 @@ func init() {
 	repositoryCmd.Flags().BoolP(CacheFlag, "c", false, CacheFlagUsage)
 	repositoryCmd.Flags().BoolP(TransactionsFlag, "t", false, TransactionsFlagUsage)
 	repositoryCmd.Flags().StringP("fields", "f", "", "Entity fields \"field:type,field2:type\"")
+	repositoryCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	repositoryCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	repositoryCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 }

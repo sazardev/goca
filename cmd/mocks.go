@@ -55,9 +55,24 @@ Examples:
 			mockAll = true
 		}
 
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
 		// Generate mocks
-		if err := generateMocks(entityName, mockAll, mockRepository, mockUseCase, mockHandler); err != nil {
+		if err := generateMocks(entityName, mockAll, mockRepository, mockUseCase, mockHandler, sm); err != nil {
 			ui.Error(fmt.Sprintf("Error generating mocks: %v", err))
+			return
+		}
+
+		if dryRun {
+			sm.PrintSummary()
 			return
 		}
 
@@ -83,10 +98,13 @@ func init() {
 	mocksCmd.Flags().BoolVar(&mockRepository, "repository", false, "Generate repository mock only")
 	mocksCmd.Flags().BoolVar(&mockUseCase, "usecase", false, "Generate use case mock only")
 	mocksCmd.Flags().BoolVar(&mockHandler, "handler", false, "Generate handler mock only")
+	mocksCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	mocksCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	mocksCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 }
 
 // generateMocks generates mock files based on flags
-func generateMocks(entityName string, all, repository, usecase, handler bool) error {
+func generateMocks(entityName string, all, repository, usecase, handler bool, sm ...*SafetyManager) error {
 	// Create mocks directory
 	mocksDir := filepath.Join("internal", "mocks")
 	if err := os.MkdirAll(mocksDir, 0755); err != nil {
@@ -97,7 +115,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool) er
 	if all || repository {
 		mockFile := filepath.Join(mocksDir, fmt.Sprintf("mock_%s_repository.go", strings.ToLower(entityName)))
 		content := generateRepositoryMock(entityName)
-		if err := os.WriteFile(mockFile, []byte(content), 0644); err != nil {
+		if err := writeFile(mockFile, content, sm...); err != nil {
 			return err
 		}
 	}
@@ -106,7 +124,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool) er
 	if all || usecase {
 		mockFile := filepath.Join(mocksDir, fmt.Sprintf("mock_%s_usecase.go", strings.ToLower(entityName)))
 		content := generateUseCaseMock(entityName)
-		if err := os.WriteFile(mockFile, []byte(content), 0644); err != nil {
+		if err := writeFile(mockFile, content, sm...); err != nil {
 			return err
 		}
 	}
@@ -115,7 +133,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool) er
 	if all || handler {
 		mockFile := filepath.Join(mocksDir, fmt.Sprintf("mock_%s_handler.go", strings.ToLower(entityName)))
 		content := generateHandlerMock(entityName)
-		if err := os.WriteFile(mockFile, []byte(content), 0644); err != nil {
+		if err := writeFile(mockFile, content, sm...); err != nil {
 			return err
 		}
 	}
@@ -129,7 +147,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool) er
 
 		exampleFile := filepath.Join(examplesDir, fmt.Sprintf("%s_mock_examples_test.go", strings.ToLower(entityName)))
 		exampleContent := generateMockUsageExamples(entityName)
-		if err := os.WriteFile(exampleFile, []byte(exampleContent), 0644); err != nil {
+		if err := writeFile(exampleFile, exampleContent, sm...); err != nil {
 			return err
 		}
 	}

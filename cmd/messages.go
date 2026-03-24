@@ -49,12 +49,28 @@ organized by feature to maintain consistency in the application.`,
 			ui.Feature("Generating constants", false)
 		}
 
-		generateMessages(entity, errors, responses, constants)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		generateMessages(entity, errors, responses, constants, sm)
+
+		if dryRun {
+			sm.PrintSummary()
+			return
+		}
+
 		ui.Success(fmt.Sprintf("Messages for '%s' generated successfully!", entity))
 	},
 }
 
-func generateMessages(entity string, errors, responses, constants bool) {
+func generateMessages(entity string, errors, responses, constants bool, sm ...*SafetyManager) {
 	// Create messages directory
 	messagesDir := filepath.Join("internal", "messages")
 	_ = os.MkdirAll(messagesDir, 0755)
@@ -64,19 +80,19 @@ func generateMessages(entity string, errors, responses, constants bool) {
 	_ = os.MkdirAll(constantsDir, 0755)
 
 	if errors {
-		generateUseCaseMessages(entity)
+		generateUseCaseMessages(entity, sm...)
 	}
 
 	if responses {
-		generateResponseMessages(messagesDir, entity)
+		generateResponseMessages(messagesDir, entity, sm...)
 	}
 
 	if constants {
-		generateConstants(constantsDir, entity)
+		generateConstants(constantsDir, entity, sm...)
 	}
 }
 
-func generateUseCaseMessages(entity string) {
+func generateUseCaseMessages(entity string, sm ...*SafetyManager) {
 	// Create messages directory and file in internal/messages
 	messagesDir := filepath.Join("internal", "messages")
 	if err := os.MkdirAll(messagesDir, 0755); err != nil {
@@ -119,13 +135,13 @@ func generateUseCaseMessages(entity string) {
 	existingContent.WriteString(fmt.Sprintf("\t%sInvalid = \"Invalid %s data\"\n", entity, entityLower))
 	existingContent.WriteString(")\n")
 
-	if err := writeGoFile(filename, existingContent.String()); err != nil {
+	if err := writeGoFile(filename, existingContent.String(), sm...); err != nil {
 		fmt.Printf("Error writing messages file: %v\n", err)
 		return
 	}
 }
 
-func generateResponseMessages(dir, entity string) {
+func generateResponseMessages(dir, entity string, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "responses.go")
 	entityLower := strings.ToLower(entity)
 
@@ -168,12 +184,12 @@ func generateResponseMessages(dir, entity string) {
 	// Close the const block
 	existingContent.WriteString(")\n")
 
-	if err := writeGoFile(filename, existingContent.String()); err != nil {
+	if err := writeGoFile(filename, existingContent.String(), sm...); err != nil {
 		fmt.Printf("Error creating response messages file: %v\n", err)
 	}
 }
 
-func generateConstants(dir, entity string) {
+func generateConstants(dir, entity string, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "constants.go")
 	entityLower := strings.ToLower(entity)
 
@@ -217,7 +233,7 @@ func generateConstants(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\t%sStatusDeleted  = \"deleted\"\n", entity))
 	content.WriteString(")\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating constants file: %v\n", err)
 	}
 }
@@ -227,4 +243,7 @@ func init() {
 	messagesCmd.Flags().BoolP("responses", "r", false, "Generate response messages")
 	messagesCmd.Flags().BoolP("constants", "c", false, "Generate feature constants")
 	messagesCmd.Flags().BoolP("all", "a", false, "Generate all message types")
+	messagesCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	messagesCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	messagesCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 }

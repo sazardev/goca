@@ -129,7 +129,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 
 		// 6. Auto-integrate with DI and main.go
 		ui.Step(6, "Integrating automatically...")
-		autoIntegrateFeature(featureName, handlers)
+		autoIntegrateFeature(featureName, handlers, safetyMgr)
 
 		// 7. Handle dependencies
 		ui.Step(7, "Managing dependencies...")
@@ -167,7 +167,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 		// 8. Generate integration tests if requested
 		if integrationTests {
 			ui.Step(8, "Generating integration tests...")
-			if err := generateIntegrationTests(featureName, effectiveDatabase, testFixtures, testContainer); err != nil {
+			if err := generateIntegrationTests(featureName, effectiveDatabase, testFixtures, testContainer, safetyMgr); err != nil {
 				ui.Warning(fmt.Sprintf("Could not generate integration tests: %v", err))
 			} else {
 				ui.Success("Integration tests generated successfully!")
@@ -177,7 +177,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 		// 9. Generate mocks if requested
 		if generateMocksFlag {
 			ui.Step(9, "Generating mocks...")
-			if err := generateMocks(featureName, true, false, false, false); err != nil {
+			if err := generateMocks(featureName, true, false, false, false, safetyMgr); err != nil {
 				ui.Warning(fmt.Sprintf("Could not generate mocks: %v", err))
 			} else {
 				ui.Success("Mocks generated successfully!")
@@ -231,15 +231,15 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 1. Generate Entity (Domain layer)
 	ui.Step(1, "Generating domain entity...")
-	generateEntity(featureName, fields, true, businessRules, false, false, true, fileNamingConvention)
+	generateEntity(featureName, fields, true, businessRules, false, false, true, fileNamingConvention, safetyMgr)
 
 	// 2. Generate Use Case
 	ui.Step(2, "Generating use cases...")
-	generateUseCaseWithFields(featureName+"UseCase", featureName, "create,read,update,delete,list", validation, false, fields)
+	generateUseCaseWithFields(featureName+"UseCase", featureName, "create,read,update,delete,list", validation, false, fields, safetyMgr)
 
 	// 3. Generate Repository
 	ui.Step(3, "Generating repository...")
-	generateRepository(featureName, database, false, true, false, false, fields)
+	generateRepository(featureName, database, false, true, false, false, fields, safetyMgr)
 
 	// 4. Generate Handlers
 	ui.Step(4, "Generating handlers...")
@@ -247,16 +247,16 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 	for _, handlerType := range handlerTypes {
 		handlerType = strings.TrimSpace(handlerType)
 		ui.Dim(fmt.Sprintf("   Generating %s handler...", handlerType))
-		generateHandler(featureName, handlerType, true, validation, handlerType == "http", fileNamingConvention)
+		generateHandler(featureName, handlerType, true, validation, handlerType == "http", fileNamingConvention, safetyMgr)
 	}
 
 	// 5. Generate Messages
 	ui.Step(5, "Generating messages...")
-	generateMessages(featureName, true, true, true)
+	generateMessages(featureName, true, true, true, safetyMgr)
 
 	// 6. Register entity for auto-migration
 	ui.Step(6, "Registering entity for auto-migration...")
-	if err := addEntityToAutoMigration(featureName); err != nil {
+	if err := addEntityToAutoMigration(featureName, safetyMgr); err != nil {
 		ui.Warning(fmt.Sprintf("Could not register entity for auto-migration: %v", err))
 		ui.Dim("   Tip: Entity was created correctly, but you'll need to configure migration manually")
 	} else {
@@ -313,9 +313,9 @@ func printFeatureStructure(featureName, handlers string) {
 }
 
 // autoIntegrateFeature automatically integrates the feature with DI and main.go
-func autoIntegrateFeature(featureName, handlers string) {
+func autoIntegrateFeature(featureName, handlers string, sm ...*SafetyManager) {
 	ui.Dim("   Updating DI container...")
-	updateDIContainer(featureName)
+	updateDIContainer(featureName, sm...)
 
 	ui.Dim("   Registering HTTP routes...")
 	if strings.Contains(handlers, "http") {
@@ -326,23 +326,23 @@ func autoIntegrateFeature(featureName, handlers string) {
 }
 
 // updateDIContainer updates or creates DI container with new feature
-func updateDIContainer(featureName string) {
+func updateDIContainer(featureName string, sm ...*SafetyManager) {
 	// Check if DI container exists
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		// DI doesn't exist, create it with this feature
 		ui.Dim(fmt.Sprintf("   Creating DI container for %s...", featureName))
-		generateDI(featureName, "postgres", false)
+		generateDI(featureName, "postgres", false, sm...)
 	} else {
 		// DI exists, update it to include new feature
 		ui.Dim("   Updating existing DI container...")
-		addFeatureToDI(featureName)
+		addFeatureToDI(featureName, sm...)
 	}
 }
 
 // addFeatureToDI adds a new feature to existing DI container
-func addFeatureToDI(featureName string) {
+func addFeatureToDI(featureName string, sm ...*SafetyManager) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	content, err := os.ReadFile(diPath)
@@ -366,7 +366,7 @@ func addFeatureToDI(featureName string) {
 	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower)
 	updatedContent = addGetterMethodsToDI(updatedContent, featureName, featureLower)
 
-	if err := os.WriteFile(diPath, []byte(updatedContent), 0644); err != nil {
+	if err := writeFile(diPath, updatedContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Could not update DI container: %v", err))
 		return
 	}

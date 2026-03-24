@@ -35,8 +35,13 @@ func getModuleName() string {
 	return "myproject" // fallback
 }
 
-// writeFile creates a file with the given content, creating directories if needed
-func writeFile(path, content string) error {
+// writeFile creates a file with the given content, creating directories if needed.
+// An optional SafetyManager can be passed to enable dry-run, force, and backup support.
+func writeFile(path, content string, sm ...*SafetyManager) error {
+	if len(sm) > 0 && sm[0] != nil {
+		return sm[0].WriteFile(path, content)
+	}
+
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return fmt.Errorf("error creating directory %s: %w", dir, err)
@@ -64,8 +69,9 @@ func writeFile(path, content string) error {
 	return nil
 }
 
-// writeGoFile creates a Go file with auto-formatting
-func writeGoFile(path, content string) error {
+// writeGoFile creates a Go file with auto-formatting.
+// An optional SafetyManager can be passed to enable dry-run, force, and backup support.
+func writeGoFile(path, content string, sm ...*SafetyManager) error {
 	// Format Go code if it's a .go file
 	if strings.HasSuffix(path, ".go") {
 		formatted, err := format.Source([]byte(content))
@@ -79,6 +85,11 @@ func writeGoFile(path, content string) error {
 		} else {
 			content = string(formatted)
 		}
+	}
+
+	// Route through SafetyManager when available
+	if len(sm) > 0 && sm[0] != nil {
+		return sm[0].WriteFile(path, content)
 	}
 
 	dir := filepath.Dir(path)

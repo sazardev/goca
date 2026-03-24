@@ -106,12 +106,27 @@ without external dependencies and with complete business validations.`,
 			fileNamingConvention = configIntegration.GetNamingConvention("file")
 		}
 
-		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, tests, fileNamingConvention)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, tests, fileNamingConvention, sm)
 
 		// Generate seed data automatically
 		if fields != "" {
-			generateSeedData("internal/domain", entityName, parseFields(fields))
+			generateSeedData("internal/domain", entityName, parseFields(fields), sm)
 			ui.Info("Seed data generated")
+		}
+
+		if dryRun {
+			sm.PrintSummary()
+			return
 		}
 
 		ui.Success(fmt.Sprintf("Entity '%s' generated successfully!", entityName))
@@ -132,7 +147,7 @@ without external dependencies and with complete business validations.`,
 	},
 }
 
-func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete, tests bool, fileNamingConvention string) {
+func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete, tests bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create domain directory if it doesn't exist
 	domainDir := "internal/domain"
 	_ = os.MkdirAll(domainDir, 0755)
@@ -153,19 +168,19 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 	}
 
 	// Generate entity file with real field-based content
-	generateEntityFile(domainDir, entityName, fieldsList, validation, businessRules, timestamps, softDelete, fileNamingConvention)
+	generateEntityFile(domainDir, entityName, fieldsList, validation, businessRules, timestamps, softDelete, fileNamingConvention, sm...)
 
 	// Generate errors file if validation is enabled - now with real field validations
 	if validation {
-		generateErrorsFile(domainDir, entityName, fieldsList)
+		generateErrorsFile(domainDir, entityName, fieldsList, sm...)
 	}
 
 	// Generate seed data automatically
-	generateSeedData(domainDir, entityName, fieldsList)
+	generateSeedData(domainDir, entityName, fieldsList, sm...)
 
 	// Generate unit tests if requested
 	if tests {
-		generateEntityTests(domainDir, entityName, fieldsList, validation, businessRules, fileNamingConvention)
+		generateEntityTests(domainDir, entityName, fieldsList, validation, businessRules, fileNamingConvention, sm...)
 	}
 }
 
@@ -263,7 +278,7 @@ func hasStringBusinessRules(fields []Field) bool {
 	return false
 }
 
-func generateEntityFile(dir, entityName string, fields []Field, validation, businessRules, timestamps, softDelete bool, fileNamingConvention string) {
+func generateEntityFile(dir, entityName string, fields []Field, validation, businessRules, timestamps, softDelete bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Apply naming convention to filename
 	var filename string
 	if fileNamingConvention == "snake_case" {
@@ -292,7 +307,7 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 		writeSoftDeleteMethods(&content, entityName)
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing entity file: %v", err))
 		return
 	}
@@ -423,7 +438,7 @@ func generateBusinessRules(content *strings.Builder, entityName string, fields [
 	}
 }
 
-func generateErrorsFile(dir, entityName string, fields []Field) {
+func generateErrorsFile(dir, entityName string, fields []Field, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "errors.go")
 	existingErrors := readExistingErrors(filename, entityName)
 
@@ -431,7 +446,7 @@ func generateErrorsFile(dir, entityName string, fields []Field) {
 	writeErrorsHeader(&content)
 	writeEntityErrors(&content, entityName, fields, existingErrors)
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing errors file: %v", err))
 	}
 }
@@ -611,7 +626,7 @@ func contains(slice []string, item string) bool {
 }
 
 // generateSeedData creates seed data based on actual fields
-func generateSeedData(dir, entityName string, fields []Field) {
+func generateSeedData(dir, entityName string, fields []Field, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, strings.ToLower(entityName)+"_seeds.go")
 
 	var content strings.Builder
@@ -619,7 +634,7 @@ func generateSeedData(dir, entityName string, fields []Field) {
 	writeGoSeeds(&content, entityName, fields)
 	writeSQLSeeds(&content, entityName, fields)
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing seed file: %v", err))
 	}
 }
@@ -883,5 +898,8 @@ func init() {
 	entityCmd.Flags().BoolP("timestamps", "t", false, "Include CreatedAt and UpdatedAt fields")
 	entityCmd.Flags().BoolP("soft-delete", "s", false, "Include soft delete (DeletedAt)")
 	entityCmd.Flags().Bool("tests", true, "Generate unit tests for the entity")
+	entityCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	entityCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	entityCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 	_ = entityCmd.MarkFlagRequired("fields")
 }

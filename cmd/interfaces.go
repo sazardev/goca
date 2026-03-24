@@ -49,30 +49,46 @@ useful for Test-Driven Development (TDD).`,
 			ui.Feature("Generating handler interfaces", false)
 		}
 
-		generateInterfaces(entity, usecase, repository, handler)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		generateInterfaces(entity, usecase, repository, handler, sm)
+
+		if dryRun {
+			sm.PrintSummary()
+			return
+		}
+
 		ui.Success(fmt.Sprintf("Interfaces for '%s' generated successfully!", entity))
 	},
 }
 
-func generateInterfaces(entity string, usecase, repository, handler bool) {
+func generateInterfaces(entity string, usecase, repository, handler bool, sm ...*SafetyManager) {
 	// Create interfaces directory
 	interfacesDir := filepath.Join("internal", "interfaces")
 	_ = os.MkdirAll(interfacesDir, 0755)
 
 	if usecase {
-		generateUseCaseInterfaceFile(interfacesDir, entity)
+		generateUseCaseInterfaceFile(interfacesDir, entity, sm...)
 	}
 
 	if repository {
-		generateRepositoryInterfaceFile(interfacesDir, entity)
+		generateRepositoryInterfaceFile(interfacesDir, entity, sm...)
 	}
 
 	if handler {
-		generateHandlerInterfaceFile(interfacesDir, entity)
+		generateHandlerInterfaceFile(interfacesDir, entity, sm...)
 	}
 }
 
-func generateUseCaseInterfaceFile(dir, entity string) {
+func generateUseCaseInterfaceFile(dir, entity string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -113,16 +129,16 @@ func generateUseCaseInterfaceFile(dir, entity string) {
 	content.WriteString(fmt.Sprintf("\tList%ss() ([]domain.%s, error)\n", entity, entity))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating usecase interface file: %v\n", err)
 	}
 }
 
-func generateRepositoryInterfaceFile(dir, entity string) {
-	generateRepositoryInterfaceFileWithFields(dir, entity, "")
+func generateRepositoryInterfaceFile(dir, entity string, sm ...*SafetyManager) {
+	generateRepositoryInterfaceFileWithFields(dir, entity, "", sm...)
 }
 
-func generateRepositoryInterfaceFileWithFields(dir, entity, fields string) {
+func generateRepositoryInterfaceFileWithFields(dir, entity, fields string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -177,12 +193,12 @@ func generateRepositoryInterfaceFileWithFields(dir, entity, fields string) {
 
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating repository interface file: %v\n", err)
 	}
 }
 
-func generateHandlerInterfaceFile(dir, entity string) {
+func generateHandlerInterfaceFile(dir, entity string, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_handler.go")
 
@@ -232,7 +248,7 @@ func generateHandlerInterfaceFile(dir, entity string) {
 	content.WriteString("// gRPC Request/Response interfaces\n")
 	generateGRPCRequestResponseInterfaces(&content, entity)
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating handler interface file: %v\n", err)
 	}
 }
@@ -299,4 +315,7 @@ func init() {
 	interfacesCmd.Flags().BoolP("repository", "r", false, "Generate repository interfaces")
 	interfacesCmd.Flags().BoolP("handler", "", false, "Generate handler interfaces")
 	interfacesCmd.Flags().BoolP("all", "a", false, "Generate all interfaces")
+	interfacesCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	interfacesCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	interfacesCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 }

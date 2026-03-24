@@ -37,12 +37,28 @@ all layers of the system using Google Wire.`,
 			ui.Feature("Using Google Wire", false)
 		}
 
-		generateDI(features, database, wire)
+		// Initialize safety manager
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		force, _ := cmd.Flags().GetBool("force")
+		backup, _ := cmd.Flags().GetBool("backup")
+		sm := NewSafetyManager(dryRun, force, backup)
+
+		if dryRun {
+			ui.DryRun("Previewing changes without creating files")
+		}
+
+		generateDI(features, database, wire, sm)
+
+		if dryRun {
+			sm.PrintSummary()
+			return
+		}
+
 		ui.Success("DI container generated successfully!")
 	},
 }
 
-func generateDI(features, database string, wire bool) {
+func generateDI(features, database string, wire bool, sm ...*SafetyManager) {
 	diDir := "internal/di"
 	// Create di directory if it doesn't exist
 	_ = os.MkdirAll(diDir, 0755)
@@ -54,13 +70,13 @@ func generateDI(features, database string, wire bool) {
 	}
 
 	if wire {
-		generateWireDI(diDir, featureList, database)
+		generateWireDI(diDir, featureList, database, sm...)
 	} else {
-		generateManualDI(diDir, featureList, database)
+		generateManualDI(diDir, featureList, database, sm...)
 	}
 }
 
-func generateManualDI(dir string, features []string, database string) {
+func generateManualDI(dir string, features []string, database string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -120,7 +136,7 @@ func generateManualDI(dir string, features []string, database string) {
 	// Getters
 	generateGetters(&content, features)
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing DI file: %v", err))
 		return
 	}
@@ -202,15 +218,15 @@ func generateGetters(content *strings.Builder, features []string) {
 	}
 }
 
-func generateWireDI(dir string, features []string, database string) {
+func generateWireDI(dir string, features []string, database string, sm ...*SafetyManager) {
 	// Generate wire.go
-	generateWireFile(dir, features, database)
+	generateWireFile(dir, features, database, sm...)
 
 	// Generate wire_gen.go template
-	generateWireGenTemplate(dir, features)
+	generateWireGenTemplate(dir, features, sm...)
 }
 
-func generateWireFile(dir string, features []string, database string) {
+func generateWireFile(dir string, features []string, database string, sm ...*SafetyManager) {
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)
 	filename := filepath.Join(dir, "wire.go")
@@ -221,7 +237,7 @@ func generateWireFile(dir string, features []string, database string) {
 	writeWireSets(&content, features, database)
 	writeWireFunctions(&content, features)
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing Wire file: %v", err))
 		return
 	}
@@ -322,7 +338,7 @@ func writeWireFunctions(content *strings.Builder, features []string) {
 	content.WriteString("}\n")
 }
 
-func generateWireGenTemplate(dir string, features []string) {
+func generateWireGenTemplate(dir string, features []string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -367,7 +383,7 @@ func generateWireGenTemplate(dir string, features []string) {
 		content.WriteString("}\n\n")
 	}
 
-	if err := writeGoFile(filename, content.String()); err != nil {
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing Wire generator file: %v", err))
 		return
 	}
@@ -377,5 +393,8 @@ func init() {
 	diCmd.Flags().StringP("features", "f", "", "Project features (crud,auth,validation,etc)")
 	diCmd.Flags().StringP("database", "d", "postgres", "Database type (postgres, mysql, mongodb)")
 	diCmd.Flags().BoolP("wire", "w", false, "Use Google Wire for dependency injection")
+	diCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
+	diCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
+	diCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 	_ = diCmd.MarkFlagRequired("features")
 }
