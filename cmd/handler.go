@@ -170,7 +170,6 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	if validation {
 		content.WriteString("\t\"github.com/go-playground/validator/v10\"\n")
-		content.WriteString(fmt.Sprintf("\t\"%s/internal/messages\"\n", importPath))
 	}
 	content.WriteString(")\n\n")
 
@@ -187,9 +186,9 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	content.WriteString("}\n\n")
 
 	// Generate HTTP methods
-	generateCreateHandlerMethod(&content, entity, handlerName)
+	generateCreateHandlerMethod(&content, entity, handlerName, validation)
 	generateGetHandlerMethod(&content, entity, handlerName)
-	generateUpdateHandlerMethod(&content, entity, handlerName)
+	generateUpdateHandlerMethod(&content, entity, handlerName, validation)
 	generateDeleteHandlerMethod(&content, entity, handlerName)
 	generateListHandlerMethod(&content, entity, handlerName)
 
@@ -199,7 +198,7 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	}
 }
 
-func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName string) {
+func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName string, validation bool) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
 
 	fmt.Fprintf(content, "func (%s *%s) Create%s(w http.ResponseWriter, r *http.Request) {\n",
@@ -210,6 +209,13 @@ func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName s
 	content.WriteString("\t\thttp.Error(w, \"Invalid request body\", http.StatusBadRequest)\n")
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
+
+	if validation {
+		content.WriteString("\tif err := validator.New().Struct(input); err != nil {\n")
+		content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusUnprocessableEntity)\n")
+		content.WriteString("\t\treturn\n")
+		content.WriteString("\t}\n\n")
+	}
 
 	fmt.Fprintf(content, "\toutput, err := %s.usecase.Create%s(input)\n", handlerVar, entity)
 	content.WriteString("\tif err != nil {\n")
@@ -246,7 +252,7 @@ func generateGetHandlerMethod(content *strings.Builder, entity, handlerName stri
 	content.WriteString("}\n\n")
 }
 
-func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName string) {
+func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName string, validation bool) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
 
 	fmt.Fprintf(content, "func (%s *%s) Update%s(w http.ResponseWriter, r *http.Request) {\n",
@@ -263,6 +269,13 @@ func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName s
 	content.WriteString("\t\thttp.Error(w, \"Invalid request body\", http.StatusBadRequest)\n")
 	content.WriteString("\t\treturn\n")
 	content.WriteString("\t}\n\n")
+
+	if validation {
+		content.WriteString("\tif err := validator.New().Struct(input); err != nil {\n")
+		content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusUnprocessableEntity)\n")
+		content.WriteString("\t\treturn\n")
+		content.WriteString("\t}\n\n")
+	}
 
 	fmt.Fprintf(content, "\tif err := %s.usecase.Update%s(id, input); err != nil {\n", handlerVar, entity)
 	content.WriteString("\t\thttp.Error(w, err.Error(), http.StatusInternalServerError)\n")

@@ -400,14 +400,14 @@ func main() {
 	// Initialize logger
 	logger.Init()
 	
-	log.Printf("Starting application v%%%%s (built: %%%%s)", Version, BuildTime)
-	log.Printf("Environment: %%%%s", cfg.Environment)
+	log.Printf("Starting application v%%s (built: %%s)", Version, BuildTime)
+	log.Printf("Environment: %%s", cfg.Environment)
 	
 	// Connect to database with retry
 	var err error
 	db, err = connectToDatabase(cfg)
 	if err != nil {
-		log.Printf("Warning: Database connection failed: %%%%v", err)
+		log.Printf("Warning: Database connection failed: %%v", err)
 		log.Printf("Server will start in degraded mode. Check your database configuration.")
 		log.Printf("Tip: Configure database environment variables in .env file")
 		db = nil // Ensure db is nil for health checks
@@ -416,7 +416,7 @@ func main() {
 		
 		// Run auto-migrations if database is connected
 		if err := runAutoMigrations(db); err != nil {
-			log.Printf("Warning: Auto-migration failed: %%%%v", err)
+			log.Printf("Warning: Auto-migration failed: %%v", err)
 			log.Printf("Tip: You may need to run migrations manually")
 		} else {
 			log.Printf("Database schema is up to date")
@@ -442,9 +442,9 @@ func main() {
 	
 	// Start server in goroutine
 	go func() {
-		log.Printf("Server starting on port %%%%s", cfg.Port)
+		log.Printf("Server starting on port %%s", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server startup failed: %%%%v", err)
+			log.Fatalf("Server startup failed: %%v", err)
 		}
 	}()
 	
@@ -460,7 +460,7 @@ func main() {
 	defer cancel()
 	
 	if err := server.Shutdown(ctx); err != nil {
-		log.Printf("Server forced to shutdown: %%%%v", err)
+		log.Printf("Server forced to shutdown: %%v", err)
 	}
 	
 	log.Println("Server exited")
@@ -469,7 +469,7 @@ func main() {
 func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
 	dsn := cfg.GetDatabaseURL()
 	
-	log.Printf("Connecting to database at %%%%s:%%%%s/%%%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
+	log.Printf("Connecting to database at %%s:%%s/%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
 	
 	// Check if this is development mode without database
 	if cfg.Environment == "development" && cfg.Database.Password == "" {
@@ -488,7 +488,7 @@ func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
 	for i := 0; i < 5; i++ {
 		db, err := gorm.Open(%s.Open(dsn), &gorm.Config{})
 		if err != nil {
-			log.Printf("Attempt %%%%d: Failed to open database connection: %%%%v", i+1, err)
+			log.Printf("Attempt %%d: Failed to open database connection: %%v", i+1, err)
 			time.Sleep(time.Duration(i+1) * time.Second)
 			continue
 		}
