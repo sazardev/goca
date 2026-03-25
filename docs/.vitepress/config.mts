@@ -200,10 +200,10 @@ export default defineConfig({
                         { text: 'Best Practices', link: '/guide/best-practices' },
                     ]
                 },
-                {
-                    text: 'Tooling',
+                {                    text: 'Tooling',
                     items: [
                         { text: 'Navi Integration', link: '/guide/navi-integration' },
+                        { text: 'AI Integration (MCP)', link: '/guide/mcp-integration' },
                     ]
                 },
                 {
@@ -232,6 +232,7 @@ export default defineConfig({
                         { text: 'goca messages', link: '/commands/messages' },
                         { text: 'goca mocks', link: '/commands/mocks' },
                         { text: 'goca test-integration', link: '/commands/test-integration' },
+                        { text: 'goca mcp-server', link: '/commands/mcp-server' },
                         { text: 'goca doctor', link: '/commands/doctor' },
                         { text: 'goca upgrade', link: '/commands/upgrade' },
                         { text: 'goca version', link: '/commands/version' },

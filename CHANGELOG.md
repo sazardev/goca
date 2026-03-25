@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+#### MCP Server — AI Assistant Integration (`goca mcp-server`)
+- New `goca mcp-server` command that starts a [Model Context Protocol](https://modelcontextprotocol.io) server over stdio, exposing all Goca code-generation commands as AI-callable tools
+- Compatible with GitHub Copilot (VS Code), Claude Desktop, Cursor, Zed, and any MCP-compliant client
+- **13 tools exposed**: `goca_feature`, `goca_entity`, `goca_usecase`, `goca_repository`, `goca_handler`, `goca_di`, `goca_integrate`, `goca_interfaces`, `goca_messages`, `goca_mocks`, `goca_init`, `goca_doctor`, `goca_upgrade`
+- **2 read-only MCP resources**: `goca://config` (reads `.goca.yaml`) and `goca://structure` (directory tree of `internal/`) — give AI assistants live project context
+- `--print-config <client>` flag prints a ready-to-paste configuration snippet for `vscode`, `claude`, `cursor`, or `zed`
+- Tool execution uses subprocess approach (`os.Executable()` → `exec.Command`) — 100% parity with CLI, zero duplicated generation logic
+- All tool arguments validated against the same `CommandValidator` used by the CLI before any file system operations
+- New files: `cmd/mcp_server.go`, `cmd/mcp_tools.go`, `cmd/mcp_tools_core.go`, `cmd/mcp_tools_util.go`, `cmd/mcp_resources.go`
+- New dependency: `github.com/mark3labs/mcp-go v0.45.0`
+- New docs: `docs/commands/mcp-server.md`, `docs/guide/mcp-integration.md`
+
 ## [1.18.7] - 2026-03-24
 
 ### Fixed

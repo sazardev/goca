@@ -95,4 +95,5 @@ func init() {
 	rootCmd.AddCommand(templateManagementCmd)
 	rootCmd.AddCommand(doctorCmd)
 	rootCmd.AddCommand(upgradeCmd)
+	rootCmd.AddCommand(mcpServerCmd)
 }
