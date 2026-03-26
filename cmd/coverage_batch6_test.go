@@ -417,6 +417,7 @@ func TestTemplateManager_ExecuteTemplate_Coverage(t *testing.T) {
 			"test": tmpl,
 		},
 		variables: map[string]string{"author": "goca"},
+		config:    &TemplateConfig{Directory: "templates/"},
 	}
 
 	result, err := tm.ExecuteTemplate("test", map[string]interface{}{"Name": "World"})
