@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca config
+titleTemplate: Commands | Goca
+description: Manage .goca.yaml configuration files — initialize, validate, show, and apply templates for consistent code generation.
+---
+
 # goca config
 
 Manage `.goca.yaml` configuration files for your project.

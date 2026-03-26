@@ -11,6 +11,7 @@ import (
 
 var (
 	integrationTestDatabase  string
+	integrationTestFields    string
 	integrationTestFixtures  bool
 	integrationTestContainer bool
 )
@@ -59,8 +60,14 @@ Examples:
 			ui.DryRun("Previewing changes without creating files")
 		}
 
+		// Parse fields if provided
+		var fields []Field
+		if integrationTestFields != "" {
+			fields = parseFields(integrationTestFields)
+		}
+
 		// Generate integration tests
-		if err := generateIntegrationTests(entityName, integrationTestDatabase, integrationTestFixtures, integrationTestContainer, sm); err != nil {
+		if err := generateIntegrationTests(entityName, integrationTestDatabase, integrationTestFixtures, integrationTestContainer, fields, sm); err != nil {
 			validator.errorHandler.HandleError(err, "test-integration")
 			return
 		}
@@ -87,6 +94,7 @@ func init() {
 	rootCmd.AddCommand(testIntegrationCmd)
 
 	testIntegrationCmd.Flags().StringVar(&integrationTestDatabase, "database", "postgres", "Database type for integration tests")
+	testIntegrationCmd.Flags().StringVar(&integrationTestFields, "fields", "", "Entity fields (e.g. \"Name:string,Email:string,Age:int\")")
 	testIntegrationCmd.Flags().BoolVar(&integrationTestFixtures, "fixtures", true, "Generate test fixtures")
 	testIntegrationCmd.Flags().BoolVar(&integrationTestContainer, "container", false, "Use test containers for database")
 	testIntegrationCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
@@ -95,7 +103,7 @@ func init() {
 }
 
 // generateIntegrationTests generates integration test files
-func generateIntegrationTests(entityName, database string, withFixtures, withContainer bool, sm ...*SafetyManager) error {
+func generateIntegrationTests(entityName, database string, withFixtures, withContainer bool, fields []Field, sm ...*SafetyManager) error {
 	// Create integration test directory
 	integrationDir := filepath.Join("internal", "testing", "integration")
 	if err := os.MkdirAll(integrationDir, 0755); err != nil {
@@ -104,7 +112,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 
 	// Generate main integration test file
 	testFile := filepath.Join(integrationDir, strings.ToLower(entityName)+"_integration_test.go")
-	content := generateIntegrationTestContent(entityName, database, withContainer)
+	content := generateIntegrationTestContent(entityName, database, withContainer, fields)
 	if err := writeFile(testFile, content, sm...); err != nil {
 		return fmt.Errorf("failed to write integration test file: %v", err)
 	}
@@ -117,7 +125,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 		}
 
 		fixtureFile := filepath.Join(fixturesDir, strings.ToLower(entityName)+"_fixtures.go")
-		fixtureContent := generateFixtureContent(entityName)
+		fixtureContent := generateFixtureContent(entityName, fields)
 		if err := writeFile(fixtureFile, fixtureContent, sm...); err != nil {
 			return fmt.Errorf("failed to write fixture file: %v", err)
 		}
@@ -126,7 +134,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 	// Generate database helpers if they don't exist
 	helpersFile := filepath.Join(integrationDir, "helpers.go")
 	if _, err := os.Stat(helpersFile); os.IsNotExist(err) {
-		helpersContent := generateHelpersContent(database, withContainer)
+		helpersContent := generateHelpersContent(database, withContainer, entityName)
 		if err := writeFile(helpersFile, helpersContent, sm...); err != nil {
 			return fmt.Errorf("failed to write helpers file: %v", err)
 		}
@@ -136,10 +144,10 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 }
 
 // generateIntegrationTestContent generates the main integration test file content
-func generateIntegrationTestContent(entityName, database string, withContainer bool) string {
+func generateIntegrationTestContent(entityName, database string, withContainer bool, fields []Field) string {
 	lowerEntity := strings.ToLower(entityName)
 
-	return fmt.Sprintf(`package integration
+	content := fmt.Sprintf(`package integration
 
 import (
 	"context"
@@ -310,13 +318,14 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 	})
 }
 `, entityName, database, lowerEntity)
+	return replaceIntegrationTestTODOs(content, fields, entityName)
 }
 
 // generateFixtureContent generates test fixtures
-func generateFixtureContent(entityName string) string {
+func generateFixtureContent(entityName string, fields []Field) string {
 	lowerEntity := strings.ToLower(entityName)
 
-	return fmt.Sprintf(`package fixtures
+	content := fmt.Sprintf(`package fixtures
 
 import (
 	"github.com/sazardev/goca/internal/domain"
@@ -358,10 +367,11 @@ func New%[1]sFixtureList(count int) []*domain.%[1]s {
 	return fixtures
 }
 `, entityName, lowerEntity)
+	return replaceFixtureTODOs(content, fields, entityName)
 }
 
 // generateHelpersContent generates database helpers for integration tests
-func generateHelpersContent(database string, withContainer bool) string {
+func generateHelpersContent(database string, withContainer bool, entityName string) string {
 	containerSetup := ""
 	if withContainer {
 		containerSetup = `
@@ -388,7 +398,7 @@ func generateHelpersContent(database string, withContainer bool) string {
 	// }`
 	}
 
-	return fmt.Sprintf(`package integration
+	content := fmt.Sprintf(`package integration
 
 import (
 	"database/sql"
@@ -512,4 +522,273 @@ func seedTestData(t *testing.T, db *gorm.DB) {
 	// }
 }
 `, containerSetup)
+	return replaceHelperTODOs(content, entityName)
+}
+
+// skipTestField returns true for auto-managed fields that should not appear in test input.
+func skipTestField(name string) bool {
+	switch name {
+	case "ID", "CreatedAt", "UpdatedAt", "DeletedAt":
+		return true
+	}
+	return false
+}
+
+// testLiteral returns a Go literal string for use in generated test code.
+func testLiteral(name, typ, entity string) string {
+	lower := strings.ToLower(name)
+	switch {
+	case lower == "email":
+		return fmt.Sprintf(`"test@%s.com"`, strings.ToLower(entity))
+	case lower == "name" || lower == "title":
+		return fmt.Sprintf(`"Test %s"`, entity)
+	case lower == "description":
+		return fmt.Sprintf(`"A test %s description"`, strings.ToLower(entity))
+	case lower == "status":
+		return `"active"`
+	case lower == "phone":
+		return `"+1234567890"`
+	case lower == "address":
+		return `"123 Test Street"`
+	case lower == "price" || lower == "amount" || lower == "total" || lower == "cost":
+		return "9.99"
+	case lower == "age" || lower == "quantity" || lower == "count":
+		return "1"
+	case typ == "string":
+		return fmt.Sprintf(`"test_%s"`, strings.ToLower(name))
+	case typ == "int" || typ == "int64" || typ == "uint" || typ == "uint64" || typ == "int32" || typ == "uint32":
+		return "1"
+	case typ == "float64" || typ == "float32":
+		return "9.99"
+	case typ == "bool":
+		return "true"
+	case typ == "time.Time":
+		return "time.Now()"
+	default:
+		return fmt.Sprintf(`"test_%s"`, strings.ToLower(name))
+	}
+}
+
+// updatedTestLiteral returns an updated Go literal for testing update operations.
+func updatedTestLiteral(name, typ, entity string) string {
+	lower := strings.ToLower(name)
+	switch {
+	case lower == "email":
+		return fmt.Sprintf(`"updated@%s.com"`, strings.ToLower(entity))
+	case lower == "name" || lower == "title":
+		return fmt.Sprintf(`"Updated %s"`, entity)
+	case lower == "description":
+		return fmt.Sprintf(`"Updated %s description"`, strings.ToLower(entity))
+	case lower == "status":
+		return `"inactive"`
+	case lower == "phone":
+		return `"+0987654321"`
+	case lower == "address":
+		return `"456 Updated Avenue"`
+	case lower == "price" || lower == "amount" || lower == "total" || lower == "cost":
+		return "19.99"
+	case lower == "age" || lower == "quantity" || lower == "count":
+		return "2"
+	case typ == "string":
+		return fmt.Sprintf(`"updated_%s"`, strings.ToLower(name))
+	case typ == "int" || typ == "int64" || typ == "uint" || typ == "uint64" || typ == "int32" || typ == "uint32":
+		return "2"
+	case typ == "float64" || typ == "float32":
+		return "19.99"
+	case typ == "bool":
+		return "false"
+	case typ == "time.Time":
+		return "time.Now()"
+	default:
+		return fmt.Sprintf(`"updated_%s"`, strings.ToLower(name))
+	}
+}
+
+// needsFmtImport checks whether any string fields exist that require fmt in generated tests.
+func needsFmtImport(fields []Field) bool {
+	for _, f := range fields {
+		if skipTestField(f.Name) {
+			continue
+		}
+		if f.Type == "string" {
+			return true
+		}
+	}
+	return false
+}
+
+// buildTestFieldInit generates Go struct literal field initializers for test code.
+func buildTestFieldInit(fields []Field, entity, indent string) string {
+	var lines []string
+	for _, f := range fields {
+		if skipTestField(f.Name) {
+			continue
+		}
+		lines = append(lines, fmt.Sprintf("%s%s: %s,", indent, f.Name, testLiteral(f.Name, f.Type, entity)))
+	}
+	return strings.Join(lines, "\n")
+}
+
+// buildTestFieldInitUpdated generates updated field initializers for test update operations.
+func buildTestFieldInitUpdated(fields []Field, entity, indent string) string {
+	var lines []string
+	for _, f := range fields {
+		if skipTestField(f.Name) {
+			continue
+		}
+		lines = append(lines, fmt.Sprintf("%s%s: %s,", indent, f.Name, updatedTestLiteral(f.Name, f.Type, entity)))
+	}
+	return strings.Join(lines, "\n")
+}
+
+// buildTestFieldAssertions generates assert.Equal calls for each field.
+func buildTestFieldAssertions(fields []Field, indent string) string {
+	var lines []string
+	for _, f := range fields {
+		if skipTestField(f.Name) {
+			continue
+		}
+		lines = append(lines, fmt.Sprintf("%sassert.Equal(t, updateInput.%s, updated.%s)", indent, f.Name, f.Name))
+	}
+	return strings.Join(lines, "\n")
+}
+
+// buildTestFieldInitVaried generates field initializers with variation for loop-based test creation.
+func buildTestFieldInitVaried(fields []Field, entity, indent string, useFmt bool) string {
+	var lines []string
+	for _, f := range fields {
+		if skipTestField(f.Name) {
+			continue
+		}
+		lower := strings.ToLower(f.Name)
+		switch {
+		case f.Type == "string" && useFmt:
+			if lower == "email" {
+				lines = append(lines, fmt.Sprintf(`%s%s: fmt.Sprintf("test%%d@%s.com", i+1),`, indent, f.Name, strings.ToLower(entity)))
+			} else {
+				lines = append(lines, fmt.Sprintf(`%s%s: fmt.Sprintf("Test %s %%d", i+1),`, indent, f.Name, f.Name))
+			}
+		case f.Type == "int" || f.Type == "int64" || f.Type == "uint" || f.Type == "uint64":
+			lines = append(lines, fmt.Sprintf(`%s%s: i + 1,`, indent, f.Name))
+		case f.Type == "float64" || f.Type == "float32":
+			lines = append(lines, fmt.Sprintf(`%s%s: float64(i+1) * 9.99,`, indent, f.Name))
+		default:
+			lines = append(lines, fmt.Sprintf(`%s%s: %s,`, indent, f.Name, testLiteral(f.Name, f.Type, entity)))
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+// buildFixtureOverrides generates field override code for custom fixture creation.
+func buildFixtureOverrides(fields []Field, lowerEntity, indent string) string {
+	var lines []string
+	for _, f := range fields {
+		if skipTestField(f.Name) {
+			continue
+		}
+		lowerName := strings.ToLower(f.Name)
+		lines = append(lines, fmt.Sprintf(`%sif v, ok := fields["%s"].(%s); ok {`, indent, lowerName, f.Type))
+		lines = append(lines, fmt.Sprintf("%s\t%s.%s = v", indent, lowerEntity, f.Name))
+		lines = append(lines, fmt.Sprintf("%s}", indent))
+	}
+	return strings.Join(lines, "\n")
+}
+
+// buildFixtureVariation generates variation code for fixture lists.
+func buildFixtureVariation(fields []Field, entity, indent string, useFmt bool) string {
+	var lines []string
+	for _, f := range fields {
+		if skipTestField(f.Name) {
+			continue
+		}
+		switch {
+		case f.Type == "string" && useFmt:
+			lower := strings.ToLower(f.Name)
+			if lower == "email" {
+				lines = append(lines, fmt.Sprintf(`%sfixtures[i].%s = fmt.Sprintf("test%%d@%s.com", i+1)`, indent, f.Name, strings.ToLower(entity)))
+			} else {
+				lines = append(lines, fmt.Sprintf(`%sfixtures[i].%s = fmt.Sprintf("Test %s %%d", i+1)`, indent, f.Name, f.Name))
+			}
+		case f.Type == "int" || f.Type == "int64" || f.Type == "uint" || f.Type == "uint64":
+			lines = append(lines, fmt.Sprintf(`%sfixtures[i].%s = i + 1`, indent, f.Name))
+		case f.Type == "float64" || f.Type == "float32":
+			lines = append(lines, fmt.Sprintf(`%sfixtures[i].%s = float64(i+1) * 9.99`, indent, f.Name))
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+// replaceIntegrationTestTODOs replaces TODO placeholders with field-aware code in integration test content.
+func replaceIntegrationTestTODOs(content string, fields []Field, entityName string) string {
+	if len(fields) == 0 {
+		return content
+	}
+
+	useFmt := needsFmtImport(fields)
+	if useFmt {
+		content = strings.Replace(content, "\t\"context\"\n", "\t\"context\"\n\t\"fmt\"\n", 1)
+	}
+
+	createInit := buildTestFieldInit(fields, entityName, "\t\t\t")
+	updateInit := buildTestFieldInitUpdated(fields, entityName, "\t\t\t")
+	assertions := buildTestFieldAssertions(fields, "\t\t")
+	variedInit := buildTestFieldInitVaried(fields, entityName, "\t\t\t\t", useFmt)
+
+	// Replace in order: most specific patterns first to avoid partial matches
+	content = strings.ReplaceAll(content, "\t\t\t// TODO: Add fields based on entity structure", createInit)
+	content = strings.ReplaceAll(content, "\t\t\t\t// TODO: Add fields with variation", variedInit)
+	content = strings.ReplaceAll(content, "\t\t\t// TODO: Add updated fields", updateInit)
+	content = strings.ReplaceAll(content, "\t\t// TODO: Add field assertions", assertions)
+	content = strings.ReplaceAll(content, "\t\t\t// TODO: Add invalid data to trigger error", "\t\t\t// Empty input to trigger validation error")
+	content = strings.ReplaceAll(content, "\t\t// TODO: Verify count hasn't increased", "")
+	content = strings.ReplaceAll(content, "\t\t\t// TODO: Add fields", createInit)
+
+	return content
+}
+
+// replaceFixtureTODOs replaces TODO placeholders with field-aware code in fixture content.
+func replaceFixtureTODOs(content string, fields []Field, entityName string) string {
+	if len(fields) == 0 {
+		return content
+	}
+
+	lowerEntity := strings.ToLower(entityName)
+	useFmt := needsFmtImport(fields)
+
+	if useFmt {
+		content = strings.Replace(content,
+			"\t\"github.com/sazardev/goca/internal/domain\"",
+			"\t\"fmt\"\n\n\t\"github.com/sazardev/goca/internal/domain\"", 1)
+	}
+
+	// Default field values
+	defaults := buildTestFieldInit(fields, entityName, "\t\t")
+	content = strings.Replace(content,
+		"\t\t// TODO: Add default field values for testing\n\t\t// Example:\n\t\t// Name: \"Test "+entityName+"\",\n\t\t// Email: \"test@example.com\",",
+		defaults, 1)
+
+	// Field overrides
+	overrides := buildFixtureOverrides(fields, lowerEntity, "\t")
+	content = strings.Replace(content,
+		"\t// TODO: Implement field overrides\n\t// Example:\n\t// if name, ok := fields[\"name\"].(string); ok {\n\t//     "+lowerEntity+".Name = name\n\t// }",
+		overrides, 1)
+
+	// Varied fixture data
+	variation := buildFixtureVariation(fields, entityName, "\t\t", useFmt)
+	content = strings.Replace(content,
+		"\t\t// TODO: Vary fixture data for each instance\n\t\t// Example: \n\t\t// fixtures[i].Name = fmt.Sprintf(\"Test "+entityName+" %d\", i+1)",
+		variation, 1)
+
+	return content
+}
+
+// replaceHelperTODOs replaces TODO placeholders with entity-specific guidance in helper content.
+func replaceHelperTODOs(content, entityName string) string {
+	content = strings.Replace(content,
+		"// TODO: Add auto-migration for test entities",
+		"// Auto-migrate entity (requires domain import): db.AutoMigrate(&domain."+entityName+"{})", 1)
+	content = strings.Replace(content,
+		"// TODO: Add table cleanup based on entities",
+		"// Drop entity table (requires domain import): db.Migrator().DropTable(&domain."+entityName+"{})", 1)
+	return content
 }

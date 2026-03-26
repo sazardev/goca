@@ -167,7 +167,8 @@ including domain, use cases, repository and handlers in a single operation.`,
 		// 8. Generate integration tests if requested
 		if integrationTests {
 			ui.Step(8, "Generating integration tests...")
-			if err := generateIntegrationTests(featureName, effectiveDatabase, testFixtures, testContainer, safetyMgr); err != nil {
+			parsedFields := parseFields(fields)
+			if err := generateIntegrationTests(featureName, effectiveDatabase, testFixtures, testContainer, parsedFields, safetyMgr); err != nil {
 				ui.Warning(fmt.Sprintf("Could not generate integration tests: %v", err))
 			} else {
 				ui.Success("Integration tests generated successfully!")

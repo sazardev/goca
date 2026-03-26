@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca template
+titleTemplate: Commands | Goca
+description: Manage custom code generation templates — initialize and list templates for personalized code output.
+---
+
 # goca template
 
 Manage custom templates for personalized code generation.
