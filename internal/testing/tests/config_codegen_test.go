@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -561,7 +562,11 @@ func runGocaCommand(projectPath string, args ...string) error {
 		return fmt.Errorf("failed to get working directory: %v", err)
 	}
 
-	gocaBinary := filepath.Join(testDir, "..", "..", "..", "goca.exe")
+	gocaBinaryName := "goca"
+	if runtime.GOOS == "windows" {
+		gocaBinaryName = "goca.exe"
+	}
+	gocaBinary := filepath.Join(testDir, "..", "..", "..", gocaBinaryName)
 
 	// Convert to absolute path
 	gocaBinary, err = filepath.Abs(gocaBinary)

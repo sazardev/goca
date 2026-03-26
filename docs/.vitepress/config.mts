@@ -233,6 +233,8 @@ export default defineConfig({
                         { text: 'goca mocks', link: '/commands/mocks' },
                         { text: 'goca test-integration', link: '/commands/test-integration' },
                         { text: 'goca mcp-server', link: '/commands/mcp-server' },
+                        { text: 'goca config', link: '/commands/config' },
+                        { text: 'goca template', link: '/commands/template' },
                         { text: 'goca doctor', link: '/commands/doctor' },
                         { text: 'goca upgrade', link: '/commands/upgrade' },
                         { text: 'goca version', link: '/commands/version' },

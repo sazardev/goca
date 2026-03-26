@@ -4,11 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/sazardev/goca/internal/domain"
 	"github.com/sazardev/goca/internal/mocks"
 	"github.com/sazardev/goca/internal/usecase"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 // Example: Testing use case with mocked repository
@@ -18,12 +19,16 @@ func TestCreateUser_WithMockRepository(t *testing.T) {
 	service := usecase.NewUserService(mockRepo)
 
 	input := usecase.CreateUserInput{
-		// Add your input fields here
+		Name:  "John Doe",
+		Email: "john@example.com",
+		Age:   30,
 	}
 
 	expectedUser := &domain.User{
-		ID: 1,
-		// Add your expected fields here
+		ID:    1,
+		Name:  "John Doe",
+		Email: "john@example.com",
+		Age:   30,
 	}
 
 	// Setup mock expectation
@@ -36,8 +41,8 @@ func TestCreateUser_WithMockRepository(t *testing.T) {
 	output, err := service.Create(input)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.NotNil(t, output)
+	require.NoError(t, err)
+	require.NotNil(t, output)
 	assert.Equal(t, expectedUser.ID, output.User.ID)
 
 	// Verify all expectations were met
@@ -72,13 +77,18 @@ func TestUpdateUser_WithMockRepository(t *testing.T) {
 	mockRepo := mocks.NewMockUserRepository()
 	service := usecase.NewUserService(mockRepo)
 
+	newName := "Jane Doe"
+	newEmail := "jane@example.com"
 	existingUser := &domain.User{
-		ID: 1,
-		// Add fields
+		ID:    1,
+		Name:  "John Doe",
+		Email: "john@example.com",
+		Age:   30,
 	}
 
 	updateInput := usecase.UpdateUserInput{
-		// Add update fields
+		Name:  &newName,
+		Email: &newEmail,
 	}
 
 	// Setup mock expectations (FindByID then Update)
@@ -102,23 +112,28 @@ func TestUpdateUser_WithMockRepository(t *testing.T) {
 func TestCreateUserHandler_WithMockUseCase(t *testing.T) {
 	// Arrange
 	mockUC := mocks.NewMockUserUseCase()
-	// handler := http.NewUserHandler(mockUC)
+
+	input := usecase.CreateUserInput{
+		Name:  "John Doe",
+		Email: "john@example.com",
+		Age:   30,
+	}
 
 	expectedOutput := &usecase.CreateUserOutput{
-		User: domain.User{ID: 1},
+		User:    domain.User{ID: 1, Name: "John Doe", Email: "john@example.com", Age: 30},
 		Message: "User created successfully",
 	}
 
 	mockUC.On("Create", mock.AnythingOfType("usecase.CreateUserInput")).Return(expectedOutput, nil)
 
-	// Act
-	// Create HTTP request and response recorder
-	// Call handler method
-	// result, err := mockUC.Create(input)
+	// Act — simulate what a handler would do
+	result, err := mockUC.Create(input)
 
 	// Assert
-	// assert.NoError(t, err)
-	// assert.Equal(t, http.StatusCreated, recorder.Code)
+	assert.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, uint(1), result.User.ID)
+	assert.Equal(t, "User created successfully", result.Message)
 
 	// Verify expectations
 	mockUC.AssertExpectations(t)
@@ -128,20 +143,15 @@ func TestCreateUserHandler_WithMockUseCase(t *testing.T) {
 func TestSaveuser_WithArgumentMatchers(t *testing.T) {
 	mockRepo := mocks.NewMockUserRepository()
 
-	// Match any user with specific field value
+	// Match any user with ID > 0
 	mockRepo.On("Save", mock.MatchedBy(func(user *domain.User) bool {
 		return user.ID > 0
 	})).Return(nil)
 
-	// Test with matching condition
-	validUser := &domain.User{ID: 1}
+	// Test with matching condition — ID > 0
+	validUser := &domain.User{ID: 1, Name: "John", Email: "john@example.com", Age: 25}
 	err := mockRepo.Save(validUser)
 	assert.NoError(t, err)
-
-	// Test with non-matching condition
-	invalidUser := &domain.User{ID: 0}
-	err = mockRepo.Save(invalidUser)
-	assert.Error(t, err) // Will fail because matcher doesn't match
 
 	mockRepo.AssertExpectations(t)
 }

@@ -26,6 +26,10 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 #### Adapter Layer
 - [`goca handler`](/commands/handler) - Generate handlers (HTTP, gRPC, CLI, etc.)
 
+### Configuration & Templates
+- [`goca config`](/commands/config) - Manage `.goca.yaml` configuration files
+- [`goca template`](/commands/template) - Manage custom code generation templates
+
 ### Utilities
 - [`goca di`](/commands/di) - Generate dependency injection container
 - [`goca messages`](/commands/messages) - Generate error messages and constants
@@ -53,6 +57,8 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 | `goca messages`           | Generate error message constants |  Manual         |
 | `goca mocks`              | Generate testify/mock mocks      |  Manual         |
 | `goca test-integration`   | Generate integration test files  |  Manual         |
+| `goca config`             | Manage project configuration     |  —              |
+| `goca template`           | Manage custom templates          |  —              |
 | `goca doctor`             | Project health checks            |  —              |
 | `goca upgrade`            | Upgrade config/metadata          |  —              |
 

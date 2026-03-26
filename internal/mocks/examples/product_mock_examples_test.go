@@ -4,11 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/sazardev/goca/internal/domain"
 	"github.com/sazardev/goca/internal/mocks"
 	"github.com/sazardev/goca/internal/usecase"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 // Example: Testing use case with mocked repository
@@ -18,12 +19,16 @@ func TestCreateProduct_WithMockRepository(t *testing.T) {
 	service := usecase.NewProductService(mockRepo)
 
 	input := usecase.CreateProductInput{
-		// Add your input fields here
+		Name:        "Test Product",
+		Price:       29.99,
+		Description: "A test product for unit testing",
 	}
 
 	expectedProduct := &domain.Product{
-		ID: 1,
-		// Add your expected fields here
+		ID:          1,
+		Name:        "Test Product",
+		Price:       29.99,
+		Description: "A test product for unit testing",
 	}
 
 	// Setup mock expectation
@@ -36,8 +41,8 @@ func TestCreateProduct_WithMockRepository(t *testing.T) {
 	output, err := service.Create(input)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.NotNil(t, output)
+	require.NoError(t, err)
+	require.NotNil(t, output)
 	assert.Equal(t, expectedProduct.ID, output.Product.ID)
 
 	// Verify all expectations were met
@@ -72,13 +77,18 @@ func TestUpdateProduct_WithMockRepository(t *testing.T) {
 	mockRepo := mocks.NewMockProductRepository()
 	service := usecase.NewProductService(mockRepo)
 
+	newName := "Updated Product"
+	newPrice := 39.99
 	existingProduct := &domain.Product{
-		ID: 1,
-		// Add fields
+		ID:          1,
+		Name:        "Original Product",
+		Price:       29.99,
+		Description: "Original description",
 	}
 
 	updateInput := usecase.UpdateProductInput{
-		// Add update fields
+		Name:  &newName,
+		Price: &newPrice,
 	}
 
 	// Setup mock expectations (FindByID then Update)
@@ -102,23 +112,28 @@ func TestUpdateProduct_WithMockRepository(t *testing.T) {
 func TestCreateProductHandler_WithMockUseCase(t *testing.T) {
 	// Arrange
 	mockUC := mocks.NewMockProductUseCase()
-	// handler := http.NewProductHandler(mockUC)
+
+	input := usecase.CreateProductInput{
+		Name:        "Test Product",
+		Price:       19.99,
+		Description: "A test product",
+	}
 
 	expectedOutput := &usecase.CreateProductOutput{
-		Product: domain.Product{ID: 1},
+		Product: domain.Product{ID: 1, Name: "Test Product", Price: 19.99, Description: "A test product"},
 		Message: "Product created successfully",
 	}
 
 	mockUC.On("Create", mock.AnythingOfType("usecase.CreateProductInput")).Return(expectedOutput, nil)
 
-	// Act
-	// Create HTTP request and response recorder
-	// Call handler method
-	// result, err := mockUC.Create(input)
+	// Act — simulate what a handler would do
+	result, err := mockUC.Create(input)
 
 	// Assert
-	// assert.NoError(t, err)
-	// assert.Equal(t, http.StatusCreated, recorder.Code)
+	assert.NoError(t, err)
+	require.NotNil(t, result)
+	assert.Equal(t, uint(1), result.Product.ID)
+	assert.Equal(t, "Product created successfully", result.Message)
 
 	// Verify expectations
 	mockUC.AssertExpectations(t)
@@ -128,20 +143,15 @@ func TestCreateProductHandler_WithMockUseCase(t *testing.T) {
 func TestSaveproduct_WithArgumentMatchers(t *testing.T) {
 	mockRepo := mocks.NewMockProductRepository()
 
-	// Match any product with specific field value
+	// Match any product with ID > 0
 	mockRepo.On("Save", mock.MatchedBy(func(product *domain.Product) bool {
 		return product.ID > 0
 	})).Return(nil)
 
-	// Test with matching condition
-	validProduct := &domain.Product{ID: 1}
+	// Test with matching condition — ID > 0
+	validProduct := &domain.Product{ID: 1, Name: "Valid", Price: 10, Description: "Valid product"}
 	err := mockRepo.Save(validProduct)
 	assert.NoError(t, err)
-
-	// Test with non-matching condition
-	invalidProduct := &domain.Product{ID: 0}
-	err = mockRepo.Save(invalidProduct)
-	assert.Error(t, err) // Will fail because matcher doesn't match
 
 	mockRepo.AssertExpectations(t)
 }

@@ -1,6 +1,6 @@
 # Goca - Go Clean Architecture Code Generator
 
-[![Go Version](https://img.shields.io/badge/Go-1.24.5+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.25.1+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/sazardev/goca)
 [![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](docs/BUG_FIXES_REPORT.md)

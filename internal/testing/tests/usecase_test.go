@@ -227,7 +227,8 @@ func testUseCaseWithAsync(tc *framework.TestContext, t *testing.T) {
 	output, err := tc.RunCommand("usecase", "AsyncUserNotification",
 		"--entity", "User",
 		"--operations", "create",
-		"--async")
+		"--async",
+		"--force")
 
 	if err != nil {
 		t.Fatalf("Error al ejecutar comando usecase con operaciones asíncronas: %v", err)
@@ -257,7 +258,8 @@ func testUseCaseWithAllOptions(tc *framework.TestContext, t *testing.T) {
 		"--entity", "Product",
 		"--operations", "create,read,update,list",
 		"--dto-validation",
-		"--async")
+		"--async",
+		"--force")
 
 	if err != nil {
 		t.Fatalf("Error al ejecutar comando usecase con todas las opciones: %v", err)

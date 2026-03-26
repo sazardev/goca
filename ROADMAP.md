@@ -10,12 +10,14 @@ Goca aims to be the leading Go Clean Architecture code generator, providing deve
 - Comprehensive testing support
 - Multi-protocol support
 - Enterprise-grade features
+- AI-powered developer experience
 
 ## Current Status
 
-**Version**: 1.13.x  
+**Version**: 1.18.7  
+**Go**: 1.25.1+  
 **Status**: Production Ready  
-**Focus**: Stability, documentation, and community growth
+**Focus**: MCP integration, code quality, and developer experience
 
 ## Release Versioning
 
@@ -26,52 +28,34 @@ Goca follows [Semantic Versioning](https://semver.org/):
 
 ## Planned Releases
 
-### Version 1.14.0 (Q1 2026)
+### Version 1.19.0
 
-**Focus**: Enhanced Testing Support
+**Focus**: Code Quality & Testing Improvements
 
 **Planned Features:**
-- Unit test generation for entities
-- Integration test scaffolding
-- Mock generation for interfaces
-- Test coverage reporting
+- Field-aware integration test generation (wire `TemplateData.Fields` into test templates)
+- Expanded unit test coverage for `cmd/` package (target ≥ 80%)
 - Benchmark test templates
 
 **Improvements:**
-- Enhanced error messages
-- Better dry-run output
-- Performance optimizations
-
-### Version 1.15.0 (Q2 2026)
-
-**Focus**: Advanced Database Support
-
-**Planned Features:**
-- MongoDB repository templates
-- PostgreSQL-specific optimizations
 - Redis caching layer generation
-- Database migration helpers
-- Multi-database support
+- Enhanced SQL query generation for complex fields
 
-**Improvements:**
-- Enhanced SQL query generation
-- Better transaction handling
-- Connection pool configuration
-
-### Version 2.0.0 (Q3 2026)
+### Version 2.0.0
 
 **Focus**: Major Architecture Enhancement
 
 **Planned Features:**
 - Plugin system for custom generators
 - Custom template engine
-- GraphQL support
+- GraphQL handler generation
 - Event sourcing patterns
 - CQRS advanced patterns
+- WebSocket handler support
+- Message queue integration
 
 **Breaking Changes:**
 - Configuration file format update
-- Command structure reorganization
 - Template system overhaul
 
 **Migration Guide:** Will be provided with detailed instructions
@@ -80,49 +64,38 @@ Goca follows [Semantic Versioning](https://semver.org/):
 
 ### High Priority
 
-**CLI Improvements:**
-- Interactive mode for feature generation
-- Project scaffolding wizard
-- Configuration file generator
-- Better error recovery
-
 **Code Generation:**
 - WebSocket handler support
-- Message queue integration
-- Observability instrumentation
+- Message queue integration (RabbitMQ, Kafka)
+- Observability instrumentation (OpenTelemetry)
 - Security middleware generation
+- Redis caching layer generation
 
 **Testing:**
 - E2E test generation
 - Contract testing support
 - Load test templates
-- Test data generators
 
 ### Medium Priority
 
 **Documentation:**
 - Video tutorials
-- Interactive documentation
 - Architecture decision records
 - Migration guides from other frameworks
 
 **Developer Experience:**
-- VS Code extension
-- IntelliJ plugin
 - GitHub Actions templates
-- Docker development environments
+- Kubernetes deployment generation
 
 **Quality Assurance:**
 - Static analysis integration
 - Security scanning
 - Dependency vulnerability checks
-- Performance profiling
 
 ### Low Priority (Future Consideration)
 
 **Advanced Features:**
 - Multi-language support (TypeScript, Python)
-- Kubernetes deployment generation
 - Service mesh integration
 - Infrastructure as code generation
 
@@ -132,72 +105,58 @@ Goca follows [Semantic Versioning](https://semver.org/):
 - Shared configurations
 - Example project gallery
 
-## Research and Exploration
-
-**Topics Under Investigation:**
-
-1. **AI-Assisted Generation**
-   - Natural language to code generation
-   - Intelligent field type detection
-   - Automatic relationship mapping
-
-2. **Advanced Patterns**
-   - Domain-Driven Design patterns
-   - Hexagonal architecture variants
-   - Microservices patterns
-
-3. **Performance Optimization**
-   - Faster code generation
-   - Parallel processing
-   - Memory optimization
-
-4. **Developer Tooling**
-   - Live reload during development
-   - Code refactoring tools
-   - Migration helpers
-
-## Community Requests
-
-**Top Requested Features:**
-
-Based on community feedback and GitHub issues:
-
-1. Better support for existing projects (migration tools)
-2. More database options (MongoDB, Redis)
-3. GraphQL API generation
-4. WebSocket support
-5. Event-driven architecture templates
-
-**Contributing:**
-
-Want to influence the roadmap? 
-- Create feature requests on GitHub
-- Participate in discussions
-- Vote on existing proposals
-- Submit pull requests
-
 ## Completed Milestones
 
+### Version 1.18.x (March 2026)
+- **MCP Server** — `goca mcp-server` exposes 13 tools + 2 resources for AI assistants (GitHub Copilot, Claude Desktop, Cursor, Zed)
+- Interactive project initialization wizard (`goca init` with TUI via charmbracelet/huh)
+- `goca doctor` command for project health checks
+- `goca upgrade` command for config/metadata upgrades
+- `goca template` command for template management
+- Multi-handler support: HTTP, gRPC, CLI, Worker, SOAP
+- DynamoDB repository generation
+- Elasticsearch repository generation
+- PostgreSQL JSON/JSONB repository generation
+- SQL Server repository generation
+- Enhanced charmbracelet/lipgloss TUI styling
+
+### Version 1.17.x (January–February 2026)
+- Mock generation for all interfaces (`goca mocks`)
+- Integration test scaffolding (`goca test-integration`)
+- Entity test generation with table-driven tests
+- File naming convention support (snake_case, kebab-case)
+- Auto-migration generation
+
+### Version 1.14.x (October 2025)
+- Unit test generation for entities
+- Integration test improvements
+- Enhanced error messages
+- Better dry-run output
+
 ### Version 1.13.x (October 2024)
-- Project template system
-- Predefined configurations
+- Project template system (minimal, rest-api, microservice, monolith, enterprise)
+- Predefined configurations via `.goca.yaml`
 - Bug fixes for GORM integration
 - Improved validation handling
 
 ### Version 1.11.0 (January 2024)
-- Safety features (dry-run, backups)
-- Dependency management
+- Safety features (dry-run, backups, force mode)
+- Dependency management (`go mod tidy` integration)
 - File conflict detection
 - Name conflict detection
 
 ### Version 1.10.0 (December 2023)
-- Complete feature generation
-- Automatic integration
-- HTTP handler support
-- Repository pattern implementation
+- Complete feature generation (`goca feature`)
+- Automatic DI + routing integration (`goca integrate`)
+- HTTP handler support with gorilla/mux
+- Repository pattern implementation (PostgreSQL, MySQL, SQLite)
+- MongoDB repository templates
 
 ### Version 1.0.0 (November 2023)
 - Initial stable release
+- Entity, UseCase, Repository, Handler generation
+- Clean Architecture directory structure
+- Go module creation and dependency management
 - Core CLI commands
 - Clean Architecture scaffolding
 - Basic code generation
