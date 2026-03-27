@@ -24,6 +24,7 @@ all layers of the system using Google Wire.`,
 		features, _ := cmd.Flags().GetString("features")
 		database, _ := cmd.Flags().GetString("database")
 		wire, _ := cmd.Flags().GetBool("wire")
+		cache, _ := cmd.Flags().GetBool("cache")
 
 		if features == "" {
 			ui.Error("--features flag is required")
@@ -37,6 +38,10 @@ all layers of the system using Google Wire.`,
 			ui.Feature("Using Google Wire", false)
 		}
 
+		if cache {
+			ui.Feature("Redis cache decorators", false)
+		}
+
 		// Initialize safety manager
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		force, _ := cmd.Flags().GetBool("force")
@@ -47,7 +52,7 @@ all layers of the system using Google Wire.`,
 			ui.DryRun("Previewing changes without creating files")
 		}
 
-		generateDI(features, database, wire, sm)
+		generateDI(features, database, wire, cache, sm)
 
 		if dryRun {
 			sm.PrintSummary()
@@ -58,7 +63,7 @@ all layers of the system using Google Wire.`,
 	},
 }
 
-func generateDI(features, database string, wire bool, sm ...*SafetyManager) {
+func generateDI(features, database string, wire, cache bool, sm ...*SafetyManager) {
 	diDir := "internal/di"
 	// Create di directory if it doesn't exist
 	_ = os.MkdirAll(diDir, 0755)
@@ -72,11 +77,11 @@ func generateDI(features, database string, wire bool, sm ...*SafetyManager) {
 	if wire {
 		generateWireDI(diDir, featureList, database, sm...)
 	} else {
-		generateManualDI(diDir, featureList, database, sm...)
+		generateManualDI(diDir, featureList, database, cache, sm...)
 	}
 }
 
-func generateManualDI(dir string, features []string, database string, sm ...*SafetyManager) {
+func generateManualDI(dir string, features []string, database string, cache bool, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -88,13 +93,24 @@ func generateManualDI(dir string, features []string, database string, sm ...*Saf
 	var content strings.Builder
 	content.WriteString("package di\n\n")
 	content.WriteString("import (\n")
-	content.WriteString("\t\"gorm.io/gorm\"\n\n")
+	if cache {
+		content.WriteString("\t\"time\"\n\n")
+	}
+	content.WriteString("\t\"gorm.io/gorm\"\n")
+	if cache {
+		content.WriteString("\t\"github.com/redis/go-redis/v9\"\n")
+	}
+	content.WriteString("\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", importPath))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
 	content.WriteString(")\n\n") // Container struct
 	content.WriteString("type Container struct {\n")
-	content.WriteString("\tdb *gorm.DB\n\n")
+	content.WriteString("\tdb *gorm.DB\n")
+	if cache {
+		content.WriteString("\tredisClient *redis.Client\n")
+	}
+	content.WriteString("\n")
 
 	// Repositories
 	content.WriteString("\t// Repositories\n")
@@ -120,8 +136,13 @@ func generateManualDI(dir string, features []string, database string, sm ...*Saf
 	content.WriteString("}\n\n")
 
 	// Constructor
-	content.WriteString("func NewContainer(db *gorm.DB) *Container {\n")
-	content.WriteString("\tc := &Container{db: db}\n")
+	if cache {
+		content.WriteString("func NewContainer(db *gorm.DB, redisClient *redis.Client) *Container {\n")
+		content.WriteString("\tc := &Container{db: db, redisClient: redisClient}\n")
+	} else {
+		content.WriteString("func NewContainer(db *gorm.DB) *Container {\n")
+		content.WriteString("\tc := &Container{db: db}\n")
+	}
 	content.WriteString("\tc.setupRepositories()\n")
 	content.WriteString("\tc.setupUseCases()\n")
 	content.WriteString("\tc.setupHandlers()\n")
@@ -129,7 +150,7 @@ func generateManualDI(dir string, features []string, database string, sm ...*Saf
 	content.WriteString("}\n\n")
 
 	// Setup methods
-	generateSetupRepositories(&content, features, database)
+	generateSetupRepositories(&content, features, database, cache)
 	generateSetupUseCases(&content, features)
 	generateSetupHandlers(&content, features)
 
@@ -142,24 +163,29 @@ func generateManualDI(dir string, features []string, database string, sm ...*Saf
 	}
 }
 
-func generateSetupRepositories(content *strings.Builder, features []string, database string) {
+func generateSetupRepositories(content *strings.Builder, features []string, database string, cache bool) {
 	content.WriteString("func (c *Container) setupRepositories() {\n")
 
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
+		var repoConstructor string
 		switch database {
 		case dbPostgres:
-			fmt.Fprintf(content, "\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n",
-				featureLower, feature)
+			repoConstructor = fmt.Sprintf("repository.NewPostgres%sRepository(c.db)", feature)
 		case dbMySQL:
-			fmt.Fprintf(content, "\tc.%sRepo = repository.NewMySQL%sRepository(c.db)\n",
-				featureLower, feature)
+			repoConstructor = fmt.Sprintf("repository.NewMySQL%sRepository(c.db)", feature)
 		case dbMongoDB:
-			fmt.Fprintf(content, "\tc.%sRepo = repository.NewMongo%sRepository(c.db)\n",
-				featureLower, feature)
+			repoConstructor = fmt.Sprintf("repository.NewMongo%sRepository(c.db)", feature)
 		default:
-			fmt.Fprintf(content, "\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n",
-				featureLower, feature)
+			repoConstructor = fmt.Sprintf("repository.NewPostgres%sRepository(c.db)", feature)
+		}
+
+		if cache {
+			fmt.Fprintf(content, "\tbase%sRepo := %s\n", feature, repoConstructor)
+			fmt.Fprintf(content, "\tc.%sRepo = repository.NewCached%sRepository(base%sRepo, c.redisClient, 5*time.Minute)\n",
+				featureLower, feature, feature)
+		} else {
+			fmt.Fprintf(content, "\tc.%sRepo = %s\n", featureLower, repoConstructor)
 		}
 	}
 
@@ -393,6 +419,7 @@ func init() {
 	diCmd.Flags().StringP("features", "f", "", "Project features (crud,auth,validation,etc)")
 	diCmd.Flags().StringP("database", "d", "postgres", "Database type (postgres, mysql, mongodb)")
 	diCmd.Flags().BoolP("wire", "w", false, "Use Google Wire for dependency injection")
+	diCmd.Flags().BoolP("cache", "c", false, "Wire Redis cache decorators for repositories")
 	diCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
 	diCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
 	diCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")

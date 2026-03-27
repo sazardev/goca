@@ -82,6 +82,16 @@ goca feature Config --fields "name:string,value:string" --database postgres-json
 goca feature Article --fields "title:string,content:string" --database elasticsearch
 ```
 
+### `--cache` / `-c`
+
+Generate a Redis cache decorator for the repository. The decorator caches `FindByID` and `FindAll` results and invalidates on writes.
+
+```bash
+goca feature Product --fields "name:string,price:float64" --cache
+```
+
+Also generates `internal/cache/redis.go` with a Redis client factory using environment variables (`REDIS_URL`, `REDIS_PASSWORD`, `REDIS_DB`).
+
 ### `--handlers`
 
 Generate multiple handler types.

@@ -97,7 +97,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-		generateManualDI(filepath.Join(dir, "di"), []string{"Product", "User"}, "postgres", sm)
+		generateManualDI(filepath.Join(dir, "di"), []string{"Product", "User"}, "postgres", false, sm)
 	})
 
 	// Subtest: generateWireDI
@@ -140,7 +140,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-		generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "mysql", sm)
+		generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "mysql", false, sm)
 	})
 
 	// Subtest: generateManualDI with mongodb
@@ -148,7 +148,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-		generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "mongodb", sm)
+		generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "mongodb", false, sm)
 	})
 
 	// Subtest: HTTPHandler with all options

@@ -210,7 +210,7 @@ func TestAddFeatureToDI_NoDIFile(t *testing.T) {
 	os.Chdir(t.TempDir())
 
 	// No internal/di/container.go exists, should warn
-	addFeatureToDI("Product")
+	addFeatureToDI("Product", false)
 }
 
 func TestAddFeatureToDI_AlreadyExists(t *testing.T) {
@@ -232,7 +232,7 @@ type Container struct {
 `
 	os.WriteFile(filepath.Join(diDir, "container.go"), []byte(content), 0644)
 
-	addFeatureToDI("Product")
+	addFeatureToDI("Product", false)
 	// "already in the DI container" path
 }
 
@@ -272,7 +272,7 @@ func (c *Container) setupHandlers() {
 	os.WriteFile(filepath.Join(diDir, "container.go"), []byte(content), 0644)
 
 	sm := NewSafetyManager(true, false, false)
-	addFeatureToDI("Order", sm)
+	addFeatureToDI("Order", false, sm)
 }
 
 func TestSetupMainGoWithFeature_Coverage(t *testing.T) {

@@ -33,28 +33,28 @@ func TestDryRunGenerators_Batch2(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		sm := &SafetyManager{DryRun: true}
-		generateDI("Product,Order", "postgres", false, sm)
+		generateDI("Product,Order", "postgres", false, false, sm)
 	})
 
 	t.Run("generateDI wire", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		sm := &SafetyManager{DryRun: true}
-		generateDI("Product", "mysql", true, sm)
+		generateDI("Product", "mysql", true, false, sm)
 	})
 
 	t.Run("generateCompleteFeature", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		sm := &SafetyManager{DryRun: true}
-		generateCompleteFeature("Product", "Name:string,Price:float64", "postgres", "http", true, false, "lowercase", sm)
+		generateCompleteFeature("Product", "Name:string,Price:float64", "postgres", "http", true, false, false, "lowercase", sm)
 	})
 
 	t.Run("generateCompleteFeature grpc", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		sm := &SafetyManager{DryRun: true}
-		generateCompleteFeature("Order", "Total:float64", "mysql", "grpc", false, true, "snake", sm)
+		generateCompleteFeature("Order", "Total:float64", "mysql", "grpc", false, true, false, "snake", sm)
 	})
 
 	t.Run("generateEntityTests", func(t *testing.T) {

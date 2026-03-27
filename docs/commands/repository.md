@@ -34,6 +34,23 @@ goca repository Config --database postgres-json
 goca repository Article --database elasticsearch
 ```
 
+### `--cache`
+
+Generate a Redis cache decorator for the repository. Creates a `Cached<Entity>Repository` that wraps the database implementation with Redis caching.
+
+```bash
+goca repository Product --database postgres --cache
+```
+
+When enabled, this generates:
+- `internal/repository/cached_product_repository.go` — cache decorator
+- `internal/cache/redis.go` — Redis client factory
+
+The cache decorator:
+- **Caches** `FindByID` and `FindAll` results in Redis
+- **Invalidates** cache on `Save`, `Update`, and `Delete`
+- **Delegates** search methods directly to the underlying repository
+
 ### `--interface-only`
 
 Generate only the interface.
@@ -98,6 +115,23 @@ goca repository Setting --database sqlite
 
 ```bash
 goca repository Order --interface-only
+```
+
+### With Redis Cache
+
+```bash
+goca repository Product --database postgres --cache
+```
+
+Generates a decorator pattern:
+
+```
+internal/repository/
+├── interfaces.go                       # Repository interface
+├── postgres_product_repository.go      # Database implementation
+└── cached_product_repository.go        # Redis cache decorator
+internal/cache/
+└── redis.go                            # Redis client factory
 ```
 
 ## Generated Files

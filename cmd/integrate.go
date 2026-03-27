@@ -139,11 +139,11 @@ func createOrUpdateDIContainer(features []string, sm ...*SafetyManager) {
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		ui.Dim("   Creating DI container...")
-		generateDI(strings.Join(features, ","), DBPostgres, false, sm...)
+		generateDI(strings.Join(features, ","), DBPostgres, false, false, sm...)
 	} else {
 		ui.Dim("   Updating existing DI container...")
 		for _, feature := range features {
-			addFeatureToDI(feature)
+			addFeatureToDI(feature, false)
 		}
 	}
 }

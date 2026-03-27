@@ -217,7 +217,7 @@ func TestUpdateDIContainer_NoExistingFile(t *testing.T) {
 	os.Chdir(t.TempDir())
 
 	sm := NewSafetyManager(true, false, false)
-	updateDIContainer("Product", sm)
+	updateDIContainer("Product", false, sm)
 	// Should handle gracefully when no di/container.go exists
 }
 
@@ -230,7 +230,7 @@ func TestAutoIntegrateFeature_NoMainGo(t *testing.T) {
 	os.Chdir(t.TempDir())
 
 	sm := NewSafetyManager(true, false, false)
-	autoIntegrateFeature("Product", "http", sm)
+	autoIntegrateFeature("Product", "http", false, sm)
 	// Should handle gracefully when main.go doesnt exist
 }
 

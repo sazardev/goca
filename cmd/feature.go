@@ -31,6 +31,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 		testContainer, _ := cmd.Flags().GetBool("test-container")
 		generateMocksFlag, _ := cmd.Flags().GetBool("mocks")
 		middlewareTypesStr, _ := cmd.Flags().GetString("middleware-types")
+		cacheFlag, _ := cmd.Flags().GetBool("cache")
 
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
@@ -109,7 +110,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 			fileNamingConvention = configIntegration.GetNamingConvention("file")
 		}
 
-		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, fileNamingConvention, safetyMgr)
+		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, cacheFlag, fileNamingConvention, safetyMgr)
 
 		// Generate middleware package if requested
 		if middlewareTypesStr != "" {
@@ -143,7 +144,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 
 		// 6. Auto-integrate with DI and main.go
 		ui.Step(6, "Integrating automatically...")
-		autoIntegrateFeature(featureName, handlers, safetyMgr)
+		autoIntegrateFeature(featureName, handlers, cacheFlag, safetyMgr)
 
 		// 7. Handle dependencies
 		ui.Step(7, "Managing dependencies...")
@@ -240,7 +241,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 	},
 }
 
-func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules bool, fileNamingConvention string, safetyMgr *SafetyManager) {
+func generateCompleteFeature(featureName, fields, database, handlers string, validation, businessRules, cache bool, fileNamingConvention string, safetyMgr *SafetyManager) {
 	ui.Blank()
 	ui.Info("Generating layers...")
 
@@ -254,7 +255,7 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 3. Generate Repository
 	ui.Step(3, "Generating repository...")
-	generateRepository(featureName, database, false, true, false, false, fields, safetyMgr)
+	generateRepository(featureName, database, false, true, cache, false, fields, safetyMgr)
 
 	// 4. Generate Handlers
 	ui.Step(4, "Generating handlers...")
@@ -328,9 +329,9 @@ func printFeatureStructure(featureName, handlers string) {
 }
 
 // autoIntegrateFeature automatically integrates the feature with DI and main.go
-func autoIntegrateFeature(featureName, handlers string, sm ...*SafetyManager) {
+func autoIntegrateFeature(featureName, handlers string, cache bool, sm ...*SafetyManager) {
 	ui.Dim("   Updating DI container...")
-	updateDIContainer(featureName, sm...)
+	updateDIContainer(featureName, cache, sm...)
 
 	ui.Dim("   Registering HTTP routes...")
 	if strings.Contains(handlers, "http") {
@@ -341,23 +342,23 @@ func autoIntegrateFeature(featureName, handlers string, sm ...*SafetyManager) {
 }
 
 // updateDIContainer updates or creates DI container with new feature
-func updateDIContainer(featureName string, sm ...*SafetyManager) {
+func updateDIContainer(featureName string, cache bool, sm ...*SafetyManager) {
 	// Check if DI container exists
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		// DI doesn't exist, create it with this feature
 		ui.Dim(fmt.Sprintf("   Creating DI container for %s...", featureName))
-		generateDI(featureName, "postgres", false, sm...)
+		generateDI(featureName, "postgres", false, false, sm...)
 	} else {
 		// DI exists, update it to include new feature
 		ui.Dim("   Updating existing DI container...")
-		addFeatureToDI(featureName, sm...)
+		addFeatureToDI(featureName, cache, sm...)
 	}
 }
 
 // addFeatureToDI adds a new feature to existing DI container
-func addFeatureToDI(featureName string, sm ...*SafetyManager) {
+func addFeatureToDI(featureName string, cache bool, sm ...*SafetyManager) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	content, err := os.ReadFile(diPath)
@@ -378,7 +379,7 @@ func addFeatureToDI(featureName string, sm ...*SafetyManager) {
 	ui.Dim(fmt.Sprintf("   Adding %s to DI container...", featureName))
 
 	updatedContent := addFieldsToDIContainer(contentStr, featureName, featureLower)
-	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower)
+	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower, cache)
 	updatedContent = addGetterMethodsToDI(updatedContent, featureName, featureLower)
 
 	if err := writeFile(diPath, updatedContent, sm...); err != nil {
@@ -408,11 +409,17 @@ func addFieldsToDIContainer(content, featureName, featureLower string) string {
 }
 
 // addSetupMethodsToDI adds setup method calls for the feature
-func addSetupMethodsToDI(content, featureName, featureLower string) string {
+func addSetupMethodsToDI(content, featureName, featureLower string, cache bool) string {
 	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
 
 	// Add repository setup
-	repoSetup := fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n", featureLower, featureName)
+	var repoSetup string
+	if cache {
+		repoSetup = fmt.Sprintf("\tbase%sRepo := repository.NewPostgres%sRepository(c.db)\n", featureName, featureName)
+		repoSetup += fmt.Sprintf("\tc.%sRepo = repository.NewCached%sRepository(base%sRepo, c.redisClient, 5*time.Minute)\n", featureLower, featureName, featureName)
+	} else {
+		repoSetup = fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n", featureLower, featureName)
+	}
 	setupRepoEnd := "}\n\nfunc (c *Container) setupUseCases() {"
 	content = strings.Replace(content, setupRepoEnd, repoSetup+setupRepoEnd, 1)
 
@@ -542,6 +549,9 @@ func init() {
 
 	// Middleware flag
 	featureCmd.Flags().String("middleware-types", "", "Generate middleware package with given types (e.g. cors,logging,recovery)")
+
+	// Cache flag
+	featureCmd.Flags().BoolP("cache", "c", false, "Generate Redis cache decorator for the repository")
 
 	_ = featureCmd.MarkFlagRequired("fields")
 }

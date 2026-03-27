@@ -9,6 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Redis Cache Layer (`--cache` flag)
+- New `--cache` / `-c` flag on `goca feature` and `goca repository` commands
+- Generates a **decorator pattern** `Cached<Entity>Repository` that wraps the database repository with Redis caching
+- Read operations (`FindByID`, `FindAll`) check Redis first, delegate on miss, then cache the result
+- Write operations (`Save`, `Update`, `Delete`) delegate to the inner repository then invalidate cache
+- Search methods delegate directly without caching
+- Generates `internal/cache/redis.go` with a `NewRedisClient()` factory using `REDIS_URL`, `REDIS_PASSWORD`, `REDIS_DB` environment variables
+- New `--cache` / `-c` flag on `goca di` command — wires `CachedRepo` wrapping the concrete repo with Redis client
+- DI container constructor accepts `*redis.Client` when cache is enabled
+- Uses `github.com/redis/go-redis/v9`
+- New files: `cmd/cache_decorator.go`, `cmd/cache_helpers.go`
+- New tests: `cmd/cache_decorator_test.go`, `cmd/cache_helpers_test.go` (16 tests)
+
+#### CI Pipeline Generation (`goca ci`)
+- New `goca ci` command generates CI/CD pipeline configuration
+- GitHub Actions provider with test, build, and optional deploy workflows
+- `--with-docker` flag generates Docker build steps
+- `--with-deploy` flag generates deployment workflow
+- Auto-detects Go version from `go.mod`
+- Database service containers (PostgreSQL/MySQL) when detected from `.goca.yaml`
+- New files: `cmd/ci.go`, `cmd/ci_templates.go`, `cmd/ci_helpers.go`
+- New tests: `cmd/ci_test.go` (15 tests)
+- New docs: `docs/commands/ci.md`
+
+#### Middleware Generation (`goca middleware`)
+- New `goca middleware <name>` command generates a standalone middleware package
+- 7 middleware types: `cors`, `logging`, `auth`, `rate-limit`, `recovery`, `request-id`, `timeout`
+- Generates chain helper for composing middleware
+- Handler generation auto-detects middleware package and imports from it
+- `--middleware-types` flag on `goca feature` for middleware generation during feature scaffold
+- New files: `cmd/middleware.go`, `cmd/middleware_templates.go`, `cmd/middleware_helpers.go`
+- New tests: `cmd/middleware_test.go` (20 tests)
+- New docs: `docs/commands/middleware.md`
+
 #### MCP Server — AI Assistant Integration (`goca mcp-server`)
 - New `goca mcp-server` command that starts a [Model Context Protocol](https://modelcontextprotocol.io) server over stdio, exposing all Goca code-generation commands as AI-callable tools
 - Compatible with GitHub Copilot (VS Code), Claude Desktop, Cursor, Zed, and any MCP-compliant client

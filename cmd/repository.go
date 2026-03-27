@@ -146,6 +146,14 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 			generateRepositoryImplementation(repoDir, entity, database, cache, transactions, sm...)
 		}
 	}
+
+	// Generate cache decorator when --cache is enabled
+	if cache {
+		generateCacheDecorator(entity, parsedFields, sm...)
+		if err := generateCachePackage(sm...); err != nil {
+			ui.Warning(fmt.Sprintf("Could not generate cache package: %v", err))
+		}
+	}
 }
 
 func generateRepositoryInterface(dir, entity string, transactions bool, sm ...*SafetyManager) {
@@ -223,7 +231,6 @@ func generateRepositoryImplementation(dir, entity, database string, cache, trans
 		os.Exit(1)
 	}
 }
-
 
 func init() {
 	repositoryCmd.Flags().StringP(DatabaseFlag, "d", "", DatabaseFlagUsage)

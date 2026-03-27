@@ -55,7 +55,7 @@ func (c *Container) setupHandlers() {
 
 // Getters`
 
-	result := addSetupMethodsToDI(content, "Product", "product")
+	result := addSetupMethodsToDI(content, "Product", "product", false)
 	assert.Contains(t, result, "c.productRepo = repository.NewPostgresProductRepository(c.db)")
 	assert.Contains(t, result, "c.productUC = usecase.NewProductService(c.productRepo)")
 	assert.Contains(t, result, "c.productHandler = http.NewProductHandler(c.productUC)")

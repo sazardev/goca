@@ -30,6 +30,20 @@ Database type. Default: `postgres`
 goca di --features "User,Product" --database postgres
 ```
 
+### `--cache` / `-c`
+
+Wire Redis cache decorators for all repositories. When enabled, each repository is wrapped with a `Cached<Entity>Repository` that provides Redis-backed read caching.
+
+```bash
+goca di --features "User,Product" --cache
+```
+
+The generated container accepts a `*redis.Client` in addition to `*gorm.DB`:
+
+```go
+container := di.NewContainer(db, redisClient)
+```
+
 ## Examples
 
 ### Wire All Features

@@ -28,7 +28,7 @@ func TestGenerateSetupRepositories(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			var b strings.Builder
-			generateSetupRepositories(&b, features, tc.database)
+			generateSetupRepositories(&b, features, tc.database, false)
 			output := b.String()
 			assert.Contains(t, output, "func (c *Container) setupRepositories()")
 			assert.Contains(t, output, tc.prefix+"ProductRepository")
