@@ -5,6 +5,27 @@ All notable changes to Goca CLI will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+#### Deep Project Self-Analysis (`goca analyze`)
+- New `goca analyze` command performs a comprehensive audit of the generated project — goes far beyond `goca doctor`
+- **6 check categories**, 30 rules total, each with actionable suggestions:
+  - **Architecture** — layer boundary enforcement: domain purity (no ORM imports), use case must not import handler, handler must not import repository, DI container presence, repository coverage per entity
+  - **Quality** — empty file detection, package naming conventions (lowercase, no underscores), TODO/FIXME detection, exported function doc comments, main.go presence
+  - **Security** — hardcoded secret pattern scan (OWASP A03), `fmt.Sprintf` SQL injection detection, `unsafe` package usage, TLS skip verify, environment variable usage for sensitive config
+  - **Standards** — snake_case file naming, no `init()` in domain, valid `go.mod` module declaration, `.goca.yaml` presence, `context.Context` propagation
+  - **Tests** — test file presence per layer, table-driven test pattern detection, mock directory presence, `t.TempDir()` vs hardcoded `/tmp`
+  - **Dependencies** — `go.sum` presence, `replace` directive warning, Go version declaration, known-insecure/deprecated module detection
+- Category flags: `--arch`, `--quality`, `--security`, `--standards`, `--tests`, `--deps` (no flag = all categories)
+- `--output json` for machine-readable output (CI integration)
+- `--fail-on-warn` flag for strict pipelines
+- Uses Go's `go/parser` and `go/ast` for accurate static analysis — not just grep
+- Exposed as `goca_analyze` MCP tool for AI assistant integration
+- New files: `cmd/analyze.go`, `cmd/analyze_checks.go`
+- New tests: `cmd/analyze_test.go` (46 tests across all 6 categories)
+
 ## [1.19.0] - 2026-03-26
 
 ### Added

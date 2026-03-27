@@ -98,4 +98,5 @@ func init() {
 	rootCmd.AddCommand(mcpServerCmd)
 	rootCmd.AddCommand(ciCmd)
 	rootCmd.AddCommand(middlewareCmd)
+	rootCmd.AddCommand(analyzeCmd)
 }

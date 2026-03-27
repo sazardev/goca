@@ -24,6 +24,7 @@ Goca is a powerful CLI code generator for Go that helps you create projects foll
 - [**goca messages**](Command-Messages) - Messages and constants
 - [**goca ci**](Command-CI) - Generate CI/CD pipelines
 - [**goca middleware**](Command-Middleware) - Generate HTTP middleware
+- [**goca analyze**](Command-Analyze) - Deep project self-analysis (architecture, security, quality)
 - [**goca version**](Command-Version) - Version information
 
 ### 🏗️ Architecture and Concepts

@@ -36,6 +36,7 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 - [`goca messages`](/commands/messages) - Generate error messages and constants
 - [`goca mocks`](/commands/mocks) - Generate testify/mock mocks for all interfaces
 - [`goca doctor`](/commands/doctor) - Check project health and Clean Architecture structure
+- [`goca analyze`](/commands/analyze) - Deep self-analysis: architecture, security, quality, standards, tests, dependencies
 - [`goca ci`](/commands/ci) - Generate CI/CD pipeline configuration (GitHub Actions)
 - [`goca upgrade`](/commands/upgrade) - Upgrade project configuration to current Goca version
 - [`goca version`](/commands/version) - Display version information
@@ -64,6 +65,7 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 | `goca template`           | Manage custom templates          |  —              |
 | `goca ci`                 | Generate CI/CD pipelines         |  —              |
 | `goca doctor`             | Project health checks            |  —              |
+| `goca analyze`            | Deep project self-analysis       |  —              |
 | `goca upgrade`            | Upgrade config/metadata          |  —              |
 
 ## Common Workflows

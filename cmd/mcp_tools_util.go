@@ -22,6 +22,7 @@ func registerUtilTools(s *server.MCPServer) {
 	s.AddTool(toolUpgrade(), handleUpgrade)
 	s.AddTool(toolCI(), handleCI)
 	s.AddTool(toolMiddleware(), handleMiddleware)
+	s.AddTool(toolAnalyze(), handleAnalyze)
 }
 
 // ─── goca_di ─────────────────────────────────────────────────────────────────
@@ -348,4 +349,52 @@ func handleMiddleware(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		return mcpErr(runErr), nil
 	}
 	return mcpText(out), nil
+}
+
+// ─── goca_analyze ─────────────────────────────────────────────────────────────
+
+func toolAnalyze() mcp.Tool {
+	return mcp.NewTool("goca_analyze",
+		mcp.WithDescription("Deep self-analysis of the generated project: architecture layer boundaries, security (OWASP), code quality, naming standards, test coverage, and dependency hygiene."),
+		mcp.WithBoolean("arch",
+			mcp.Description("Only run architecture checks"),
+		),
+		mcp.WithBoolean("quality",
+			mcp.Description("Only run code quality checks"),
+		),
+		mcp.WithBoolean("security",
+			mcp.Description("Only run security checks (OWASP A03, hardcoded secrets, unsafe)"),
+		),
+		mcp.WithBoolean("standards",
+			mcp.Description("Only run Go standards checks (naming, context propagation, go.mod)"),
+		),
+		mcp.WithBoolean("tests",
+			mcp.Description("Only run test coverage and pattern checks"),
+		),
+		mcp.WithBoolean("deps",
+			mcp.Description("Only run dependency hygiene checks"),
+		),
+		mcp.WithString("output",
+			mcp.Description("Output format: text (default) or json"),
+		),
+	)
+}
+
+func handleAnalyze(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args := []string{"analyze"}
+	args = appendIfTrue(args, req.GetBool("arch", false), "--arch")
+	args = appendIfTrue(args, req.GetBool("quality", false), "--quality")
+	args = appendIfTrue(args, req.GetBool("security", false), "--security")
+	args = appendIfTrue(args, req.GetBool("standards", false), "--standards")
+	args = appendIfTrue(args, req.GetBool("tests", false), "--tests")
+	args = appendIfTrue(args, req.GetBool("deps", false), "--deps")
+	if out := req.GetString("output", ""); out != "" {
+		args = append(args, "--output", out)
+	}
+
+	result, runErr := runGocaSubcommand(ctx, args)
+	if runErr != nil {
+		return mcpErr(runErr), nil
+	}
+	return mcpText(result), nil
 }

@@ -238,6 +238,7 @@ export default defineConfig({
                         { text: 'goca config', link: '/commands/config' },
                         { text: 'goca template', link: '/commands/template' },
                         { text: 'goca doctor', link: '/commands/doctor' },
+                        { text: 'goca analyze', link: '/commands/analyze' },
                         { text: 'goca upgrade', link: '/commands/upgrade' },
                         { text: 'goca version', link: '/commands/version' },
                     ]
