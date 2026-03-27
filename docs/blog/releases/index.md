@@ -88,8 +88,31 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
-      <a href="/goca/blog/releases/v1-18-7">v1.18.7</a>
+      <a href="/goca/blog/releases/v1-19-0">v1.19.0</a>
       <span class="badge badge-latest">Latest</span>
+    </h2>
+    <span class="release-date">March 26, 2026</span>
+  </div>
+  <p class="release-description">
+    Cache, CI &amp; Middleware — Three major features: Redis cache decorator pattern via <code>--cache</code> flag, <code>goca ci</code> for GitHub Actions pipeline generation, and <code>goca middleware</code> for 7 composable HTTP middleware types.
+  </p>
+  <div class="release-highlights">
+    <strong>Key Changes:</strong>
+    <ul>
+      <li><code>--cache</code> flag on <code>feature</code>, <code>repository</code>, and <code>di</code> — generates <code>Cached&lt;Entity&gt;Repository</code> decorator with Redis caching</li>
+      <li><code>goca ci</code> — generates GitHub Actions workflows (test, build, deploy) with auto-detected Go version</li>
+      <li><code>goca middleware &lt;name&gt;</code> — generates 7 middleware types: CORS, logging, auth, rate-limit, recovery, request-id, timeout</li>
+      <li>DI container wires cache decorators with <code>NewContainer(db, redisClient)</code></li>
+      <li>Handler auto-detects and imports middleware package</li>
+      <li>51 new tests across 4 test files</li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-18-7">v1.18.7</a>
     </h2>
     <span class="release-date">March 24, 2026</span>
   </div>

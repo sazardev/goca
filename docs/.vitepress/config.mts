@@ -231,6 +231,8 @@ export default defineConfig({
                         { text: 'goca interfaces', link: '/commands/interfaces' },
                         { text: 'goca messages', link: '/commands/messages' },
                         { text: 'goca mocks', link: '/commands/mocks' },
+                        { text: 'goca ci', link: '/commands/ci' },
+                        { text: 'goca middleware', link: '/commands/middleware' },
                         { text: 'goca test-integration', link: '/commands/test-integration' },
                         { text: 'goca mcp-server', link: '/commands/mcp-server' },
                         { text: 'goca config', link: '/commands/config' },
@@ -262,12 +264,13 @@ export default defineConfig({
                 {
                     text: 'Latest Release',
                     items: [
-                        { text: 'v1.18.7', link: '/blog/releases/v1-18-7' },
+                        { text: 'v1.19.0', link: '/blog/releases/v1-19-0' },
                     ]
                 },
                 {
                     text: 'v1.18.x Releases',
                     items: [
+                        { text: 'v1.18.7', link: '/blog/releases/v1-18-7' },
                         { text: 'v1.18.1 — v1.18.6', link: '/blog/releases/v1-18-2' },
                         { text: 'v1.18.1', link: '/blog/releases/v1-18-1' },
                         { text: 'v1.18.0', link: '/blog/releases/v1-18-0' },

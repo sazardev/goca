@@ -444,14 +444,14 @@ func (r *UserRepository) SaveWithTx(ctx context.Context, user *domain.User) erro
 
 ## ⚡ Cache (--cache)
 
-With `--cache`, a cache layer is integrated:
+With `--cache`, a `Cached<Entity>Repository` decorator is generated alongside the base repository. It wraps read operations (`FindByID`, `FindAll`) with Redis caching and automatically invalidates on writes (`Save`, `Update`, `Delete`). Search methods delegate directly to the underlying repository.
 
 ```go
 import (
     "encoding/json"
     "time"
     
-    "github.com/go-redis/redis/v8"
+    "github.com/redis/go-redis/v9"
 )
 
 type CachedUserRepository struct {
@@ -460,11 +460,11 @@ type CachedUserRepository struct {
     ttl   time.Duration
 }
 
-func NewCachedUserRepository(repo interfaces.UserRepository, cache *redis.Client) interfaces.UserRepository {
+func NewCachedUserRepository(repo interfaces.UserRepository, cache *redis.Client, ttl time.Duration) interfaces.UserRepository {
     return &CachedUserRepository{
         repo:  repo,
         cache: cache,
-        ttl:   time.Hour,
+        ttl:   ttl,
     }
 }
 

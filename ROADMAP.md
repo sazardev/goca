@@ -14,10 +14,10 @@ Goca aims to be the leading Go Clean Architecture code generator, providing deve
 
 ## Current Status
 
-**Version**: 1.18.7  
+**Version**: 1.19.0  
 **Go**: 1.25.1+  
 **Status**: Production Ready  
-**Focus**: MCP integration, code quality, and developer experience
+**Focus**: Cache, CI, middleware generation, MCP integration, and developer experience
 
 ## Release Versioning
 
@@ -30,16 +30,18 @@ Goca follows [Semantic Versioning](https://semver.org/):
 
 ### Version 1.19.0
 
-**Focus**: Code Quality & Testing Improvements
+**Focus**: Cache, CI & Middleware
 
 **Planned Features:**
-- Field-aware integration test generation (wire `TemplateData.Fields` into test templates)
-- Expanded unit test coverage for `cmd/` package (target ≥ 80%)
-- Benchmark test templates
+- Plugin system for custom generators
+- GraphQL handler generation
+- Event sourcing patterns
+- WebSocket handler support
 
 **Improvements:**
-- Redis caching layer generation
-- Enhanced SQL query generation for complex fields
+- Observability instrumentation (OpenTelemetry)
+- E2E test generation
+- Contract testing support
 
 ### Version 2.0.0
 
@@ -68,8 +70,6 @@ Goca follows [Semantic Versioning](https://semver.org/):
 - WebSocket handler support
 - Message queue integration (RabbitMQ, Kafka)
 - Observability instrumentation (OpenTelemetry)
-- Security middleware generation
-- Redis caching layer generation
 
 **Testing:**
 - E2E test generation
@@ -84,8 +84,8 @@ Goca follows [Semantic Versioning](https://semver.org/):
 - Migration guides from other frameworks
 
 **Developer Experience:**
-- GitHub Actions templates
 - Kubernetes deployment generation
+- Benchmark test templates
 
 **Quality Assurance:**
 - Static analysis integration
@@ -106,6 +106,16 @@ Goca follows [Semantic Versioning](https://semver.org/):
 - Example project gallery
 
 ## Completed Milestones
+
+### Version 1.19.0 (March 2026)
+- **Redis Cache Layer** — `--cache` flag on `feature`, `repository`, `di` generates `Cached<Entity>Repository` decorator with Redis caching (FindByID, FindAll cached; writes invalidate)
+- **CI Pipeline Generation** — `goca ci` generates GitHub Actions workflows (test, build, deploy) with auto-detected Go version and database service containers
+- **Middleware Generation** — `goca middleware <name>` generates 7 composable middleware types (CORS, logging, auth, rate-limit, recovery, request-id, timeout)
+- Handler auto-detection of middleware package for import-based usage
+- `--middleware-types` flag on `goca feature` for combined scaffold
+- DI container cache wiring: `NewContainer(db, redisClient)` with decorator pattern
+- 51 new tests across 4 test files
+- MCP tools for CI and middleware commands
 
 ### Version 1.18.x (March 2026)
 - **MCP Server** — `goca mcp-server` exposes 13 tools + 2 resources for AI assistants (GitHub Copilot, Claude Desktop, Cursor, Zed)
