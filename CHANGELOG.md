@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.0] - 2026-03-27
+
 ### Added
 
 #### Deep Project Self-Analysis (`goca analyze`)
@@ -25,10 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exposed as `goca_analyze` MCP tool for AI assistant integration
 - New files: `cmd/analyze.go`, `cmd/analyze_checks.go`
 - New tests: `cmd/analyze_test.go` (46 tests across all 6 categories)
-
-## [1.19.0] - 2026-03-26
-
-### Added
 
 #### Redis Cache Layer (`--cache` flag)
 - New `--cache` / `-c` flag on `goca feature` and `goca repository` commands
@@ -75,6 +73,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New files: `cmd/mcp_server.go`, `cmd/mcp_tools.go`, `cmd/mcp_tools_core.go`, `cmd/mcp_tools_util.go`, `cmd/mcp_resources.go`
 - New dependency: `github.com/mark3labs/mcp-go v0.45.0`
 - New docs: `docs/commands/mcp-server.md`, `docs/guide/mcp-integration.md`
+
+### Fixed
+
+#### Test Quality — `t.TempDir()` everywhere
+- Replaced all hardcoded `/tmp/...` paths in test files with `t.TempDir()` for proper isolation and auto-cleanup
+- Affected: `cmd/config_manager_test.go`, `cmd/config_integration_test.go`, `cmd/coverage_batch6_test.go`, `cmd/dependency_manager_test.go`, `cmd/doctor_extended_test.go`, `cmd/safety_filesystem_test.go`
+
+#### Domain Purity — Remove GORM dependency from domain layer
+- `internal/domain/user.go` imported `gorm.io/gorm` for `gorm.DeletedAt` soft-delete type — violation of Clean Architecture domain purity rule
+- Replaced `gorm.DeletedAt` with `*time.Time`; `SoftDelete()` and `IsDeleted()` updated to match
+- Domain layer now imports only `time` from stdlib (detected and verified by `goca analyze --arch`)
 
 ## [1.18.7] - 2026-03-24
 

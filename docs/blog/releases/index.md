@@ -88,13 +88,37 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
-      <a href="/goca/blog/releases/v1-19-0">v1.19.0</a>
+      <a href="/goca/blog/releases/v1-22-0">v1.22.0</a>
       <span class="badge badge-latest">Latest</span>
     </h2>
-    <span class="release-date">March 26, 2026</span>
+    <span class="release-date">March 27, 2026</span>
   </div>
   <p class="release-description">
-    Cache, CI &amp; Middleware — Three major features: Redis cache decorator pattern via <code>--cache</code> flag, <code>goca ci</code> for GitHub Actions pipeline generation, and <code>goca middleware</code> for 7 composable HTTP middleware types.
+    Analyze, Cache, CI &amp; Middleware — Largest release to date: <code>goca analyze</code> with 30 rules across 6 categories (AST-based static analysis), Redis cache decorator pattern, GitHub Actions CI generation, 7 composable middleware types, and MCP server for AI assistant integration.
+  </p>
+  <div class="release-highlights">
+    <strong>Key Changes:</strong>
+    <ul>
+      <li><code>goca analyze</code> — 30-rule deep audit: architecture boundaries, security (OWASP A03), test quality, dependency hygiene</li>
+      <li><code>--cache</code> flag on <code>feature</code>, <code>repository</code>, <code>di</code> — generates <code>Cached&lt;Entity&gt;Repository</code> decorator with Redis</li>
+      <li><code>goca ci</code> — generates GitHub Actions workflows with auto-detected Go version and database services</li>
+      <li><code>goca middleware &lt;name&gt;</code> — 7 middleware types: CORS, logging, auth, rate-limit, recovery, request-id, timeout</li>
+      <li><code>goca mcp-server</code> — MCP server exposing all Goca tools to GitHub Copilot, Claude Desktop, Cursor, Zed</li>
+      <li>Domain purity fix: <code>internal/domain/user.go</code> no longer imports <code>gorm.io/gorm</code></li>
+      <li>Test quality: all hardcoded <code>/tmp</code> paths replaced with <code>t.TempDir()</code></li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-19-0">v1.19.0 — v1.21.0</a>
+    </h2>
+    <span class="release-date">March 24–26, 2026</span>
+  </div>
+  <p class="release-description">
+    MCP server, comprehensive test coverage, integration test generation improvements, and repository generation enhancements. Features from these releases are consolidated in v1.22.0.
   </p>
   <div class="release-highlights">
     <strong>Key Changes:</strong>

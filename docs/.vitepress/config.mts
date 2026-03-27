@@ -265,7 +265,13 @@ export default defineConfig({
                 {
                     text: 'Latest Release',
                     items: [
-                        { text: 'v1.19.0', link: '/blog/releases/v1-19-0' },
+                        { text: 'v1.22.0', link: '/blog/releases/v1-22-0' },
+                    ]
+                },
+                {
+                    text: 'Previous Releases',
+                    items: [
+                        { text: 'v1.19.0 — v1.21.0', link: '/blog/releases/v1-19-0' },
                     ]
                 },
                 {
