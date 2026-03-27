@@ -30,6 +30,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 		testFixtures, _ := cmd.Flags().GetBool("test-fixtures")
 		testContainer, _ := cmd.Flags().GetBool("test-container")
 		generateMocksFlag, _ := cmd.Flags().GetBool("mocks")
+		middlewareTypesStr, _ := cmd.Flags().GetString("middleware-types")
 
 		// Initialize configuration integration
 		configIntegration := NewConfigIntegration()
@@ -109,6 +110,19 @@ including domain, use cases, repository and handlers in a single operation.`,
 		}
 
 		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, fileNamingConvention, safetyMgr)
+
+		// Generate middleware package if requested
+		if middlewareTypesStr != "" {
+			mwTypes := parseMiddlewareTypes(middlewareTypesStr)
+			if err := validateMiddlewareTypes(mwTypes); err != nil {
+				ui.Error(fmt.Sprintf("middleware-types: %v", err))
+				os.Exit(1)
+			}
+			ui.Step(7, "Generating middleware package...")
+			if err := generateMiddlewarePackage(featureName, mwTypes, safetyMgr); err != nil {
+				ui.Warning(fmt.Sprintf("Could not generate middleware: %v", err))
+			}
+		}
 
 		// Show dry-run summary
 		if dryRun {
@@ -525,6 +539,9 @@ func init() {
 	featureCmd.Flags().Bool("test-fixtures", true, "Generate test fixtures (used with --integration-tests)")
 	featureCmd.Flags().Bool("test-container", false, "Use test containers for database (used with --integration-tests)")
 	featureCmd.Flags().Bool("mocks", false, "Generate mock implementations for unit testing")
+
+	// Middleware flag
+	featureCmd.Flags().String("middleware-types", "", "Generate middleware package with given types (e.g. cors,logging,recovery)")
 
 	_ = featureCmd.MarkFlagRequired("fields")
 }

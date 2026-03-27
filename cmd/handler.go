@@ -362,15 +362,21 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyMa
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)
 
+	// Detect whether the standalone middleware package exists.
+	middlewarePkgExists := middlewarePackageExists()
+
 	var content strings.Builder
 	content.WriteString("package http\n\n")
 	content.WriteString("import (\n")
-	if middleware {
+	if middleware && !middlewarePkgExists {
 		content.WriteString("\t\"log\"\n")
 		content.WriteString("\t\"net/http\"\n\n")
 	}
 	content.WriteString("\t\"github.com/gorilla/mux\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/usecase\"\n", importPath))
+	if middleware && middlewarePkgExists {
+		content.WriteString(fmt.Sprintf("\t\"%s/internal/middleware\"\n", importPath))
+	}
 	content.WriteString(")\n\n")
 
 	entityLower := strings.ToLower(entity)
@@ -383,8 +389,13 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyMa
 	if middleware {
 		content.WriteString("\t// Apply middleware\n")
 		content.WriteString(fmt.Sprintf("\t%sRouter := router.PathPrefix(\"/%s\").Subrouter()\n", entityLower, pluralEntity))
-		content.WriteString(fmt.Sprintf("\t%sRouter.Use(corsMiddleware)\n", entityLower))
-		content.WriteString(fmt.Sprintf("\t%sRouter.Use(loggingMiddleware)\n\n", entityLower))
+		if middlewarePkgExists {
+			content.WriteString(fmt.Sprintf("\t%sRouter.Use(middleware.CORS(middleware.DefaultCORSConfig()))\n", entityLower))
+			content.WriteString(fmt.Sprintf("\t%sRouter.Use(middleware.Logging())\n\n", entityLower))
+		} else {
+			content.WriteString(fmt.Sprintf("\t%sRouter.Use(corsMiddleware)\n", entityLower))
+			content.WriteString(fmt.Sprintf("\t%sRouter.Use(loggingMiddleware)\n\n", entityLower))
+		}
 
 		content.WriteString(fmt.Sprintf("\t%sRouter.HandleFunc(\"\", handler.Create%s).Methods(\"POST\")\n",
 			entityLower, entity))
@@ -411,7 +422,7 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyMa
 
 	content.WriteString("}\n")
 
-	if middleware {
+	if middleware && !middlewarePkgExists {
 		content.WriteString("\n// Middleware functions\n")
 		generateMiddlewareFunctions(&content)
 	}
@@ -558,7 +569,6 @@ components:
 		return
 	}
 }
-
 
 func init() {
 	handlerCmd.Flags().StringP("type", "t", "http", "Handler type (http, grpc, cli, worker, soap)")

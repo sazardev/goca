@@ -25,6 +25,7 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 
 #### Adapter Layer
 - [`goca handler`](/commands/handler) - Generate handlers (HTTP, gRPC, CLI, etc.)
+- [`goca middleware`](/commands/middleware) - Generate composable HTTP middleware package
 
 ### Configuration & Templates
 - [`goca config`](/commands/config) - Manage `.goca.yaml` configuration files
@@ -35,6 +36,7 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 - [`goca messages`](/commands/messages) - Generate error messages and constants
 - [`goca mocks`](/commands/mocks) - Generate testify/mock mocks for all interfaces
 - [`goca doctor`](/commands/doctor) - Check project health and Clean Architecture structure
+- [`goca ci`](/commands/ci) - Generate CI/CD pipeline configuration (GitHub Actions)
 - [`goca upgrade`](/commands/upgrade) - Upgrade project configuration to current Goca version
 - [`goca version`](/commands/version) - Display version information
 
@@ -52,6 +54,7 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 | `goca usecase`            | Create use cases only            |  Manual         |
 | `goca repository`         | Create repositories only         |  Manual         |
 | `goca handler`            | Create handlers only             |  Manual         |
+| `goca middleware`         | Generate HTTP middleware package  |  Manual         |
 | `goca di`                 | Generate DI container            |  Manual         |
 | `goca interfaces`         | Generate interface contracts     |  Manual         |
 | `goca messages`           | Generate error message constants |  Manual         |
@@ -59,6 +62,7 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 | `goca test-integration`   | Generate integration test files  |  Manual         |
 | `goca config`             | Manage project configuration     |  —              |
 | `goca template`           | Manage custom templates          |  —              |
+| `goca ci`                 | Generate CI/CD pipelines         |  —              |
 | `goca doctor`             | Project health checks            |  —              |
 | `goca upgrade`            | Upgrade config/metadata          |  —              |
 

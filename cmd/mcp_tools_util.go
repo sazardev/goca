@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -19,6 +20,8 @@ func registerUtilTools(s *server.MCPServer) {
 	s.AddTool(toolInit(), handleInit)
 	s.AddTool(toolDoctor(), handleDoctor)
 	s.AddTool(toolUpgrade(), handleUpgrade)
+	s.AddTool(toolCI(), handleCI)
+	s.AddTool(toolMiddleware(), handleMiddleware)
 }
 
 // ─── goca_di ─────────────────────────────────────────────────────────────────
@@ -259,6 +262,86 @@ func toolUpgrade() mcp.Tool {
 func handleUpgrade(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args := []string{"upgrade"}
 	args = appendIfTrue(args, req.GetBool("update", false), "--update")
+
+	out, runErr := runGocaSubcommand(ctx, args)
+	if runErr != nil {
+		return mcpErr(runErr), nil
+	}
+	return mcpText(out), nil
+}
+
+// ─── goca_ci ─────────────────────────────────────────────────────────────────
+
+func toolCI() mcp.Tool {
+	return mcp.NewTool("goca_ci",
+		mcp.WithDescription("Generate CI/CD pipeline configuration (GitHub Actions workflows for test, build, and deploy)."),
+		mcp.WithString("provider",
+			mcp.Description("CI provider: github-actions (default)"),
+		),
+		mcp.WithBoolean("with_docker",
+			mcp.Description("Include Docker build step in the build workflow"),
+		),
+		mcp.WithBoolean("with_deploy",
+			mcp.Description("Generate a tag-triggered deploy workflow"),
+		),
+		mcp.WithString("go_version",
+			mcp.Description("Go version for the CI matrix (reads from go.mod if omitted)"),
+		),
+		mcp.WithBoolean("dry_run",
+			mcp.Description("Preview files without writing to disk"),
+		),
+		mcp.WithBoolean("force",
+			mcp.Description("Overwrite existing workflow files"),
+		),
+	)
+}
+
+func handleCI(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args := []string{"ci"}
+	args = appendIfSet(args, req.GetString("provider", ""), "--provider")
+	args = appendIfTrue(args, req.GetBool("with_docker", false), "--with-docker")
+	args = appendIfTrue(args, req.GetBool("with_deploy", false), "--with-deploy")
+	args = appendIfSet(args, req.GetString("go_version", ""), "--go-version")
+	args = appendIfTrue(args, req.GetBool("dry_run", false), "--dry-run")
+	args = appendIfTrue(args, req.GetBool("force", false), "--force")
+
+	out, runErr := runGocaSubcommand(ctx, args)
+	if runErr != nil {
+		return mcpErr(runErr), nil
+	}
+	return mcpText(out), nil
+}
+
+// ─── goca_middleware ─────────────────────────────────────────────────────────
+
+func toolMiddleware() mcp.Tool {
+	return mcp.NewTool("goca_middleware",
+		mcp.WithDescription("Generate a dedicated internal/middleware/ package with composable HTTP middleware (CORS, logging, auth, rate-limit, recovery, request-id, timeout)."),
+		mcp.WithString("name",
+			mcp.Description("Middleware package name (e.g. the project or feature name)"),
+			mcp.Required(),
+		),
+		mcp.WithString("types",
+			mcp.Description("Comma-separated middleware types: cors,logging,auth,rate-limit,recovery,request-id,timeout (default: cors,logging,recovery)"),
+		),
+		mcp.WithBoolean("dry_run",
+			mcp.Description("Preview files without writing to disk"),
+		),
+		mcp.WithBoolean("force",
+			mcp.Description("Overwrite existing middleware files"),
+		),
+	)
+}
+
+func handleMiddleware(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	name := req.GetString("name", "")
+	if name == "" {
+		return mcpErr(fmt.Errorf("name is required")), nil
+	}
+	args := []string{"middleware", name}
+	args = appendIfSet(args, req.GetString("types", ""), "--types")
+	args = appendIfTrue(args, req.GetBool("dry_run", false), "--dry-run")
+	args = appendIfTrue(args, req.GetBool("force", false), "--force")
 
 	out, runErr := runGocaSubcommand(ctx, args)
 	if runErr != nil {

@@ -96,4 +96,6 @@ func init() {
 	rootCmd.AddCommand(doctorCmd)
 	rootCmd.AddCommand(upgradeCmd)
 	rootCmd.AddCommand(mcpServerCmd)
+	rootCmd.AddCommand(ciCmd)
+	rootCmd.AddCommand(middlewareCmd)
 }
