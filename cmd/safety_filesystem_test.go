@@ -98,7 +98,7 @@ func TestSafetyManager_BackupFile(t *testing.T) {
 func TestSafetyManager_WriteFile_DryRun(t *testing.T) {
 	t.Parallel()
 	sm := NewSafetyManager(true, false, false)
-	err := sm.WriteFile("/tmp/fake/file.go", "package main")
+	err := sm.WriteFile(filepath.Join(t.TempDir(), "fake", "file.go"), "package main")
 	assert.NoError(t, err)
 	assert.Len(t, sm.GetPendingFiles(), 1)
 	assert.Equal(t, "create", sm.GetPendingFiles()[0].Action)

@@ -552,7 +552,7 @@ func TestWriteGocaVersionToConfig_DryRun(t *testing.T) {
   name: testproject
   module: github.com/test/proj
 `)
-	err := writeGocaVersionToConfig("/tmp/test.yaml", raw, true)
+	err := writeGocaVersionToConfig(filepath.Join(t.TempDir(), "test.yaml"), raw, true)
 	assert.NoError(t, err) // dry-run, doesn't actually write
 }
 

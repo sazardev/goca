@@ -336,7 +336,7 @@ func TestWriteFile_Real_NoSM(t *testing.T) {
 
 func TestWriteFile_DryRun_SM(t *testing.T) {
 	sm := NewSafetyManager(true, false, false)
-	err := writeFile("/tmp/fake/file.go", "package main\n", sm)
+	err := writeFile(filepath.Join(t.TempDir(), "fake", "file.go"), "package main\n", sm)
 	assert.NoError(t, err)
 	assert.Len(t, sm.GetPendingFiles(), 1)
 }
@@ -353,7 +353,7 @@ func TestWriteGoFile_Real_NoSM(t *testing.T) {
 
 func TestWriteGoFile_DryRun_SM(t *testing.T) {
 	sm := NewSafetyManager(true, false, false)
-	err := writeGoFile("/tmp/fake/file.go", "package main\n", sm)
+	err := writeGoFile(filepath.Join(t.TempDir(), "fake", "file.go"), "package main\n", sm)
 	assert.NoError(t, err)
 	assert.Len(t, sm.GetPendingFiles(), 1)
 }

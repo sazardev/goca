@@ -248,8 +248,9 @@ func TestConfigIntegration_GetValidationWarnings(t *testing.T) {
 
 func TestConfigIntegration_MergeWithCLIFlags(t *testing.T) {
 	t.Parallel()
+	tmpDir := t.TempDir()
 	ci := NewConfigIntegration()
-	ci.config = ci.manager.CreateDefaultConfig("/tmp/test")
+	ci.config = ci.manager.CreateDefaultConfig(tmpDir)
 	ci.manager.SetConfig(ci.config)
 
 	ci.MergeWithCLIFlags(map[string]interface{}{

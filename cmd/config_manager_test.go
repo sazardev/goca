@@ -21,7 +21,7 @@ func TestNewConfigManager(t *testing.T) {
 func TestConfigManager_CreateDefaultConfig(t *testing.T) {
 	t.Parallel()
 	cm := NewConfigManager()
-	config := cm.CreateDefaultConfig("/tmp/test-project")
+	config := cm.CreateDefaultConfig(filepath.Join(t.TempDir(), "test-project"))
 
 	require.NotNil(t, config)
 	assert.Equal(t, "test-project", config.Project.Name)
@@ -118,7 +118,7 @@ func TestConfigManager_ApplyDefaults(t *testing.T) {
 func TestConfigManager_ValidateConfig(t *testing.T) {
 	t.Parallel()
 	cm := NewConfigManager()
-	config := cm.CreateDefaultConfig("/tmp/test")
+	config := cm.CreateDefaultConfig(t.TempDir())
 
 	err := cm.ValidateConfig(config)
 	assert.NoError(t, err)
@@ -166,7 +166,7 @@ func TestConfigManager_ValidateProject(t *testing.T) {
 	t.Run("empty version triggers warning", func(t *testing.T) {
 		t.Parallel()
 		cm2 := NewConfigManager()
-		config := cm.CreateDefaultConfig("/tmp/test")
+		config := cm.CreateDefaultConfig(t.TempDir())
 		config.Project.Version = ""
 		cm2.ValidateConfig(config)
 		warnings := cm2.GetWarnings()
@@ -216,7 +216,7 @@ func TestConfigManager_FindConfigFile(t *testing.T) {
 func TestConfigManager_MergeWithFlags(t *testing.T) {
 	t.Parallel()
 	cm := NewConfigManager()
-	config := cm.CreateDefaultConfig("/tmp/test")
+	config := cm.CreateDefaultConfig(t.TempDir())
 	cm.SetConfig(config)
 
 	cm.MergeWithFlags(map[string]interface{}{
@@ -264,7 +264,7 @@ func TestConfigManager_SaveAndLoadConfig(t *testing.T) {
 func TestConfigManager_SaveConfig_NilConfig(t *testing.T) {
 	t.Parallel()
 	cm := NewConfigManager()
-	err := cm.SaveConfig("/tmp/test.yaml")
+	err := cm.SaveConfig(filepath.Join(t.TempDir(), "test.yaml"))
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "no configuration loaded")
 }
@@ -309,7 +309,7 @@ func TestConfigManager_IsValidNaming(t *testing.T) {
 func TestConfigManager_CountEnabledLayers(t *testing.T) {
 	t.Parallel()
 	cm := NewConfigManager()
-	config := cm.CreateDefaultConfig("/tmp/test")
+	config := cm.CreateDefaultConfig(t.TempDir())
 	cm.SetConfig(config)
 
 	assert.Equal(t, 4, cm.countEnabledLayers())

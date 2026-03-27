@@ -9,16 +9,17 @@ import (
 
 func TestNewDependencyManager(t *testing.T) {
 	t.Parallel()
-	dm := NewDependencyManager("/tmp/project", true)
+	root := t.TempDir()
+	dm := NewDependencyManager(root, true)
 	assert.NotNil(t, dm)
-	assert.Equal(t, "/tmp/project", dm.projectRoot)
+	assert.Equal(t, root, dm.projectRoot)
 	assert.True(t, dm.dryRun)
 	assert.Contains(t, dm.goModPath, "go.mod")
 }
 
 func TestCommonDependencies(t *testing.T) {
 	t.Parallel()
-	dm := NewDependencyManager("/tmp", false)
+	dm := NewDependencyManager(t.TempDir(), false)
 	deps := dm.CommonDependencies()
 
 	assert.NotEmpty(t, deps)
@@ -41,7 +42,7 @@ func TestCommonDependencies(t *testing.T) {
 
 func TestSuggestDependencies(t *testing.T) {
 	t.Parallel()
-	dm := NewDependencyManager("/tmp", false)
+	dm := NewDependencyManager(t.TempDir(), false)
 
 	t.Run("validation feature", func(t *testing.T) {
 		t.Parallel()
@@ -95,7 +96,7 @@ func TestSuggestDependencies(t *testing.T) {
 
 func TestGetRequiredDependenciesForFeature(t *testing.T) {
 	t.Parallel()
-	dm := NewDependencyManager("/tmp", false)
+	dm := NewDependencyManager(t.TempDir(), false)
 
 	t.Run("grpc", func(t *testing.T) {
 		t.Parallel()
@@ -124,7 +125,7 @@ func TestGetRequiredDependenciesForFeature(t *testing.T) {
 
 func TestIsVersionCompatible(t *testing.T) {
 	t.Parallel()
-	dm := NewDependencyManager("/tmp", false)
+	dm := NewDependencyManager(t.TempDir(), false)
 
 	cases := []struct {
 		name     string
@@ -157,7 +158,7 @@ func TestDependencyManager_DryRun_UpdateGoMod(t *testing.T) {
 
 func TestDependencyManager_PrintDependencySuggestions(t *testing.T) {
 	t.Parallel()
-	dm := NewDependencyManager("/tmp", false)
+	dm := NewDependencyManager(t.TempDir(), false)
 
 	t.Run("empty suggestions", func(t *testing.T) {
 		t.Parallel()
