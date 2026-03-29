@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca ci
+titleTemplate: Commands | Goca
+description: Generate GitHub Actions CI/CD pipeline workflows — test, build, and optional deploy, with auto-detected Go version and database service containers.
+---
+
 # goca ci
 
 Generate CI/CD pipeline configuration for your project.

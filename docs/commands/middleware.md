@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca middleware
+titleTemplate: Commands | Goca
+description: Generate a composable internal/middleware/ package with 7 HTTP middleware types — CORS, logging, auth, rate-limit, recovery, request-id, and timeout.
+---
+
 # goca middleware
 
 Generate a dedicated middleware package for HTTP handlers.
