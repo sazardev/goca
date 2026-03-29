@@ -74,6 +74,7 @@ goca template list
 
 Custom templates have access to these template functions:
 
+::: v-pre
 | Function | Description | Example |
 | -------- | ----------- | ------- |
 | `{{pascal .EntityName}}` | PascalCase | `UserProfile` |
@@ -81,6 +82,7 @@ Custom templates have access to these template functions:
 | `{{camel .EntityName}}` | camelCase | `userProfile` |
 | `{{lower .EntityName}}` | lowercase | `userprofile` |
 | `{{plural .EntityName}}` | Pluralized | `Users` |
+:::
 
 ## Template Data
 
