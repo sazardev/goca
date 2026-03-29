@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca interfaces
+titleTemplate: Commands | Goca
+description: Generate interface contracts for use-case and repository layers to enable Test-Driven Development and mock generation.
+---
+
 # goca interfaces
 
 Generate interface contracts for Test-Driven Development.

@@ -22,6 +22,12 @@ Goca is a powerful CLI code generator for Go that helps you create projects foll
 - [**goca integrate**](Command-Integrate) - Integrate existing features
 - [**goca interfaces**](Command-Interfaces) - Generate interfaces for TDD
 - [**goca messages**](Command-Messages) - Messages and constants
+- [**goca mocks**](Command-Mocks) - Generate testify mock stubs
+- [**goca test-integration**](Command-TestIntegration) - Generate integration test suite
+- [**goca template**](Command-Template) - Manage custom code templates
+- [**goca doctor**](Command-Doctor) - Health check for project structure
+- [**goca upgrade**](Command-Upgrade) - Upgrade Goca configuration
+- [**goca mcp-server**](Command-MCP-Server) - Start AI/MCP tool server
 - [**goca ci**](Command-CI) - Generate CI/CD pipelines
 - [**goca middleware**](Command-Middleware) - Generate HTTP middleware
 - [**goca analyze**](Command-Analyze) - Deep project self-analysis (architecture, security, quality)
@@ -31,20 +37,20 @@ Goca is a powerful CLI code generator for Go that helps you create projects foll
 - [**Clean Architecture**](Clean-Architecture) - Principles and structure
 - [**Project Structure**](Project-Structure) - Directory organization
 - [**Database Support**](Database-Support) - 8 supported databases
-- [**Implemented Patterns**](Design-Patterns) - Design patterns used
-- [**Best Practices**](Best-Practices) - Recommendations and conventions
+- **Implemented Patterns** - Design patterns used *(documentation in progress)*
+- **Best Practices** - Recommendations and conventions *(documentation in progress)*
 
 ### 💡 Examples and Use Cases
-- [**E-commerce Project**](Example-Ecommerce) - Complete e-commerce system
-- [**REST API**](Example-REST-API) - RESTful API with multiple endpoints
-- [**Microservice**](Example-Microservice) - Microservice with gRPC
-- [**CLI Tool**](Example-CLI-Tool) - Command-line tool
+- **E-commerce Project** - Complete e-commerce system *(tutorial coming soon)*
+- **REST API** - RESTful API with multiple endpoints *(tutorial coming soon)*
+- **Microservice** - Microservice with gRPC *(tutorial coming soon)*
+- **CLI Tool** - Command-line tool *(tutorial coming soon)*
 
 ### 🔧 Advanced
-- [**Customization**](Customization) - Adapt templates to your needs
-- [**CI/CD Integration**](CICD-Integration) - Automation and deployment
-- [**Testing**](Testing-Guide) - Testing strategies with generated code
-- [**Troubleshooting**](Troubleshooting) - Common problem solutions
+- **Customization** - Adapt templates to your needs *(documentation in progress)*
+- **CI/CD Integration** - Automation and deployment *(see* [*goca ci*](Command-CI)*)*
+- [**Testing**](https://sazardev.github.io/goca/guide/testing) - Testing strategies with generated code
+- **Troubleshooting** - Common problem solutions *(documentation in progress)*
 
 ### 🤝 Contributing
 - [**Contributing Guide**](Contributing) - How to contribute to the project

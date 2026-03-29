@@ -49,9 +49,9 @@ func (p *postgresOrderRepository) FindAll() ([]domain.Order, error) {
 	return orders, nil
 }
 
-func (p *postgresOrderRepository) FindByCustomer_id(customer_id int) (*domain.Order, error) {
+func (p *postgresOrderRepository) FindByCustomerID(customerID int) (*domain.Order, error) {
 	order := &domain.Order{}
-	result := p.db.Where("customer_id = ?", customer_id).First(order)
+	result := p.db.Where("customer_id = ?", customerID).First(order)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -1,15 +1,15 @@
 package domain
 
 type Order struct {
-	ID          uint    `json:"id" gorm:"primaryKey"`
-	Customer_id int     `json:"customer_id" gorm:"type:integer;not null;default:0"`
-	Total       float64 `json:"total" gorm:"type:decimal(10,2);not null;default:0"`
-	Status      string  `json:"status" gorm:"type:varchar(255)"`
+	ID         uint    `json:"id" gorm:"primaryKey"`
+	CustomerID int     `json:"customer_id" gorm:"type:integer;not null;default:0"`
+	Total      float64 `json:"total" gorm:"type:decimal(10,2);not null;default:0"`
+	Status     string  `json:"status" gorm:"type:varchar(255)"`
 }
 
 func (o *Order) Validate() error {
-	if o.Customer_id < 0 {
-		return ErrInvalidOrderCustomer_id
+	if o.CustomerID < 0 {
+		return ErrInvalidOrderCustomerID
 	}
 	if o.Total < 0 {
 		return ErrInvalidOrderTotal

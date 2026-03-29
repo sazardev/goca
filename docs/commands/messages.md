@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca messages
+titleTemplate: Commands | Goca
+description: Generate typed error messages, response structs, and shared constants for a feature's communication layer.
+---
+
 # goca messages
 
 Generate error messages, responses, and constants for features.

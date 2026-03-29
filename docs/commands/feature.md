@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca feature
+titleTemplate: Commands | Goca
+description: Generate a complete feature with all Clean Architecture layers (entity, use-case, repository, handler) in a single command.
+---
+
 # goca feature
 
 Generate a complete feature with all Clean Architecture layers in a single command.

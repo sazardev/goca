@@ -54,7 +54,7 @@ See the full setup guide → [AI Integration](/guide/mcp-integration)
 
 ## Available Tools
 
-The MCP server exposes **14 tools** — one per Goca command:
+The MCP server exposes **16 tools** — one per Goca command:
 
 ### Code Generation
 
@@ -78,6 +78,8 @@ The MCP server exposes **14 tools** — one per Goca command:
 | `goca_init` | `goca init <Name>` | Initialize a new project scaffold |
 | `goca_doctor` | `goca doctor` | Diagnose the project for Architecture issues |
 | `goca_analyze` | `goca analyze` | Deep static self-analysis across 30 rules and 6 categories |
+| `goca_ci` | `goca ci` | Generate GitHub Actions CI/CD pipeline workflows (test, build, deploy) |
+| `goca_middleware` | `goca middleware <Name>` | Generate composable HTTP middleware package (7 types) |
 | `goca_upgrade` | `goca upgrade` | Check for and install Goca updates |
 
 ## MCP Resources

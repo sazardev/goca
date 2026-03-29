@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca init
+titleTemplate: Commands | Goca
+description: Initialize a new Clean Architecture Go project with complete directory structure, go.mod, and .goca.yaml configuration.
+---
+
 # goca init
 
 Initialize a new Clean Architecture project with complete structure and configuration.

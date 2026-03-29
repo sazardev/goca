@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca entity
+titleTemplate: Commands | Goca
+description: Generate pure domain entities following Domain-Driven Design (DDD) principles with optional GORM tags and field types.
+---
+
 # goca entity
 
 Generate pure domain entities following Domain-Driven Design (DDD) principles.

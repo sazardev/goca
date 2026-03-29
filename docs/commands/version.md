@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca version
+titleTemplate: Commands | Goca
+description: Display the current Goca version number and build metadata such as commit hash, build date, and Go version.
+---
+
 # goca version
 
 Display version and build information.

@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca usecase
+titleTemplate: Commands | Goca
+description: Generate use-case application services with DTOs, interface definitions, and business logic scaffolding.
+---
+
 # goca usecase
 
 Generate use cases (application services) with DTOs and business logic.

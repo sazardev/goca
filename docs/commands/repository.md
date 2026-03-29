@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca repository
+titleTemplate: Commands | Goca
+description: Generate repository interfaces and concrete database implementations for PostgreSQL, MySQL, SQLite, and MongoDB.
+---
+
 # goca repository
 
 Generate repository interfaces and database implementations.

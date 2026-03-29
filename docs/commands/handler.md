@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca handler
+titleTemplate: Commands | Goca
+description: Generate input adapters for different delivery protocols such as HTTP REST, gRPC, CLI, and WebSocket.
+---
+
 # goca handler
 
 Generate input adapters for different protocols (HTTP, gRPC, CLI, etc.).

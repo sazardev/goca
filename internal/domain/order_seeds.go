@@ -4,19 +4,19 @@ package domain
 func GetOrderSeeds() []Order {
 	return []Order{
 		{
-			Customer_id: 10,
-			Total:       10.50,
-			Status:      "activo",
+			CustomerID: 10,
+			Total:      10.50,
+			Status:     "activo",
 		},
 		{
-			Customer_id: 20,
-			Total:       21.00,
-			Status:      "pendiente",
+			CustomerID: 20,
+			Total:      21.00,
+			Status:     "pendiente",
 		},
 		{
-			Customer_id: 30,
-			Total:       31.50,
-			Status:      "completado",
+			CustomerID: 30,
+			Total:      31.50,
+			Status:     "completado",
 		},
 	}
 }

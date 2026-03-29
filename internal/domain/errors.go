@@ -20,10 +20,10 @@ var (
 	ErrInvalidProductDescription = errors.New("description is required")
 
 	// Order errors
-	ErrInvalidOrderData             = errors.New("invalid order data")
-	ErrInvalidOrderCustomer_id      = errors.New("customer_id is required")
-	ErrInvalidOrderCustomer_idRange = errors.New("customer_id must be a positive number")
-	ErrInvalidOrderTotal            = errors.New("total is required")
-	ErrInvalidOrderTotalRange       = errors.New("total must be a positive number")
-	ErrInvalidOrderStatus           = errors.New("status is required")
+	ErrInvalidOrderData            = errors.New("invalid order data")
+	ErrInvalidOrderCustomerID      = errors.New("customer_id is required")
+	ErrInvalidOrderCustomerIDRange = errors.New("customer_id must be a positive number")
+	ErrInvalidOrderTotal           = errors.New("total is required")
+	ErrInvalidOrderTotalRange      = errors.New("total must be a positive number")
+	ErrInvalidOrderStatus          = errors.New("status is required")
 )

@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca upgrade
+titleTemplate: Commands | Goca
+description: Check for new Goca releases and upgrade the binary and project .goca.yaml configuration to the latest version.
+---
+
 # goca upgrade
 
 Upgrade your project's Goca configuration to the current binary version.

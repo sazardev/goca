@@ -42,6 +42,9 @@ goca.cache
 goca.swp
 goca.bak
 goca.old
+# Generated .goca/ directory (created when running goca commands inside the repo)
+.goca/
+cmd/.goca/
 test/*
 *.testdata
 /test*

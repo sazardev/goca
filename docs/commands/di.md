@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca di
+titleTemplate: Commands | Goca
+description: Generate a dependency injection container that automatically wires all Clean Architecture layers.
+---
+
 # goca di
 
 Generate dependency injection container for automatic wiring.

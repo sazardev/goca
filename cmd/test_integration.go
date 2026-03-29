@@ -785,10 +785,19 @@ func replaceFixtureTODOs(content string, fields []Field, entityName string) stri
 // replaceHelperTODOs replaces TODO placeholders with entity-specific guidance in helper content.
 func replaceHelperTODOs(content, entityName string) string {
 	content = strings.Replace(content,
+		"// TODO: Implement test container setup",
+		"// Implement test container setup with testcontainers-go:", 1)
+	content = strings.Replace(content,
+		"// TODO: Add MySQL setup",
+		"// Add MySQL setup (e.g. dsn = \"user:pass@tcp(localhost:3306)/goca_test?parseTime=true\"):", 1)
+	content = strings.Replace(content,
 		"// TODO: Add auto-migration for test entities",
 		"// Auto-migrate entity (requires domain import): db.AutoMigrate(&domain."+entityName+"{})", 1)
 	content = strings.Replace(content,
 		"// TODO: Add table cleanup based on entities",
 		"// Drop entity table (requires domain import): db.Migrator().DropTable(&domain."+entityName+"{})", 1)
+	content = strings.Replace(content,
+		"// TODO: Add seed data for tests",
+		"// Seed test data — insert "+entityName+" records via db.Create(&domain."+entityName+"{...})", 1)
 	return content
 }

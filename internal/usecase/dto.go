@@ -51,9 +51,9 @@ type ListProductOutput struct {
 }
 
 type CreateOrderInput struct {
-	Customer_id int     `json:"customer_id" validate:"required,min=0"`
-	Total       float64 `json:"total" validate:"required,min=0"`
-	Status      string  `json:"status" validate:"required,min=2"`
+	CustomerID int     `json:"customer_id" validate:"required,min=0"`
+	Total      float64 `json:"total" validate:"required,min=0"`
+	Status     string  `json:"status" validate:"required,min=2"`
 }
 
 type CreateOrderOutput struct {
@@ -62,9 +62,9 @@ type CreateOrderOutput struct {
 }
 
 type UpdateOrderInput struct {
-	Customer_id *int     `json:"customer_id,omitempty" validate:"omitempty,min=0"`
-	Total       *float64 `json:"total,omitempty" validate:"omitempty,min=0"`
-	Status      *string  `json:"status,omitempty" validate:"omitempty,min=2"`
+	CustomerID *int     `json:"customer_id,omitempty" validate:"omitempty,min=0"`
+	Total      *float64 `json:"total,omitempty" validate:"omitempty,min=0"`
+	Status     *string  `json:"status,omitempty" validate:"omitempty,min=2"`
 }
 
 type ListOrderOutput struct {

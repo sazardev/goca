@@ -423,6 +423,86 @@ goca entity <entity> --fields "Name:string,Tags:[]string,Scores:[]int"
 # Entity with uuid primary key
 goca entity <entity> --fields "ID:uuid.UUID,Name:string,Email:string"
 
+; ── ANALYZE ──────────────────────────────────────────────────────────────────
+
+# Run static analysis across all 30 rules and 6 categories
+goca analyze
+
+# Analyze and report as JSON
+goca analyze --format json
+
+# Analyze only Clean Architecture layer violations
+goca analyze --category architecture
+
+# Analyze only code quality rules (no-todos, error handling, naming)
+goca analyze --category quality
+
+# Analyze only security rules (input validation, SQL injection, SSRF)
+goca analyze --category security
+
+# Analyze specific directory
+goca analyze --path ./internal
+
+# Dry-run — show what would be analyzed without writing reports
+goca analyze --dry-run
+
+; ── CI PIPELINE ──────────────────────────────────────────────────────────────
+
+# Generate a GitHub Actions CI workflow (test + build)
+goca ci
+
+# Generate CI with deployment stage
+goca ci --deploy
+
+# Generate CI targeting a specific Go version
+goca ci --go-version 1.24
+
+# Dry-run — preview the CI YAML without writing it
+goca ci --dry-run
+
+; ── MIDDLEWARE ───────────────────────────────────────────────────────────────
+
+# Generate a logging middleware
+goca middleware Logger --type logging
+
+# Generate an authentication/JWT middleware
+goca middleware Auth --type auth
+
+# Generate a CORS middleware
+goca middleware CORS --type cors
+
+# Generate a rate-limiting middleware
+goca middleware RateLimit --type ratelimit
+
+# Generate a request-tracing middleware
+goca middleware Trace --type tracing
+
+# Generate a recovery (panic) middleware
+goca middleware Recovery --type recovery
+
+# Generate a caching middleware
+goca middleware Cache --type cache
+
+# Dry-run — preview without writing files
+goca middleware <Name> --type <type> --dry-run
+
+; ── MCP SERVER ───────────────────────────────────────────────────────────────
+
+# Start the MCP server (AI clients connect via stdio)
+goca mcp-server
+
+# Print GitHub Copilot/VS Code MCP config snippet and exit
+goca mcp-server --print-config vscode
+
+# Print Claude Desktop MCP config snippet and exit
+goca mcp-server --print-config claude
+
+# Print Cursor MCP config snippet and exit
+goca mcp-server --print-config cursor
+
+# Print Zed MCP config snippet and exit
+goca mcp-server --print-config zed
+
 ; ── WORKFLOWS ────────────────────────────────────────────────────────────────
 
 # Full project bootstrap (init → feature → integrate)
@@ -447,7 +527,7 @@ goca entity <entity> --fields "<fields>" --timestamps --soft-delete && \
 goca feature <entity> --fields "<fields>" --database <database> \
   --validation --integration-tests --mocks
 
-$ command: echo -e "init\nfeature\nentity\nusecase\nrepository\nhandler\ndi\nintegrate\ninterfaces\nmessages\nmocks\ntest-integration\nconfig\ntemplate\ndoctor\nupgrade\nversion"
+$ command: echo -e "init\nfeature\nentity\nusecase\nrepository\nhandler\ndi\nintegrate\ninterfaces\nmessages\nmocks\ntest-integration\nconfig\ntemplate\ndoctor\nupgrade\nanalyze\nci\nmiddleware\nmcp-server\nversion"
 $ entity: echo -e "Product\nUser\nOrder\nCategory\nPayment\nInvoice\nCustomer\nAddress\nTag\nRole\nPermission\nSession\nAudit\nNotification\nSubscription"
 $ fields: echo -e "Name:string,Price:float64\nName:string,Email:string,Age:int\nTitle:string,Description:string,Active:bool\nName:string,CreatedAt:time.Time,UpdatedAt:time.Time\nID:uuid.UUID,Name:string,Email:string\nName:string,Price:float64,Stock:int,Active:bool\nFirstName:string,LastName:string,Email:string,Phone:string\nName:string,Description:string,Price:float64,Category:string"
 $ module_path: echo -e "github.com/user/myproject\ngithub.com/company/service\ngithub.com/org/app"

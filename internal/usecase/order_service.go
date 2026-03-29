@@ -15,9 +15,9 @@ func NewOrderService(repo repository.OrderRepository) OrderUseCase {
 
 func (o *orderService) Create(input CreateOrderInput) (*CreateOrderOutput, error) {
 	order := domain.Order{
-		Customer_id: input.Customer_id,
-		Total:       input.Total,
-		Status:      input.Status,
+		CustomerID: input.CustomerID,
+		Total:      input.Total,
+		Status:     input.Status,
 	}
 
 	if err := order.Validate(); err != nil {
@@ -44,8 +44,8 @@ func (o *orderService) Update(id uint, input UpdateOrderInput) (*domain.Order, e
 		return nil, err
 	}
 
-	if input.Customer_id != nil {
-		order.Customer_id = *input.Customer_id
+	if input.CustomerID != nil {
+		order.CustomerID = *input.CustomerID
 	}
 	if input.Total != nil {
 		order.Total = *input.Total

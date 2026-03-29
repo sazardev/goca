@@ -5,9 +5,19 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
+func gocaBinary() string {
+	if runtime.GOOS == "windows" {
+		return "goca.exe"
+	}
+	return "goca"
+}
+
 func main() {
+	goca := gocaBinary()
+
 	// Create temp dir
 	tmpDir, err := os.MkdirTemp("", "goca-test-*")
 	if err != nil {
@@ -21,7 +31,7 @@ func main() {
 	}()
 
 	// Initialize project
-	cmd := exec.Command("goca.exe", "init", "testproject", "--module", "github.com/test/testproject")
+	cmd := exec.Command(goca, "init", "testproject", "--module", "github.com/test/testproject")
 	cmd.Dir = tmpDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -31,7 +41,7 @@ func main() {
 	}
 
 	// Create entity
-	cmd = exec.Command("goca.exe", "entity", "User", "--fields", "name:string,email:string,age:int")
+	cmd = exec.Command(goca, "entity", "User", "--fields", "name:string,email:string,age:int")
 	cmd.Dir = tmpDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

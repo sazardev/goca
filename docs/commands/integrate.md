@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca integrate
+titleTemplate: Commands | Goca
+description: Integrate all existing features by wiring them into the dependency injection container and HTTP router.
+---
+
 # goca integrate
 
 Integrate existing features with dependency injection and routing.

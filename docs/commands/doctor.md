@@ -1,3 +1,10 @@
+---
+layout: doc
+title: goca doctor
+titleTemplate: Commands | Goca
+description: Run health checks on your project to verify Clean Architecture structure and code quality.
+---
+
 # goca doctor
 
 Run health checks on your project to verify Clean Architecture structure and code quality.
