@@ -89,6 +89,9 @@ goca feature <entity> --fields "<fields>" --integration-tests --test-container
 # Feature with mock generation
 goca feature <entity> --fields "<fields>" --mocks
 
+# Feature with Redis cache decorator
+goca feature <entity> --fields "<fields>" --cache
+
 # Full-featured generation (all options)
 goca feature <entity> --fields "<fields>" --database <database> --validation --business-rules --integration-tests --mocks
 
@@ -428,23 +431,32 @@ goca entity <entity> --fields "ID:uuid.UUID,Name:string,Email:string"
 # Run static analysis across all 30 rules and 6 categories
 goca analyze
 
-# Analyze and report as JSON
-goca analyze --format json
+# Output the full report as JSON
+goca analyze --output json
 
-# Analyze only Clean Architecture layer violations
-goca analyze --category architecture
+# Only run Clean Architecture layer violation checks
+goca analyze --arch
 
-# Analyze only code quality rules (no-todos, error handling, naming)
-goca analyze --category quality
+# Only run code quality checks (no-todos, error handling, naming)
+goca analyze --quality
 
-# Analyze only security rules (input validation, SQL injection, SSRF)
-goca analyze --category security
+# Only run security checks (OWASP A03, hardcoded secrets, SSRF)
+goca analyze --security
 
-# Analyze specific directory
-goca analyze --path ./internal
+# Only run Go standards checks (formatting, doc comments)
+goca analyze --standards
 
-# Dry-run — show what would be analyzed without writing reports
-goca analyze --dry-run
+# Only run test coverage and pattern checks
+goca analyze --tests
+
+# Only run dependency hygiene checks
+goca analyze --deps
+
+# Exit non-zero when any warning is present (CI-friendly)
+goca analyze --fail-on-warn
+
+# Run all checks and output JSON (ideal for CI)
+goca analyze --output json --fail-on-warn
 
 ; ── CI PIPELINE ──────────────────────────────────────────────────────────────
 
@@ -452,7 +464,7 @@ goca analyze --dry-run
 goca ci
 
 # Generate CI with deployment stage
-goca ci --deploy
+goca ci --with-deploy
 
 # Generate CI targeting a specific Go version
 goca ci --go-version 1.24
@@ -462,29 +474,38 @@ goca ci --dry-run
 
 ; ── MIDDLEWARE ───────────────────────────────────────────────────────────────
 
+# Generate default middleware stack (cors, logging, recovery)
+goca middleware App
+
 # Generate a logging middleware
-goca middleware Logger --type logging
+goca middleware Logger --types logging
 
 # Generate an authentication/JWT middleware
-goca middleware Auth --type auth
+goca middleware Auth --types auth
 
 # Generate a CORS middleware
-goca middleware CORS --type cors
+goca middleware CORS --types cors
 
 # Generate a rate-limiting middleware
-goca middleware RateLimit --type ratelimit
+goca middleware RateLimit --types rate-limit
 
-# Generate a request-tracing middleware
-goca middleware Trace --type tracing
+# Generate a panic-recovery middleware
+goca middleware Recovery --types recovery
 
-# Generate a recovery (panic) middleware
-goca middleware Recovery --type recovery
+# Generate a request-ID middleware
+goca middleware RequestID --types request-id
 
-# Generate a caching middleware
-goca middleware Cache --type cache
+# Generate a timeout middleware
+goca middleware Timeout --types timeout
+
+# Generate multiple middleware types in one file
+goca middleware App --types cors,logging,auth,recovery
+
+# Generate all 7 middleware types
+goca middleware App --types cors,logging,auth,rate-limit,recovery,request-id,timeout
 
 # Dry-run — preview without writing files
-goca middleware <Name> --type <type> --dry-run
+goca middleware <Name> --types <type> --dry-run
 
 ; ── MCP SERVER ───────────────────────────────────────────────────────────────
 

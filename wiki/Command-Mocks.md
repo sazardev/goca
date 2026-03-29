@@ -1,40 +1,50 @@
 # goca mocks
 
-Generate [testify/mock](https://pkg.go.dev/github.com/stretchr/testify/mock) stubs for all interfaces in your project.
+Generate [testify/mock](https://pkg.go.dev/github.com/stretchr/testify/mock) stubs for an entity's interfaces (repository, use case, handler).
 
 ## Syntax
 
 ```bash
-goca mocks [flags]
-goca mocks <InterfaceName> [flags]
+goca mocks <EntityName> [flags]
 ```
+
+`<EntityName>` is **required**. It is the entity name (e.g. `User`, `Product`), not an interface name.
 
 ## Flags
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--output` | `string` | `internal/mocks/` | Output directory |
+| `--all` | `bool` | `false` | Generate all mocks (repository, use case, handler) |
+| `--repository` | `bool` | `false` | Generate only the repository mock |
+| `--usecase` | `bool` | `false` | Generate only the use-case mock |
+| `--handler` | `bool` | `false` | Generate only the handler mock |
 | `--dry-run` | `bool` | `false` | Preview without writing |
 | `--force` | `bool` | `false` | Overwrite existing files |
+| `--backup` | `bool` | `false` | Back up existing files before overwriting |
 
 ## Examples
 
 ```bash
-# Generate mocks for all interfaces
-goca mocks
+# Generate all mocks for the User entity
+goca mocks User --all
 
-# Generate a mock for a specific interface
-goca mocks UserRepository
+# Generate only the repository mock for Product
+goca mocks Product --repository
+
+# Generate repository + use-case mocks for Order
+goca mocks Order --repository --usecase
 
 # Dry-run preview
-goca mocks --dry-run
+goca mocks User --all --dry-run
 ```
 
 ## Generated Files
 
 ```
 internal/mocks/
-└── mock_<interface_name>.go
+└── mock_<entity>_repository.go
+└── mock_<entity>_usecase.go
+└── mock_<entity>_handler.go
 ```
 
 ## See Also

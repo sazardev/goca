@@ -13,6 +13,8 @@ goca test-integration <EntityName> [flags]
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `--database` | `string` | `postgres` | Target database (postgres, mysql, sqlite) |
+| `--fields` | `string` | `""` | Entity fields for typed test data (e.g. `"Name:string,Price:float64"`) |
+| `--fixtures` | `bool` | `true` | Generate fixture helpers |
 | `--container` | `bool` | `false` | Generate testcontainers-go setup |
 | `--dry-run` | `bool` | `false` | Preview without writing |
 | `--force` | `bool` | `false` | Overwrite existing files |
@@ -33,7 +35,7 @@ goca test-integration Order --database mysql
 ## Generated Files
 
 ```
-internal/testing/tests/
+internal/testing/integration/
 └── <entity>_integration_test.go
 └── helpers_test.go
 └── fixtures_test.go
