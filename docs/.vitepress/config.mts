@@ -284,7 +284,7 @@ export default defineConfig({
                     ]
                 },
                 {
-                    text: 'Previous Releases',
+                    text: 'v1.17.x and Earlier',
                     items: [
                         { text: 'v1.17.2', link: '/blog/releases/v1-17-2' },
                         { text: 'v1.17.1', link: '/blog/releases/v1-17-1' },

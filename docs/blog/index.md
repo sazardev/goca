@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: Latest Release
-      link: /blog/releases/v1-17-2
+      link: /blog/releases/v1-22-0
     - theme: alt
       text: All Articles
       link: /blog/articles/
@@ -44,12 +44,12 @@ features:
 
 ## Latest Release
 
-### [v1.17.2 - Database Defaults and MongoDB Fixes](/blog/releases/v1-17-2)
-*February 1, 2026*
+### [v1.22.0 — Analyze, Cache, CI & Middleware](/blog/releases/v1-22-0)
+*March 27, 2026*
 
-Changed default database to SQLite for easier setup and fixed MongoDB code generation issues. MongoDB projects now use mongo-driver correctly without GORM conflicts.
+Largest release to date: `goca analyze` with 30 rules across 6 categories, Redis cache decorator, GitHub Actions CI generation, 7 composable middleware types, and MCP server for AI assistant integration.
 
-[Read full release notes](/blog/releases/v1-17-2)
+[Read full release notes](/blog/releases/v1-22-0)
 
 ---
 
