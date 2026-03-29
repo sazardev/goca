@@ -118,6 +118,6 @@ naming:
 
 ## Related Commands
 
-- [`goca init`](/goca/commands/init) — Initialize a new project (can generate `.goca.yaml`)
-- [`goca doctor`](/goca/commands/doctor) — Verify project health including config
-- [`goca template`](/goca/commands/template) — Manage custom code templates
+- [`goca init`](/commands/init) — Initialize a new project (can generate `.goca.yaml`)
+- [`goca doctor`](/commands/doctor) — Verify project health including config
+- [`goca template`](/commands/template) — Manage custom code templates

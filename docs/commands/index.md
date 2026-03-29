@@ -5,45 +5,45 @@ Goca provides a comprehensive set of commands to generate Clean Architecture com
 ## Command Categories
 
 ### Project Initialization
-- [`goca init`](/goca/commands/init) - Initialize a new Clean Architecture project
+- [`goca init`](/commands/init) - Initialize a new Clean Architecture project
 
 ### Complete Features
-- [`goca feature`](/goca/commands/feature) - Generate a complete feature with all layers
-- [`goca integrate`](/goca/commands/integrate) - Integrate existing features with DI and routing
+- [`goca feature`](/commands/feature) - Generate a complete feature with all layers
+- [`goca integrate`](/commands/integrate) - Integrate existing features with DI and routing
 
 ### Layer-Specific Generation
 
 #### Domain Layer
-- [`goca entity`](/goca/commands/entity) - Generate domain entities
+- [`goca entity`](/commands/entity) - Generate domain entities
 
 #### Application Layer
-- [`goca usecase`](/goca/commands/usecase) - Generate use cases and DTOs
-- [`goca interfaces`](/goca/commands/interfaces) - Generate interface contracts
+- [`goca usecase`](/commands/usecase) - Generate use cases and DTOs
+- [`goca interfaces`](/commands/interfaces) - Generate interface contracts
 
 #### Infrastructure Layer
-- [`goca repository`](/goca/commands/repository) - Generate repositories
+- [`goca repository`](/commands/repository) - Generate repositories
 
 #### Adapter Layer
-- [`goca handler`](/goca/commands/handler) - Generate handlers (HTTP, gRPC, CLI, etc.)
-- [`goca middleware`](/goca/commands/middleware) - Generate composable HTTP middleware package
+- [`goca handler`](/commands/handler) - Generate handlers (HTTP, gRPC, CLI, etc.)
+- [`goca middleware`](/commands/middleware) - Generate composable HTTP middleware package
 
 ### Configuration & Templates
-- [`goca config`](/goca/commands/config) - Manage `.goca.yaml` configuration files
-- [`goca template`](/goca/commands/template) - Manage custom code generation templates
+- [`goca config`](/commands/config) - Manage `.goca.yaml` configuration files
+- [`goca template`](/commands/template) - Manage custom code generation templates
 
 ### Utilities
-- [`goca di`](/goca/commands/di) - Generate dependency injection container
-- [`goca messages`](/goca/commands/messages) - Generate error messages and constants
-- [`goca mocks`](/goca/commands/mocks) - Generate testify/mock mocks for all interfaces
-- [`goca doctor`](/goca/commands/doctor) - Check project health and Clean Architecture structure
-- [`goca analyze`](/goca/commands/analyze) - Deep self-analysis: architecture, security, quality, standards, tests, dependencies
-- [`goca ci`](/goca/commands/ci) - Generate CI/CD pipeline configuration (GitHub Actions)
-- [`goca mcp-server`](/goca/commands/mcp-server) - Start MCP server for AI assistant integration (GitHub Copilot, Claude, Cursor)
-- [`goca upgrade`](/goca/commands/upgrade) - Upgrade project configuration to current Goca version
-- [`goca version`](/goca/commands/version) - Display version information
+- [`goca di`](/commands/di) - Generate dependency injection container
+- [`goca messages`](/commands/messages) - Generate error messages and constants
+- [`goca mocks`](/commands/mocks) - Generate testify/mock mocks for all interfaces
+- [`goca doctor`](/commands/doctor) - Check project health and Clean Architecture structure
+- [`goca analyze`](/commands/analyze) - Deep self-analysis: architecture, security, quality, standards, tests, dependencies
+- [`goca ci`](/commands/ci) - Generate CI/CD pipeline configuration (GitHub Actions)
+- [`goca mcp-server`](/commands/mcp-server) - Start MCP server for AI assistant integration (GitHub Copilot, Claude, Cursor)
+- [`goca upgrade`](/commands/upgrade) - Upgrade project configuration to current Goca version
+- [`goca version`](/commands/version) - Display version information
 
 ### Testing
-- [`goca test-integration`](/goca/commands/test-integration) - Generate integration test scaffolding
+- [`goca test-integration`](/commands/test-integration) - Generate integration test scaffolding
 
 ## Quick Reference
 

@@ -224,7 +224,7 @@ Environment variables `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NA
 
 ## See Also
 
-- [Commands Overview](/goca/commands/)
-- [goca init](/goca/commands/init)
-- [goca doctor](/goca/commands/doctor)
-- [goca test-integration](/goca/commands/test-integration)
+- [Commands Overview](/commands/)
+- [goca init](/commands/init)
+- [goca doctor](/commands/doctor)
+- [goca test-integration](/commands/test-integration)

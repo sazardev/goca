@@ -202,6 +202,6 @@ Some middleware types require external packages. Goca does **not** automatically
 
 ## See Also
 
-- [Commands Overview](/goca/commands/)
-- [goca handler](/goca/commands/handler)
-- [goca feature](/goca/commands/feature)
+- [Commands Overview](/commands/)
+- [goca handler](/commands/handler)
+- [goca feature](/commands/feature)

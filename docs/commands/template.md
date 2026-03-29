@@ -96,6 +96,6 @@ Templates receive a `TemplateData` struct with these fields:
 
 ## Related Commands
 
-- [`goca config`](/goca/commands/config) — Manage `.goca.yaml` configuration
-- [`goca feature`](/goca/commands/feature) — Generate features using templates
-- [`goca init`](/goca/commands/init) — Initialize a new project
+- [`goca config`](/commands/config) — Manage `.goca.yaml` configuration
+- [`goca feature`](/commands/feature) — Generate features using templates
+- [`goca init`](/commands/init) — Initialize a new project

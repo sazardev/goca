@@ -180,6 +180,6 @@ Analyzed 29 rules — 28 passed, 0 warnings, 1 failed
 
 ## Related Commands
 
-- [`goca doctor`](/goca/commands/doctor) — Structural health check (directories, build, DI)
-- [`goca upgrade`](/goca/commands/upgrade) — Upgrade `.goca.yaml` to current format
-- [`goca mcp-server`](/goca/commands/mcp-server) — Run `goca_analyze` as an AI assistant tool
+- [`goca doctor`](/commands/doctor) — Structural health check (directories, build, DI)
+- [`goca upgrade`](/commands/upgrade) — Upgrade `.goca.yaml` to current format
+- [`goca mcp-server`](/commands/mcp-server) — Run `goca_analyze` as an AI assistant tool
