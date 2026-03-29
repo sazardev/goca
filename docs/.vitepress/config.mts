@@ -6,6 +6,19 @@ import { existsSync, readFileSync } from 'fs'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+// Release metadata for per-page SEO and structured data
+const releaseMetaMap: Record<string, { version: string; date: string }> = {
+    'blog/releases/v1-14-1.md': { version: '1.14.1', date: '2025-10-27' },
+    'blog/releases/v1-17-1.md': { version: '1.17.1', date: '2026-01-11' },
+    'blog/releases/v1-17-2.md': { version: '1.17.2', date: '2026-02-01' },
+    'blog/releases/v1-18-0.md': { version: '1.18.0', date: '2026-03-24' },
+    'blog/releases/v1-18-1.md': { version: '1.18.1', date: '2026-03-24' },
+    'blog/releases/v1-18-2.md': { version: '1.18.2', date: '2026-03-25' },
+    'blog/releases/v1-18-7.md': { version: '1.18.7', date: '2026-03-24' },
+    'blog/releases/v1-19-0.md': { version: '1.19.0', date: '2026-03-26' },
+    'blog/releases/v1-22-0.md': { version: '1.22.0', date: '2026-03-27' },
+}
+
 // Load OG images mapping
 let ogImagesMap: Array<{ articlePath: string; imagePath: string }> = [];
 try {
@@ -101,7 +114,7 @@ export default defineConfig({
             },
             'description': 'CLI code generator for Go that helps you build production-ready applications following Clean Architecture principles',
             'url': 'https://sazardev.github.io/goca/',
-            'softwareVersion': '2.0.0',
+            'softwareVersion': '1.22.0',
             'author': {
                 '@type': 'Person',
                 'name': 'sazardev',
@@ -114,11 +127,11 @@ export default defineConfig({
         })],
     ],
 
-    // Transform head tags per page (dynamic OG images)
+    // Transform head tags per page (dynamic OG images + release SEO)
     async transformHead({ pageData }) {
         const head: any[] = [];
 
-        // Only apply to blog articles
+        // ── Blog articles ────────────────────────────────────────────────────
         if (pageData.relativePath.startsWith('blog/articles/') && !pageData.relativePath.endsWith('index.md')) {
             // Find matching OG image
             const articlePath = pageData.relativePath.replace(/\\/g, '/');
@@ -163,6 +176,75 @@ export default defineConfig({
             // Canonical URL for article
             const canonicalUrl = `https://sazardev.github.io/goca/${pageData.relativePath.replace(/\.md$/, '.html')}`;
             head.push(['link', { rel: 'canonical', href: canonicalUrl }]);
+        }
+
+        // ── Blog releases ─────────────────────────────────────────────────────
+        if (pageData.relativePath.startsWith('blog/releases/') && !pageData.relativePath.endsWith('index.md')) {
+            const relPath = pageData.relativePath.replace(/\\/g, '/');
+            const releaseInfo = releaseMetaMap[relPath];
+            const canonicalUrl = `https://sazardev.github.io/goca/${relPath.replace(/\.md$/, '.html')}`;
+
+            // Override OG title + description
+            if (pageData.title) {
+                head.push(
+                    ['meta', { property: 'og:title', content: `${pageData.title} | Goca` }],
+                    ['meta', { name: 'twitter:title', content: `${pageData.title} | Goca Release Notes` }]
+                );
+            }
+            if (pageData.description) {
+                head.push(
+                    ['meta', { property: 'og:description', content: pageData.description }],
+                    ['meta', { name: 'twitter:description', content: pageData.description }]
+                );
+            }
+
+            // Article + release-specific meta
+            head.push(
+                ['meta', { property: 'og:type', content: 'article' }],
+                ['meta', { property: 'og:url', content: canonicalUrl }],
+                ['meta', { property: 'og:image', content: 'https://sazardev.github.io/goca/og-image.png' }],
+                ['meta', { property: 'og:image:width', content: '1200' }],
+                ['meta', { property: 'og:image:height', content: '630' }],
+                ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+                ['meta', { name: 'twitter:image', content: 'https://sazardev.github.io/goca/og-image.png' }],
+                ['meta', { property: 'article:author', content: 'sazardev' }],
+                ['meta', { property: 'article:section', content: 'Release Notes' }],
+                ['meta', { property: 'article:tag', content: 'goca' }],
+                ['meta', { property: 'article:tag', content: 'go clean architecture' }],
+                ['meta', { property: 'article:tag', content: 'golang code generator' }],
+                ['meta', { property: 'article:tag', content: 'release notes' }],
+                ['link', { rel: 'canonical', href: canonicalUrl }]
+            );
+
+            if (releaseInfo) {
+                head.push(
+                    ['meta', { property: 'article:published_time', content: `${releaseInfo.date}T00:00:00Z` }],
+                    ['meta', { property: 'article:tag', content: `goca ${releaseInfo.version}` }],
+                    // Per-release JSON-LD SoftwareApplication
+                    ['script', { type: 'application/ld+json' }, JSON.stringify({
+                        '@context': 'https://schema.org',
+                        '@type': 'SoftwareApplication',
+                        'name': 'Goca',
+                        'softwareVersion': releaseInfo.version,
+                        'datePublished': releaseInfo.date,
+                        'applicationCategory': 'DeveloperApplication',
+                        'operatingSystem': 'Linux, macOS, Windows',
+                        'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
+                        'description': pageData.description || `Goca v${releaseInfo.version} release notes`,
+                        'url': `https://sazardev.github.io/goca/`,
+                        'releaseNotes': canonicalUrl,
+                        'downloadUrl': `https://github.com/sazardev/goca/releases/tag/v${releaseInfo.version}`,
+                        'codeRepository': 'https://github.com/sazardev/goca',
+                        'programmingLanguage': 'Go',
+                        'author': {
+                            '@type': 'Person',
+                            'name': 'sazardev',
+                            'url': 'https://github.com/sazardev'
+                        },
+                        'license': 'https://opensource.org/licenses/MIT'
+                    })]
+                );
+            }
         }
 
         return head;
@@ -310,6 +392,19 @@ export default defineConfig({
         editLink: {
             pattern: 'https://github.com/sazardev/goca/edit/master/docs/:path',
             text: 'Edit this page on GitHub'
+        }
+    },
+    sitemap: {
+        hostname: 'https://sazardev.github.io',
+        transformItems(items) {
+            return items.map(item => ({
+                ...item,
+                changefreq: 'weekly' as const,
+                priority: item.url.includes('/blog/releases/') ? 0.8
+                    : item.url.includes('/commands/') ? 0.9
+                    : item.url.includes('/guide/') ? 0.7
+                    : 0.6,
+            }))
         }
     },
     vite: {

@@ -8,25 +8,102 @@ Sitemap: https://sazardev.github.io/goca/sitemap.xml
 # Crawl-delay for polite crawling
 Crawl-delay: 1
 
-# Block unnecessary paths
+# Block unnecessary build artifacts
 Disallow: /node_modules/
 Disallow: /.vitepress/
 Disallow: /*.json$
 Disallow: /*?*print=
 Disallow: /*?*pdf=
 
-# Allow search engines to index everything else
+# Allow all content sections
 Allow: /guide/
 Allow: /commands/
 Allow: /tutorials/
+Allow: /features/
+Allow: /blog/
 Allow: /getting-started
 
-# Specific crawlers
+# ── Major Search Engines ──────────────────────────────────────────────────────
+
 User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
 User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: facebot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# ── AI / LLM Crawlers ─────────────────────────────────────────────────────────
+
+# OpenAI / ChatGPT
+User-agent: GPTBot
+Allow: /
+
+# OpenAI - ChatGPT browsing plugin
+User-agent: ChatGPT-User
+Allow: /
+
+# Anthropic / Claude
+User-agent: Claude-Web
+Allow: /
+
+User-agent: claudebot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Google Gemini / Bard
+User-agent: Google-Extended
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Meta AI (Llama)
+User-agent: FacebookBot
+Allow: /
+
+# Amazon Alexa / Rufus
+User-agent: Amazonbot
+Allow: /
+
+# Apple (Siri / AI features)
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Common / Research
+User-agent: cohere-ai
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: ia_archiver
 Allow: /
