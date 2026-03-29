@@ -79,7 +79,10 @@ type List{{.Entity.Name}}sOutput struct {
 // Repository template for dynamic generation
 const repositoryTemplate = `package repository
 
-import "{{.Module}}/internal/domain"
+import (
+	"{{.Module}}/internal/domain"{{if .Features.Transactions}}
+	"gorm.io/gorm"{{end}}
+)
 
 type {{.Entity.Name}}Repository interface {
 	Save({{.Entity.NameLower}} *domain.{{.Entity.Name}}) error
@@ -88,9 +91,9 @@ type {{.Entity.Name}}Repository interface {
 {{end}}{{end}}	Update({{.Entity.NameLower}} *domain.{{.Entity.Name}}) error
 	Delete(id int) error
 	FindAll() ([]domain.{{.Entity.Name}}, error)
-{{if .Features.Transactions}}	SaveWithTx(tx interface{}, {{.Entity.NameLower}} *domain.{{.Entity.Name}}) error
-	UpdateWithTx(tx interface{}, {{.Entity.NameLower}} *domain.{{.Entity.Name}}) error
-	DeleteWithTx(tx interface{}, id int) error
+{{if .Features.Transactions}}	SaveWithTx(tx *gorm.DB, {{.Entity.NameLower}} *domain.{{.Entity.Name}}) error
+	UpdateWithTx(tx *gorm.DB, {{.Entity.NameLower}} *domain.{{.Entity.Name}}) error
+	DeleteWithTx(tx *gorm.DB, id int) error
 {{end}}}
 `
 

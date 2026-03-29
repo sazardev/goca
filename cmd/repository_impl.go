@@ -186,26 +186,23 @@ func generatePostgresTransactionMethods(content *strings.Builder, entity, repoNa
 	repoVar := strings.ToLower(string(repoName[0]))
 
 	// SaveWithTx
-	fmt.Fprintf(content, "func (%s *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
+	fmt.Fprintf(content, "func (%s *%s) SaveWithTx(tx *gorm.DB, %s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity)
-	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	fmt.Fprintf(content, "\tresult := gormTx.Create(%s)\n", entityLower)
+	fmt.Fprintf(content, "\tresult := tx.Create(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// UpdateWithTx
-	fmt.Fprintf(content, "func (%s *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
+	fmt.Fprintf(content, "func (%s *%s) UpdateWithTx(tx *gorm.DB, %s *domain.%s) error {\n",
 		repoVar, repoName, entityLower, entity)
-	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	fmt.Fprintf(content, "\tresult := gormTx.Save(%s)\n", entityLower)
+	fmt.Fprintf(content, "\tresult := tx.Save(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// DeleteWithTx
-	fmt.Fprintf(content, "func (%s *%s) DeleteWithTx(tx interface{}, id int) error {\n",
+	fmt.Fprintf(content, "func (%s *%s) DeleteWithTx(tx *gorm.DB, id int) error {\n",
 		repoVar, repoName)
-	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	fmt.Fprintf(content, "\tresult := gormTx.Delete(&domain.%s{}, id)\n", entity)
+	fmt.Fprintf(content, "\tresult := tx.Delete(&domain.%s{}, id)\n", entity)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }

@@ -184,7 +184,11 @@ func generateRepositoryInterface(dir, entity string, transactions bool, sm ...*S
 	} else {
 		// File doesn't exist, create header
 		content.WriteString("package repository\n\n")
-		content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
+		if transactions {
+			content.WriteString(fmt.Sprintf("import (\n\t\"%s/internal/domain\"\n\t\"gorm.io/gorm\"\n)\n\n", getImportPath(moduleName)))
+		} else {
+			content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
+		}
 	}
 
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
@@ -196,9 +200,9 @@ func generateRepositoryInterface(dir, entity string, transactions bool, sm ...*S
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 
 	if transactions {
-		content.WriteString(fmt.Sprintf("\tSaveWithTx(tx interface{}, %s *domain.%s) error\n", strings.ToLower(entity), entity))
-		content.WriteString(fmt.Sprintf("\tUpdateWithTx(tx interface{}, %s *domain.%s) error\n", strings.ToLower(entity), entity))
-		content.WriteString("\tDeleteWithTx(tx interface{}, id int) error\n")
+		content.WriteString(fmt.Sprintf("\tSaveWithTx(tx *gorm.DB, %s *domain.%s) error\n", strings.ToLower(entity), entity))
+		content.WriteString(fmt.Sprintf("\tUpdateWithTx(tx *gorm.DB, %s *domain.%s) error\n", strings.ToLower(entity), entity))
+		content.WriteString("\tDeleteWithTx(tx *gorm.DB, id int) error\n")
 	}
 
 	content.WriteString("}\n")

@@ -401,12 +401,12 @@ func generateHelpersContent(database string, withContainer bool, entityName stri
 	content := fmt.Sprintf(`package integration
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 
 	_ "github.com/lib/pq" // PostgreSQL driver
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -427,8 +427,8 @@ func setupTestDatabase(t *testing.T, dbType string) *gorm.DB {
 		// TODO: Add MySQL setup
 		t.Skip("MySQL integration tests not implemented yet")
 	case "sqlite":
-		// SQLite is perfect for fast integration tests
-		dialector = postgres.Open(":memory:")
+		// SQLite is perfect for fast integration tests — no external server needed
+		dialector = sqlite.Open(":memory:")
 	default:
 		t.Fatalf("unsupported database type: %%s", dbType)
 	}

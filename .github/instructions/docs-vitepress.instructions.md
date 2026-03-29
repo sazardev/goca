@@ -18,17 +18,26 @@ export default defineConfig({
 
 ### Internal Link Rules
 
+VitePress automatically prepends the `base: '/goca/'` path to internal links when using standard Markdown link syntax. **Do NOT manually add `/goca/` to Markdown links** — VitePress handles this.
+
 ```markdown
-<!-- CORRECT — includes /goca/ base prefix -->
+<!-- CORRECT — standard VitePress Markdown link (no /goca/ prefix) -->
+
+[Entity Command](/commands/entity)
+[Installation Guide](/guide/installation)
+
+<!-- CORRECT — HTML <a> tags require the full /goca/ prefix because they bypass VitePress routing -->
+
+<a href="/goca/commands/entity">Entity Command</a>
+
+<!-- FORBIDDEN — adding /goca/ to Markdown links causes double-prefix 404 in production -->
 
 [Entity Command](/goca/commands/entity)
 [Installation Guide](/goca/guide/installation)
-
-<!-- FORBIDDEN — missing base prefix, causes 404 -->
-
-[Entity Command](/commands/entity)
-[Installation Guide](../guide/installation)
 ```
+
+> **Rule**: Markdown links use `/commands/X` (no `/goca/` prefix).  
+> HTML `<a href>` tags use `/goca/commands/X` (with `/goca/` prefix).
 
 ## Frontmatter Requirements
 

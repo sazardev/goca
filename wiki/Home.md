@@ -27,6 +27,7 @@ Goca is a powerful CLI code generator for Go that helps you create projects foll
 - [**goca template**](Command-Template) - Manage custom code templates
 - [**goca doctor**](Command-Doctor) - Health check for project structure
 - [**goca upgrade**](Command-Upgrade) - Upgrade Goca configuration
+- [**goca config**](Command-Config) - Manage `.goca.yaml` configuration files
 - [**goca mcp-server**](Command-MCP-Server) - Start AI/MCP tool server
 - [**goca ci**](Command-CI) - Generate CI/CD pipelines
 - [**goca middleware**](Command-Middleware) - Generate HTTP middleware

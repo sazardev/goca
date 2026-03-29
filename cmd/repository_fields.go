@@ -30,7 +30,11 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 	} else {
 		// File doesn't exist, create header
 		content.WriteString("package repository\n\n")
-		content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
+		if transactions {
+			content.WriteString(fmt.Sprintf("import (\n\t\"%s/internal/domain\"\n\t\"gorm.io/gorm\"\n)\n\n", getImportPath(moduleName)))
+		} else {
+			content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
+		}
 	}
 
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
@@ -48,9 +52,9 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 
 	if transactions {
-		content.WriteString(fmt.Sprintf("\tSaveWithTx(tx interface{}, %s *domain.%s) error\n", strings.ToLower(entity), entity))
-		content.WriteString(fmt.Sprintf("\tUpdateWithTx(tx interface{}, %s *domain.%s) error\n", strings.ToLower(entity), entity))
-		content.WriteString("\tDeleteWithTx(tx interface{}, id int) error\n")
+		content.WriteString(fmt.Sprintf("\tSaveWithTx(tx *gorm.DB, %s *domain.%s) error\n", strings.ToLower(entity), entity))
+		content.WriteString(fmt.Sprintf("\tUpdateWithTx(tx *gorm.DB, %s *domain.%s) error\n", strings.ToLower(entity), entity))
+		content.WriteString("\tDeleteWithTx(tx *gorm.DB, id int) error\n")
 	}
 
 	content.WriteString("}\n\n")
@@ -175,25 +179,22 @@ func generateTransactionMethods(content *strings.Builder, entity, repoName strin
 	entityLower := strings.ToLower(entity)
 
 	// SaveWithTx
-	fmt.Fprintf(content, "func (p *%s) SaveWithTx(tx interface{}, %s *domain.%s) error {\n",
+	fmt.Fprintf(content, "func (p *%s) SaveWithTx(tx *gorm.DB, %s *domain.%s) error {\n",
 		repoName, entityLower, entity)
-	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	fmt.Fprintf(content, "\tresult := gormTx.Create(%s)\n", entityLower)
+	fmt.Fprintf(content, "\tresult := tx.Create(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// UpdateWithTx
-	fmt.Fprintf(content, "func (p *%s) UpdateWithTx(tx interface{}, %s *domain.%s) error {\n",
+	fmt.Fprintf(content, "func (p *%s) UpdateWithTx(tx *gorm.DB, %s *domain.%s) error {\n",
 		repoName, entityLower, entity)
-	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	fmt.Fprintf(content, "\tresult := gormTx.Save(%s)\n", entityLower)
+	fmt.Fprintf(content, "\tresult := tx.Save(%s)\n", entityLower)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 
 	// DeleteWithTx
-	fmt.Fprintf(content, "func (p *%s) DeleteWithTx(tx interface{}, id int) error {\n", repoName)
-	content.WriteString("\tgormTx := tx.(*gorm.DB)\n")
-	fmt.Fprintf(content, "\tresult := gormTx.Delete(&domain.%s{}, id)\n", entity)
+	fmt.Fprintf(content, "func (p *%s) DeleteWithTx(tx *gorm.DB, id int) error {\n", repoName)
+	fmt.Fprintf(content, "\tresult := tx.Delete(&domain.%s{}, id)\n", entity)
 	content.WriteString("\treturn result.Error\n")
 	content.WriteString("}\n\n")
 }

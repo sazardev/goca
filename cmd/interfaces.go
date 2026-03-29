@@ -147,7 +147,7 @@ func generateRepositoryInterfaceFileWithFields(dir, entity, fields string, sm ..
 
 	var content strings.Builder
 	content.WriteString("package interfaces\n\n")
-	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", moduleName))
+	content.WriteString(fmt.Sprintf("import (\n\t\"%s/internal/domain\"\n\t\"gorm.io/gorm\"\n)\n\n", moduleName))
 
 	content.WriteString(fmt.Sprintf("// %s Repository interface\n", entity))
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
@@ -187,9 +187,9 @@ func generateRepositoryInterfaceFileWithFields(dir, entity, fields string, sm ..
 	content.WriteString("\tDeleteBatch(ids []int) error\n")
 
 	// Transaction operations
-	content.WriteString(fmt.Sprintf("\tSaveWithTx(tx interface{}, %s *domain.%s) error\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tUpdateWithTx(tx interface{}, %s *domain.%s) error\n", entityLower, entity))
-	content.WriteString("\tDeleteWithTx(tx interface{}, id int) error\n")
+	content.WriteString(fmt.Sprintf("\tSaveWithTx(tx *gorm.DB, %s *domain.%s) error\n", entityLower, entity))
+	content.WriteString(fmt.Sprintf("\tUpdateWithTx(tx *gorm.DB, %s *domain.%s) error\n", entityLower, entity))
+	content.WriteString("\tDeleteWithTx(tx *gorm.DB, id int) error\n")
 
 	content.WriteString("}\n")
 
