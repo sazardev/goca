@@ -77,16 +77,6 @@ Examples:
 		}
 
 		ui.Success(fmt.Sprintf("Mocks generated successfully for '%s'", entityName))
-		ui.Println("\nGenerated files:")
-		if mockAll || mockRepository {
-			ui.FileCreated(fmt.Sprintf("internal/mocks/mock_%s_repository.go", strings.ToLower(entityName)))
-		}
-		if mockAll || mockUseCase {
-			ui.FileCreated(fmt.Sprintf("internal/mocks/mock_%s_usecase.go", strings.ToLower(entityName)))
-		}
-		if mockAll || mockHandler {
-			ui.FileCreated(fmt.Sprintf("internal/mocks/mock_%s_handler.go", strings.ToLower(entityName)))
-		}
 		ui.Dim("See internal/mocks/examples/ for unit test examples")
 	},
 }

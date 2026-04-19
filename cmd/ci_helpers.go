@@ -73,7 +73,6 @@ func generateGitHubActions(data CITemplateData, sm ...*SafetyManager) error {
 	if err := writeFile(filepath.Join(workflowDir, "test.yml"), testYAML, sm...); err != nil {
 		return fmt.Errorf("writing test.yml: %w", err)
 	}
-	ui.FileCreated(filepath.Join(workflowDir, "test.yml"))
 
 	// build.yml — always generated
 	buildYAML := generateBuildWorkflow(data)
@@ -81,7 +80,6 @@ func generateGitHubActions(data CITemplateData, sm ...*SafetyManager) error {
 	if err := writeFile(filepath.Join(workflowDir, "build.yml"), buildYAML, sm...); err != nil {
 		return fmt.Errorf("writing build.yml: %w", err)
 	}
-	ui.FileCreated(filepath.Join(workflowDir, "build.yml"))
 
 	// deploy.yml — only when requested
 	if data.WithDeploy {
@@ -90,7 +88,6 @@ func generateGitHubActions(data CITemplateData, sm ...*SafetyManager) error {
 		if err := writeFile(filepath.Join(workflowDir, "deploy.yml"), deployYAML, sm...); err != nil {
 			return fmt.Errorf("writing deploy.yml: %w", err)
 		}
-		ui.FileCreated(filepath.Join(workflowDir, "deploy.yml"))
 	}
 
 	return nil

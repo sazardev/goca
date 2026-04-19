@@ -79,12 +79,6 @@ Examples:
 
 		ui.Success(fmt.Sprintf("Integration tests generated successfully for '%s'", entityName))
 		ui.Blank()
-		ui.Section("Generated files")
-		ui.FileCreated(fmt.Sprintf("internal/testing/integration/%s_integration_test.go", strings.ToLower(entityName)))
-		if integrationTestFixtures {
-			ui.FileCreated(fmt.Sprintf("internal/testing/integration/fixtures/%s_fixtures.go", strings.ToLower(entityName)))
-		}
-		ui.Blank()
 		ui.Section("Run tests")
 		ui.Dim("   go test ./internal/testing/integration -v")
 	},

@@ -41,7 +41,6 @@ func generateMiddlewarePackage(name string, types []string, sm *SafetyManager) e
 	if err := writeGoFile(chainPath, generateChainMiddleware(module), sm); err != nil {
 		return fmt.Errorf("writing middleware.go: %w", err)
 	}
-	ui.FileCreated(chainPath)
 
 	// Write each requested middleware type.
 	for _, t := range types {
@@ -53,7 +52,6 @@ func generateMiddlewarePackage(name string, types []string, sm *SafetyManager) e
 		if err := writeGoFile(filePath, entry.generate(), sm); err != nil {
 			return fmt.Errorf("writing %s: %w", entry.filename, err)
 		}
-		ui.FileCreated(filePath)
 	}
 
 	return nil

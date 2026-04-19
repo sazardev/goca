@@ -39,7 +39,7 @@ func generateEntityTests(domainDir, entityName string, fields []Field, validatio
 	// Generate field-specific tests
 	generateFieldTests(&content, entityName, fields)
 
-	// Write file
+	// Write file — SafetyManager/writeFile already emits ui.FileCreated
 	if err := writeFile(testFile, content.String(), sm...); err != nil {
 		if ui != nil {
 			ui.Error(fmt.Sprintf("Error writing test file: %v", err))
@@ -47,12 +47,6 @@ func generateEntityTests(domainDir, entityName string, fields []Field, validatio
 			fmt.Printf("Error writing test file: %v\n", err)
 		}
 		return
-	}
-
-	if ui != nil {
-		ui.FileCreated(testFile)
-	} else {
-		fmt.Printf("\u2713 Generated test file: %s\n", testFile)
 	}
 }
 
