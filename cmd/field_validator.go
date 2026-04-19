@@ -501,7 +501,7 @@ func (v *FieldValidator) ParseFieldsWithValidation(fields string) ([]Field, erro
 		Tag:  "`json:\"id\" gorm:\"primaryKey;autoIncrement\"`",
 	})
 
-	parts := strings.Split(fields, ",")
+	parts := v.smartSplitFields(fields)
 	for _, part := range parts {
 		field, err := v.ValidateField(strings.TrimSpace(part))
 		if err != nil {

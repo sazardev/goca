@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **entity**: removed duplicate `generateSeedData` call in cobra Run — seed file was being generated twice when `--fields` was provided (once by `generateEntity` internally, once again by the Run block)
+- **field_validator**: `ParseFieldsWithValidation` now uses `smartSplitFields` instead of `strings.Split`, correctly handling complex Go types with commas inside brackets/parentheses (e.g. `map[string]string`, `func(string,int) error`)
+- **feature**: renumbered cobra Run UI steps (7–11) to avoid collision with `generateCompleteFeature` internal steps (1–6)
+
 ## [1.22.0] - 2026-03-27
 
 ### Added

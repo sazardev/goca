@@ -389,6 +389,32 @@ func TestGenerateProtoFile_DryRun(t *testing.T) {
 	assert.NotEmpty(t, sm.GetPendingFiles())
 }
 
+// TestGenerateEntity_SeedDataOnce verifies Bug #1 fix:
+// generateEntity must produce exactly one seed file; the cobra Run no longer
+// calls generateSeedData a second time after generateEntity returns.
+func TestGenerateEntity_SeedDataOnce(t *testing.T) {
+	// Not parallel: os.Chdir
+	cleanup := setupDiscardUI(t)
+	defer cleanup()
+
+	origDir, _ := os.Getwd()
+	defer os.Chdir(origDir)
+
+	dir := setupProjectDir(t)
+	require.NoError(t, os.Chdir(dir))
+
+	sm := NewSafetyManager(true, false, false)
+	generateEntity("Product", "Name:string,Price:float64", false, false, false, false, false, "snake_case", sm)
+
+	seedCount := 0
+	for _, entry := range sm.GetPendingFiles() {
+		if filepath.Base(entry.Path) == "product_seeds.go" {
+			seedCount++
+		}
+	}
+	assert.Equal(t, 1, seedCount, "expected exactly one seed file, got %d", seedCount)
+}
+
 // --- Init project files pure helpers ---
 
 func TestGetDatabasePort_Extended(t *testing.T) {

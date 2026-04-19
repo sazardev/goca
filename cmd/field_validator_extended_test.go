@@ -170,6 +170,62 @@ func TestFieldValidator_ValidateFieldType_Extended(t *testing.T) {
 	}
 }
 
+// TestParseFieldsWithValidation_ComplexTypes verifies Bug #2 fix:
+// ParseFieldsWithValidation must use smartSplitFields so commas inside
+// brackets/parentheses are not treated as field separators.
+func TestParseFieldsWithValidation_ComplexTypes(t *testing.T) {
+	t.Parallel()
+	v := NewFieldValidator()
+
+	cases := []struct {
+		name      string
+		input     string
+		wantCount int // excludes auto-added ID field
+		wantErr   bool
+	}{
+		{
+			name:      "map type with comma in brackets",
+			input:     "Meta:map[string]string,Name:string",
+			wantCount: 2,
+		},
+		{
+			name:      "slice type",
+			input:     "Tags:[]string,Price:float64",
+			wantCount: 2,
+		},
+		{
+			name:      "func type with multiple params",
+			input:     "Callback:func(string,int) error,Name:string",
+			wantCount: 2,
+		},
+		{
+			name:      "nested map",
+			input:     "Data:map[string][]interface{},Age:int",
+			wantCount: 2,
+		},
+		{
+			name:    "empty",
+			input:   "",
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			fields, err := v.ParseFieldsWithValidation(tc.input)
+			if tc.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			// ParseFieldsWithValidation prepends the ID field (+1)
+			assert.Equal(t, tc.wantCount+1, len(fields), "unexpected field count for input: %q", tc.input)
+		})
+	}
+}
+
 func TestCapitalizeFirst(t *testing.T) {
 	t.Parallel()
 

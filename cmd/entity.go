@@ -118,12 +118,6 @@ without external dependencies and with complete business validations.`,
 
 		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, tests, fileNamingConvention, sm)
 
-		// Generate seed data automatically
-		if fields != "" {
-			generateSeedData("internal/domain", entityName, parseFields(fields), sm)
-			ui.Info("Seed data generated")
-		}
-
 		if dryRun {
 			sm.PrintSummary()
 			return

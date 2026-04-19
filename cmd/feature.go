@@ -119,7 +119,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 				ui.Error(fmt.Sprintf("middleware-types: %v", err))
 				os.Exit(1)
 			}
-			ui.Step(7, "Generating middleware package...")
+			ui.Step(9, "Generating middleware package...")
 			if err := generateMiddlewarePackage(featureName, mwTypes, safetyMgr); err != nil {
 				ui.Warning(fmt.Sprintf("Could not generate middleware: %v", err))
 			}
@@ -142,12 +142,12 @@ including domain, use cases, repository and handlers in a single operation.`,
 			return
 		}
 
-		// 6. Auto-integrate with DI and main.go
-		ui.Step(6, "Integrating automatically...")
+		// 7. Auto-integrate with DI and main.go
+		ui.Step(7, "Integrating automatically...")
 		autoIntegrateFeature(featureName, handlers, cacheFlag, safetyMgr)
 
-		// 7. Handle dependencies
-		ui.Step(7, "Managing dependencies...")
+		// 8. Handle dependencies
+		ui.Step(8, "Managing dependencies...")
 
 		// Add required dependencies
 		requiredDeps := depMgr.GetRequiredDependenciesForFeature(
@@ -179,9 +179,9 @@ including domain, use cases, repository and handlers in a single operation.`,
 			ui.Dim("Tip: Run 'go mod tidy' manually")
 		}
 
-		// 8. Generate integration tests if requested
+		// 10. Generate integration tests if requested
 		if integrationTests {
-			ui.Step(8, "Generating integration tests...")
+			ui.Step(10, "Generating integration tests...")
 			parsedFields := parseFields(fields)
 			if err := generateIntegrationTests(featureName, effectiveDatabase, testFixtures, testContainer, parsedFields, safetyMgr); err != nil {
 				ui.Warning(fmt.Sprintf("Could not generate integration tests: %v", err))
@@ -190,9 +190,9 @@ including domain, use cases, repository and handlers in a single operation.`,
 			}
 		}
 
-		// 9. Generate mocks if requested
+		// 11. Generate mocks if requested
 		if generateMocksFlag {
-			ui.Step(9, "Generating mocks...")
+			ui.Step(11, "Generating mocks...")
 			if err := generateMocks(featureName, true, false, false, false, safetyMgr); err != nil {
 				ui.Warning(fmt.Sprintf("Could not generate mocks: %v", err))
 			} else {
