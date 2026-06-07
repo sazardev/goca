@@ -1,0 +1,91 @@
+# Goca — Lefthook Pre-Commit + Pre-Push Configuration
+# Parallel execution, zero tolerance, ultra-aggressive quality gates
+
+min_version: 1.5.0
+
+colors: true
+
+pre-commit:
+  parallel: true
+  commands:
+    gofumpt:
+      glob: "*.go"
+      run: gofumpt -w {staged_files}
+      stage_fixed: true
+      description: "gofumpt — strict Go formatter"
+    goimports:
+      glob: "*.go"
+      run: goimports -w {staged_files}
+      stage_fixed: true
+      description: "goimports — import formatter"
+    golangci:
+      glob: "*.go"
+      run: golangci-lint run --fix --issues-exit-code=1 --max-issues-per-linter=0 --max-same-issues=0
+      description: "golangci-lint — 80+ linters"
+    staticcheck:
+      glob: "*.go"
+      run: staticcheck ./...
+      description: "staticcheck — advanced static analysis"
+    gosec:
+      glob: "*.go"
+      run: gosec -quiet -confidence=medium -severity=medium ./...
+      description: "gosec — security scanner"
+    nilaway:
+      glob: "*.go"
+      run: nilaway ./...
+      description: "nilaway — nil pointer analysis"
+    test:
+      run: go test -count=1 ./...
+      description: "go test — unit tests"
+    build:
+      run: go build ./... && go build -o goca .
+      description: "go build — compilation check"
+    docs:
+      root: docs/
+      run: npm run build 2>&1
+      description: "vitepress — docs build"
+
+pre-push:
+  parallel: true
+  commands:
+    vet:
+      glob: "*.go"
+      run: go vet ./...
+      description: "go vet — suspicious constructs"
+    golangci:
+      glob: "*.go"
+      run: golangci-lint run --issues-exit-code=1 --max-issues-per-linter=0 --max-same-issues=0
+      description: "golangci-lint — full strict pass"
+    staticcheck:
+      glob: "*.go"
+      run: staticcheck ./...
+      description: "staticcheck — full analysis"
+    gosec:
+      glob: "*.go"
+      run: gosec -quiet -confidence=low -severity=low ./...
+      description: "gosec — full security scan"
+    nilaway:
+      glob: "*.go"
+      run: nilaway ./...
+      description: "nilaway — nil pointer check"
+    test-all:
+      run: go test -count=1 -v ./...
+      description: "go test — full verbose tests"
+    build-all:
+      run: go build ./... && go build -ldflags "-X github.com/sazardev/goca/cmd.Version=dev -X github.com/sazardev/goca/cmd.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ) -X github.com/sazardev/goca/cmd.GitCommit=$(git rev-parse --short HEAD)" -o goca .
+      description: "go build — full build with ldflags"
+    docs:
+      root: docs/
+      run: npm run build 2>&1
+      description: "vitepress — docs build"
+
+skip_output:
+  - meta
+  - success
+  - execution_out
+  - execution_header
+  - skips
+  - failure
+
+output:
+  - summary

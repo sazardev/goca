@@ -1,0 +1,383 @@
+# Goca — Ultra-Aggressive GolangCI-Lint Configuration
+# 80+ linters, zero tolerance, every issue is an error
+
+run:
+  concurrency: 4
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  allow-parallel-runners: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  sort-results: true
+
+linters:
+  enable-all: true
+  disable:
+    - asciicheck       # replaced by bidichk
+    - depguard         # not useful for this project
+    - exhaustruct      # too noisy for struct initialization
+    - gci              # conflicts with goimports
+    - gochecknoglobals # too noisy for this codebase
+    - gochecknoinits   # too noisy for this codebase
+    - godox            # TODO/FIXME as info only, not blocker
+    - lll              # line length check too noisy
+    - mnd              # magic number detector too noisy
+    - nlreturn         # opinionated formatting
+    - tagliatelle      # too opinionated on tag naming
+    - tenv             # deprecated, use 'paralleltest' instead
+    - varcheck         # deprecated (replaced by unused)
+    - varnamelen       # too noisy on short variable names
+    - wrapcheck        # conflicts with clean architecture error patterns
+    - wsl              # too opinionated on whitespace
+  fast: false
+
+linters-settings:
+  cyclop:
+    max-complexity: 10
+    package-average: 0.0
+    skip-tests: true
+
+  decorder:
+    disable-dec-order-check: false
+    disable-init-func-first-check: false
+    disable-dec-num-check: true
+
+  dupl:
+    threshold: 80
+
+  err113:
+    exclude-these-conditions:
+      - sentinel errors
+
+  errorlint:
+    errorf: true
+    asserts: true
+    comparison: true
+
+  exhaustruct:
+    include:
+      - ".*"
+    exclude:
+      - ".*_test\\.go"
+
+  forbidigo:
+    forbid:
+      - ^fmt\.Print.*$
+      - ^print.*$
+      - ^println.*$
+      - ^spew\..*$
+    exclude-godoc-examples: true
+
+  forcetypeassert:
+    assert: true
+
+  funlen:
+    lines: 50
+    statements: 40
+    ignore-comments: true
+
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/sazardev/goca)
+    skip-generated: true
+
+  gocognit:
+    min-complexity: 20
+
+  goconst:
+    min-len: 2
+    min-occurrences: 3
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - commentFormatting
+      - paramTypeCombine
+      - whyNoLint
+
+  gocyclo:
+    min-complexity: 15
+
+  godot:
+    scope: declarations
+    capital: true
+    period: true
+
+  gofumpt:
+    module-path: github.com/sazardev/goca
+    extra-rules: true
+
+  gomoddirectives:
+    replace-local: true
+    retract-no-flag: true
+    exclude-forbidden: true
+
+  gosec:
+    severity: low
+    confidence: low
+    excludes:
+      - G101  # hardcoded credentials (ok for tests)
+      - G204  # subprocess launched with variable
+      - G304  # file path provided as taint input
+      - G402  # TLS settings
+      - G505  # crypto/sha1 (ok for non-security)
+
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+      - shadow
+    settings:
+      shadow:
+        strict: true
+
+  importas:
+    no-unaliased: true
+    alias:
+      - pkg: github.com/sazardev/goca/internal/domain
+        alias: domain
+
+  interfacebloat:
+    max-methods: 10
+
+  ireturn:
+    allow:
+      - anon
+      - error
+      - empty
+      - stdlib
+      - domain\..*Entity
+      - domain\..*DTO
+
+  makezero:
+    always: true
+
+  nakedret:
+    max-func-lines: 0
+
+  nestif:
+    min-complexity: 4
+
+  nilerr:
+    err: true
+
+  nilnil:
+    checked-types:
+      - ptr
+      - func
+      - iface
+      - map
+      - chan
+
+  noctx:
+    http: true
+
+  nolintlint:
+    require-explanation: true
+    require-specific: true
+    allow-no-leading: false
+    allow-unused: false
+
+  nonamedreturns:
+    report-error-in-defer: true
+
+  paralleltest:
+    ignore-missing: false
+    race: true
+
+  perfsprint:
+    strconcat: false
+
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: true
+
+  predeclared:
+    ignore: ""
+    q: true
+
+  promlinter:
+    disabled: false
+
+  reassign:
+    patterns:
+      - ".*"
+
+  revive:
+    rules:
+      - name: blank-imports
+      - name: context-as-argument
+      - name: context-keys-type
+      - name: dot-imports
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: range
+      - name: receiver-naming
+      - name: time-naming
+      - name: unexported-return
+      - name: indent-error-flow
+      - name: errorf
+      - name: empty-block
+      - name: superfluous-else
+      - name: unused-parameter
+      - name: unreachable-code
+      - name: redefines-builtin-id
+
+  rowserrcheck:
+    packages:
+      - github.com/jmoiron/sqlx
+      - database/sql
+
+  sloglint:
+    no-mixed-args: true
+    kv-only: false
+    attr-only: false
+    no-global: "all"
+    context: "all"
+
+  sqlclosecheck:
+    require: true
+
+  staticcheck:
+    checks:
+      - all
+    dot-import-whitelist:
+      - github.com/stretchr/testify/assert
+      - github.com/stretchr/testify/require
+      - github.com/stretchr/testify/suite
+
+  tagliatelle:
+    case:
+      rules:
+        json: snake
+        yaml: kebab
+        xml: camel
+        bson: camel
+        avro: snake
+        mapstructure: kebab
+
+  testpackage:
+    skip-rules:
+      - ".*_test\\.go"
+
+  thelper:
+    test:
+      begin: true
+      first: true
+      name: true
+    benchmark:
+      begin: true
+      first: true
+      name: true
+    tb:
+      begin: true
+      first: true
+      name: true
+
+  unparam:
+    check-exported: true
+
+  usestdlibvars:
+    constant-kind: true
+    crypto-hash: true
+    default-rpc-path: true
+    http-method: true
+    http-status-code: true
+    os-dev-file: true
+    sql-isolation-level: true
+    time-layout: true
+    time-month: true
+    time-weekday: true
+    tls-signature-scheme: true
+
+  wastedassign:
+    check-missing: true
+
+  whitespace:
+    multi-if: true
+    multi-func: true
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-use-default: false
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - bodyclose
+        - dupl
+        - err113
+        - funlen
+        - goconst
+        - gocyclo
+        - cyclop
+        - gocognit
+        - maintidx
+        - noctx
+        - paralleltest
+        - prealloc
+        - rowserrcheck
+        - sqlclosecheck
+        - thelper
+        - unparam
+
+    - path: internal/mocks/
+      linters:
+        - err113
+        - errcheck
+        - exhaustruct
+        - forcetypeassert
+        - gochecknoglobals
+        - revive
+        - unparam
+        - unused
+
+    - path: internal/testing/
+      linters:
+        - dupl
+        - funlen
+        - gocyclo
+        - cyclop
+        - gocognit
+        - maintidx
+        - err113
+        - paralleltest
+        - forbidigo
+
+    - path: cmd/
+      linters:
+        - gochecknoglobals
+        - forbidigo
+
+    - path: \.go$ # generated code pattern
+      linters:
+        - ireturn
+
+severity:
+  default-severity: error
+  case-sensitive: false
+  rules:
+    - linters:
+        - godot
+        - misspell
+      severity: info
