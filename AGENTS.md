@@ -96,6 +96,18 @@ All constructors accept interfaces, not concrete types. Business logic lives in 
 
 See `.github/instructions/security.instructions.md` for full OWASP checklist.
 
+## 🚫 Regla Absoluta: No Bypass de Hooks
+
+NUNCA uses `--no-verify`, `LEFTHOOK=0`, ni ningún otro mecanismo para saltar los hooks de pre-commit o pre-push.
+
+Si un hook falla:
+1. Lee el error completo — identifica QUÉ herramienta falló (golangci-lint, nilaway, gosec, staticcheck, tests, build, docs)
+2. Investiga la causa raíz del error en el código o configuración
+3. Corrige el problema real — no lo escondas ni lo silencies
+4. Si después de investigar no sabes cómo resolverlo, PREGUNTA al usuario explicando el error y mostrando las opciones
+
+Esta regla es estricta e inquebrantable. Ignorarla viola la confianza del proyecto.
+
 ## ⚡ Key Files by Task
 
 | Task | Files |
