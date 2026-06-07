@@ -60,3 +60,4 @@ temp*/
 
 /docs/node_modules
 .github/copilot-instructions.md
+.aider*
