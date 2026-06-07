@@ -1,9 +1,9 @@
 package mocks
 
 import (
-	"github.com/stretchr/testify/mock"
 	"github.com/sazardev/goca/internal/domain"
 	"github.com/sazardev/goca/internal/usecase"
+	"github.com/stretchr/testify/mock"
 )
 
 // MockUserUseCase is a mock implementation of usecase.UserUseCase

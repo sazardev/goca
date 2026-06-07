@@ -80,6 +80,7 @@ replace github.com/goca/testproject => ./
 		return
 	}
 } // downloadDependencies downloads Go module dependencies for the project
+
 func downloadDependencies(projectName string) error {
 	// First run go mod tidy to resolve dependencies and create go.sum
 	cmd := exec.Command("go", "mod", "tidy")
@@ -658,4 +659,3 @@ func getDatabaseUser(database string) string {
 		return "postgres"
 	}
 }
-

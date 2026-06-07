@@ -10,7 +10,7 @@ import (
 func generateGRPCHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create gRPC directory
 	grpcDir := filepath.Join(DirInternal, DirHandler, DirGRPC)
-	_ = os.MkdirAll(grpcDir, 0755)
+	_ = os.MkdirAll(grpcDir, 0o755)
 
 	generateProtoFile(grpcDir, entity, fileNamingConvention, sm...)
 	generateGRPCServerFile(grpcDir, entity, fileNamingConvention, sm...)
@@ -177,7 +177,7 @@ func generateGRPCServerFile(dir, entity string, fileNamingConvention string, sm 
 func generateCLIHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create CLI directory
 	cliDir := filepath.Join(DirInternal, DirHandler, DirCLI)
-	_ = os.MkdirAll(cliDir, 0755)
+	_ = os.MkdirAll(cliDir, 0o755)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -282,7 +282,7 @@ func generateCLIHandler(entity string, fileNamingConvention string, sm ...*Safet
 func generateWorkerHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create worker directory
 	workerDir := filepath.Join(DirInternal, DirHandler, DirWorker)
-	_ = os.MkdirAll(workerDir, 0755)
+	_ = os.MkdirAll(workerDir, 0o755)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -363,7 +363,7 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 func generateSOAPHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create SOAP directory
 	soapDir := filepath.Join(DirInternal, DirHandler, DirSOAP)
-	_ = os.MkdirAll(soapDir, 0755)
+	_ = os.MkdirAll(soapDir, 0o755)
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -470,4 +470,3 @@ func (c *%sSOAPClient) Create%s(name, email string) (*Create%sResponse, error) {
 		return
 	}
 }
-

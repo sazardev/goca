@@ -9,7 +9,7 @@ import (
 func createMigrations(projectName string, sm ...*SafetyManager) {
 	// Create migrations directory
 	migrationDir := filepath.Join(projectName, "migrations")
-	if err := os.MkdirAll(migrationDir, 0755); err != nil {
+	if err := os.MkdirAll(migrationDir, 0o755); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating migrations directory: %v", err))
 		return
 	}
@@ -357,4 +357,3 @@ func getDatabaseHealthCheck(database string) string {
 		return `["CMD-SHELL", "pg_isready -U postgres"]`
 	}
 }
-

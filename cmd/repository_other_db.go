@@ -435,4 +435,3 @@ func generateSQLiteRepository(dir, entity string, cache, transactions bool, sm .
 		fmt.Printf("Error creating SQLite repository file: %v\n", err)
 	}
 }
-

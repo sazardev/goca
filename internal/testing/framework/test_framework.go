@@ -77,7 +77,11 @@ func (tc *TestContext) GetWorkingDir() string {
 
 // RunCommand ejecuta un comando de Goca y retorna su salida
 func (tc *TestContext) RunCommand(args ...string) (string, error) {
-	cmd := exec.Command(tc.BinaryPath, args...)
+	// Inject --no-color to prevent ANSI escape codes in captured output.
+	// When noColor is true, lipgloss uses termenv.Ascii profile which suppresses
+	// all ANSI codes globally, ensuring strings.Contains assertions work correctly.
+	cmdArgs := append([]string{"--no-color"}, args...)
+	cmd := exec.Command(tc.BinaryPath, cmdArgs...)
 	workDir := tc.GetWorkingDir()
 	cmd.Dir = workDir
 
@@ -176,7 +180,6 @@ func (tc *TestContext) AssertFileContains(relativePath, content string) bool {
 	fullPath := filepath.Join(tc.TempDir, relativePath)
 	tc.T.Logf("  - Probando ruta: %s", fullPath)
 	data, err := os.ReadFile(fullPath)
-
 	// If not found, try with alternative path structures
 	if err != nil {
 		tc.T.Logf("  - No encontrado en ruta principal (%v), probando alternativas", err)
@@ -272,7 +275,6 @@ func (tc *TestContext) AssertCompiles(projectDir string) bool {
 	cmd.Dir = fullPath
 
 	output, err := cmd.CombinedOutput()
-
 	if err != nil {
 		tc.T.Errorf("Error al compilar proyecto en %s: %v\nSalida:\n%s", projectDir, err, string(output))
 		tc.Failures = append(tc.Failures, fmt.Sprintf("Error de compilación en: %s", projectDir))
@@ -287,6 +289,7 @@ func (tc *TestContext) AssertCompiles(projectDir string) bool {
 func (tc *TestContext) AssertGoBuild(projectDir string) bool {
 	return tc.AssertCompiles(projectDir)
 } // AssertGoVet verifica que el código pasa go vet sin errores
+
 func (tc *TestContext) AssertGoVet(projectDir string) bool {
 	// Si se ha establecido SkipCompilation, omitir la verificación
 	if tc.SkipCompilation {
@@ -299,7 +302,6 @@ func (tc *TestContext) AssertGoVet(projectDir string) bool {
 	cmd.Dir = fullPath
 
 	output, err := cmd.CombinedOutput()
-
 	if err != nil {
 		tc.T.Errorf("Error en go vet para %s: %v\nSalida:\n%s", projectDir, err, string(output))
 		tc.Failures = append(tc.Failures, fmt.Sprintf("Error en go vet: %s", projectDir))
@@ -335,7 +337,6 @@ func (tc *TestContext) ListProjectFiles() {
 		}
 		return nil
 	})
-
 	if err != nil {
 		tc.T.Logf("❌ Error listing directory: %v", err)
 	}

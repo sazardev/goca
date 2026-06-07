@@ -1,6 +1,7 @@
 # Goca Makefile
 
-.PHONY: help build test clean install release dev-setup lint fmt version
+.PHONY: help build test clean install release dev-setup lint fmt version \
+        hooks-install hooks-update hooks-uninstall pre-commit pre-push
 
 # Variables
 VERSION ?= $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "dev")
@@ -45,20 +46,36 @@ test-coverage: ## Run tests with coverage
 	@echo "Coverage report generated: coverage.html"
 
 # Development
-dev-setup: ## Setup development environment
+dev-setup: ## Setup development environment (all tools + hooks)
 	@echo "Setting up development environment..."
 	go mod tidy
+	@echo "Installing dev tools..."
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/evilmartians/lefthook@latest
+	go install mvdan.cc/gofumpt@latest
+	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	go install go.uber.org/nilaway/cmd/nilaway@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+	@echo "Installing docs dependencies..."
+	cd docs && npm ci 2>/dev/null || echo "npm not available — skip docs deps"
+	@echo "Installing git hooks..."
+	lefthook install 2>/dev/null || echo "lefthook not in PATH — run: lefthook install"
 	@echo "Development environment ready!"
 
-fmt: ## Format code
-	@echo "Formatting code..."
-	go fmt ./...
-	gofmt -s -w .
+fmt: ## Format code with gofumpt + goimports
+	@echo "Formatting code with gofumpt..."
+	gofumpt -w .
+	goimports -w .
 
-lint: ## Run linter
-	@echo "Running linter..."
-	golangci-lint run
+lint: ## Run linter (ultra-aggressive: 80+ linters, zero tolerance)
+	@echo "Running linter (ultra-aggressive)..."
+	golangci-lint run --max-issues-per-linter=0 --max-same-issues=0
+	@echo "Running staticcheck..."
+	staticcheck ./...
+	@echo "Running gosec..."
+	gosec -quiet -confidence=medium -severity=medium ./...
+	@echo "Running nilaway..."
+	nilaway ./...
 
 # Release
 release-patch: ## Create a patch release (x.y.Z)
@@ -150,7 +167,7 @@ deps: ## Download dependencies
 	go mod tidy
 
 # Quick development workflow
-dev: fmt lint test build ## Format, lint, test, and build
+dev: fmt lint test build ## Format (gofumpt), lint (80+ linters), test, build
 
 # Documentation
 docs: ## Generate documentation
@@ -175,7 +192,36 @@ docker-build: ## Build Docker image
 	docker build -t sazardev/goca:latest .
 
 # Check if everything is ready for release
-pre-release-check: fmt lint test test-cli ## Check if everything is ready for release
+pre-release-check: fmt lint test test-cli-comprehensive ## Check if everything is ready for release
 	@echo "✅ All checks passed! Ready for release."
 	@echo "Current version: $(VERSION)"
 	@echo "To create a release, run: make release [patch|minor|major|auto]"
+
+# ── Hooks ─────────────────────────────────────────
+
+# OS detection for install script
+ifeq ($(OS),Windows_NT)
+    HOOK_INSTALL_SCRIPT = powershell -ExecutionPolicy Bypass -File scripts/install-hooks.ps1
+else
+    HOOK_INSTALL_SCRIPT = bash scripts/install-hooks.sh
+endif
+
+hooks-install: ## Install pre-commit + pre-push hooks (Linux/macOS/Windows)
+	@echo "🔧 Installing hooks..."
+	$(HOOK_INSTALL_SCRIPT)
+
+hooks-update: ## Update hooks after lefthook.yml changes
+	@echo "🔄 Updating hooks..."
+	lefthook install -f
+
+hooks-uninstall: ## Remove all git hooks
+	@echo "🗑️  Removing hooks..."
+	lefthook uninstall
+
+pre-commit: ## Run pre-commit checks manually
+	@echo "🔍 Running pre-commit checks..."
+	lefthook run pre-commit
+
+pre-push: ## Run pre-push checks manually
+	@echo "🔍 Running pre-push checks..."
+	lefthook run pre-push

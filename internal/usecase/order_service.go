@@ -1,4 +1,4 @@
-﻿package usecase
+package usecase
 
 import (
 	"github.com/sazardev/goca/internal/domain"

@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"net/http"
+
 	"github.com/stretchr/testify/mock"
 )
 
