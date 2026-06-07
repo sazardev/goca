@@ -1,266 +1,123 @@
 # AGENTS.md — Goca Code Generator
 
-Quick navigation for AI agents working with the Goca CLI codebase. All critical signals—exactly what would be missed without this file.
+Quick navigation for AI agents. Every line answers "would an agent miss this?"
 
-## 🏗 Repository Structure
+## 📁 Repo Structure
 
-**Core entry point:** `cmd/root.go` — Cobra CLI root with subcommands.
+**Entry point:** `doc.go` — `package main` with `func main()`, calls `cmd.Execute()`.
+No `main.go` exists; `doc.go` serves both doc + entry point roles.
 
-**Command implementations:** `cmd/*.go`  
-- Layer commands: `entity.go`, `usecase.go`, `handler.go`, `repository.go`
-- Composite: `feature.go` (all layers at once), `init.go` (scaffold project)
+**CLI commands:** `cmd/*.go` — Cobra subcommands.
+- Layer generation: `entity.go`, `usecase.go`, `handler.go`, `repository.go`
+- Composite: `feature.go`, `init.go`, `integrate.go`
 - Utilities: `di.go`, `interfaces.go`, `messages.go`, `middleware.go`
-- Supporting: `config_manager.go`, `template_manager.go`, `mcp_server.go`, `mcp_tools.go`
+- Supporting: `config_manager.go`, `template_manager.go`, `mcp_server.go`, `analyze.go`, `ci.go`, `doctor.go`, `upgrade.go`
+- Templates: `templates.go`, `template_components.go`, `project_templates.go`
 
-**Generated code templates:** `cmd/templates.go`, `cmd/template_components.go`, `cmd/project_templates.go`  
-These are critical—all generated Go code flows from these templates.
+**Goca's own demo packages** (NOT generated output — reference implementations):
+`internal/domain/`, `internal/usecase/`, `internal/handler/`, `internal/repository/`, `internal/di/`, `internal/messages/`, `internal/interfaces/`, `internal/mocks/`, `internal/constants/`
 
-**Clean Architecture layers** (the generated output structure):
-```
-internal/
-  domain/        # Pure entities (no external dependencies)
-  usecase/       # Business logic with DTOs
-  repository/    # Data persistence interfaces & implementations
-  handler/       # HTTP/gRPC adapters
-  di/            # Dependency injection container
-```
+**Testing:** `internal/testing/` — `comprehensive_test.go` + `suite.go` + `tests/` + `framework/`.
 
-**Testing infrastructure:** `internal/testing/`  
-- `framework/` — test utilities and mocks
-- `tests/` — integration test scenarios
-- `comprehensive_test.go` — main integration suite
-- `cli.go`, `validator.go`, `architecture.go` — test helpers
+**External rules (per-file-type):** `.github/instructions/` — 6 instruction files (testing, security, clean-architecture, commands, quality, docs-vitepress).
+**Workflow prompts:** `.github/prompts/` — 6 prompt templates (new-command, audit-codegen, add-tests, etc.).
+**Agent definition:** `.github/agents/goca-forge.agent.md`.
+**Reusable skills:** `.github/skills/` — 3 skills (codegen-testing, goca-architecture, mcp-tools).
+**OpenCode plugin:** `.opencode/package.json` — `@opencode-ai/plugin: 1.15.13`.
+**Config:** `.goca.yaml` (project defaults), `.goreleaser.yml` (Homebrew + multi-arch release).
 
-**Configuration:** `.goca.yaml` (project defaults), `go.mod` (Go 1.25.1), `Makefile` (dev workflow).
+## 🔧 Developer Commands
 
-## 🚀 Developer Commands
-
-### Essential Build & Test Workflow
-
-**Full validation (must pass before any commit):**
 ```bash
-make dev          # fmt → lint → test → build (recommended pre-commit check)
-```
-
-**Individual steps:**
-```bash
+make dev          # fmt → lint → test → build (pre-commit check)
 make lint         # golangci-lint run
 make test         # go test -v ./...
-make test-coverage  # Coverage report → coverage.html
-make build        # Build binary with version info
-```
-
-**CLI-specific tests (separate from unit tests):**
-```bash
-make test-cli-comprehensive   # All CLI scenarios
-make test-cli-init            # goca init command only
-make test-cli-feature         # goca feature command only
-make test-cli-entity          # goca entity command only
-make test-cli-fast            # Compilation-only tests (no codegen)
-make test-all                 # Unit tests + comprehensive CLI tests
-```
-
-**Debug specific failing test:**
-```bash
-# Run single test with verbose output
-go test -v ./internal/testing -run TestGocaCLIComprehensive
-
-# Run subset of cmd tests
-go test -v ./cmd -run TestNameOfFunction
-```
-
-**Install locally:**
-```bash
+make test-coverage  # → coverage.html
+make build        # Build binary with version injection
 make install      # go install . → $GOPATH/bin/goca
 ```
 
-## 🔑 Critical Constraints
+**CLI integration tests (`go run internal/testing/test_runner.go`):**
+```bash
+make test-cli-comprehensive   # All CLI scenarios
+make test-cli-init            # goca init only
+make test-cli-feature         # goca feature only
+make test-cli-entity          # goca entity only
+make test-cli-fast            # Compilation-only (quick iteration)
+make test-cli-quality         # Code quality of generated output
+make test-all                 # Unit + comprehensive CLI tests
+```
 
-### Code Generation Quality Gates
+**Run a specific test:**
+```bash
+go test -v ./internal/testing -run TestGocaInitCommand
+go test -v ./cmd -run TestValidateEntityName
+```
 
-**All generated code must pass (non-negotiable):**
-1. `go build ./...` — zero build errors across all database backends (postgres, mysql, sqlite, etc.)
-2. `go vet ./...` — zero vet warnings
-3. `go fmt ./...` — formatted correctly
+**Version injection:** `go build -ldflags "-X github.com/sazardev/goca/cmd.Version=$(VERSION) ..."`
+Requires git tags. Use `VERSION=dev make build` if no tags exist.
+
+## 🔑 Codegen Quality Gates (non-negotiable)
+
+Every template change must pass for all 8 database backends (postgres, mysql, sqlite, sqlserver, mongodb, redis, cassandra, dynamodb):
+1. `go build ./...` — zero errors
+2. `go vet ./...` — zero warnings
+3. `go fmt ./...` — properly formatted
 4. No unused imports
+5. Template renders with empty `Fields` slice (edge case)
+6. Optional features toggle on/off: timestamps, soft_delete, uuid, audit, versioning
 
-**Templates render correctly with edge cases:**
-- Empty `Fields` slice (minimal entity)
-- All database backends (postgres, mysql, sqlite, sqlserver, mongodb, redis, cassandra, dynamodb)
-- Optional features toggled on/off (timestamps, soft_delete, uuid, audit, versioning)
+After ANY template change: `make test-cli-comprehensive`.
 
-**See CodegenAuditor mode in `.github/AGENTS.md` for full template audit workflow.**
+**Template data:** Build `TemplateData` completely before passing to `template.Execute`. Missing fields → nil pointer dereference at runtime. All template strings are static constants — never constructed from user input.
 
-### Dependency Architecture (Enforced in Generated Code)
+## 🏛️ Architecture Rules (generated code)
 
-**Direction of dependencies (must point inward):**
+Dependency direction (enforced, points inward):
 ```
 HTTP Handler → UseCase Interface → Repository Interface → Domain Entity
-      ↓              ↓                       ↓                    ↓
-    adapter      business logic        persistence           pure logic
 ```
+- `internal/handler` imports usecase interfaces only (never concrete types)
+- `internal/usecase` imports repository interfaces (never handler)
+- `internal/domain` imports nothing from `internal/`
+- DI container is the only place that wires concrete → interface
 
-**Violations to prevent:**
-- ❌ `internal/handler` imports `internal/usecase` concrete types (must use interfaces)
-- ❌ `internal/usecase` imports `internal/handler` (upward dependency)
-- ❌ `internal/domain` imports anything from `internal/repository` or `internal/handler`
-- ✅ All layers use dependency injection—no direct instantiation of concrete types outside DI
+All constructors accept interfaces, not concrete types. Business logic lives in usecases, never handlers.
 
-**See ArchitectGuard mode in `.github/AGENTS.md`.**
+## 🛡️ Security Validation
 
-### Security Validation Required
+- Names match `^[A-Za-z][A-Za-z0-9]*$` — validated via `CommandValidator`
+- Paths: `filepath.Join` with validated components only; verify within `os.Getwd()`
+- Shell: `exec.Command` with argument arrays — never string concatenation
+- File permissions: source `0644`, dirs `0755`
+- No deletion operations in any command
+- No sensitive data (DB passwords) logged or surfaced in CLI output
+- All file writes go through `SafetyManager.WriteFile()` — never `os.WriteFile` directly in command code
 
-**All user input validated via `CommandValidator`:**
-- Name validation regex: `^[A-Za-z][A-Za-z0-9]*$`
-- Path construction uses `filepath.Join` only
-- Constructed paths verified to stay within `os.Getwd()`
-- `exec.Command` uses argument arrays—never shell string concatenation
+See `.github/instructions/security.instructions.md` for full OWASP checklist.
 
-**No risky operations:**
-- ✅ File creation with `0644` (files), `0755` (dirs)
-- ❌ No deletion operations in any command
-- ❌ No sensitive data (passwords, tokens) in logs or CLI output
+## ⚡ Key Files by Task
 
-**See SecurityAuditor mode in `.github/AGENTS.md`.**
+| Task | Files |
+|------|-------|
+| Template author | `cmd/templates.go`, `cmd/template_components.go`, `cmd/project_templates.go` |
+| Command developer | `cmd/entity.go`, `cmd/feature.go` (pattern reference) |
+| Test engineer | `cmd/*_test.go`, `internal/testing/` |
+| Architecture | `.github/instructions/clean-architecture.instructions.md` |
+| Security auditor | `cmd/command_validator.go`, `cmd/safety.go` |
+| MCP integration | `cmd/mcp_server.go`, `cmd/mcp_tools*.go`, `cmd/mcp_resources.go` |
 
-## 📋 Common Tasks & Patterns
+## 🚨 Gotchas
 
-### Adding a New Command
-
-1. Create `cmd/<command_name>.go`
-2. Define command in `cmd/root.go` using Cobra pattern (see `cmd/entity.go` as template)
-3. Add validation step using `CommandValidator` struct
-4. Add integration test to `internal/testing/tests/`
-5. Add test case to `comprehensive_test.go`
-6. Update `GUIDE.md` with command documentation
-
-**Command structure (required):**
-- Use `cobra.Command` with clear `Use`, `Short`, `Long` descriptions
-- Validate all user inputs before code generation
-- Return detailed errors with context (`fmt.Errorf("...: %w", err)`)
-- Generate files to deterministic paths relative to `os.Getwd()`
-
-### Modifying Code Generation Templates
-
-**Critical: After ANY template change, run:**
-```bash
-make test-cli-comprehensive   # Verify generated code compiles on all backends
-```
-
-1. Find template in `cmd/templates.go` or `cmd/template_components.go`
-2. Trace where it's used via `TemplateData` struct (defined in same file)
-3. Verify all `{{if .Features.*}}` blocks handle both true/false
-4. Test with sample project: `goca init test-proj && cd test-proj && go build ./...`
-5. Commit only when `go vet` and `go build` pass
-
-**Template data flows:**
-- `entity.go` → reads flags → builds `TemplateData` → passes to template → writes `domain/<entity>.go`
-- `feature.go` → orchestrates entity + usecase + handler + repository (all templates used together)
-
-### Adding Tests
-
-**Naming convention:** `TestFunctionName_Scenario`  
-**Use table-driven tests** for functions with multiple input variants.  
-**Requirements:**
-- `t.TempDir()` for all filesystem operations
-- `t.Parallel()` for state-independent tests
-- Include edge cases: empty input, special characters, boundary values
-- Integration tests must verify `go build ./...` and `go vet ./...` on generated output
-
-```go
-func TestValidateName(t *testing.T) {
-    tests := []struct {
-        name      string
-        input     string
-        wantError bool
-    }{
-        {"valid name", "User", false},
-        {"empty name", "", true},
-        {"special chars", "User-123", true},
-    }
-    
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            t.Parallel()
-            err := ValidateName(tt.input)
-            if (err != nil) != tt.wantError {
-                t.Errorf("got error %v, want %v", err, tt.wantError)
-            }
-        })
-    }
-}
-```
-
-## 📚 Key Files by Role
-
-| Role | Key Files | Purpose |
-|------|-----------|---------|
-| **Template author** | `cmd/templates.go`, `cmd/template_components.go` | All generated code structure |
-| **Command developer** | `cmd/entity.go`, `cmd/feature.go` | CLI command implementations |
-| **Test engineer** | `cmd/*_test.go`, `internal/testing/` | Unit & integration tests |
-| **Architecture enforcer** | `internal/domain/`, `internal/repository/` | Clean Architecture layers |
-| **Security auditor** | `cmd/command_validator.go`, `cmd/safety.go` | Input validation & file safety |
-
-## 🔗 Specialized Agent Modes
-
-Goca project defines custom agent modes in `.github/AGENTS.md` with specific workflows:
-
-- **CodegenAuditor** — Template validation & generated code quality
-- **TestEngineer** — Unit & integration test authoring
-- **ArchitectGuard** — Layer boundary enforcement
-- **DocsWriter** — VitePress docs & wiki maintenance
-- **SecurityAuditor** — Security review checklist
-
-Load these modes when your task aligns with their domain.
-
-## 📊 CI/CD Pipeline
-
-**Triggers on:** push to `main`/`master`, all PRs
-
-**Key workflow:** `.github/workflows/test.yml`
-```
-go mod download → go mod tidy → go mod verify →
-go build ./... → goca init/help/version (smoke tests) →
-go test ./internal/testing -run TestGocaCLIComprehensive →
-go test ./cmd/... (unit tests)
-```
-
-**Pre-release checks:**
-```bash
-make pre-release-check    # fmt → lint → test → basic CLI tests
-make release-auto         # Auto-detects version bump, creates git tag
-```
-
-## ⚙️ Style & Conventions
-
-**Code format:** Go standard (`gofmt`) with 100-char line preference.  
-**Import groups:** stdlib → external deps → internal packages (see `STYLE_GUIDE.md`).  
-**Naming:** PascalCase for exported, camelCase for unexported.  
-**Docs:** Every exported function must have godoc comment.  
-**Error handling:** Always wrap errors with context: `fmt.Errorf("operation failed: %w", err)`.
-
-See `STYLE_GUIDE.md` for full conventions.
-
-## 🔗 External References
-
-- **Complete docs:** https://sazardev.github.io/goca
-- **Quick start:** https://sazardev.github.io/goca/getting-started
-- **Architecture guide:** https://sazardev.github.io/goca/guide/clean-architecture
-- **Cobra CLI framework:** https://cobra.dev/
-- **Go text/template:** https://golang.org/pkg/text/template/
-- **testify (test assertions):** https://github.com/stretchr/testify
-
-## 🚨 Gotchas & Pitfalls
-
-1. **Template data must be fully populated** before rendering—missing fields → nil pointer dereference
-2. **Generated imports must include all used packages** or `go vet` fails—templates must match actual generated code
-3. **Path traversal bugs** if `filepath.Join` not used—always validate constructed paths stay in project root
-4. **Test isolation** — use `t.TempDir()`, never write to actual filesystem during tests
-5. **Integration tests are slow** — keep `make test-cli-fast` for quick iteration, use full suite before commit
-6. **Version info requires git tags** — `go build` injects version from git describe; use `VERSION=dev make build` if no tags exist
+1. **Template data must be fully populated** before rendering — missing fields → nil pointer dereference
+2. **Generated imports must match used packages** — mismatch breaks `go vet`
+3. **Test isolation:** always use `t.TempDir()`, never real filesystem
+4. **Integration tests are slow** — `make test-cli-fast` for quick feedback
+5. **Version info requires git tags** — `VERSION=dev make build` if no tags
+6. **`pre-release-check`** runs: `fmt → lint → test → test-cli-comprehensive`
+7. **Config loading fails silently for non-init projects** — always handle config load warnings
+8. **MCP server mode** — `goca mcp-server` starts a stdio MCP server exposing Goca as tools for AI assistants
 
 ---
 
-**Last updated:** May 2026  
-**Goca version:** Go 1.25.1 required  
-**Go Clean Architecture enforced:** Domain layer pure, dependencies point inward, all layers interface-based.
+**Go 1.25.1 required.** Module: `github.com/sazardev/goca`.
