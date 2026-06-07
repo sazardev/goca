@@ -43,6 +43,9 @@ func (u *userService) Update(id uint, input UpdateUserInput) (*domain.User, erro
 	if err != nil {
 		return nil, err
 	}
+	if user == nil {
+		return nil, domain.ErrNotFound
+	}
 
 	if input.Name != nil {
 		user.Name = *input.Name

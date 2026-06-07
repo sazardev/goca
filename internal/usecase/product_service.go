@@ -43,6 +43,9 @@ func (p *productService) Update(id uint, input UpdateProductInput) (*domain.Prod
 	if err != nil {
 		return nil, err
 	}
+	if product == nil {
+		return nil, domain.ErrNotFound
+	}
 
 	if input.Name != nil {
 		product.Name = *input.Name

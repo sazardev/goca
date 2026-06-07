@@ -19,6 +19,9 @@ var (
 	ErrInvalidProductPriceRange  = errors.New("price must be greater than 0 and less than 999,999,999.99")
 	ErrInvalidProductDescription = errors.New("description is required")
 
+	// Common errors
+	ErrNotFound = errors.New("resource not found")
+
 	// Order errors
 	ErrInvalidOrderData            = errors.New("invalid order data")
 	ErrInvalidOrderCustomerID      = errors.New("customer_id is required")
