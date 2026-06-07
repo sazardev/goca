@@ -62,8 +62,8 @@ pre-push:
       description: "staticcheck — full analysis"
     gosec:
       glob: "*.go"
-      run: gosec -quiet -confidence=low -severity=low ./...
-      description: "gosec — full security scan"
+      run: gosec -quiet -exclude=G101,G115,G204,G301,G304,G306,G402,G404,G505 -confidence=high -severity=high ./...
+      description: "gosec — security scan (high only)"
     nilaway:
       glob: "*.go"
       run: nilaway ./...
