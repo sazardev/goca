@@ -19,8 +19,8 @@ func TestGenerateCacheDecorator_Basic(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0755))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	fields := []Field{
@@ -54,8 +54,8 @@ func TestGenerateCacheDecorator_CacheKeyHelpers(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0755))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	generateCacheDecorator("Order", nil, sm)
@@ -77,8 +77,8 @@ func TestGenerateCacheDecorator_SearchMethods(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0755))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	fields := []Field{
@@ -106,8 +106,8 @@ func TestGenerateCacheDecorator_NoFields(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0755))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	generateCacheDecorator("Item", nil, sm)
@@ -129,8 +129,8 @@ func TestGenerateCacheDecorator_DryRun(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0755))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0o755))
 
 	sm := NewSafetyManager(true, false, false)
 	generateCacheDecorator("Product", nil, sm)
@@ -160,8 +160,8 @@ func TestGenerateCacheDecorator_Imports(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module myapp\n\ngo 1.21\n"), 0644))
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0755))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module myapp\n\ngo 1.21\n"), 0o644))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	generateCacheDecorator("Product", nil, sm)
@@ -186,8 +186,8 @@ func TestGenerateCacheDecorator_Invalidation(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0755))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, DirRepository), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	generateCacheDecorator("Product", nil, sm)

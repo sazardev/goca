@@ -70,7 +70,6 @@ func TestContains(t *testing.T) {
 		{"with whitespace", []string{"  a  "}, "a", true},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.want, contains(tc.slice, tc.item))
@@ -91,7 +90,6 @@ func TestGetFieldDisplayName(t *testing.T) {
 		{"user_email_address", "email|address"},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			result := getFieldDisplayName(tc.input)
@@ -295,7 +293,6 @@ func TestGenerateSampleValue(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := generateSampleValue(tc.field, tc.index)
@@ -320,7 +317,6 @@ func TestGenerateStringSampleValue(t *testing.T) {
 		{"Custom", 1, "Ejemplo"},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := generateStringSampleValue(tc.name, tc.index)
@@ -378,7 +374,6 @@ func TestGenerateSQLSampleValue(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := generateSQLSampleValue(tc.field, tc.index)

@@ -8,7 +8,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestInitCommand prueba exhaustivamente el comando 'init'
+// TestInitCommand prueba exhaustivamente el commando 'init'.
 func TestInitCommand(t *testing.T) {
 	// Crear contexto de test
 	tc := framework.NewTestContext(t)
@@ -44,12 +44,12 @@ func TestInitCommand(t *testing.T) {
 	tc.PrintTestSummary()
 }
 
-// testInitWithDefaultOptions prueba el comando init con opciones por defecto
+// testInitWithDefaultOptions prueba el commando init con opciones por defecto.
 func testInitWithDefaultOptions(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("init", "test-default", "--module", "github.com/test/default")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando init: %v", err)
+		t.Fatalf("Error al ejecutar commando init: %v", err)
 	}
 
 	// Verificar salida
@@ -57,7 +57,7 @@ func testInitWithDefaultOptions(tc *framework.TestContext, t *testing.T) {
 		t.Errorf("Salida esperada no encontrada: %s", output)
 	}
 
-	// Verificar estructura de archivos y directorios
+	// Verificar estructura de archivos y directors
 	essentialFiles := []string{
 		"go.mod",
 		"cmd/server/main.go",
@@ -82,13 +82,13 @@ func testInitWithDefaultOptions(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoVet("test-default")
 }
 
-// testInitWithModuleFlag prueba el comando init con el flag --module
+// testInitWithModuleFlag prueba el commando init con el flag --module.
 func testInitWithModuleFlag(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	moduleName := "github.com/custom/module"
 	output, err := tc.RunCommand("init", "test-module", "--module", moduleName)
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando init: %v", err)
+		t.Fatalf("Error al ejecutar commando init: %v", err)
 	}
 
 	// Verificar salida
@@ -104,17 +104,17 @@ func testInitWithModuleFlag(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-module")
 }
 
-// testInitWithDatabaseFlag prueba el comando init con el flag --database
+// testInitWithDatabaseFlag prueba el commando init con el flag --database.
 func testInitWithDatabaseFlag(tc *framework.TestContext, t *testing.T) {
 	databases := []string{"postgres", "mysql", "mongodb"}
 
 	for _, db := range databases {
 		projectName := "test-db-" + db
 
-		// Ejecutar comando
+		// Ejecutar commando
 		output, err := tc.RunCommand("init", projectName, "--module", "github.com/test/"+projectName, "--database", db)
 		if err != nil {
-			t.Fatalf("Error al ejecutar comando init con database=%s: %v", db, err)
+			t.Fatalf("Error al ejecutar commando init con database=%s: %v", db, err)
 		}
 
 		// Verificar salida
@@ -126,24 +126,24 @@ func testInitWithDatabaseFlag(tc *framework.TestContext, t *testing.T) {
 		configPath := filepath.Join(projectName, "pkg", "config", "config.go")
 		tc.AssertFileExists(configPath)
 		// La configuración de la base de datos está ahora en pkg/config/config.go
-		// No verificamos el contenido exacto para evitar dependencias de implementación
+		// No verificamos el contenido exacto para evitar dependencies de implementación
 
 		// Verificar que el proyecto compila
 		tc.AssertGoBuild(projectName)
 	}
 }
 
-// testInitWithAPIFlag prueba el comando init con el flag --api
+// testInitWithAPIFlag prueba el commando init con el flag --api.
 func testInitWithAPIFlag(tc *framework.TestContext, t *testing.T) {
 	apiTypes := []string{"rest", "grpc", "graphql"}
 
 	for _, api := range apiTypes {
 		projectName := "test-api-" + api
 
-		// Ejecutar comando
+		// Ejecutar commando
 		output, err := tc.RunCommand("init", projectName, "--module", "github.com/test/"+projectName, "--api", api)
 		if err != nil {
-			t.Fatalf("Error al ejecutar comando init con api=%s: %v", api, err)
+			t.Fatalf("Error al ejecutar commando init con api=%s: %v", api, err)
 		}
 
 		// Verificar salida
@@ -169,13 +169,13 @@ func testInitWithAPIFlag(tc *framework.TestContext, t *testing.T) {
 	}
 }
 
-// testInitWithAuthFlag prueba el comando init con el flag --auth
+// testInitWithAuthFlag prueba el commando init con el flag --auth.
 func testInitWithAuthFlag(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	projectName := "test-auth"
 	output, err := tc.RunCommand("init", projectName, "--module", "github.com/test/"+projectName, "--auth")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando init con auth: %v", err)
+		t.Fatalf("Error al ejecutar commando init con auth: %v", err)
 	}
 
 	// Verificar salida
@@ -197,18 +197,17 @@ func testInitWithAuthFlag(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(projectName)
 }
 
-// testInitWithAllOptions prueba el comando init con todas las opciones
+// testInitWithAllOptions prueba el commando init con todas las opciones.
 func testInitWithAllOptions(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	projectName := "test-full"
 	output, err := tc.RunCommand("init", projectName,
 		"--module", "github.com/test/"+projectName,
 		"--database", "postgres",
 		"--api", "rest",
 		"--auth")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando init con todas las opciones: %v", err)
+		t.Fatalf("Error al ejecutar commando init con todas las opciones: %v", err)
 	}
 
 	// Verificar salida para cada opción

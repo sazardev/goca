@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -30,7 +29,6 @@ func TestGetValidateTag(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, getValidateTag(tc.fieldName, tc.fieldType))
@@ -55,7 +53,6 @@ func TestGetGormTag(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tag := getGormTag(tc.fieldName, tc.fieldType)
@@ -81,7 +78,6 @@ func TestIsSystemField(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, isSystemField(tc.field))
@@ -103,7 +99,6 @@ func TestHasStringBusinessRules(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, hasStringBusinessRules(tc.fields))
@@ -157,7 +152,6 @@ func TestWriteEntityHeader(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			var content strings.Builder
@@ -184,7 +178,6 @@ func TestWriteFieldValidation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			var content strings.Builder
@@ -229,5 +222,5 @@ func TestWriteValidationMethod(t *testing.T) {
 	assert.Contains(t, result, "Name")
 	assert.Contains(t, result, "Email")
 	// ID should not be validated
-	assert.NotContains(t, result, fmt.Sprintf("u.ID"))
+	assert.NotContains(t, result, "u.ID")
 }

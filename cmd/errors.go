@@ -5,19 +5,19 @@ import (
 	"os"
 )
 
-// ErrorHandler centralizes error handling for the CLI
+// ErrorHandler centralizes error handling for the CLI.
 type ErrorHandler struct {
 	TestMode bool // Set to true during testing to avoid os.Exit()
 }
 
-// NewErrorHandler creates a new error handler
+// NewErrorHandler creates a new error handler.
 func NewErrorHandler() *ErrorHandler {
 	return &ErrorHandler{
 		TestMode: false,
 	}
 }
 
-// HandleError handles errors with consistent formatting and exit behavior
+// HandleError handles errors with consistent formatting and exit behavior.
 func (e *ErrorHandler) HandleError(err error, context string) {
 	if err != nil {
 		if ui != nil {
@@ -31,7 +31,7 @@ func (e *ErrorHandler) HandleError(err error, context string) {
 	}
 }
 
-// HandleValidationError handles validation errors with specific formatting
+// HandleValidationError handles validation errors with specific formatting.
 func (e *ErrorHandler) HandleValidationError(err error, field string) {
 	if err != nil {
 		if ui != nil {
@@ -45,8 +45,8 @@ func (e *ErrorHandler) HandleValidationError(err error, field string) {
 	}
 }
 
-// HandleWarning handles warnings without exiting
-func (e *ErrorHandler) HandleWarning(message string, context string) {
+// HandleWarning handles warnings without exiting.
+func (e *ErrorHandler) HandleWarning(message, context string) {
 	if ui != nil {
 		ui.Warning(fmt.Sprintf("%s: %s", context, message))
 	} else {
@@ -54,7 +54,7 @@ func (e *ErrorHandler) HandleWarning(message string, context string) {
 	}
 }
 
-// HandleSuccess handles success messages with consistent formatting
+// HandleSuccess handles success messages with consistent formatting.
 func (e *ErrorHandler) HandleSuccess(message string) {
 	if ui != nil {
 		ui.Success(message)
@@ -63,7 +63,7 @@ func (e *ErrorHandler) HandleSuccess(message string) {
 	}
 }
 
-// HandleInfo handles informational messages
+// HandleInfo handles informational messages.
 func (e *ErrorHandler) HandleInfo(message string) {
 	if ui != nil {
 		ui.Info(message)
@@ -72,8 +72,8 @@ func (e *ErrorHandler) HandleInfo(message string) {
 	}
 }
 
-// ValidateRequiredFlag checks if a required flag is provided
-func (e *ErrorHandler) ValidateRequiredFlag(value string, flagName string) error {
+// ValidateRequiredFlag checks if a required flag is provided.
+func (e *ErrorHandler) ValidateRequiredFlag(value, flagName string) error {
 	if value == "" {
 		err := fmt.Errorf("--%s flag is required", flagName)
 		if ui != nil {
@@ -89,7 +89,7 @@ func (e *ErrorHandler) ValidateRequiredFlag(value string, flagName string) error
 	return nil
 }
 
-// HandleErrorWithReturn handles errors and returns them for testing
+// HandleErrorWithReturn handles errors and returns them for testing.
 func (e *ErrorHandler) HandleErrorWithReturn(err error, context string) error {
 	if err != nil {
 		if ui != nil {

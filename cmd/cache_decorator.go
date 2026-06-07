@@ -8,6 +8,8 @@ import (
 
 // generateCacheDecorator produces internal/repository/cached_<entity>_repository.go
 // implementing the <Entity>Repository interface with a Redis caching layer.
+//
+//nolint:funlen // template generation is necessarily long
 func generateCacheDecorator(entity string, fields []Field, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	repoDir := filepath.Join(DirInternal, DirRepository)
@@ -30,7 +32,7 @@ func generateCacheDecorator(entity string, fields []Field, sm ...*SafetyManager)
 
 	// Struct
 	b.WriteString(fmt.Sprintf("// Cached%sRepository is a caching decorator around %sRepository.\n", entity, entity))
-	b.WriteString(fmt.Sprintf("// Read operations check Redis first; write operations delegate then invalidate.\n"))
+	b.WriteString("// Read operations check Redis first; write operations delegate then invalidate.\n")
 	b.WriteString(fmt.Sprintf("type Cached%sRepository struct {\n", entity))
 	b.WriteString(fmt.Sprintf("\tinner    %sRepository\n", entity))
 	b.WriteString("\tcache    *redis.Client\n")
@@ -147,8 +149,8 @@ func generateCacheDecorator(entity string, fields []Field, sm ...*SafetyManager)
 func generateCacheSearchMethodDelegate(b *strings.Builder, entity string, m SearchMethod) {
 	paramName := strings.ToLower(m.FieldName)
 
-	b.WriteString(fmt.Sprintf("func (r *Cached%sRepository) %s(%s %s) %s {\n",
-		entity, m.MethodName, paramName, m.FieldType, m.ReturnType))
-	b.WriteString(fmt.Sprintf("\treturn r.inner.%s(%s)\n", m.MethodName, paramName))
+	fmt.Fprintf(b, "func (r *Cached%sRepository) %s(%s %s) %s {\n",
+		entity, m.MethodName, paramName, m.FieldType, m.ReturnType)
+	fmt.Fprintf(b, "\treturn r.inner.%s(%s)\n", m.MethodName, paramName)
 	b.WriteString("}\n\n")
 }

@@ -17,7 +17,11 @@ import (
 func runGocaSubcommand(ctx context.Context, args []string) (string, error) {
 	binary, err := os.Executable()
 	if err != nil {
-		binary = os.Args[0]
+		if len(os.Args) > 0 {
+			binary = os.Args[0]
+		} else {
+			return "", fmt.Errorf("cannot determine binary path: %w", err)
+		}
 	}
 
 	// Safety: validate that every argument is a safe string before passing
@@ -32,7 +36,8 @@ func runGocaSubcommand(ctx context.Context, args []string) (string, error) {
 	safeArgs := append([]string{"--no-interactive"}, args...)
 
 	var out bytes.Buffer
-	//nolint:gosec // binary comes from os.Executable() — trusted path
+
+	//#nosec G702 — binary is from os.Executable(); args validated above
 	cmd := exec.CommandContext(ctx, binary, safeArgs...)
 	cmd.Stdout = &out
 	cmd.Stderr = &out

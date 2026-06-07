@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,7 +17,7 @@ var (
 	integrationTestContainer bool
 )
 
-// testIntegrationCmd represents the test-integration command
+// testIntegrationCmd represents the test-integration command.
 var testIntegrationCmd = &cobra.Command{
 	Use:   "test-integration [entity]",
 	Short: "Generate integration tests for a feature",
@@ -46,7 +47,7 @@ Examples:
 
 		// Check if we're in a Goca project
 		if _, err := os.Stat("go.mod"); os.IsNotExist(err) {
-			validator.errorHandler.HandleError(fmt.Errorf("not in a Go project directory. Run 'goca init' first"), "test-integration")
+			validator.errorHandler.HandleError(errors.New("not in a Go project directory. Run 'goca init' first"), "test-integration")
 			return
 		}
 
@@ -96,32 +97,32 @@ func init() {
 	testIntegrationCmd.Flags().Bool("backup", false, "Create backup of existing files before overwriting")
 }
 
-// generateIntegrationTests generates integration test files
+// generateIntegrationTests generates integration test files.
 func generateIntegrationTests(entityName, database string, withFixtures, withContainer bool, fields []Field, sm ...*SafetyManager) error {
 	// Create integration test directory
 	integrationDir := filepath.Join("internal", "testing", "integration")
-	if err := os.MkdirAll(integrationDir, 0755); err != nil {
-		return fmt.Errorf("failed to create integration directory: %v", err)
+	if err := os.MkdirAll(integrationDir, 0o755); err != nil {
+		return fmt.Errorf("failed to create integration directory: %w", err)
 	}
 
 	// Generate main integration test file
 	testFile := filepath.Join(integrationDir, strings.ToLower(entityName)+"_integration_test.go")
 	content := generateIntegrationTestContent(entityName, database, withContainer, fields)
 	if err := writeFile(testFile, content, sm...); err != nil {
-		return fmt.Errorf("failed to write integration test file: %v", err)
+		return fmt.Errorf("failed to write integration test file: %w", err)
 	}
 
 	// Generate fixtures if requested
 	if withFixtures {
 		fixturesDir := filepath.Join(integrationDir, "fixtures")
-		if err := os.MkdirAll(fixturesDir, 0755); err != nil {
-			return fmt.Errorf("failed to create fixtures directory: %v", err)
+		if err := os.MkdirAll(fixturesDir, 0o755); err != nil {
+			return fmt.Errorf("failed to create fixtures directory: %w", err)
 		}
 
 		fixtureFile := filepath.Join(fixturesDir, strings.ToLower(entityName)+"_fixtures.go")
 		fixtureContent := generateFixtureContent(entityName, fields)
 		if err := writeFile(fixtureFile, fixtureContent, sm...); err != nil {
-			return fmt.Errorf("failed to write fixture file: %v", err)
+			return fmt.Errorf("failed to write fixture file: %w", err)
 		}
 	}
 
@@ -130,14 +131,14 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 	if _, err := os.Stat(helpersFile); os.IsNotExist(err) {
 		helpersContent := generateHelpersContent(database, withContainer, entityName)
 		if err := writeFile(helpersFile, helpersContent, sm...); err != nil {
-			return fmt.Errorf("failed to write helpers file: %v", err)
+			return fmt.Errorf("failed to write helpers file: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// generateIntegrationTestContent generates the main integration test file content
+// generateIntegrationTestContent generates the main integration test file content.
 func generateIntegrationTestContent(entityName, database string, withContainer bool, fields []Field) string {
 	lowerEntity := strings.ToLower(entityName)
 
@@ -315,7 +316,7 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 	return replaceIntegrationTestTODOs(content, fields, entityName)
 }
 
-// generateFixtureContent generates test fixtures
+// generateFixtureContent generates test fixtures.
 func generateFixtureContent(entityName string, fields []Field) string {
 	lowerEntity := strings.ToLower(entityName)
 
@@ -364,7 +365,7 @@ func New%[1]sFixtureList(count int) []*domain.%[1]s {
 	return replaceFixtureTODOs(content, fields, entityName)
 }
 
-// generateHelpersContent generates database helpers for integration tests
+// generateHelpersContent generates database helpers for integration tests.
 func generateHelpersContent(database string, withContainer bool, entityName string) string {
 	containerSetup := ""
 	if withContainer {

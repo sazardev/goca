@@ -23,7 +23,6 @@ func TestParseOperations(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := parseOperations(tc.input)
@@ -52,7 +51,6 @@ func TestGetValidationTag(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.fieldType, func(t *testing.T) {
 			t.Parallel()
 			result := getValidationTag(tc.fieldType)

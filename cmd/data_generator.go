@@ -10,19 +10,19 @@ import (
 	"golang.org/x/text/language"
 )
 
-// DataGenerator generates realistic sample data for testing
+// DataGenerator generates realistic sample data for testing.
 type DataGenerator struct {
 	rand *rand.Rand
 }
 
-// NewDataGenerator creates a new data generator
+// NewDataGenerator creates a new data generator.
 func NewDataGenerator() *DataGenerator {
 	return &DataGenerator{
 		rand: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
-// GenerateSampleData generates sample data based on field types
+// GenerateSampleData generates sample data based on field types.
 func (g *DataGenerator) GenerateSampleData(fields []Field, entity string) map[string]interface{} {
 	data := make(map[string]interface{})
 	entityLower := strings.ToLower(entity)
@@ -38,7 +38,7 @@ func (g *DataGenerator) GenerateSampleData(fields []Field, entity string) map[st
 	return data
 }
 
-// generateValueForField generates a realistic value for a specific field
+// generateValueForField generates a realistic value for a specific field.
 func (g *DataGenerator) generateValueForField(field Field, entity string) interface{} {
 	fieldLower := strings.ToLower(field.Name)
 
@@ -69,7 +69,7 @@ func (g *DataGenerator) generateValueForField(field Field, entity string) interf
 	}
 }
 
-// generateEmail generates realistic email addresses
+// generateEmail generates realistic email addresses.
 func (g *DataGenerator) generateEmail(entity string) string {
 	names := []string{"john", "maria", "carlos", "ana", "miguel", "lucia", "david", "sofia"}
 	domains := []string{"gmail.com", "hotmail.com", "company.com", "test.org"}
@@ -80,7 +80,7 @@ func (g *DataGenerator) generateEmail(entity string) string {
 	return fmt.Sprintf("%s.%s@%s", name, entity, domain)
 }
 
-// generateName generates contextual names
+// generateName generates contextual names.
 func (g *DataGenerator) generateName(entity, field string) string {
 	switch entity {
 	case "user", "employee", "customer":
@@ -103,7 +103,7 @@ func (g *DataGenerator) generateName(entity, field string) string {
 	return fmt.Sprintf("Sample %s %d", caser.String(entity), g.rand.Intn(1000))
 }
 
-// generateDescription generates context-aware descriptions
+// generateDescription generates context-aware descriptions.
 func (g *DataGenerator) generateDescription(entity string) string {
 	switch entity {
 	case "product":
@@ -127,7 +127,7 @@ func (g *DataGenerator) generateDescription(entity string) string {
 	}
 }
 
-// generateStatus generates appropriate status values
+// generateStatus generates appropriate status values.
 func (g *DataGenerator) generateStatus(entity string) string {
 	switch entity {
 	case "user", "employee":
@@ -145,7 +145,7 @@ func (g *DataGenerator) generateStatus(entity string) string {
 	}
 }
 
-// generatePhone generates realistic phone numbers
+// generatePhone generates realistic phone numbers.
 func (g *DataGenerator) generatePhone() string {
 	return fmt.Sprintf("+34 %d%d%d %d%d%d %d%d%d",
 		g.rand.Intn(10), g.rand.Intn(10), g.rand.Intn(10),
@@ -153,7 +153,7 @@ func (g *DataGenerator) generatePhone() string {
 		g.rand.Intn(10), g.rand.Intn(10), g.rand.Intn(10))
 }
 
-// generateAddress generates realistic addresses
+// generateAddress generates realistic addresses.
 func (g *DataGenerator) generateAddress() string {
 	streets := []string{"Calle Mayor", "Avenida Principal", "Plaza Central", "Paseo del Parque"}
 	street := streets[g.rand.Intn(len(streets))]
@@ -162,7 +162,7 @@ func (g *DataGenerator) generateAddress() string {
 	return fmt.Sprintf("%s %d, Madrid, España", street, number)
 }
 
-// generateURL generates realistic URLs
+// generateURL generates realistic URLs.
 func (g *DataGenerator) generateURL(entity string) string {
 	domains := []string{"example.com", "company.org", "business.net"}
 	domain := domains[g.rand.Intn(len(domains))]
@@ -170,7 +170,7 @@ func (g *DataGenerator) generateURL(entity string) string {
 	return fmt.Sprintf("https://www.%s/%s", domain, strings.ToLower(entity))
 }
 
-// generateCode generates realistic codes/SKUs
+// generateCode generates realistic codes/SKUs.
 func (g *DataGenerator) generateCode(entity string) string {
 	prefix := strings.ToUpper(entity[:min(3, len(entity))])
 	number := g.rand.Intn(10000)
@@ -178,7 +178,7 @@ func (g *DataGenerator) generateCode(entity string) string {
 	return fmt.Sprintf("%s-%04d", prefix, number)
 }
 
-// generateByType generates values based on Go types
+// generateByType generates values based on Go types.
 func (g *DataGenerator) generateByType(fieldType string) interface{} {
 	switch fieldType {
 	case FieldString:
@@ -200,11 +200,11 @@ func (g *DataGenerator) generateByType(fieldType string) interface{} {
 	}
 }
 
-// GenerateTestData generates a complete test dataset
+// GenerateTestData generates a complete test dataset.
 func (g *DataGenerator) GenerateTestData(entity string, fields []Field, count int) []map[string]interface{} {
 	var dataset []map[string]interface{}
 
-	for i := 0; i < count; i++ {
+	for range count {
 		data := g.generateSampleData(fields, entity)
 		dataset = append(dataset, data)
 	}
@@ -212,12 +212,12 @@ func (g *DataGenerator) GenerateTestData(entity string, fields []Field, count in
 	return dataset
 }
 
-// generateSampleData is a wrapper for GenerateSampleData to maintain consistency
+// generateSampleData is a wrapper for GenerateSampleData to maintain consistency.
 func (g *DataGenerator) generateSampleData(fields []Field, entity string) map[string]interface{} {
 	return g.GenerateSampleData(fields, entity)
 }
 
-// min helper function
+// min helper function.
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -225,7 +225,7 @@ func min(a, b int) int {
 	return b
 }
 
-// GenerateInsertSQL generates SQL INSERT statements with sample data
+// GenerateInsertSQL generates SQL INSERT statements with sample data.
 func (g *DataGenerator) GenerateInsertSQL(tableName string, fields []Field, count int) string {
 	var result strings.Builder
 	entity := strings.TrimSuffix(tableName, "s") // Simple pluralization removal
@@ -240,7 +240,7 @@ func (g *DataGenerator) GenerateInsertSQL(tableName string, fields []Field, coun
 
 	result.WriteString(fmt.Sprintf("-- Sample data for %s\n", tableName))
 
-	for i := 0; i < count; i++ {
+	for range count {
 		data := g.GenerateSampleData(fields, entity)
 
 		result.WriteString(fmt.Sprintf("INSERT INTO %s (%s) VALUES (",
@@ -260,7 +260,7 @@ func (g *DataGenerator) GenerateInsertSQL(tableName string, fields []Field, coun
 	return result.String()
 }
 
-// formatSQLValue formats a value for SQL insertion
+// formatSQLValue formats a value for SQL insertion.
 func (g *DataGenerator) formatSQLValue(value interface{}) string {
 	switch v := value.(type) {
 	case string:
@@ -275,7 +275,7 @@ func (g *DataGenerator) formatSQLValue(value interface{}) string {
 		}
 		return "false"
 	case time.Time:
-		return fmt.Sprintf("'%s'", v.Format("2006-01-02 15:04:05"))
+		return fmt.Sprintf("'%s'", v.Format(time.DateTime))
 	default:
 		return fmt.Sprintf("'%v'", v)
 	}

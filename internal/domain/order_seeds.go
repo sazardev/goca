@@ -1,6 +1,6 @@
 package domain
 
-// GetOrderSeeds retorna datos de ejemplo para order
+// GetOrderSeeds retorna datos de ejemplo para order.
 func GetOrderSeeds() []Order {
 	return []Order{
 		{
@@ -21,7 +21,7 @@ func GetOrderSeeds() []Order {
 	}
 }
 
-// GetSQLOrderSeeds retorna sentencias SQL INSERT para order
+// GetSQLOrderSeeds retorna sentencias SQL INSERT para order.
 func GetSQLOrderSeeds() string {
 	return `-- Datos de ejemplo para tabla order
 INSERT INTO orders (customer_id, total, status) VALUES (10, 10.50, 'activo');\nINSERT INTO orders (customer_id, total, status) VALUES (20, 21.00, 'pendiente');\nINSERT INTO orders (customer_id, total, status) VALUES (30, 31.50, 'completado');\n`

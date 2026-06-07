@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/charmbracelet/huh"
@@ -32,7 +33,7 @@ func runInitWizard(projectName string) (name, module, database, api string, auth
 				Placeholder("myproject").
 				Validate(func(s string) error {
 					if s == "" {
-						return fmt.Errorf("project name is required")
+						return errors.New("project name is required")
 					}
 					return nil
 				}).
@@ -40,7 +41,8 @@ func runInitWizard(projectName string) (name, module, database, api string, auth
 		).Title("New Project"))
 	}
 
-	formGroups = append(formGroups,
+	formGroups = append(
+		formGroups,
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Go module path").

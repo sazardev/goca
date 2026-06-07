@@ -22,7 +22,6 @@ func TestIsRequiredField(t *testing.T) {
 		{"Price", false},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.want, isRequiredField(tc.name))
@@ -45,7 +44,6 @@ func TestMakePlural(t *testing.T) {
 		{"User", "Users"},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.want, makePlural(tc.input))
@@ -66,7 +64,6 @@ func TestRemoveDuplicates(t *testing.T) {
 		{"all same", []string{"x", "x", "x"}, []string{"x"}},
 	}
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			got := removeDuplicates(tc.input)
@@ -185,7 +182,6 @@ func TestGetTemplate(t *testing.T) {
 
 	validNames := []string{"entity", "usecase", "repository", "handler"}
 	for _, name := range validNames {
-		name := name
 		t.Run("valid_"+name, func(t *testing.T) {
 			t.Parallel()
 			tmpl, err := gen.getTemplate(name)

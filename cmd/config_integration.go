@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-// ConfigIntegration handles integration between YAML config and CLI commands
+// ConfigIntegration handles integration between YAML config and CLI commands.
 type ConfigIntegration struct {
 	manager         *ConfigManager
 	config          *GocaConfig
@@ -15,14 +16,14 @@ type ConfigIntegration struct {
 	projectPath     string
 }
 
-// NewConfigIntegration creates a new configuration integration handler
+// NewConfigIntegration creates a new configuration integration handler.
 func NewConfigIntegration() *ConfigIntegration {
 	return &ConfigIntegration{
 		manager: NewConfigManager(),
 	}
 }
 
-// LoadConfigForProject loads configuration for current project context
+// LoadConfigForProject loads configuration for current project context.
 func (ci *ConfigIntegration) LoadConfigForProject() error {
 	// Get current working directory
 	wd, err := os.Getwd()
@@ -55,7 +56,7 @@ func (ci *ConfigIntegration) LoadConfigForProject() error {
 	return nil
 }
 
-// GetDatabaseType returns database type with fallback to CLI flag
+// GetDatabaseType returns database type with fallback to CLI flag.
 func (ci *ConfigIntegration) GetDatabaseType(cliFlag string) string {
 	if cliFlag != "" {
 		return cliFlag
@@ -68,7 +69,7 @@ func (ci *ConfigIntegration) GetDatabaseType(cliFlag string) string {
 	return "postgres" // default
 }
 
-// GetHandlerTypes returns handler types with fallback to CLI flag
+// GetHandlerTypes returns handler types with fallback to CLI flag.
 func (ci *ConfigIntegration) GetHandlerTypes(cliFlag string) []string {
 	if cliFlag != "" {
 		return strings.Split(cliFlag, ",")
@@ -85,7 +86,7 @@ func (ci *ConfigIntegration) GetHandlerTypes(cliFlag string) []string {
 	return []string{"http"} // default
 }
 
-// GetValidationEnabled returns validation setting with fallback to CLI flag
+// GetValidationEnabled returns validation setting with fallback to CLI flag.
 func (ci *ConfigIntegration) GetValidationEnabled(cliFlag *bool) bool {
 	if cliFlag != nil {
 		return *cliFlag
@@ -98,7 +99,7 @@ func (ci *ConfigIntegration) GetValidationEnabled(cliFlag *bool) bool {
 	return true // default
 }
 
-// GetBusinessRulesEnabled returns business rules setting with fallback to CLI flag
+// GetBusinessRulesEnabled returns business rules setting with fallback to CLI flag.
 func (ci *ConfigIntegration) GetBusinessRulesEnabled(cliFlag *bool) bool {
 	if cliFlag != nil {
 		return *cliFlag
@@ -111,7 +112,7 @@ func (ci *ConfigIntegration) GetBusinessRulesEnabled(cliFlag *bool) bool {
 	return false // default
 }
 
-// GetProjectConfig returns project configuration for generation
+// GetProjectConfig returns project configuration for generation.
 func (ci *ConfigIntegration) GetProjectConfig() ProjectConfig {
 	if ci.config != nil {
 		return ci.config.Project
@@ -130,7 +131,7 @@ func (ci *ConfigIntegration) GetProjectConfig() ProjectConfig {
 	}
 }
 
-// GetArchitectureConfig returns architecture configuration
+// GetArchitectureConfig returns architecture configuration.
 func (ci *ConfigIntegration) GetArchitectureConfig() ArchitectureConfig {
 	if ci.config != nil {
 		return ci.config.Architecture
@@ -161,7 +162,7 @@ func (ci *ConfigIntegration) GetArchitectureConfig() ArchitectureConfig {
 	}
 }
 
-// GetDatabaseConfig returns database configuration
+// GetDatabaseConfig returns database configuration.
 func (ci *ConfigIntegration) GetDatabaseConfig() DatabaseConfig {
 	if ci.config != nil {
 		return ci.config.Database
@@ -187,7 +188,7 @@ func (ci *ConfigIntegration) GetDatabaseConfig() DatabaseConfig {
 	}
 }
 
-// GetGenerationConfig returns generation configuration
+// GetGenerationConfig returns generation configuration.
 func (ci *ConfigIntegration) GetGenerationConfig() GenerationConfig {
 	if ci.config != nil {
 		return ci.config.Generation
@@ -213,7 +214,7 @@ func (ci *ConfigIntegration) GetGenerationConfig() GenerationConfig {
 	}
 }
 
-// GetTestingConfig returns testing configuration
+// GetTestingConfig returns testing configuration.
 func (ci *ConfigIntegration) GetTestingConfig() TestingConfig {
 	if ci.config != nil {
 		return ci.config.Testing
@@ -231,7 +232,7 @@ func (ci *ConfigIntegration) GetTestingConfig() TestingConfig {
 	}
 }
 
-// GetTemplateConfig returns template configuration
+// GetTemplateConfig returns template configuration.
 func (ci *ConfigIntegration) GetTemplateConfig() TemplateConfig {
 	if ci.config != nil {
 		return ci.config.Templates
@@ -247,7 +248,7 @@ func (ci *ConfigIntegration) GetTemplateConfig() TemplateConfig {
 	}
 }
 
-// GetFeatureConfig returns feature configuration
+// GetFeatureConfig returns feature configuration.
 func (ci *ConfigIntegration) GetFeatureConfig() FeatureConfig {
 	if ci.config != nil {
 		return ci.config.Features
@@ -270,7 +271,7 @@ func (ci *ConfigIntegration) GetFeatureConfig() FeatureConfig {
 	}
 }
 
-// MergeWithCLIFlags merges configuration with CLI flags
+// MergeWithCLIFlags merges configuration with CLI flags.
 func (ci *ConfigIntegration) MergeWithCLIFlags(flags map[string]interface{}) {
 	if ci.manager != nil {
 		ci.manager.MergeWithFlags(flags)
@@ -278,7 +279,7 @@ func (ci *ConfigIntegration) MergeWithCLIFlags(flags map[string]interface{}) {
 	}
 }
 
-// PrintConfigSummary prints configuration summary if available
+// PrintConfigSummary prints configuration summary if available.
 func (ci *ConfigIntegration) PrintConfigSummary() {
 	if ci.manager != nil {
 		ci.manager.PrintSummary()
@@ -291,12 +292,12 @@ func (ci *ConfigIntegration) PrintConfigSummary() {
 	}
 }
 
-// HasConfigFile returns true if a config file was loaded
+// HasConfigFile returns true if a config file was loaded.
 func (ci *ConfigIntegration) HasConfigFile() bool {
 	return ci.config != nil && ci.manager.filePath != ""
 }
 
-// GetConfigPath returns the path of the loaded config file
+// GetConfigPath returns the path of the loaded config file.
 func (ci *ConfigIntegration) GetConfigPath() string {
 	if ci.manager != nil {
 		return ci.manager.filePath
@@ -304,7 +305,7 @@ func (ci *ConfigIntegration) GetConfigPath() string {
 	return ""
 }
 
-// ValidateConfiguration validates current configuration
+// ValidateConfiguration validates current configuration.
 func (ci *ConfigIntegration) ValidateConfiguration() error {
 	if ci.manager == nil {
 		return nil // No config to validate
@@ -318,7 +319,7 @@ func (ci *ConfigIntegration) ValidateConfiguration() error {
 	return nil
 }
 
-// GetValidationErrors returns configuration validation errors
+// GetValidationErrors returns configuration validation errors.
 func (ci *ConfigIntegration) GetValidationErrors() []ConfigError {
 	if ci.manager == nil {
 		return nil
@@ -326,7 +327,7 @@ func (ci *ConfigIntegration) GetValidationErrors() []ConfigError {
 	return ci.manager.GetErrors()
 }
 
-// GetValidationWarnings returns configuration validation warnings
+// GetValidationWarnings returns configuration validation warnings.
 func (ci *ConfigIntegration) GetValidationWarnings() []ConfigWarning {
 	if ci.manager == nil {
 		return nil
@@ -334,7 +335,7 @@ func (ci *ConfigIntegration) GetValidationWarnings() []ConfigWarning {
 	return ci.manager.GetWarnings()
 }
 
-// GenerateConfigFile generates a .goca.yaml file in the specified project directory
+// GenerateConfigFile generates a .goca.yaml file in the specified project directory.
 func (ci *ConfigIntegration) GenerateConfigFile(projectPath, projectName, module, database string) error {
 	if ci.manager == nil {
 		ci.manager = NewConfigManager()
@@ -343,7 +344,7 @@ func (ci *ConfigIntegration) GenerateConfigFile(projectPath, projectName, module
 	return ci.manager.GenerateDefaultConfig(projectPath, projectName, module, database)
 }
 
-// UpdateConfigFromTemplate updates configuration based on template data
+// UpdateConfigFromTemplate updates configuration based on template data.
 func (ci *ConfigIntegration) UpdateConfigFromTemplate(templateData map[string]interface{}) {
 	if ci.config == nil {
 		return
@@ -363,7 +364,7 @@ func (ci *ConfigIntegration) UpdateConfigFromTemplate(templateData map[string]in
 	}
 }
 
-// GetTemplateData returns template data enriched with configuration
+// GetTemplateData returns template data enriched with configuration.
 func (ci *ConfigIntegration) GetTemplateData(baseData map[string]interface{}) map[string]interface{} {
 	if ci.config == nil {
 		return baseData
@@ -388,7 +389,7 @@ func (ci *ConfigIntegration) GetTemplateData(baseData map[string]interface{}) ma
 	return baseData
 }
 
-// UpdateConfigAfterGeneration updates configuration after generating files
+// UpdateConfigAfterGeneration updates configuration after generating files.
 func (ci *ConfigIntegration) UpdateConfigAfterGeneration(feature, entityName string) {
 	if ci.config == nil {
 		return
@@ -398,7 +399,7 @@ func (ci *ConfigIntegration) UpdateConfigAfterGeneration(feature, entityName str
 	// This could be used for future analytics or recommendations
 }
 
-// GetNamingConvention returns naming convention for different types
+// GetNamingConvention returns naming convention for different types.
 func (ci *ConfigIntegration) GetNamingConvention(elementType string) string {
 	if ci.config == nil {
 		// Return defaults
@@ -436,12 +437,12 @@ func (ci *ConfigIntegration) GetNamingConvention(elementType string) string {
 	}
 }
 
-// GetTemplateManager returns the template manager
+// GetTemplateManager returns the template manager.
 func (ci *ConfigIntegration) GetTemplateManager() *TemplateManager {
 	return ci.templateManager
 }
 
-// HasCustomTemplate checks if a custom template exists
+// HasCustomTemplate checks if a custom template exists.
 func (ci *ConfigIntegration) HasCustomTemplate(templateName string) bool {
 	if ci.templateManager == nil {
 		return false
@@ -449,16 +450,16 @@ func (ci *ConfigIntegration) HasCustomTemplate(templateName string) bool {
 	return ci.templateManager.HasTemplate(templateName)
 }
 
-// ExecuteCustomTemplate executes a custom template if available
+// ExecuteCustomTemplate executes a custom template if available.
 func (ci *ConfigIntegration) ExecuteCustomTemplate(templateName string, data map[string]interface{}) (string, error) {
 	if ci.templateManager == nil {
-		return "", fmt.Errorf("template manager not initialized")
+		return "", errors.New("template manager not initialized")
 	}
 
 	return ci.templateManager.ExecuteTemplate(templateName, data)
 }
 
-// GetAvailableTemplates returns list of available custom templates
+// GetAvailableTemplates returns list of available custom templates.
 func (ci *ConfigIntegration) GetAvailableTemplates() []string {
 	if ci.templateManager == nil {
 		return []string{}
@@ -466,10 +467,10 @@ func (ci *ConfigIntegration) GetAvailableTemplates() []string {
 	return ci.templateManager.GetAvailableTemplates()
 }
 
-// InitializeTemplateSystem sets up templates for the first time
+// InitializeTemplateSystem sets up templates for the first time.
 func (ci *ConfigIntegration) InitializeTemplateSystem() error {
 	if ci.config == nil || ci.projectPath == "" {
-		return fmt.Errorf("configuration or project path not set")
+		return errors.New("configuration or project path not set")
 	}
 
 	// Create template manager
@@ -491,7 +492,7 @@ func (ci *ConfigIntegration) InitializeTemplateSystem() error {
 	return nil
 }
 
-// GenerateProjectDocumentation generates project documentation using templates
+// GenerateProjectDocumentation generates project documentation using templates.
 func (ci *ConfigIntegration) GenerateProjectDocumentation() error {
 	if ci.templateManager == nil || !ci.templateManager.HasTemplate("docs/README") {
 		// No custom template, skip
@@ -514,7 +515,7 @@ func (ci *ConfigIntegration) GenerateProjectDocumentation() error {
 
 	// Write to README.md
 	readmePath := filepath.Join(ci.projectPath, "README.md")
-	if err := os.WriteFile(readmePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(readmePath, []byte(content), 0o644); err != nil {
 		return fmt.Errorf("failed to write README.md: %w", err)
 	}
 

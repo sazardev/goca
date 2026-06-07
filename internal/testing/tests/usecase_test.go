@@ -9,7 +9,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestUseCaseCommand prueba exhaustivamente el comando 'usecase'
+// TestUseCaseCommand prueba exhaustivamente el commando 'usecase'.
 func TestUseCaseCommand(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -49,9 +49,9 @@ func TestUseCaseCommand(t *testing.T) {
 	tc.PrintTestSummary()
 }
 
-// prepareProjectWithEntities inicializa un proyecto base con entidades para las pruebas de usecase
+// prepareProjectWithEntities inicializa un proyecto base con entidades para las pruebas de usecase.
 func prepareProjectWithEntities(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando init
+	// Ejecutar commando init
 	_, err := tc.RunCommand("init", "test-project", "--module", "github.com/test/testproject")
 	if err != nil {
 		t.Fatalf("Error al inicializar proyecto base: %v", err)
@@ -78,12 +78,12 @@ func prepareProjectWithEntities(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testUseCaseWithDefaultOperations prueba el comando usecase con operaciones por defecto
+// testUseCaseWithDefaultOperations prueba el commando usecase con operaciones por defecto.
 func testUseCaseWithDefaultOperations(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("usecase", "UserManagement", "--entity", "User")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando usecase: %v", err)
+		t.Fatalf("Error al ejecutar commando usecase: %v", err)
 	}
 
 	// Verificar salida
@@ -124,16 +124,15 @@ func testUseCaseWithDefaultOperations(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testUseCaseWithSpecificOperations prueba el comando usecase con operaciones específicas
+// testUseCaseWithSpecificOperations prueba el commando usecase con operaciones específicas.
 func testUseCaseWithSpecificOperations(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	operations := "create,read"
 	output, err := tc.RunCommand("usecase", "ProductCatalog",
 		"--entity", "Product",
 		"--operations", operations)
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando usecase con operaciones específicas: %v", err)
+		t.Fatalf("Error al ejecutar commando usecase con operaciones específicas: %v", err)
 	}
 
 	// Verificar salida
@@ -190,16 +189,15 @@ func testUseCaseWithSpecificOperations(tc *framework.TestContext, t *testing.T) 
 	tc.AssertGoBuild("test-project")
 }
 
-// testUseCaseWithDTOValidation prueba el comando usecase con validación de DTOs
+// testUseCaseWithDTOValidation prueba el commando usecase con validación de DTOs.
 func testUseCaseWithDTOValidation(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("usecase", "OrderProcessing",
 		"--entity", "Order",
 		"--operations", "create,update",
 		"--dto-validation")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando usecase con validación de DTOs: %v", err)
+		t.Fatalf("Error al ejecutar commando usecase con validación de DTOs: %v", err)
 	}
 
 	// Verificar salida
@@ -221,17 +219,16 @@ func testUseCaseWithDTOValidation(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testUseCaseWithAsync prueba el comando usecase con operaciones asíncronas
+// testUseCaseWithAsync prueba el commando usecase con operaciones asíncronas.
 func testUseCaseWithAsync(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("usecase", "AsyncUserNotification",
 		"--entity", "User",
 		"--operations", "create",
 		"--async",
 		"--force")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando usecase con operaciones asíncronas: %v", err)
+		t.Fatalf("Error al ejecutar commando usecase con operaciones asíncronas: %v", err)
 	}
 
 	// Verificar salida
@@ -251,18 +248,17 @@ func testUseCaseWithAsync(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testUseCaseWithAllOptions prueba el comando usecase con todas las opciones
+// testUseCaseWithAllOptions prueba el commando usecase con todas las opciones.
 func testUseCaseWithAllOptions(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("usecase", "FullProductService",
 		"--entity", "Product",
 		"--operations", "create,read,update,list",
 		"--dto-validation",
 		"--async",
 		"--force")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando usecase con todas las opciones: %v", err)
+		t.Fatalf("Error al ejecutar commando usecase con todas las opciones: %v", err)
 	}
 
 	// Verificar salida

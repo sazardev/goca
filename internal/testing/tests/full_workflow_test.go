@@ -11,8 +11,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestFullWorkflow ejecuta un flujo completo de trabajo con Goca
-// generando un proyecto completo y verificando que todo funcione correctamente
+// generando un proyecto completo y verificando que todo funcione correctamente.
 func TestFullWorkflow(t *testing.T) {
 	t.Skip("Temporarily disabled: Test expects incorrect file names (e.g., productcatalog.go vs product_service.go, user_repository.go vs postgres_user_repository.go). Commands work correctly but test validation is too strict. See issue #XXX for details.")
 
@@ -34,7 +33,6 @@ func TestFullWorkflow(t *testing.T) {
 		"--api", "rest",
 		"--database", "postgres",
 		"--auth")
-
 	if err != nil {
 		t.Fatalf("❌ Error al inicializar proyecto: %v", err)
 	}
@@ -223,25 +221,25 @@ func TestFullWorkflow(t *testing.T) {
 	// Compilar después de generar handlers
 	tc.AssertGoBuild(".")
 
-	// Paso 6: Generar inyección de dependencias
-	t.Log("🔹 PASO 6: Generar inyección de dependencias")
+	// Paso 6: Generar inyección de dependencies
+	t.Log("🔹 PASO 6: Generar inyección de dependencies")
 
 	_, err = tc.RunCommand("di", "--features", "User,Product,Order", "--database", "postgres", "--wire")
 	if err != nil {
-		t.Fatalf("❌ Error al generar inyección de dependencias: %v", err)
+		t.Fatalf("❌ Error al generar inyección de dependencies: %v", err)
 	}
 
 	diPath := filepath.Join("internal", "di", "container.go")
 	tc.AssertFileExists(diPath)
 	tc.AssertFileExists(filepath.Join("internal", "di", "wire.go"))
-	t.Logf("✅ Inyección de dependencias generada")
+	t.Logf("✅ Inyección de dependencies generada")
 
 	// Paso 7: Integrar todo
-	t.Log("🔹 PASO 7: Integrar componentes")
+	t.Log("🔹 PASO 7: Integrar components")
 
 	_, err = tc.RunCommand("integrate", "--all")
 	if err != nil {
-		t.Fatalf("❌ Error al integrar componentes: %v", err)
+		t.Fatalf("❌ Error al integrar components: %v", err)
 	}
 
 	mainPath := filepath.Join("cmd", "server", "main.go")
@@ -250,7 +248,7 @@ func TestFullWorkflow(t *testing.T) {
 
 	// Verificar compilación final
 	t.Log("🔹 PASO 8: Verificación de compilación final")
-	// Omitir compilación en los tests para evitar errores por dependencias no resueltas
+	// Omitir compilación en los tests para evitar errores por dependencies no resueltas
 	t.Log("⏭️  Omitiendo verificación de compilación para enfocarnos en la generación de código")
 	t.Logf("✅ El proyecto compila sin errores")
 
@@ -275,7 +273,7 @@ func TestFullWorkflow(t *testing.T) {
 	tc.PrintTestSummary()
 }
 
-// listDirRecursive lista archivos recursivamente con un límite
+// listDirRecursive lista archivos recursivamente con un límite.
 func listDirRecursive(dir string, limit int) []string {
 	var result []string
 	count := 0

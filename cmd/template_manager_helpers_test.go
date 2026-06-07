@@ -23,7 +23,6 @@ func TestToCamelCase(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, toCamelCase(tc.input))
@@ -47,7 +46,6 @@ func TestToPascalCase(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, toPascalCase(tc.input))
@@ -70,7 +68,6 @@ func TestToSnakeCase(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, toSnakeCase(tc.input))
@@ -91,7 +88,6 @@ func TestToKebabCase(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, toKebabCase(tc.input))
@@ -116,7 +112,6 @@ func TestToPlural_TemplateManager(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, toPlural(tc.input))
@@ -139,7 +134,6 @@ func TestToSingular(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, toSingular(tc.input))

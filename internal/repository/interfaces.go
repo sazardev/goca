@@ -1,8 +1,8 @@
 package repository
 
-import "github.com/sazardev/goca/internal/domain"
+import domain "github.com/sazardev/goca/internal/domain"
 
-// Repository interfaces
+// Repository interfaces.
 type UserRepository interface {
 	Save(user *domain.User) error
 	FindByID(id int) (*domain.User, error)

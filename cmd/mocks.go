@@ -16,7 +16,7 @@ var (
 	mockHandler    bool
 )
 
-// mocksCmd represents the mocks command
+// mocksCmd represents the mocks command.
 var mocksCmd = &cobra.Command{
 	Use:   "mocks [entity]",
 	Short: "Generate mock implementations for interfaces",
@@ -93,11 +93,11 @@ func init() {
 	mocksCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
 }
 
-// generateMocks generates mock files based on flags
+// generateMocks generates mock files based on flags.
 func generateMocks(entityName string, all, repository, usecase, handler bool, sm ...*SafetyManager) error {
 	// Create mocks directory
 	mocksDir := filepath.Join("internal", "mocks")
-	if err := os.MkdirAll(mocksDir, 0755); err != nil {
+	if err := os.MkdirAll(mocksDir, 0o755); err != nil {
 		return err
 	}
 
@@ -131,7 +131,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 	// Generate usage examples
 	if all || repository || usecase || handler {
 		examplesDir := filepath.Join(mocksDir, "examples")
-		if err := os.MkdirAll(examplesDir, 0755); err != nil {
+		if err := os.MkdirAll(examplesDir, 0o755); err != nil {
 			return err
 		}
 
@@ -145,11 +145,12 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 	return nil
 }
 
-// generateRepositoryMock generates a mock for repository interface
+// generateRepositoryMock generates a mock for repository interface.
 func generateRepositoryMock(entityName string) string {
 	lowerEntity := strings.ToLower(entityName)
 
-	return fmt.Sprintf(`package mocks
+	return fmt.Sprintf(
+		`package mocks
 
 import (
 	"github.com/stretchr/testify/mock"
@@ -224,9 +225,10 @@ func NewMock%sRepository() *Mock%sRepository {
 	)
 }
 
-// generateUseCaseMock generates a mock for use case interface
+// generateUseCaseMock generates a mock for use case interface.
 func generateUseCaseMock(entityName string) string {
-	return fmt.Sprintf(`package mocks
+	return fmt.Sprintf(
+		`package mocks
 
 import (
 	"github.com/stretchr/testify/mock"
@@ -296,9 +298,10 @@ func NewMock%sUseCase() *Mock%sUseCase {
 	)
 }
 
-// generateHandlerMock generates a mock for HTTP handler interface
+// generateHandlerMock generates a mock for HTTP handler interface.
 func generateHandlerMock(entityName string) string {
-	return fmt.Sprintf(`package mocks
+	return fmt.Sprintf(
+		`package mocks
 
 import (
 	"net/http"
@@ -349,10 +352,12 @@ func NewMock%sHandler() *Mock%sHandler {
 		entityName, entityName, entityName, entityName,
 	)
 } // generateMockUsageExamples generates example test files showing how to use mocks
+
 func generateMockUsageExamples(entityName string) string {
 	lowerEntity := strings.ToLower(entityName)
 
-	return fmt.Sprintf(`package examples
+	return fmt.Sprintf(
+		`package examples
 
 import (
 	"errors"

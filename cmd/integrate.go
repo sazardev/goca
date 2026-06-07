@@ -66,7 +66,7 @@ Useful for projects that have unintegrated features.`,
 	},
 }
 
-// detectExistingFeatures scans the project for existing features
+// detectExistingFeatures scans the project for existing features.
 func detectExistingFeatures() []string {
 	var features []string
 
@@ -115,7 +115,7 @@ func detectExistingFeatures() []string {
 	return features
 }
 
-// integrateFeatures integrates multiple features
+// integrateFeatures integrates multiple features.
 func integrateFeatures(features []string, sm ...*SafetyManager) {
 	ui.Blank()
 	ui.Info("Starting integration process...")
@@ -133,7 +133,7 @@ func integrateFeatures(features []string, sm ...*SafetyManager) {
 	verifyIntegration(features)
 }
 
-// createOrUpdateDIContainer creates or updates the DI container with all features
+// createOrUpdateDIContainer creates or updates the DI container with all features.
 func createOrUpdateDIContainer(features []string, sm ...*SafetyManager) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
@@ -148,7 +148,7 @@ func createOrUpdateDIContainer(features []string, sm ...*SafetyManager) {
 	}
 }
 
-// updateMainGoWithAllFeatures updates main.go to include all features
+// updateMainGoWithAllFeatures updates main.go to include all features.
 func updateMainGoWithAllFeatures(features []string, sm ...*SafetyManager) {
 	// Try multiple possible locations for main.go
 	possiblePaths := []string{
@@ -199,14 +199,14 @@ func updateMainGoWithAllFeatures(features []string, sm ...*SafetyManager) {
 	}
 }
 
-// createCompleteMainGo creates a new main.go with all features
+// createCompleteMainGo creates a new main.go with all features.
 func createCompleteMainGo(features []string, sm ...*SafetyManager) {
 	mainPath := "main.go"
 	moduleName := getModuleName()
 	createCompleteMainGoWithFeatures(mainPath, features, moduleName, sm...)
 }
 
-// createCompleteMainGoWithFeatures creates a complete main.go with DI and all feature routes
+// createCompleteMainGoWithFeatures creates a complete main.go with DI and all feature routes.
 func createCompleteMainGoWithFeatures(mainPath string, features []string, moduleName string, sm ...*SafetyManager) {
 	var routesSB strings.Builder
 
@@ -249,212 +249,7 @@ type HealthStatus struct {
 	Status    string            `+"`"+`json:"status"`+"`"+`
 	Timestamp time.Time         `+"`"+`json:"timestamp"`+"`"+`
 	Services  map[string]string `+"`"+`json:"services"`+"`"+`
-	Version   string            `+"`"+`json:"version"`+"`"+`
-}
-
-var (
-	// Build information (set by build flags)
-	Version   = "dev"
-	BuildTime = "unknown"
-	db        *gorm.DB
-)
-
-func main() {
-	// Load configuration
-	cfg := config.Load()
-	
-	// Initialize logger
-	logger.Init()
-	
-	log.Printf("Starting application v%%s (built: %%s)", Version, BuildTime)
-	log.Printf("Environment: %%s", cfg.Environment)
-	
-	// Connect to database with retry
-	var err error
-	db, err = connectToDatabase(cfg)
-	if err != nil {
-		log.Printf("Warning: Database connection failed: %%v", err)
-		log.Printf("Server will start in degraded mode. Check your database configuration.")
-		log.Printf("Tip: Configure database environment variables in .env file")
-		db = nil // Ensure db is nil for health checks
-	} else {
-		log.Printf("Database connected successfully")
-		
-		// Run auto-migrations if database is connected
-		if err := runAutoMigrations(db); err != nil {
-			log.Printf("Warning: Auto-migration failed: %%v", err)
-			log.Printf("Tip: You may need to run migrations manually")
-		} else {
-			log.Printf("Database schema is up to date")
-		}
-	}
-	
-	// Setup DI container
-	container := di.NewContainer(db)
-	
-	// Setup router
-	router := mux.NewRouter()
-	
-	// Health check endpoints
-	router.HandleFunc("/health", healthCheckHandler).Methods("GET")
-	router.HandleFunc("/health/ready", readinessHandler).Methods("GET")
-	router.HandleFunc("/health/live", livenessHandler).Methods("GET")
-%s
-	// Setup HTTP server with timeouts
-	server := &http.Server{
-		Addr:         ":" + cfg.Port,
-		Handler:      router,
-		ReadTimeout:  cfg.Server.ReadTimeout,
-		WriteTimeout: cfg.Server.WriteTimeout,
-		IdleTimeout:  cfg.Server.IdleTimeout,
-	}
-	
-	// Start server in goroutine
-	go func() {
-		log.Printf("Server starting on port %%s", cfg.Port)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server startup failed: %%v", err)
-		}
-	}()
-	
-	// Wait for interrupt signal to gracefully shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	
-	log.Println("Shutting down server...")
-	
-	// Graceful shutdown with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	
-	if err := server.Shutdown(ctx); err != nil {
-		log.Printf("Server forced to shutdown: %%v", err)
-	}
-	
-	log.Println("Server exited")
-}
-
-func connectToDatabase(cfg *config.Config) (*gorm.DB, error) {
-	dsn := cfg.GetDatabaseURL()
-	
-	log.Printf("Connecting to database at %%s:%%s/%%s", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)
-	
-	// Check if this is development mode without database
-	if cfg.Environment == "development" && cfg.Database.Password == "" {
-		log.Println("Warning: Development mode detected: No database password set")
-		log.Println("To connect to PostgreSQL, set environment variables:")
-		log.Println("   DB_HOST=localhost")
-		log.Println("   DB_PORT=5432") 
-		log.Println("   DB_USER=postgres")
-		log.Println("   DB_PASSWORD=your_password")
-		log.Println("   DB_NAME=your_database")
-		log.Println("Server will continue without database connection...")
-		return nil, fmt.Errorf("development mode: database not configured")
-	}
-	
-	// Retry connection up to 5 times
-	for i := 0; i < 5; i++ {
-		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-		if err != nil {
-			log.Printf("Attempt %%d: Failed to open database connection: %%v", i+1, err)
-			time.Sleep(time.Duration(i+1) * time.Second)
-			continue
-		}
-		
-		// Get underlying sql.DB for connection pool configuration
-		sqlDB, err := db.DB()
-		if err != nil {
-			log.Printf("Attempt %%d: Failed to get underlying SQL DB: %%v", i+1, err)
-			time.Sleep(time.Duration(i+1) * time.Second)
-			continue
-		}
-		
-		// Configure connection pool
-		sqlDB.SetMaxOpenConns(cfg.Database.MaxOpenConns)
-		sqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)
-		sqlDB.SetConnMaxLifetime(cfg.Database.MaxLifetime)
-		
-		// Test the connection
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		err = sqlDB.PingContext(ctx)
-		cancel()
-		
-		if err == nil {
-			return db, nil
-		}
-		
-		log.Printf("Attempt %%d: Database ping failed: %%v", i+1, err)
-		sqlDBClose, _ := db.DB()
-		if sqlDBClose != nil {
-			sqlDBClose.Close()
-		}
-		time.Sleep(time.Duration(i+1) * time.Second)
-	}
-	
-	return nil, fmt.Errorf("failed to connect to database after 5 attempts")
-}
-
-func runAutoMigrations(db *gorm.DB) error {
-	log.Println("Running database auto-migrations...")
-	
-	// Import and register all domain models here
-	// Example: db.AutoMigrate(&domain.User{}, &domain.Product{})
-	
-	return nil
-}
-
-func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	status := HealthStatus{
-		Status:    "healthy",
-		Timestamp: time.Now(),
-		Services:  make(map[string]string),
-		Version:   Version,
-	}
-	
-	// Check database connection
-	if db != nil {
-		sqlDB, err := db.DB()
-		if err != nil || sqlDB.Ping() != nil {
-			status.Services["database"] = "unhealthy"
-			status.Status = "degraded"
-		} else {
-			status.Services["database"] = "healthy"
-		}
-	} else {
-		status.Services["database"] = "not configured"
-		status.Status = "degraded"
-	}
-	
-	w.Header().Set("Content-Type", "application/json")
-	if status.Status == "healthy" {
-		w.WriteHeader(http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusServiceUnavailable)
-	}
-	json.NewEncoder(w).Encode(status)
-}
-
-func readinessHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if application is ready to serve traffic
-	if db != nil {
-		sqlDB, _ := db.DB()
-		if sqlDB != nil && sqlDB.Ping() == nil {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("ready"))
-			return
-		}
-	}
-	w.WriteHeader(http.StatusServiceUnavailable)
-	w.Write([]byte("not ready"))
-}
-
-func livenessHandler(w http.ResponseWriter, r *http.Request) {
-	// Application is alive if it can respond
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("alive"))
-}
-`, moduleName, moduleName, moduleName, routesSB.String())
+	Version   string            `+"`"+`json:"version"`+"`"+"\n}\n\nvar (\n\t// Build information (set by build flags)\n\tVersion   = \"dev\"\n\tBuildTime = \"unknown\"\n\tdb        *gorm.DB\n)\n\nfunc main() {\n\t// Load configuration\n\tcfg := config.Load()\n\t\n\t// Initialize logger\n\tlogger.Init()\n\t\n\tlog.Printf(\"Starting application v%%s (built: %%s)\", Version, BuildTime)\n\tlog.Printf(\"Environment: %%s\", cfg.Environment)\n\t\n\t// Connect to database with retry\n\tvar err error\n\tdb, err = connectToDatabase(cfg)\n\tif err != nil {\n\t\tlog.Printf(\"Warning: Database connection failed: %%v\", err)\n\t\tlog.Printf(\"Server will start in degraded mode. Check your database configuration.\")\n\t\tlog.Printf(\"Tip: Configure database environment variables in .env file\")\n\t\tdb = nil // Ensure db is nil for health checks\n\t} else {\n\t\tlog.Printf(\"Database connected successfully\")\n\t\t\n\t\t// Run auto-migrations if database is connected\n\t\tif err := runAutoMigrations(db); err != nil {\n\t\t\tlog.Printf(\"Warning: Auto-migration failed: %%v\", err)\n\t\t\tlog.Printf(\"Tip: You may need to run migrations manually\")\n\t\t} else {\n\t\t\tlog.Printf(\"Database schema is up to date\")\n\t\t}\n\t\n\t// Setup DI container\n\t:= di.NewContainer(db)\n\t\n\t// Setup router\n\t:= mux.NewRouter()\n\t\n\t// Health check endpoints\n\trouter.HandleFunc(\"/health\", healthCheckHandler).Methods(\"GET\")\n\trouter.HandleFunc(\"/health/ready\", readinessHandler).Methods(\"GET\")\n\trouter.HandleFunc(\"/health/live\", livenessHandler).Methods(\"GET\")\n%s\n\t// Setup HTTP server with timeouts\n\tserver := &http.Server{\n\t\tAddr:         \":\" + cfg.Port,\n\t\tHandler:      router,\n\t\tReadTimeout:  cfg.Server.ReadTimeout,\n\t\tWriteTimeout: cfg.Server.WriteTimeout,\n\t\tIdleTimeout:  cfg.Server.IdleTimeout,\n\t}\n\t\n\t// Start server in goroutine\n\tgo func() {\n\t\tlog.Printf(\"Server starting on port %%s\", cfg.Port)\n\t\tif err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {\n\t\t\tlog.Fatalf(\"Server startup failed: %%v\", err)\n\t\t}\n\t}()\n\t\n\t// Wait for interrupt signal to gracefully shutdown\n\tquit := make(chan os.Signal, 1)\n\tsignal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)\n\t<-quit\n\t\n\tlog.Println(\"Shutting down server...\")\n\t\n\t// Graceful shutdown with timeout\n\tctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)\n\tdefer cancel()\n\t\n\tif err := server.Shutdown(ctx); err != nil {\n\t\tlog.Printf(\"Server forced to shutdown: %%v\", err)\n\t}\n\t\n\tlog.Println(\"Server exited\")\n}\n\nfunc connectToDatabase(cfg *config.Config) (*gorm.DB, error) {\n\tdsn := cfg.GetDatabaseURL()\n\t\n\tlog.Printf(\"Connecting to database at %%s:%%s/%%s\", cfg.Database.Host, cfg.Database.Port, cfg.Database.Name)\n\t\n\t// Check if this is development mode without database\n\tif cfg.Environment == \"development\" && cfg.Database.Password == \"\" {\n\t\tlog.Println(\"Warning: Development mode detected: No database password set\")\n\t\tlog.Println(\"To connect to PostgreSQL, set environment variables:\")\n\t\tlog.Println(\"   DB_HOST=localhost\")\n\t\tlog.Println(\"   DB_PORT=5432\") \n\t\tlog.Println(\"   DB_USER=postgres\")\n\t\tlog.Println(\"   DB_PASSWORD=your_password\")\n\t\tlog.Println(\"   DB_NAME=your_database\")\n\t\tlog.Println(\"Server will continue without database connection...\")\n\t\treturn nil, fmt.Errorf(\"development mode: database not configured\")\n\t}\n\t\n\t// Retry connection up to 5 times\n\tfor i := 0; i < 5; i++ {\n\t\tdb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})\n\t\tif err != nil {\n\t\t\tlog.Printf(\"Attempt %%d: Failed to open database connection: %%v\", i+1, err)\n\t\t\ttime.Sleep(time.Duration(i+1) * time.Second)\n\t\t\tcontinue\n\t\t}\n\t\t\n\t\t// Get underlying sql.DB for connection pool configuration\n\t\tsqlDB, err := db.DB()\n\t\tif err != nil {\n\t\t\tlog.Printf(\"Attempt %%d: Failed to get underlying SQL DB: %%v\", i+1, err)\n\t\t\ttime.Sleep(time.Duration(i+1) * time.Second)\n\t\t\tcontinue\n\t\t}\n\t\t\n\t\t// Configure connection pool\n\t\tsqlDB.SetMaxOpenConns(cfg.Database.MaxOpenConns)\n\t\tsqlDB.SetMaxIdleConns(cfg.Database.MaxIdleConns)\n\t\tsqlDB.SetConnMaxLifetime(cfg.Database.MaxLifetime)\n\t\t\n\t\t// Test the connection\n\t\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n\t\terr = sqlDB.PingContext(ctx)\n\t\tcancel()\n\t\t\n\t\tif err == nil {\n\t\t\treturn db, nil\n\t\t}\n\t\t\n\t\tlog.Printf(\"Attempt %%d: Database ping failed: %%v\", i+1, err)\n\t\tsqlDBClose, _ := db.DB()\n\t\tif sqlDBClose != nil {\n\t\t\tsqlDBClose.Close()\n\t\t}\n\t\ttime.Sleep(time.Duration(i+1) * time.Second)\n\t}\n\t\n\treturn nil, fmt.Errorf(\"failed to connect to database after 5 attempts\")\n}\n\nfunc runAutoMigrations(db *gorm.DB) error {\n\tlog.Println(\"Running database auto-migrations...\")\n\t\n\t// Import and register all domain models here\n\t// Example: db.AutoMigrate(&domain.User{}, &domain.Product{})\n\t\n\treturn nil\n}\n\nfunc healthCheckHandler(w http.ResponseWriter, r *http.Request) {\n\tstatus := HealthStatus{\n\t\tStatus:    \"healthy\",\n\t\tTimestamp: time.Now(),\n\t\tServices:  make(map[string]string),\n\t\tVersion:   Version,\n\t}\n\t\n\t// Check database connection\n\tif db != nil {\n\t\tsqlDB, err := db.DB()\n\t\tif err != nil || sqlDB.Ping() != nil {\n\t\t\tstatus.Services[\"database\"] = \"unhealthy\"\n\t\t\tstatus.Status = \"degraded\"\n\t\t} else {\n\t\t\tstatus.Services[\"database\"] = \"healthy\"\n\t\t} else {\n\t\tstatus.Services[\"database\"] = \"not configured\"\n\t\tstatus.Status = \"degraded\"\n\t}\n\t\n\tw.Header().Set(\"Content-Type\", \"application/json\")\n\tif status.Status == \"healthy\" {\n\t\tw.WriteHeader(http.StatusOK)\n\t} else {\n\t\tw.WriteHeader(http.StatusServiceUnavailable)\n\t}\n\tjson.NewEncoder(w).Encode(status)\n}\n\nfunc readinessHandler(w http.ResponseWriter, r *http.Request) {\n\t// Check if application is ready to serve traffic\n\tif db != nil {\n\t\tsqlDB, _ := db.DB()\n\t\tif sqlDB != nil && sqlDB.Ping() == nil {\n\t\t\tw.WriteHeader(http.StatusOK)\n\t\t\tw.Write([]byte(\"ready\"))\n\t\t\treturn\n\t\t}\n\tw.WriteHeader(http.StatusServiceUnavailable)\n\tw.Write([]byte(\"not ready\"))\n}\n\nfunc livenessHandler(w http.ResponseWriter, r *http.Request) {\n\t// Application is alive if it can respond\n\tw.WriteHeader(http.StatusOK)\n\tw.Write([]byte(\"alive\"))", moduleName, moduleName, moduleName, routesSB.String())
 
 	if err := writeFile(mainPath, newMainContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Could not create main.go: %v", err))
@@ -463,7 +258,7 @@ func livenessHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// addMissingFeaturesToMain adds missing feature routes to existing main.go
+// addMissingFeaturesToMain adds missing feature routes to existing main.go.
 func addMissingFeaturesToMain(mainPath string, features []string, contentStr, moduleName string, sm ...*SafetyManager) {
 	newContent := contentStr
 
@@ -489,7 +284,7 @@ func addMissingFeaturesToMain(mainPath string, features []string, contentStr, mo
 
 	// Add DI container if missing
 	if !strings.Contains(newContent, "di.NewContainer") {
-		diSetup := "\n\t// Setup DI container\n\tcontainer := di.NewContainer(db)\n"
+		diSetup := "\n\t// Setup DI container\n\t:="
 		routerPattern := "router := mux.NewRouter()"
 		newContent = strings.Replace(newContent, routerPattern, diSetup+"\n\t// Setup router\n\t"+routerPattern, 1)
 	}
@@ -538,7 +333,7 @@ func addMissingFeaturesToMain(mainPath string, features []string, contentStr, mo
 	}
 }
 
-// extractImportSection extracts the import section from Go code
+// extractImportSection extracts the import section from Go code.
 func extractImportSection(content string) string {
 	lines := strings.Split(content, "\n")
 	var importLines []string
@@ -559,7 +354,7 @@ func extractImportSection(content string) string {
 	return strings.Join(importLines, "\n")
 }
 
-// verifyIntegration checks that all features are properly integrated
+// verifyIntegration checks that all features are properly integrated.
 func verifyIntegration(features []string) {
 	issues := 0
 

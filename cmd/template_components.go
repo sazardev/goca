@@ -5,14 +5,14 @@ import (
 	"text/template"
 )
 
-// TemplateComponent represents a reusable template component
+// TemplateComponent represents a reusable template component.
 type TemplateComponent struct {
 	Name     string
 	Template string
 	Required bool
 }
 
-// EntityTemplateComponents contains all entity template components
+// EntityTemplateComponents contains all entity template components.
 var EntityTemplateComponents = map[string]TemplateComponent{
 	"header": {
 		Name: "header",
@@ -76,7 +76,7 @@ func ({{$.Entity.NameLower}} *{{$.Entity.Name}}) {{.Name}}({{range .Params}}{{.N
 	},
 }
 
-// UseCaseTemplateComponents contains all use case template components
+// UseCaseTemplateComponents contains all use case template components.
 var UseCaseTemplateComponents = map[string]TemplateComponent{
 	"header": {
 		Name: "header",
@@ -144,25 +144,25 @@ type List{{.Entity.Name}}sOutput struct {
 	},
 }
 
-// TemplateBuilder builds templates from components
+// TemplateBuilder builds templates from components.
 type TemplateBuilder struct {
 	components []TemplateComponent
 }
 
-// NewTemplateBuilder creates a new template builder
+// NewTemplateBuilder creates a new template builder.
 func NewTemplateBuilder() *TemplateBuilder {
 	return &TemplateBuilder{
 		components: make([]TemplateComponent, 0),
 	}
 }
 
-// AddComponent adds a component to the template builder
+// AddComponent adds a component to the template builder.
 func (tb *TemplateBuilder) AddComponent(component TemplateComponent) *TemplateBuilder {
 	tb.components = append(tb.components, component)
 	return tb
 }
 
-// AddComponentByName adds a component by name from the component map
+// AddComponentByName adds a component by name from the component map.
 func (tb *TemplateBuilder) AddComponentByName(name string, componentMap map[string]TemplateComponent) *TemplateBuilder {
 	if component, exists := componentMap[name]; exists {
 		tb.components = append(tb.components, component)
@@ -170,7 +170,7 @@ func (tb *TemplateBuilder) AddComponentByName(name string, componentMap map[stri
 	return tb
 }
 
-// Build builds the final template string
+// Build builds the final template string.
 func (tb *TemplateBuilder) Build() string {
 	var result string
 	for _, component := range tb.components {
@@ -179,7 +179,7 @@ func (tb *TemplateBuilder) Build() string {
 	return result
 }
 
-// BuildTemplate creates a complete template from component names
+// BuildTemplate creates a complete template from component names.
 func BuildTemplate(componentNames []string, componentMap map[string]TemplateComponent) string {
 	builder := NewTemplateBuilder()
 	for _, name := range componentNames {
@@ -188,7 +188,7 @@ func BuildTemplate(componentNames []string, componentMap map[string]TemplateComp
 	return builder.Build()
 }
 
-// GetEntityTemplate builds entity template with specific components
+// GetEntityTemplate builds entity template with specific components.
 func GetEntityTemplate(withTimestamps, withSoftDelete, withValidation, withMethods bool) string {
 	components := []string{"header", "struct"}
 
@@ -213,13 +213,13 @@ func GetEntityTemplate(withTimestamps, withSoftDelete, withValidation, withMetho
 	return BuildTemplate(components, EntityTemplateComponents)
 }
 
-// GetUseCaseTemplate builds use case template with all components
+// GetUseCaseTemplate builds use case template with all components.
 func GetUseCaseTemplate() string {
 	components := []string{"header", "interface", "service", "dtos"}
 	return BuildTemplate(components, UseCaseTemplateComponents)
 }
 
-// ValidateTemplate validates a template string
+// ValidateTemplate validates a template string.
 func ValidateTemplate(templateStr string) error {
 	_, err := template.New("test").Parse(templateStr)
 	if err != nil {

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -40,8 +40,8 @@ the database driver, then generates provider-specific configuration files.`,
 		ui.Blank()
 		ui.KeyValue("Provider", provider)
 		ui.KeyValue("Go version", data.GoVersion)
-		ui.KeyValue("Docker", fmt.Sprintf("%v", withDocker))
-		ui.KeyValue("Deploy", fmt.Sprintf("%v", withDeploy))
+		ui.KeyValue("Docker", strconv.FormatBool(withDocker))
+		ui.KeyValue("Deploy", strconv.FormatBool(withDeploy))
 		if data.Database != "" {
 			ui.KeyValue("Database", data.Database)
 		}

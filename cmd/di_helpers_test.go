@@ -24,7 +24,6 @@ func TestGenerateSetupRepositories(t *testing.T) {
 	features := []string{"Product", "User"}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			var b strings.Builder
@@ -118,7 +117,6 @@ func TestWriteRepositorySet(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			var b strings.Builder

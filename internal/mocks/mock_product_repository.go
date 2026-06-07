@@ -1,22 +1,22 @@
 package mocks
 
 import (
-	"github.com/sazardev/goca/internal/domain"
+	domain "github.com/sazardev/goca/internal/domain"
 	"github.com/stretchr/testify/mock"
 )
 
-// MockProductRepository is a mock implementation of repository.ProductRepository
+// MockProductRepository is a mock implementation of repository.ProductRepository.
 type MockProductRepository struct {
 	mock.Mock
 }
 
-// Save mocks the Save method
+// Save mocks the Save method.
 func (m *MockProductRepository) Save(product *domain.Product) error {
 	args := m.Called(product)
 	return args.Error(0)
 }
 
-// FindByID mocks the FindByID method
+// FindByID mocks the FindByID method.
 func (m *MockProductRepository) FindByID(id int) (*domain.Product, error) {
 	args := m.Called(id)
 	if args.Get(0) == nil {
@@ -25,7 +25,7 @@ func (m *MockProductRepository) FindByID(id int) (*domain.Product, error) {
 	return args.Get(0).(*domain.Product), args.Error(1)
 }
 
-// FindByName mocks the FindByName method
+// FindByName mocks the FindByName method.
 func (m *MockProductRepository) FindByName(name string) (*domain.Product, error) {
 	args := m.Called(name)
 	if args.Get(0) == nil {
@@ -34,19 +34,19 @@ func (m *MockProductRepository) FindByName(name string) (*domain.Product, error)
 	return args.Get(0).(*domain.Product), args.Error(1)
 }
 
-// Update mocks the Update method
+// Update mocks the Update method.
 func (m *MockProductRepository) Update(product *domain.Product) error {
 	args := m.Called(product)
 	return args.Error(0)
 }
 
-// Delete mocks the Delete method
+// Delete mocks the Delete method.
 func (m *MockProductRepository) Delete(id int) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
 
-// FindAll mocks the FindAll method
+// FindAll mocks the FindAll method.
 func (m *MockProductRepository) FindAll() ([]domain.Product, error) {
 	args := m.Called()
 	if args.Get(0) == nil {
@@ -55,7 +55,7 @@ func (m *MockProductRepository) FindAll() ([]domain.Product, error) {
 	return args.Get(0).([]domain.Product), args.Error(1)
 }
 
-// NewMockProductRepository creates a new mock repository
+// NewMockProductRepository creates a new mock repository.
 func NewMockProductRepository() *MockProductRepository {
 	return &MockProductRepository{}
 }

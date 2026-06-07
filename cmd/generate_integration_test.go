@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// newDryRunSafety creates a SafetyManager in dry-run mode for testing
+// newDryRunSafety creates a SafetyManager in dry-run mode for testing.
 func newDryRunSafety() *SafetyManager {
 	return &SafetyManager{DryRun: true}
 }
@@ -51,7 +51,7 @@ func TestGenerateSwaggerFile_DryRun(t *testing.T) {
 	generateSwaggerFile(filepath.Join(dir, "handler"), "Product", sm)
 }
 
-// TestDryRunGenerators_Sequential tests generators that need os.Chdir (not parallelizable)
+// TestDryRunGenerators_Sequential tests generators that need os.Chdir (not parallelizable).
 func TestDryRunGenerators_Sequential(t *testing.T) {
 	// Save original directory
 	origDir, err := os.Getwd()
@@ -64,7 +64,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("HTTPHandler", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateHTTPHandler("Product", false, false, false, "", sm)
 	})
 
@@ -72,7 +72,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("HTTPHandlerFile", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateHTTPHandlerFile(filepath.Join(dir, "handler"), "Product", false, "", sm)
 	})
 
@@ -80,7 +80,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("HTTPRoutesFile", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateHTTPRoutesFile(filepath.Join(dir, "handler"), "Product", true, sm)
 	})
 
@@ -88,7 +88,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("HTTPDTOFile", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateHTTPDTOFile(filepath.Join(dir, "handler"), "Product", sm)
 	})
 
@@ -96,7 +96,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("ManualDI", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateManualDI(filepath.Join(dir, "di"), []string{"Product", "User"}, "postgres", false, sm)
 	})
 
@@ -104,7 +104,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("WireDI", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateWireDI(filepath.Join(dir, "di"), []string{"Product"}, "postgres", sm)
 	})
 
@@ -112,8 +112,8 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("UseCaseWithFields", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-		require.NoError(t, os.MkdirAll("internal/usecase", 0755))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+		require.NoError(t, os.MkdirAll("internal/usecase", 0o755))
 		generateUseCaseWithFields("ProductService", "Product", "create,read,update,delete,list", true, false, "Name:string,Price:float64", sm)
 	})
 
@@ -121,8 +121,8 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("UseCase", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-		require.NoError(t, os.MkdirAll("internal/usecase", 0755))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+		require.NoError(t, os.MkdirAll("internal/usecase", 0o755))
 		generateUseCase("ProductService", "Product", "create,read", false, false, sm)
 	})
 
@@ -130,8 +130,8 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("Entity", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
-		require.NoError(t, os.MkdirAll("internal/domain", 0755))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+		require.NoError(t, os.MkdirAll("internal/domain", 0o755))
 		generateEntity("Product", "Name:string,Price:float64", true, true, true, false, false, "", sm)
 	})
 
@@ -139,7 +139,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("ManualDI_MySQL", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "mysql", false, sm)
 	})
 
@@ -147,7 +147,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("ManualDI_MongoDB", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "mongodb", false, sm)
 	})
 
@@ -155,7 +155,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 	t.Run("HTTPHandler_AllOptions", func(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
-		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 		generateHTTPHandler("Product", true, true, true, "snake_case", sm)
 	})
 }
@@ -233,7 +233,6 @@ func TestGetImportPath_Extended(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, getImportPath(tc.input))

@@ -73,11 +73,11 @@ organized by feature to maintain consistency in the application.`,
 func generateMessages(entity string, errors, responses, constants bool, sm ...*SafetyManager) {
 	// Create messages directory
 	messagesDir := filepath.Join("internal", "messages")
-	_ = os.MkdirAll(messagesDir, 0755)
+	_ = os.MkdirAll(messagesDir, 0o755)
 
 	// Create constants directory
 	constantsDir := filepath.Join("internal", "constants")
-	_ = os.MkdirAll(constantsDir, 0755)
+	_ = os.MkdirAll(constantsDir, 0o755)
 
 	if errors {
 		generateUseCaseMessages(entity, sm...)
@@ -95,7 +95,7 @@ func generateMessages(entity string, errors, responses, constants bool, sm ...*S
 func generateUseCaseMessages(entity string, sm ...*SafetyManager) {
 	// Create messages directory and file in internal/messages
 	messagesDir := filepath.Join("internal", "messages")
-	if err := os.MkdirAll(messagesDir, 0755); err != nil {
+	if err := os.MkdirAll(messagesDir, 0o755); err != nil {
 		fmt.Printf("Error creating messages directory: %v\n", err)
 		return
 	}

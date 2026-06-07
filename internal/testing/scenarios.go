@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-// TestScenario represents a comprehensive test scenario for the CLI
+// TestScenario represents a comprehensive test scenario for the CLI.
 type TestScenario struct {
 	Name        string
 	Description string
@@ -16,19 +16,19 @@ type TestScenario struct {
 	Cleanup     func(*TestSuite) error
 }
 
-// ComprehensiveTestRunner executes all test scenarios
+// ComprehensiveTestRunner executes all test scenarios.
 type ComprehensiveTestRunner struct {
 	scenarios []TestScenario
 }
 
-// NewComprehensiveTestRunner creates a new comprehensive test runner
+// NewComprehensiveTestRunner creates a new comprehensive test runner.
 func NewComprehensiveTestRunner() *ComprehensiveTestRunner {
 	runner := &ComprehensiveTestRunner{}
 	runner.registerAllScenarios()
 	return runner
 }
 
-// RunAllTests executes all registered test scenarios
+// RunAllTests executes all registered test scenarios.
 func (r *ComprehensiveTestRunner) RunAllTests(t *testing.T) {
 	fmt.Printf("🚀 Starting Goca CLI Comprehensive Testing Suite\n")
 	fmt.Printf("Total scenarios: %d\n\n", len(r.scenarios))
@@ -68,7 +68,7 @@ func (r *ComprehensiveTestRunner) RunAllTests(t *testing.T) {
 	}
 }
 
-// runScenario executes a single test scenario
+// runScenario executes a single test scenario.
 func (r *ComprehensiveTestRunner) runScenario(scenario TestScenario, suite *TestSuite) []*TestError {
 	var errors []*TestError
 
@@ -101,7 +101,7 @@ func (r *ComprehensiveTestRunner) runScenario(scenario TestScenario, suite *Test
 	return errors
 }
 
-// registerAllScenarios registers all test scenarios
+// registerAllScenarios registers all test scenarios.
 func (r *ComprehensiveTestRunner) registerAllScenarios() {
 	r.scenarios = []TestScenario{
 		r.createBasicInitScenario(),
@@ -355,7 +355,7 @@ func (r *ComprehensiveTestRunner) createVersionAndHelpScenario() TestScenario {
 	}
 }
 
-// Helper scenarios for individual components
+// Helper scenarios for individual components.
 func (r *ComprehensiveTestRunner) createUseCaseOnlyScenario() TestScenario {
 	return TestScenario{
 		Name:        "UseCase Only Generation",
@@ -558,7 +558,7 @@ func (r *ComprehensiveTestRunner) createFlagValidationScenario() TestScenario {
 	}
 }
 
-// printFinalSummary prints the final test summary
+// printFinalSummary prints the final test summary.
 func (r *ComprehensiveTestRunner) printFinalSummary(passedScenarios int, allErrors []*TestError) {
 	fmt.Printf("🎯 GOCA CLI TESTING SUMMARY\n")
 	fmt.Printf("==========================\n")

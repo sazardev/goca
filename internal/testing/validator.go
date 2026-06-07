@@ -11,17 +11,17 @@ import (
 	"strings"
 )
 
-// CodeValidator validates generated Go code for correctness
+// CodeValidator validates generated Go code for correctness.
 type CodeValidator struct {
 	suite *TestSuite
 }
 
-// NewCodeValidator creates a new code validator
+// NewCodeValidator creates a new code validator.
 func NewCodeValidator(suite *TestSuite) *CodeValidator {
 	return &CodeValidator{suite: suite}
 }
 
-// ValidateGoSyntax checks if a Go file has valid syntax
+// ValidateGoSyntax checks if a Go file has valid syntax.
 func (v *CodeValidator) ValidateGoSyntax(filePath string) error {
 	fset := token.NewFileSet()
 	_, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -31,7 +31,7 @@ func (v *CodeValidator) ValidateGoSyntax(filePath string) error {
 	return nil
 }
 
-// ValidateAllGoFiles validates syntax of all Go files in directory
+// ValidateAllGoFiles validates syntax of all Go files in directory.
 func (v *CodeValidator) ValidateAllGoFiles(dir string) []error {
 	var errors []error
 
@@ -47,7 +47,6 @@ func (v *CodeValidator) ValidateAllGoFiles(dir string) []error {
 		}
 		return nil
 	})
-
 	if err != nil {
 		errors = append(errors, fmt.Errorf("error walking directory: %w", err))
 	}
@@ -55,7 +54,7 @@ func (v *CodeValidator) ValidateAllGoFiles(dir string) []error {
 	return errors
 }
 
-// ValidatePackageDeclaration checks if file has correct package declaration
+// ValidatePackageDeclaration checks if file has correct package declaration.
 func (v *CodeValidator) ValidatePackageDeclaration(filePath, expectedPackage string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -70,7 +69,7 @@ func (v *CodeValidator) ValidatePackageDeclaration(filePath, expectedPackage str
 	return nil
 }
 
-// ValidateImports checks if file has required imports
+// ValidateImports checks if file has required imports.
 func (v *CodeValidator) ValidateImports(filePath string, requiredImports []string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -98,7 +97,7 @@ func (v *CodeValidator) ValidateImports(filePath string, requiredImports []strin
 	return nil
 }
 
-// ValidateStructFields checks if struct has expected fields
+// ValidateStructFields checks if struct has expected fields.
 func (v *CodeValidator) ValidateStructFields(filePath, structName string, expectedFields []string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -142,7 +141,7 @@ func (v *CodeValidator) ValidateStructFields(filePath, structName string, expect
 	return nil
 }
 
-// ValidateInterfaceMethods checks if interface has expected methods
+// ValidateInterfaceMethods checks if interface has expected methods.
 func (v *CodeValidator) ValidateInterfaceMethods(filePath, interfaceName string, expectedMethods []string) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
@@ -186,7 +185,7 @@ func (v *CodeValidator) ValidateInterfaceMethods(filePath, interfaceName string,
 	return nil
 }
 
-// ValidateNamingConventions checks if code follows Go naming conventions
+// ValidateNamingConventions checks if code follows Go naming conventions.
 func (v *CodeValidator) ValidateNamingConventions(filePath string) []error {
 	var errors []error
 
@@ -226,7 +225,7 @@ func (v *CodeValidator) ValidateNamingConventions(filePath string) []error {
 	return errors
 }
 
-// ValidateFileHeader checks if file has proper header comments
+// ValidateFileHeader checks if file has proper header comments.
 func (v *CodeValidator) ValidateFileHeader(filePath string, expectedPatterns []string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -257,7 +256,7 @@ func (v *CodeValidator) ValidateFileHeader(filePath string, expectedPatterns []s
 	return nil
 }
 
-// ValidateModuleReferences checks if generated code uses correct module references
+// ValidateModuleReferences checks if generated code uses correct module references.
 func (v *CodeValidator) ValidateModuleReferences(filePath, expectedModule string) error {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
@@ -271,7 +270,7 @@ func (v *CodeValidator) ValidateModuleReferences(filePath, expectedModule string
 	return nil
 }
 
-// isCapitalized checks if string starts with capital letter
+// isCapitalized checks if string starts with capital letter.
 func isCapitalized(s string) bool {
 	if len(s) == 0 {
 		return false

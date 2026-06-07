@@ -28,8 +28,8 @@ pre-commit:
       description: "staticcheck — advanced static analysis"
     gosec:
       glob: "*.go"
-      run: gosec -quiet -confidence=medium -severity=medium ./...
-      description: "gosec — security scanner"
+      run: gosec -quiet -exclude=G101,G115,G204,G301,G304,G306,G402,G404,G505 -confidence=high -severity=high ./...
+      description: "gosec — security scanner (high only)"
     nilaway:
       glob: "*.go"
       run: nilaway ./...

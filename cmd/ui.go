@@ -21,10 +21,10 @@ type UIRenderer struct {
 	verbosity   int // 0=quiet, 1=normal, 2=verbose
 }
 
-// Global UI instance used by all commands
+// Global UI instance used by all commands.
 var ui *UIRenderer
 
-// Color palette
+// Color palette.
 var (
 	colorGreen   = lipgloss.Color("#00d787")
 	colorRed     = lipgloss.Color("#ff5f87")
@@ -53,27 +53,33 @@ func NewUIRenderer(writer io.Writer, noColor bool, verbosity int) *UIRenderer {
 	}
 }
 
-// SetInteractive controls whether interactive prompts are enabled
+// SetInteractive controls whether interactive prompts are enabled.
 func (u *UIRenderer) SetInteractive(interactive bool) {
 	u.interactive = interactive
 }
 
-// IsInteractive returns whether interactive prompts are enabled
+// IsInteractive returns whether interactive prompts are enabled.
 func (u *UIRenderer) IsInteractive() bool {
+	if u == nil {
+		return false
+	}
 	return u.interactive
 }
 
-// Header prints a bold header line
+// Header prints a bold header line.
 func (u *UIRenderer) Header(text string) {
-	if u.verbosity < 1 {
+	if u == nil || u.verbosity < 1 {
 		return
 	}
 	style := lipgloss.NewStyle().Bold(true)
 	fmt.Fprintln(u.writer, style.Render(text))
 }
 
-// Step prints a numbered step indicator
+// Step prints a numbered step indicator.
 func (u *UIRenderer) Step(number int, text string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -81,20 +87,29 @@ func (u *UIRenderer) Step(number int, text string) {
 	fmt.Fprintf(u.writer, "%s %s\n", numStyle.Render(fmt.Sprintf("%d.", number)), text)
 }
 
-// Success prints a success message with a green checkmark
+// Success prints a success message with a green checkmark.
 func (u *UIRenderer) Success(text string) {
+	if u == nil {
+		return
+	}
 	prefix := lipgloss.NewStyle().Foreground(colorGreen).Bold(true).Render("✓")
 	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
-// Error prints an error message with a red cross
+// Error prints an error message with a red cross.
 func (u *UIRenderer) Error(text string) {
+	if u == nil {
+		return
+	}
 	prefix := lipgloss.NewStyle().Foreground(colorRed).Bold(true).Render("✗")
 	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
-// Warning prints a warning message with a yellow indicator
+// Warning prints a warning message with a yellow indicator.
 func (u *UIRenderer) Warning(text string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -102,8 +117,11 @@ func (u *UIRenderer) Warning(text string) {
 	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
-// Info prints an informational message with a cyan indicator
+// Info prints an informational message with a cyan indicator.
 func (u *UIRenderer) Info(text string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -111,8 +129,11 @@ func (u *UIRenderer) Info(text string) {
 	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
-// DryRun prints a dry-run prefixed message
+// DryRun prints a dry-run prefixed message.
 func (u *UIRenderer) DryRun(text string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -123,21 +144,30 @@ func (u *UIRenderer) DryRun(text string) {
 	fmt.Fprintf(u.writer, "%s %s\n", tag, text)
 }
 
-// FileCreated prints a file creation message with a styled path
+// FileCreated prints a file creation message with a styled path.
 func (u *UIRenderer) FileCreated(path string) {
+	if u == nil {
+		return
+	}
 	check := lipgloss.NewStyle().Foreground(colorGreen).Render("✓")
 	dimPath := lipgloss.NewStyle().Foreground(colorDim).Render(path)
 	fmt.Fprintf(u.writer, "  %s Created: %s\n", check, dimPath)
 }
 
-// FileBackedUp prints a file backup message
+// FileBackedUp prints a file backup message.
 func (u *UIRenderer) FileBackedUp(from, to string) {
+	if u == nil {
+		return
+	}
 	arrow := lipgloss.NewStyle().Foreground(colorCyan).Render("→")
 	fmt.Fprintf(u.writer, "  Backed up: %s %s %s\n", from, arrow, to)
 }
 
-// KeyValue prints a key-value pair with styled key
+// KeyValue prints a key-value pair with styled key.
 func (u *UIRenderer) KeyValue(key, value string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -145,8 +175,11 @@ func (u *UIRenderer) KeyValue(key, value string) {
 	fmt.Fprintf(u.writer, "%s %s\n", k, value)
 }
 
-// KeyValueFromConfig prints a key-value pair with a "from config" annotation
+// KeyValueFromConfig prints a key-value pair with a "from config" annotation.
 func (u *UIRenderer) KeyValueFromConfig(key, value string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -155,8 +188,11 @@ func (u *UIRenderer) KeyValueFromConfig(key, value string) {
 	fmt.Fprintf(u.writer, "%s %s %s\n", k, value, dimTag)
 }
 
-// Feature prints a feature toggle line (e.g., "✓ Including validation")
+// Feature prints a feature toggle line (e.g., "✓ Including validation").
 func (u *UIRenderer) Feature(text string, fromConfig bool) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -169,8 +205,11 @@ func (u *UIRenderer) Feature(text string, fromConfig bool) {
 	}
 }
 
-// Table prints a formatted table with headers and rows
+// Table prints a formatted table with headers and rows.
 func (u *UIRenderer) Table(headers []string, rows [][]string) {
+	if u == nil {
+		return
+	}
 	if len(headers) == 0 {
 		return
 	}
@@ -231,26 +270,38 @@ func (u *UIRenderer) Table(headers []string, rows [][]string) {
 	fmt.Fprintln(u.writer, borderStyle.Render(bottomBorder))
 }
 
-// Println prints a plain line
+// Println prints a plain line.
 func (u *UIRenderer) Println(text string) {
+	if u == nil {
+		return
+	}
 	fmt.Fprintln(u.writer, text)
 }
 
-// Printf prints a formatted string
+// Printf prints a formatted string.
 func (u *UIRenderer) Printf(format string, args ...any) {
+	if u == nil {
+		return
+	}
 	fmt.Fprintf(u.writer, format, args...)
 }
 
-// Blank prints an empty line
+// Blank prints an empty line.
 func (u *UIRenderer) Blank() {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
 	fmt.Fprintln(u.writer)
 }
 
-// Dim prints dimmed text
+// Dim prints dimmed text.
 func (u *UIRenderer) Dim(text string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -258,8 +309,11 @@ func (u *UIRenderer) Dim(text string) {
 	fmt.Fprintln(u.writer, style.Render(text))
 }
 
-// Section prints a section with a title and indented content
+// Section prints a section with a title and indented content.
 func (u *UIRenderer) Section(title string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -272,8 +326,11 @@ func (u *UIRenderer) Section(title string) {
 	fmt.Fprintln(u.writer, style.Render(title))
 }
 
-// NextSteps prints a formatted "Next steps" block
+// NextSteps prints a formatted "Next steps" block.
 func (u *UIRenderer) NextSteps(steps []string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 1 {
 		return
 	}
@@ -290,8 +347,11 @@ func initUI(noColor bool, verbosity int) {
 	ui = NewUIRenderer(os.Stdout, noColor, verbosity)
 }
 
-// Debug prints a debug message (verbosity >= 2)
+// Debug prints a debug message (verbosity >= 2).
 func (u *UIRenderer) Debug(text string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 2 {
 		return
 	}
@@ -299,8 +359,11 @@ func (u *UIRenderer) Debug(text string) {
 	fmt.Fprintf(u.writer, "%s %s\n", prefix, text)
 }
 
-// Trace prints a trace message (verbosity >= 2)
+// Trace prints a trace message (verbosity >= 2).
 func (u *UIRenderer) Trace(text string) {
+	if u == nil {
+		return
+	}
 	if u.verbosity < 2 {
 		return
 	}
@@ -312,6 +375,9 @@ func (u *UIRenderer) Trace(text string) {
 // Returns a stop function that should be called when the operation is complete.
 // The stop function prints a completion message with a green checkmark.
 func (u *UIRenderer) Spinner(text string) func() {
+	if u == nil {
+		return func() {}
+	}
 	if u.noColor {
 		fmt.Fprintf(u.writer, "%s... ", text)
 		return func() {

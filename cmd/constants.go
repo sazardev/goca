@@ -1,6 +1,6 @@
 package cmd
 
-// Flag names - Nombres de flags
+// Flag names - Nombres de flags.
 const (
 	DatabaseFlag       = "database"
 	FieldsFlag         = "fields"
@@ -13,7 +13,7 @@ const (
 	GraphQLFlag        = "graphql"
 )
 
-// Flag usage messages - Flag usage messages
+// Flag usage messages - Flag usage messages.
 const (
 	DatabaseFlagUsage       = "Database type (postgres, postgres-json, mysql, mongodb, sqlite, sqlserver, elasticsearch, dynamodb)"
 	FieldsFlagUsage         = "Comma-separated list of fields (ex: name:string,age:int)"
@@ -26,7 +26,7 @@ const (
 	GraphQLFlagUsage        = "Include GraphQL handlers"
 )
 
-// Database constants
+// Database constants.
 const (
 	DBPostgres      = "postgres"
 	DBPostgresJSON  = "postgres-json"
@@ -44,7 +44,7 @@ var ValidDatabases = []string{
 	DBSQLServer, DBElasticsearch, DBDynamoDB,
 }
 
-// Handler/Protocol constants
+// Handler/Protocol constants.
 const (
 	HandlerHTTP   = "http"
 	HandlerGRPC   = "grpc"
@@ -55,7 +55,7 @@ const (
 // ValidHandlers contains the list of supported handler types for the CLI.
 var ValidHandlers = []string{HandlerHTTP, HandlerGRPC, HandlerCLI, HandlerWorker}
 
-// Operation constants
+// Operation constants.
 const (
 	OpCreate = "create"
 	OpRead   = "read"
@@ -64,17 +64,17 @@ const (
 	OpList   = "list"
 )
 
-// Default operation combinations
+// Default operation combinations.
 const (
 	DefaultOperations = "create,read,update,delete,list"
 	BasicOperations   = "create,read"
 	CRUDOperations    = "create,read,update,delete"
 )
 
-// ValidOperations contains the list of supported CRUD operations
+// ValidOperations contains the list of supported CRUD operations.
 var ValidOperations = []string{OpCreate, OpRead, OpUpdate, OpDelete, OpList}
 
-// API Types constants
+// API Types constants.
 const (
 	APITypeRest    = "rest"
 	APITypeGraphQL = "graphql"
@@ -84,7 +84,7 @@ const (
 // ValidAPITypes contains the list of supported API types for the CLI.
 var ValidAPITypes = []string{APITypeRest, APITypeGraphQL, APITypeGRPC}
 
-// Field Types constants
+// Field Types constants.
 const (
 	FieldString    = "string"
 	FieldInt       = "int"
@@ -117,7 +117,7 @@ var ValidFieldTypes = []string{
 	FieldByte, FieldRune, FieldFloat32, FieldFloat64, FieldBool, FieldTime, FieldBytes, FieldInterface,
 }
 
-// Template constants
+// Template constants.
 const (
 	TemplateEntity     = "entity"
 	TemplateUseCase    = "usecase"
@@ -126,7 +126,7 @@ const (
 	TemplateDI         = "di"
 )
 
-// File extensions
+// File extensions.
 const (
 	ExtGo   = ".go"
 	ExtYAML = ".yaml"
@@ -135,7 +135,7 @@ const (
 	ExtSQL  = ".sql"
 )
 
-// Directory names
+// Directory names.
 const (
 	DirInternal   = "internal"
 	DirDomain     = "domain"
@@ -165,7 +165,7 @@ var CommonQueryFields = []string{
 	"status", "type", "category", "title", "description",
 }
 
-// Validation constants
+// Validation constants.
 const (
 	MinFieldNameLength  = 1
 	MaxFieldNameLength  = 50
@@ -173,7 +173,7 @@ const (
 	MaxEntityNameLength = 50
 )
 
-// Error messages
+// Error messages.
 const (
 	ErrInvalidDatabase    = "invalid database. Options: postgres, mysql, mongodb, sqlite"
 	ErrInvalidHandler     = "invalid handler. Options: http, grpc, cli, worker"
@@ -187,7 +187,7 @@ const (
 	ErrDirectoryNotFound  = "directory not found"
 )
 
-// Success messages
+// Success messages.
 const (
 	MsgEntityGenerated     = "Entity '%s' generated successfully!"
 	MsgFeatureGenerated    = "Feature '%s' generated and integrated successfully!"
@@ -197,7 +197,7 @@ const (
 	MsgProjectInitialized  = "Project '%s' created successfully!"
 )
 
-// Info messages
+// Info messages.
 const (
 	MsgGeneratingEntity     = "Generating entity '%s'"
 	MsgGeneratingFeature    = "Generating complete feature '%s'"
@@ -207,7 +207,7 @@ const (
 	MsgGeneratingLayers     = "Generating layers..."
 )
 
-// Additional string constants for repeated values
+// Additional string constants for repeated values.
 const (
 	StringProject   = "project"
 	StringEmail     = "Email"

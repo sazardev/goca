@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// TestNewDatabaseIntegrations tests all newly added database support
+// TestNewDatabaseIntegrations tests all newly added database support.
 func TestNewDatabaseIntegrations(t *testing.T) {
 	databases := []string{
 		"sqlite",
@@ -25,7 +25,7 @@ func TestNewDatabaseIntegrations(t *testing.T) {
 	}
 }
 
-// testDatabaseIntegration tests a single database integration end-to-end
+// testDatabaseIntegration tests a single database integration end-to-end.
 func testDatabaseIntegration(t *testing.T, database string) {
 	// Create temporary project
 	tmpDir := t.TempDir()
@@ -33,7 +33,7 @@ func testDatabaseIntegration(t *testing.T, database string) {
 	projectPath := filepath.Join(tmpDir, projectName)
 
 	// Initialize project
-	if err := os.MkdirAll(projectPath, 0755); err != nil {
+	if err := os.MkdirAll(projectPath, 0o755); err != nil {
 		t.Fatalf("Failed to create project directory: %v", err)
 	}
 
@@ -50,7 +50,7 @@ func testDatabaseIntegration(t *testing.T, database string) {
 
 	// Create basic go.mod
 	goModContent := fmt.Sprintf("module %s\n\ngo 1.25\n", projectName)
-	if err := os.WriteFile("go.mod", []byte(goModContent), 0644); err != nil {
+	if err := os.WriteFile("go.mod", []byte(goModContent), 0o644); err != nil {
 		t.Fatalf("Failed to create go.mod: %v", err)
 	}
 
@@ -63,7 +63,7 @@ func testDatabaseIntegration(t *testing.T, database string) {
 		"internal/di",
 	}
 	for _, dir := range dirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
 			t.Fatalf("Failed to create directory %s: %v", dir, err)
 		}
 	}
@@ -89,7 +89,7 @@ func testDatabaseIntegration(t *testing.T, database string) {
 	})
 }
 
-// testGenerateEntity verifies entity generation
+// testGenerateEntity verifies entity generation.
 func testGenerateEntity(t *testing.T, entityName string) {
 	// Create basic entity file
 	entityLower := strings.ToLower(entityName)
@@ -114,7 +114,7 @@ func (p *%s) Validate() error {
 }
 `, entityName, entityName)
 
-	if err := os.WriteFile(entityPath, []byte(entityContent), 0644); err != nil {
+	if err := os.WriteFile(entityPath, []byte(entityContent), 0o644); err != nil {
 		t.Fatalf("Failed to create entity file: %v", err)
 	}
 
@@ -124,7 +124,7 @@ func (p *%s) Validate() error {
 	}
 }
 
-// testGenerateRepository generates repository for the database
+// testGenerateRepository generates repository for the database.
 func testGenerateRepository(t *testing.T, entityName, database string) {
 	repositoryDir := filepath.Join("internal", "repository")
 
@@ -143,7 +143,7 @@ func testGenerateRepository(t *testing.T, entityName, database string) {
 	}
 }
 
-// testRepositoryFileExists verifies repository file was created
+// testRepositoryFileExists verifies repository file was created.
 func testRepositoryFileExists(t *testing.T, entityName, database string) {
 	entityLower := strings.ToLower(entityName)
 	repositoryDir := filepath.Join("internal", "repository")
@@ -193,7 +193,7 @@ func testRepositoryFileExists(t *testing.T, entityName, database string) {
 	}
 }
 
-// testRepositoryImplementsInterface verifies repository implements the interface
+// testRepositoryImplementsInterface verifies repository implements the interface.
 func testRepositoryImplementsInterface(t *testing.T, entityName, database string) {
 	entityLower := strings.ToLower(entityName)
 	repositoryDir := filepath.Join("internal", "repository")
@@ -237,7 +237,7 @@ func testRepositoryImplementsInterface(t *testing.T, entityName, database string
 	}
 }
 
-// testDatabaseSpecificMethods verifies database-specific methods exist
+// testDatabaseSpecificMethods verifies database-specific methods exist.
 func testDatabaseSpecificMethods(t *testing.T, entityName, database string) {
 	entityLower := strings.ToLower(entityName)
 	repositoryDir := filepath.Join("internal", "repository")
@@ -375,7 +375,7 @@ func (s *sqlite` + entity + `Repository) FindAll() ([]domain.` + entity + `, err
 }
 `
 
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create SQLite repository test file: %v", err)
 	}
 }
@@ -432,7 +432,7 @@ func (s *sqlserver` + entity + `Repository) FindAll() ([]domain.` + entity + `, 
 }
 `
 
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create SQL Server repository: %v", err)
 	}
 }
@@ -494,7 +494,7 @@ func (p *postgresJSON` + entity + `Repository) FindAll() ([]domain.` + entity + 
 }
 `
 
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create PostgreSQL JSON repository: %v", err)
 	}
 }
@@ -549,7 +549,7 @@ func (e *elasticsearch` + entity + `Repository) FindAll() ([]domain.` + entity +
 }
 `
 
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create Elasticsearch repository: %v", err)
 	}
 }
@@ -599,12 +599,12 @@ func (d *dynamodb` + entity + `Repository) FindAll() ([]domain.` + entity + `, e
 }
 `
 
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
 		t.Fatalf("Failed to create DynamoDB repository: %v", err)
 	}
 }
 
-// Helper function to get module name for tests
+// Helper function to get module name for tests.
 func getTestModuleName(t *testing.T) string {
 	// Read go.mod to get module name
 	content, err := os.ReadFile("go.mod")

@@ -1,8 +1,8 @@
 package usecase
 
-import "github.com/sazardev/goca/internal/domain"
+import domain "github.com/sazardev/goca/internal/domain"
 
-// UseCase interfaces
+// UseCase interfaces.
 type UserUseCase interface {
 	Create(input CreateUserInput) (*CreateUserOutput, error)
 	GetByID(id uint) (*domain.User, error)

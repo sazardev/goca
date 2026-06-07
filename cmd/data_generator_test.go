@@ -49,7 +49,6 @@ func TestFormatSQLValue(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			got := g.formatSQLValue(tc.value)
@@ -167,7 +166,6 @@ func TestGenerateByType(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.fieldType, func(t *testing.T) {
 			t.Parallel()
 			v := g.generateByType(tc.fieldType)
@@ -207,7 +205,7 @@ func TestGenerateInsertSQL(t *testing.T) {
 	assert.Contains(t, sql, "name, price")
 	lines := strings.Split(strings.TrimSpace(sql), "\n")
 	// 1 comment line + 2 insert lines
-	assert.Equal(t, 3, len(lines))
+	assert.Len(t, lines, 3)
 }
 
 func TestGenerateName_Entities(t *testing.T) {
@@ -251,7 +249,6 @@ func TestGenerateStatus_Entities(t *testing.T) {
 
 	entities := []string{"user", "order", "project", "widget"}
 	for _, e := range entities {
-		e := e
 		t.Run(e, func(t *testing.T) {
 			t.Parallel()
 			v := g.generateStatus(e)

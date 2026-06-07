@@ -1,17 +1,18 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
 
-// CommandValidator centralizes validation logic for all commands
+// CommandValidator centralizes validation logic for all commands.
 type CommandValidator struct {
 	fieldValidator *FieldValidator
 	errorHandler   *ErrorHandler
 }
 
-// NewCommandValidator creates a new command validator
+// NewCommandValidator creates a new command validator.
 func NewCommandValidator() *CommandValidator {
 	return &CommandValidator{
 		fieldValidator: NewFieldValidator(),
@@ -19,7 +20,7 @@ func NewCommandValidator() *CommandValidator {
 	}
 }
 
-// NewTestCommandValidator creates a command validator for testing
+// NewTestCommandValidator creates a command validator for testing.
 func NewTestCommandValidator() *CommandValidator {
 	errorHandler := NewErrorHandler()
 	errorHandler.TestMode = true
@@ -29,7 +30,7 @@ func NewTestCommandValidator() *CommandValidator {
 	}
 }
 
-// ValidateEntityCommand validates common entity command parameters
+// ValidateEntityCommand validates common entity command parameters.
 func (v *CommandValidator) ValidateEntityCommand(entityName, fields string) error {
 	// Validate entity name
 	if err := v.fieldValidator.ValidateEntityName(entityName); err != nil {
@@ -46,7 +47,7 @@ func (v *CommandValidator) ValidateEntityCommand(entityName, fields string) erro
 	return nil
 }
 
-// ValidateFeatureCommand validates feature command parameters
+// ValidateFeatureCommand validates feature command parameters.
 func (v *CommandValidator) ValidateFeatureCommand(featureName, fields, database, handlers string) error {
 	// Validate feature name (same as entity)
 	if err := v.fieldValidator.ValidateEntityName(featureName); err != nil {
@@ -78,7 +79,7 @@ func (v *CommandValidator) ValidateFeatureCommand(featureName, fields, database,
 	return nil
 }
 
-// ValidateRepositoryCommand validates repository command parameters
+// ValidateRepositoryCommand validates repository command parameters.
 func (v *CommandValidator) ValidateRepositoryCommand(entityName, database string) error {
 	// Validate entity name
 	if err := v.fieldValidator.ValidateEntityName(entityName); err != nil {
@@ -95,7 +96,7 @@ func (v *CommandValidator) ValidateRepositoryCommand(entityName, database string
 	return nil
 }
 
-// ValidateUseCaseCommand validates use case command parameters
+// ValidateUseCaseCommand validates use case command parameters.
 func (v *CommandValidator) ValidateUseCaseCommand(usecaseName, entity, operations string) error {
 	// Validate use case name
 	if err := v.fieldValidator.ValidateEntityName(usecaseName); err != nil {
@@ -104,7 +105,7 @@ func (v *CommandValidator) ValidateUseCaseCommand(usecaseName, entity, operation
 
 	// Validate entity name
 	if entity == "" {
-		return fmt.Errorf("entity is required")
+		return errors.New("entity is required")
 	}
 	if err := v.fieldValidator.ValidateEntityName(entity); err != nil {
 		return fmt.Errorf("entity name: %w", err)
@@ -120,7 +121,7 @@ func (v *CommandValidator) ValidateUseCaseCommand(usecaseName, entity, operation
 	return nil
 }
 
-// ValidateHandlerCommand validates handler command parameters
+// ValidateHandlerCommand validates handler command parameters.
 func (v *CommandValidator) ValidateHandlerCommand(entity, handlerType string) error {
 	// Validate entity name
 	if err := v.fieldValidator.ValidateEntityName(entity); err != nil {

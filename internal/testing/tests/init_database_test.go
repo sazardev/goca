@@ -9,8 +9,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestInitSQLiteDriverFix verifica específicamente el fix del issue #31
-// Este test asegura que SQLite NO genera dependencias de PostgreSQL
+// Este test asegura que SQLite NO genera dependencies de PostgreSQL.
 func TestInitSQLiteDriverFix(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -71,10 +70,10 @@ func TestInitSQLiteDriverFix(t *testing.T) {
 		t.Errorf("❌ main.go NO usa sqlite.Open() como se espera!")
 	}
 
-	t.Logf("✅ Issue #31 RESUELTO: SQLite se configura correctamente sin dependencias de PostgreSQL")
+	t.Logf("✅ Issue #31 RESUELTO: SQLite se configura correctamente sin dependencies de PostgreSQL")
 }
 
-// TestInitMySQLDriverFix verifica que MySQL también funciona correctamente
+// TestInitMySQLDriverFix verifica que MySQL también funciona correctamente.
 func TestInitMySQLDriverFix(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -124,7 +123,7 @@ func TestInitMySQLDriverFix(t *testing.T) {
 	t.Logf("✅ MySQL se configura correctamente")
 }
 
-// TestInitPostgreSQLStillWorks verifica que el fix no rompió PostgreSQL
+// TestInitPostgreSQLStillWorks verifica que el fix no rompió PostgreSQL.
 func TestInitPostgreSQLStillWorks(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -170,7 +169,7 @@ func TestInitPostgreSQLStillWorks(t *testing.T) {
 	t.Logf("✅ PostgreSQL sigue funcionando correctamente (sin regresión)")
 }
 
-// TestInitDefaultDatabase tests that the default database is SQLite
+// TestInitDefaultDatabase tests that the default database is SQLite.
 func TestInitDefaultDatabase(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -216,7 +215,7 @@ func TestInitDefaultDatabase(t *testing.T) {
 	t.Logf("✓ Default database is SQLite as expected")
 }
 
-// TestInitMongoDBNoGorm tests that MongoDB projects don't use GORM
+// TestInitMongoDBNoGorm tests that MongoDB projects don't use GORM.
 func TestInitMongoDBNoGorm(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()

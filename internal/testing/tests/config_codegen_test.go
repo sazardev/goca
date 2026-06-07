@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-// TestConfigCodeGeneration tests that custom .goca.yaml settings affect generated code
+// TestConfigCodeGeneration tests that custom .goca.yaml settings affect generated code.
 func TestConfigCodeGeneration(t *testing.T) {
 	t.Run("ValidationDisabled", func(t *testing.T) {
 		testValidationDisabled(t)
@@ -53,8 +53,7 @@ func TestConfigCodeGeneration(t *testing.T) {
 	})
 }
 
-// testValidationDisabled verifies that entities generated with validation.enabled: false
-// do not contain validation tags
+// do not contain validation tags.
 func testValidationDisabled(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -68,7 +67,7 @@ generation:
     enabled: false
     library: "builtin"
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -105,8 +104,7 @@ generation:
 	}
 }
 
-// testValidationEnabled verifies that entities generated with validation.enabled: true
-// contain validation tags
+// contain validation tags.
 func testValidationEnabled(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -120,7 +118,7 @@ generation:
     enabled: true
     library: "builtin"
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -157,7 +155,7 @@ generation:
 	}
 }
 
-// testSoftDeleteEnabled verifies that entities with soft_delete: true contain DeletedAt field
+// testSoftDeleteEnabled verifies that entities with soft_delete: true contain DeletedAt field.
 func testSoftDeleteEnabled(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -172,7 +170,7 @@ database:
     soft_delete: true
     timestamps: false
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -209,7 +207,7 @@ database:
 	}
 }
 
-// testTimestampsEnabled verifies that entities with timestamps: true contain CreatedAt and UpdatedAt
+// testTimestampsEnabled verifies that entities with timestamps: true contain CreatedAt and UpdatedAt.
 func testTimestampsEnabled(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -224,7 +222,7 @@ database:
     soft_delete: false
     timestamps: true
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -266,7 +264,7 @@ database:
 	}
 }
 
-// testDatabaseTypePostgres verifies postgres-specific code generation
+// testDatabaseTypePostgres verifies postgres-specific code generation.
 func testDatabaseTypePostgres(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -279,7 +277,7 @@ database:
   type: "postgres"
   port: 5432
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -316,7 +314,7 @@ database:
 	}
 }
 
-// testDatabaseTypeMySQL verifies mysql-specific code generation
+// testDatabaseTypeMySQL verifies mysql-specific code generation.
 func testDatabaseTypeMySQL(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -329,7 +327,7 @@ database:
   type: "mysql"
   port: 3306
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -366,7 +364,7 @@ database:
 	}
 }
 
-// testNamingConventionSnakeCase verifies snake_case naming is applied
+// testNamingConventionSnakeCase verifies snake_case naming is applied.
 func testNamingConventionSnakeCase(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -381,7 +379,7 @@ architecture:
     entities: "PascalCase"
     fields: "snake_case"
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -418,7 +416,7 @@ architecture:
 	}
 }
 
-// testCustomLineLength verifies custom line length is respected
+// testCustomLineLength verifies custom line length is respected.
 func testCustomLineLength(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -432,7 +430,7 @@ generation:
     line_length: 80
     indentation: 4
 `
-	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0644)
+	err := os.WriteFile(filepath.Join(tempDir, ".goca.yaml"), []byte(configContent), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create .goca.yaml: %v", err)
 	}
@@ -471,21 +469,21 @@ generation:
 	}
 }
 
-// testTestingFrameworkGinkgo verifies Ginkgo test generation
+// testTestingFrameworkGinkgo verifies Ginkgo test generation.
 func testTestingFrameworkGinkgo(t *testing.T) {
 	t.Skip("Skipping Ginkgo test - requires full Ginkgo integration")
 	// This would test that generated test files use Ginkgo syntax when configured
 	// Requires more complex test setup with actual test file generation
 }
 
-// testAuthTypeJWT verifies JWT auth middleware generation
+// testAuthTypeJWT verifies JWT auth middleware generation.
 func testAuthTypeJWT(t *testing.T) {
 	t.Skip("Skipping JWT test - requires full auth feature integration")
 	// This would test that JWT middleware is generated when auth.type: jwt
 	// Requires auth feature generation which is more complex
 }
 
-// Helper function to create minimal project structure
+// Helper function to create minimal project structure.
 func createMinimalProjectStructure(projectPath string) error {
 	// Create necessary directories
 	dirs := []string{
@@ -499,7 +497,7 @@ func createMinimalProjectStructure(projectPath string) error {
 	}
 
 	for _, dir := range dirs {
-		err := os.MkdirAll(filepath.Join(projectPath, dir), 0755)
+		err := os.MkdirAll(filepath.Join(projectPath, dir), 0o755)
 		if err != nil {
 			return err
 		}
@@ -517,7 +515,7 @@ require (
 	gorm.io/driver/mysql v1.5.0
 )
 `
-	err := os.WriteFile(filepath.Join(projectPath, "go.mod"), []byte(goModContent), 0644)
+	err := os.WriteFile(filepath.Join(projectPath, "go.mod"), []byte(goModContent), 0o644)
 	if err != nil {
 		return err
 	}
@@ -529,7 +527,7 @@ func main() {
 	// Server initialization
 }
 `
-	err = os.WriteFile(filepath.Join(projectPath, "cmd", "server", "main.go"), []byte(mainContent), 0644)
+	err = os.WriteFile(filepath.Join(projectPath, "cmd", "server", "main.go"), []byte(mainContent), 0o644)
 	if err != nil {
 		return err
 	}
@@ -545,7 +543,7 @@ func NewContainer() *Container {
 	return &Container{}
 }
 `
-	err = os.WriteFile(filepath.Join(projectPath, "internal", "di", "container.go"), []byte(diContent), 0644)
+	err = os.WriteFile(filepath.Join(projectPath, "internal", "di", "container.go"), []byte(diContent), 0o644)
 	if err != nil {
 		return err
 	}
@@ -553,13 +551,13 @@ func NewContainer() *Container {
 	return nil
 }
 
-// Helper function to run goca commands
+// Helper function to run goca commands.
 func runGocaCommand(projectPath string, args ...string) error {
 	// Get absolute path to goca binary
 	// This test file is in internal/testing/tests, so we need to go up 3 levels
 	testDir, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("failed to get working directory: %v", err)
+		return fmt.Errorf("failed to get working directory: %w", err)
 	}
 
 	gocaBinaryName := "goca"
@@ -571,7 +569,7 @@ func runGocaCommand(projectPath string, args ...string) error {
 	// Convert to absolute path
 	gocaBinary, err = filepath.Abs(gocaBinary)
 	if err != nil {
-		return fmt.Errorf("failed to get absolute path: %v", err)
+		return fmt.Errorf("failed to get absolute path: %w", err)
 	}
 
 	// Check if binary exists
@@ -585,7 +583,7 @@ func runGocaCommand(projectPath string, args ...string) error {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("command failed: %v, output: %s", err, string(output))
+		return fmt.Errorf("command failed: %w, output: %s", err, string(output))
 	}
 
 	return nil

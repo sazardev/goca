@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -9,8 +10,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var upgradeRegenerate string
-var upgradeDryRun bool
+var (
+	upgradeRegenerate string
+	upgradeDryRun     bool
+)
 
 var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
@@ -183,7 +186,7 @@ func buildSectionRows(cfg GocaConfig) [][]string {
 func handleRegenerate(feature string, dryRun bool) error {
 	name := strings.TrimSpace(feature)
 	if name == "" {
-		return fmt.Errorf("--regenerate requires a feature name")
+		return errors.New("--regenerate requires a feature name")
 	}
 
 	noun := toPascalCase(name)
@@ -226,7 +229,7 @@ func writeGocaVersionToConfig(configPath string, raw []byte, dryRun bool) error 
 		return nil
 	}
 
-	if err := os.WriteFile(configPath, []byte(updated), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(updated), 0o644); err != nil {
 		return fmt.Errorf("writing updated .goca.yaml: %w", err)
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestFeatureCommand prueba exhaustivamente el comando 'feature' que integra todas las capas
+// TestFeatureCommand prueba exhaustivamente el commando 'feature' que integra todas las capas.
 func TestFeatureCommand(t *testing.T) {
 	// Crear contexto de test
 	tc := framework.NewTestContext(t)
@@ -53,9 +53,9 @@ func TestFeatureCommand(t *testing.T) {
 	tc.PrintTestSummary()
 }
 
-// prepareEmptyProject inicializa un proyecto vacío para las pruebas de feature
+// prepareEmptyProject inicializa un proyecto vacío para las pruebas de feature.
 func prepareEmptyProject(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando init
+	// Ejecutar commando init
 	_, err := tc.RunCommand("init", "test-project", "--module", "github.com/test/testproject", "--api", "rest", "--database", "postgres")
 	if err != nil {
 		t.Fatalf("Error al inicializar proyecto base: %v", err)
@@ -69,12 +69,12 @@ func prepareEmptyProject(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testFeatureWithBasicOptions prueba el comando feature con opciones básicas
+// testFeatureWithBasicOptions prueba el commando feature con opciones básicas.
 func testFeatureWithBasicOptions(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("feature", "User", "--fields", "name:string,email:string,age:int")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando feature: %v", err)
+		t.Fatalf("Error al ejecutar commando feature: %v", err)
 	}
 
 	// Verificar salida
@@ -100,15 +100,14 @@ func testFeatureWithBasicOptions(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testFeatureWithCustomDatabase prueba el comando feature con base de datos específica
+// testFeatureWithCustomDatabase prueba el commando feature con base de datos específica.
 func testFeatureWithCustomDatabase(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("feature", "Product",
 		"--fields", "name:string,price:float64,sku:string",
 		"--database", "mongodb")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando feature con base de datos: %v", err)
+		t.Fatalf("Error al ejecutar commando feature con base de datos: %v", err)
 	}
 
 	// Verificar salida
@@ -125,15 +124,14 @@ func testFeatureWithCustomDatabase(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testFeatureWithCustomHandlers prueba el comando feature con tipos de handlers específicos
+// testFeatureWithCustomHandlers prueba el commando feature con tipos de handlers específicos.
 func testFeatureWithCustomHandlers(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("feature", "Order",
 		"--fields", "orderID:string,total:float64,status:string",
 		"--handlers", "http,grpc")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando feature con handlers: %v", err)
+		t.Fatalf("Error al ejecutar commando feature con handlers: %v", err)
 	}
 
 	// Verificar salida
@@ -150,15 +148,14 @@ func testFeatureWithCustomHandlers(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testFeatureWithValidations prueba el comando feature con validaciones
+// testFeatureWithValidations prueba el commando feature con validaciones.
 func testFeatureWithValidations(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando - solo usa flags válidos
+	// Ejecutar commando - solo usa flags válidos
 	output, err := tc.RunCommand("feature", "Customer",
 		"--fields", "name:string,email:string,phone:string",
 		"--validation")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando feature con validaciones: %v", err)
+		t.Fatalf("Error al ejecutar commando feature con validaciones: %v", err)
 	}
 
 	// Verificar salida - Just check basic feature generation, not specific output format
@@ -174,15 +171,14 @@ func testFeatureWithValidations(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testFeatureWithAutoIntegration prueba el comando feature con integración automática
+// testFeatureWithAutoIntegration prueba el commando feature con integración automática.
 func testFeatureWithAutoIntegration(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando - usar --business-rules que es un flag válido
+	// Ejecutar commando - usar --business-rules que es un flag válido
 	output, err := tc.RunCommand("feature", "Category",
 		"--fields", "name:string,description:string",
 		"--business-rules")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando feature con business rules: %v", err)
+		t.Fatalf("Error al ejecutar commando feature con business rules: %v", err)
 	}
 
 	// Verificar salida - Just check basic feature generation, not specific output format
@@ -200,14 +196,13 @@ func testFeatureWithAutoIntegration(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testFeatureWithComplexFields prueba el comando feature con campos complejos
+// testFeatureWithComplexFields prueba el commando feature con campos complejos.
 func testFeatureWithComplexFields(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando con campos complejos - usar solo tipos válidos
+	// Ejecutar commando con campos complejos - usar solo tipos válidos
 	output, err := tc.RunCommand("feature", "Article",
 		"--fields", "title:string,content:string,author_id:int,created_at:time.Time,metadata:interface{}")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando feature con campos complejos: %v", err)
+		t.Fatalf("Error al ejecutar commando feature con campos complejos: %v", err)
 	}
 
 	// Verificar salida

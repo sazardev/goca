@@ -28,7 +28,6 @@ func TestCountByStatus(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.status, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, countByStatus(checks, tc.status))

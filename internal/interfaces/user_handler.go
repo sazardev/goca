@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/sazardev/goca/internal/domain"
+	domain "github.com/sazardev/goca/internal/domain"
 )
 
-// User HTTP Handler interface
+// User HTTP Handler interface.
 type UserHTTPHandler interface {
 	CreateUser(w http.ResponseWriter, r *http.Request)
 	GetUser(w http.ResponseWriter, r *http.Request)
@@ -16,7 +16,7 @@ type UserHTTPHandler interface {
 	ListUsers(w http.ResponseWriter, r *http.Request)
 }
 
-// User gRPC Handler interface
+// User gRPC Handler interface.
 type UserGRPCHandler interface {
 	CreateUser(ctx context.Context, req *CreateUserRequest) (*CreateUserResponse, error)
 	GetUser(ctx context.Context, req *GetUserRequest) (*UserResponse, error)
@@ -25,7 +25,7 @@ type UserGRPCHandler interface {
 	ListUsers(ctx context.Context, req *ListUsersRequest) (*ListUsersResponse, error)
 }
 
-// User CLI Handler interface
+// User CLI Handler interface.
 type UserCLIHandler interface {
 	CreateUserCommand() interface{}
 	GetUserCommand() interface{}
@@ -34,7 +34,7 @@ type UserCLIHandler interface {
 	ListUsersCommand() interface{}
 }
 
-// gRPC Request/Response interfaces
+// gRPC Request/Response interfaces.
 type CreateUserRequest interface {
 	GetName() string
 	GetEmail() string

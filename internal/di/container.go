@@ -53,7 +53,7 @@ func (c *Container) setupHandlers() {
 	c.orderHandler = http.NewOrderHandler(c.orderUC)
 }
 
-// Getters
+// Getters.
 func (c *Container) UserHandler() *http.UserHandler {
 	return c.userHandler
 }

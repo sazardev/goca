@@ -13,10 +13,10 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	// Removed unused imports
+	// Removed unused imports.
 )
 
-// TestSuite represents the comprehensive testing suite for Goca CLI
+// TestSuite represents the comprehensive testing suite for Goca CLI.
 type TestSuite struct {
 	t           *testing.T
 	workingDir  string
@@ -28,7 +28,7 @@ type TestSuite struct {
 	warnings    []string
 }
 
-// NewTestSuite creates a new test suite instance
+// NewTestSuite creates a new test suite instance.
 func NewTestSuite(t *testing.T) *TestSuite {
 	tempDir, err := os.MkdirTemp("", "goca_test_*")
 	if err != nil {
@@ -45,7 +45,7 @@ func NewTestSuite(t *testing.T) *TestSuite {
 	}
 }
 
-// Cleanup removes temporary directories and files
+// Cleanup removes temporary directories and files.
 func (ts *TestSuite) Cleanup() {
 	if ts.tempDir != "" {
 		if err := os.RemoveAll(ts.tempDir); err != nil {
@@ -54,7 +54,7 @@ func (ts *TestSuite) Cleanup() {
 	}
 }
 
-// runGocaCommand executes a goca CLI command and captures output
+// runGocaCommand executes a goca CLI command and captures output.
 func (ts *TestSuite) runGocaCommand(args ...string) (string, string, error) {
 	// Try to use local executable first, then fall back to PATH
 	gocaCmd := "goca"
@@ -95,7 +95,7 @@ func (ts *TestSuite) runGocaCommand(args ...string) (string, string, error) {
 	return stdout.String(), stderr.String(), err
 }
 
-// TestInitCommand tests the goca init command with all flags
+// TestInitCommand tests the goca init command with all flags.
 func (ts *TestSuite) TestInitCommand() {
 	ts.t.Log("Testing goca init command...")
 
@@ -108,7 +108,6 @@ func (ts *TestSuite) TestInitCommand() {
 		"--database", "postgres",
 		"--auth",
 		"--api", "rest")
-
 	if err != nil {
 		ts.addError(fmt.Sprintf("goca init failed: %v\nStdout: %s\nStderr: %s", err, stdout, stderr))
 		return
@@ -125,7 +124,7 @@ func (ts *TestSuite) TestInitCommand() {
 	ts.t.Log("✅ goca init command passed")
 }
 
-// TestFeatureCommand tests the goca feature command with various field types
+// TestFeatureCommand tests the goca feature command with various field types.
 func (ts *TestSuite) TestFeatureCommand() {
 	ts.t.Log("Testing goca feature command...")
 
@@ -187,7 +186,7 @@ func (ts *TestSuite) TestFeatureCommand() {
 	}
 }
 
-// TestEntityCommand tests the goca entity command with all flags
+// TestEntityCommand tests the goca entity command with all flags.
 func (ts *TestSuite) TestEntityCommand() {
 	ts.t.Log("Testing goca entity command...")
 
@@ -243,7 +242,7 @@ func (ts *TestSuite) TestEntityCommand() {
 	}
 }
 
-// AssertFileNotExists checks if a file does not exist
+// AssertFileNotExists checks if a file does not exist.
 func (ts *TestSuite) AssertFileNotExists(path string) {
 	ts.t.Helper()
 	fullPath := filepath.Join(ts.tempDir, path)
@@ -252,7 +251,7 @@ func (ts *TestSuite) AssertFileNotExists(path string) {
 	}
 }
 
-// AssertFileContains checks if a file contains specific content
+// AssertFileContains checks if a file contains specific content.
 func (ts *TestSuite) AssertFileContains(path, content string) {
 	ts.t.Helper()
 	fullPath := filepath.Join(ts.tempDir, path)
@@ -267,7 +266,7 @@ func (ts *TestSuite) AssertFileContains(path, content string) {
 	}
 }
 
-// AssertFileNotContains checks if a file does not contain specific content
+// AssertFileNotContains checks if a file does not contain specific content.
 func (ts *TestSuite) AssertFileNotContains(path, content string) {
 	ts.t.Helper()
 	fullPath := filepath.Join(ts.tempDir, path)
@@ -282,7 +281,7 @@ func (ts *TestSuite) AssertFileNotContains(path, content string) {
 	}
 }
 
-// AssertValidGoCode checks if the generated Go code is syntactically valid
+// AssertValidGoCode checks if the generated Go code is syntactically valid.
 func (ts *TestSuite) AssertValidGoCode(path string) {
 	ts.t.Helper()
 
@@ -331,13 +330,13 @@ func (ts *TestSuite) AssertValidGoCode(path string) {
 	}
 }
 
-// AssertDirectoryExists checks if a directory exists
+// AssertDirectoryExists checks if a directory exists.
 func (ts *TestSuite) AssertDirectoryExists(path string) {
 	ts.t.Helper()
 	fullPath := filepath.Join(ts.tempDir, path)
 	info, err := os.Stat(fullPath)
-	if os.IsNotExist(err) {
-		ts.t.Errorf("Expected directory %s to exist, but it doesn't", path)
+	if err != nil {
+		ts.t.Errorf("Expected directory %s to exist, but got error: %v", path, err)
 		return
 	}
 	if !info.IsDir() {
@@ -345,41 +344,41 @@ func (ts *TestSuite) AssertDirectoryExists(path string) {
 	}
 }
 
-// GetProjectPath returns the full path to a file in the test project
+// GetProjectPath returns the full path to a file in the test project.
 func (ts *TestSuite) GetProjectPath(relativePath string) string {
 	return filepath.Join(ts.tempDir, relativePath)
 }
 
-// ChangeToProject changes to the project directory
+// ChangeToProject changes to the project directory.
 func (ts *TestSuite) ChangeToProject(projectName string) {
 	projectPath := filepath.Join(ts.tempDir, projectName)
 	_ = os.Chdir(projectPath)
 }
 
-// ChangeToTempDir changes to the temp directory
+// ChangeToTempDir changes to the temp directory.
 func (ts *TestSuite) ChangeToTempDir() {
 	_ = os.Chdir(ts.tempDir)
 }
 
-// FileExists checks if a file exists and returns a boolean
+// FileExists checks if a file exists and returns a boolean.
 func (ts *TestSuite) FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
 }
 
-// addError adds an error to the test suite
+// addError adds an error to the test suite.
 func (ts *TestSuite) addError(msg string) {
 	ts.errors = append(ts.errors, msg)
 	ts.t.Errorf("ERROR: %s", msg)
 }
 
-// addWarning adds a warning to the test suite
+// addWarning adds a warning to the test suite.
 func (ts *TestSuite) addWarning(msg string) {
 	ts.warnings = append(ts.warnings, msg)
 	ts.t.Logf("WARNING: %s", msg)
 }
 
-// verifyProjectStructure verifies the basic project structure
+// verifyProjectStructure verifies the basic project structure.
 func (ts *TestSuite) verifyProjectStructure() {
 	ts.t.Log("Verifying project structure...")
 
@@ -419,7 +418,7 @@ func (ts *TestSuite) verifyProjectStructure() {
 	}
 }
 
-// verifyFeatureStructure verifies that a feature has all expected directories and files
+// verifyFeatureStructure verifies that a feature has all expected directories and files.
 func (ts *TestSuite) verifyFeatureStructure(entity string) {
 	ts.t.Logf("Verifying feature structure for %s...", entity)
 
@@ -462,7 +461,7 @@ func (ts *TestSuite) verifyFeatureStructure(entity string) {
 	}
 }
 
-// verifyDomainEntity verifies the domain entity file
+// verifyDomainEntity verifies the domain entity file.
 func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 	ts.t.Logf("Verifying domain entity %s...", entity)
 
@@ -516,7 +515,7 @@ func (ts *TestSuite) verifyDomainEntity(entity, fields string) {
 	ts.verifyGoSyntax(filePath)
 }
 
-// verifyUseCases verifies use case files
+// verifyUseCases verifies use case files.
 func (ts *TestSuite) verifyUseCases(entity string) {
 	ts.t.Logf("Verifying use cases for %s...", entity)
 
@@ -543,7 +542,7 @@ func (ts *TestSuite) verifyUseCases(entity string) {
 	ts.verifyGoSyntax(interfacesFile)
 }
 
-// verifyRepositories verifies repository files
+// verifyRepositories verifies repository files.
 func (ts *TestSuite) verifyRepositories(entity string) {
 	ts.t.Logf("Verifying repositories for %s...", entity)
 
@@ -558,7 +557,7 @@ func (ts *TestSuite) verifyRepositories(entity string) {
 	ts.verifyGoSyntax(repoFile)
 }
 
-// verifyHandlers verifies handler files
+// verifyHandlers verifies handler files.
 func (ts *TestSuite) verifyHandlers(entity string) {
 	ts.t.Logf("Verifying handlers for %s...", entity)
 
@@ -575,7 +574,7 @@ func (ts *TestSuite) verifyHandlers(entity string) {
 	ts.verifyGoSyntax(routesFile)
 }
 
-// verifyEntityFile verifies entity files with specific flags
+// verifyEntityFile verifies entity files with specific flags.
 func (ts *TestSuite) verifyEntityFile(entity, fields string, flags []string) {
 	ts.t.Logf("Verifying entity file %s with flags %v...", entity, flags)
 
@@ -639,14 +638,14 @@ func (ts *TestSuite) verifyEntityFile(entity, fields string, flags []string) {
 	ts.verifyGoSyntax(filePath)
 }
 
-// verifyFileExists checks if a file exists
+// verifyFileExists checks if a file exists.
 func (ts *TestSuite) verifyFileExists(filePath string) {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		ts.addError(fmt.Sprintf("Expected file %s does not exist", filePath))
 	}
 }
 
-// verifyGoSyntax verifies that a Go file has valid syntax
+// verifyGoSyntax verifies that a Go file has valid syntax.
 func (ts *TestSuite) verifyGoSyntax(filePath string) {
 	fset := token.NewFileSet()
 
@@ -662,14 +661,14 @@ func (ts *TestSuite) verifyGoSyntax(filePath string) {
 	}
 }
 
-// countMethods counts the number of methods in a Go source code string
+// countMethods counts the number of methods in a Go source code string.
 func (ts *TestSuite) countMethods(content string) int {
 	// Simple regex to count method definitions
 	methodRegex := regexp.MustCompile(`func\s+\([^)]+\)\s+\w+\s*\(`)
 	return len(methodRegex.FindAllString(content, -1))
 }
 
-// contains checks if a slice contains a string
+// contains checks if a slice contains a string.
 func contains(slice []string, item string) bool {
 	for _, s := range slice {
 		if s == item {
@@ -679,7 +678,7 @@ func contains(slice []string, item string) bool {
 	return false
 }
 
-// TestCodeCompilation tests that all generated code compiles without errors
+// TestCodeCompilation tests that all generated code compiles without errors.
 func (ts *TestSuite) TestCodeCompilation() {
 	ts.t.Log("Testing code compilation...")
 
@@ -712,7 +711,7 @@ func (ts *TestSuite) TestCodeCompilation() {
 	}
 
 	// If build fails, try go mod tidy as last resort
-	for attempts := 0; attempts < 2; attempts++ {
+	for range 2 {
 		cmd = exec.Command("go", "mod", "tidy")
 		cmd.Dir = ts.projectPath
 		var tidyOut, tidyErrBuf bytes.Buffer
@@ -741,7 +740,7 @@ func (ts *TestSuite) TestCodeCompilation() {
 		buildErr, stdout.String(), stderr.String()))
 }
 
-// TestCodeLinting tests that all generated code passes go vet
+// TestCodeLinting tests that all generated code passes go vet.
 func (ts *TestSuite) TestCodeLinting() {
 	ts.t.Log("Testing code linting...")
 
@@ -760,7 +759,7 @@ func (ts *TestSuite) TestCodeLinting() {
 	ts.t.Log("✅ Code linting passed")
 }
 
-// TestCodeFormatting tests that all generated code is properly formatted
+// TestCodeFormatting tests that all generated code is properly formatted.
 func (ts *TestSuite) TestCodeFormatting() {
 	ts.t.Log("Testing code formatting...")
 
@@ -789,7 +788,6 @@ func (ts *TestSuite) TestCodeFormatting() {
 
 		return nil
 	})
-
 	if err != nil {
 		ts.addError(fmt.Sprintf("Code formatting check failed: %v", err))
 		return
@@ -798,7 +796,7 @@ func (ts *TestSuite) TestCodeFormatting() {
 	ts.t.Log("✅ Code formatting passed")
 }
 
-// RunAllTests runs the complete test suite
+// RunAllTests runs the complete test suite.
 func (ts *TestSuite) RunAllTests() {
 	ts.t.Log("🚀 Starting comprehensive Goca CLI test suite...")
 
@@ -821,7 +819,7 @@ func (ts *TestSuite) RunAllTests() {
 	ts.reportResults()
 }
 
-// reportResults reports the final test results
+// reportResults reports the final test results.
 func (ts *TestSuite) reportResults() {
 	ts.t.Log("📊 Test Suite Results:")
 	ts.t.Logf("✅ Generated project: %s", ts.projectPath)

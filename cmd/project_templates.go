@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// ProjectTemplate defines a predefined project configuration
+// ProjectTemplate defines a predefined project configuration.
 type ProjectTemplate struct {
 	Name        string
 	Description string
@@ -12,7 +12,7 @@ type ProjectTemplate struct {
 	Features    []string
 }
 
-// GetProjectTemplates returns all available project templates
+// GetProjectTemplates returns all available project templates.
 func GetProjectTemplates() map[string]ProjectTemplate {
 	return map[string]ProjectTemplate{
 		"rest-api": {
@@ -502,7 +502,7 @@ deploy:
 	}
 }
 
-// GetTemplateNames returns list of available template names
+// GetTemplateNames returns list of available template names.
 func GetTemplateNames() []string {
 	templates := GetProjectTemplates()
 	names := make([]string, 0, len(templates))
@@ -512,7 +512,7 @@ func GetTemplateNames() []string {
 	return names
 }
 
-// ValidateTemplateName checks if a template name is valid
+// ValidateTemplateName checks if a template name is valid.
 func ValidateTemplateName(name string) bool {
 	if name == "" {
 		return true // Empty means no template
@@ -522,7 +522,7 @@ func ValidateTemplateName(name string) bool {
 	return exists
 }
 
-// GetTemplateConfig returns the configuration for a template
+// GetTemplateConfig returns the configuration for a template.
 func GetTemplateConfig(name string) (string, error) {
 	templates := GetProjectTemplates()
 	template, exists := templates[name]
@@ -532,7 +532,7 @@ func GetTemplateConfig(name string) (string, error) {
 	return template.Config, nil
 }
 
-// ListAvailableTemplates prints all available templates with descriptions
+// ListAvailableTemplates prints all available templates with descriptions.
 func ListAvailableTemplates() {
 	templates := GetProjectTemplates()
 	if ui != nil {

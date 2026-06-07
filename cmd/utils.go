@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// getModuleName reads the module name from go.mod file
+// getModuleName reads the module name from go.mod file.
 func getModuleName() string {
 	goMod, err := os.Open("go.mod")
 	if err != nil {
@@ -43,7 +43,7 @@ func writeFile(path, content string, sm ...*SafetyManager) error {
 	}
 
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("error creating directory %s: %w", dir, err)
 	}
 
@@ -93,7 +93,7 @@ func writeGoFile(path, content string, sm ...*SafetyManager) error {
 	}
 
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("error creating directory %s: %w", dir, err)
 	}
 
@@ -119,7 +119,7 @@ func writeGoFile(path, content string, sm ...*SafetyManager) error {
 	return nil
 }
 
-// getImportPath determines whether to use the full module path or relative path for imports
+// getImportPath determines whether to use the full module path or relative path for imports.
 func getImportPath(moduleName string) string {
 	// Check if we're in a test environment with a GitHub-style fake module
 	if strings.Contains(moduleName, "github.com/goca/testproject") {
@@ -132,7 +132,7 @@ func getImportPath(moduleName string) string {
 	return moduleName
 }
 
-// generateSearchMethods generates search methods based on entity fields
+// generateSearchMethods generates search methods based on entity fields.
 func generateSearchMethods(fields []Field, entity string) []SearchMethod {
 	var methods []SearchMethod
 
@@ -157,7 +157,7 @@ func generateSearchMethods(fields []Field, entity string) []SearchMethod {
 	return methods
 }
 
-// isSearchableField determines if a field should have a search method
+// isSearchableField determines if a field should have a search method.
 func isSearchableField(fieldName, fieldType string) bool {
 	// Types that are not suitable for searches
 	if fieldType == "[]byte" || fieldType == "interface{}" {
@@ -183,7 +183,7 @@ func isSearchableField(fieldName, fieldType string) bool {
 	return fieldType == "string" || fieldType == "int" || fieldType == "uint"
 }
 
-// isUniqueField determines if a field should likely be unique
+// isUniqueField determines if a field should likely be unique.
 func isUniqueField(fieldName string) bool {
 	fieldLower := strings.ToLower(fieldName)
 	uniqueFields := []string{
@@ -200,7 +200,7 @@ func isUniqueField(fieldName string) bool {
 	return false
 }
 
-// SearchMethod represents a dynamically generated search method
+// SearchMethod represents a dynamically generated search method.
 type SearchMethod struct {
 	MethodName string // FindByEmail, FindByUsername, etc.
 	FieldName  string // Email, Username, etc.
@@ -209,13 +209,13 @@ type SearchMethod struct {
 	IsUnique   bool   // true if it should return a single result
 }
 
-// generateSearchMethodSignature generates the search method signature
+// generateSearchMethodSignature generates the search method signature.
 func (sm SearchMethod) generateSearchMethodSignature() string {
 	paramName := strings.ToLower(sm.FieldName)
 	return fmt.Sprintf("\t%s(%s %s) %s", sm.MethodName, paramName, sm.FieldType, sm.ReturnType)
 }
 
-// generateSearchMethodImplementation generates the search method implementation
+// generateSearchMethodImplementation generates the search method implementation.
 func (sm SearchMethod) generateSearchMethodImplementation(receiverName, receiverType, entity string) string {
 	paramName := strings.ToLower(sm.FieldName)
 	entityVar := strings.ToLower(entity)

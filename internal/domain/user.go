@@ -5,13 +5,13 @@ import (
 )
 
 type User struct {
-	ID        uint       `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name      string     `json:"name" gorm:"type:varchar(255);not null" validate:"required"`
-	Email     string     `json:"email" gorm:"type:varchar(255);uniqueIndex;not null" validate:"required,email"`
-	Age       int        `json:"age" gorm:"type:integer;not null;default:0" validate:"required,gte=0"`
-	CreatedAt time.Time  `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt time.Time  `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty" gorm:"index"`
+	ID        uint       `gorm:"primaryKey;autoIncrement"               json:"id"`
+	Name      string     `gorm:"type:varchar(255);not null"             json:"name"                 validate:"required"`
+	Email     string     `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"                validate:"required,email"`
+	Age       int        `gorm:"type:integer;not null;default:0"        json:"age"                  validate:"required,gte=0"`
+	CreatedAt time.Time  `gorm:"autoCreateTime"                         json:"created_at"`
+	UpdatedAt time.Time  `gorm:"autoUpdateTime"                         json:"updated_at"`
+	DeletedAt *time.Time `gorm:"index"                                  json:"deleted_at,omitempty"`
 }
 
 func (u *User) Validate() error {

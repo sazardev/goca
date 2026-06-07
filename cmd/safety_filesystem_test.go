@@ -34,7 +34,7 @@ func TestSafetyManager_CheckFileConflict(t *testing.T) {
 	t.Run("conflict dryrun", func(t *testing.T) {
 		dir := t.TempDir()
 		f := filepath.Join(dir, "existing.go")
-		require.NoError(t, os.WriteFile(f, []byte("package x"), 0644))
+		require.NoError(t, os.WriteFile(f, []byte("package x"), 0o644))
 
 		sm := NewSafetyManager(true, false, false)
 		err := sm.CheckFileConflict(f)
@@ -46,7 +46,7 @@ func TestSafetyManager_CheckFileConflict(t *testing.T) {
 	t.Run("conflict without force", func(t *testing.T) {
 		dir := t.TempDir()
 		f := filepath.Join(dir, "existing.go")
-		require.NoError(t, os.WriteFile(f, []byte("package x"), 0644))
+		require.NoError(t, os.WriteFile(f, []byte("package x"), 0o644))
 
 		sm := NewSafetyManager(false, false, false)
 		err := sm.CheckFileConflict(f)
@@ -57,7 +57,7 @@ func TestSafetyManager_CheckFileConflict(t *testing.T) {
 	t.Run("conflict with force", func(t *testing.T) {
 		dir := t.TempDir()
 		f := filepath.Join(dir, "existing.go")
-		require.NoError(t, os.WriteFile(f, []byte("package x"), 0644))
+		require.NoError(t, os.WriteFile(f, []byte("package x"), 0o644))
 
 		sm := NewSafetyManager(false, true, false)
 		err := sm.CheckFileConflict(f)
@@ -67,7 +67,7 @@ func TestSafetyManager_CheckFileConflict(t *testing.T) {
 	t.Run("conflict with force and backup", func(t *testing.T) {
 		dir := t.TempDir()
 		f := filepath.Join(dir, "existing.go")
-		require.NoError(t, os.WriteFile(f, []byte("package x"), 0644))
+		require.NoError(t, os.WriteFile(f, []byte("package x"), 0o644))
 
 		sm := NewSafetyManager(false, true, true)
 		sm.BackupDir = filepath.Join(dir, ".backup")
@@ -82,7 +82,7 @@ func TestSafetyManager_CheckFileConflict(t *testing.T) {
 func TestSafetyManager_BackupFile(t *testing.T) {
 	dir := t.TempDir()
 	f := filepath.Join(dir, "myfile.go")
-	require.NoError(t, os.WriteFile(f, []byte("original content"), 0644))
+	require.NoError(t, os.WriteFile(f, []byte("original content"), 0o644))
 
 	sm := NewSafetyManager(false, false, true)
 	sm.BackupDir = filepath.Join(dir, ".backup")
@@ -169,10 +169,10 @@ func TestSafetyManager_PrintSummary(t *testing.T) {
 func TestNameConflictDetector_ScanExistingEntities_WithFiles(t *testing.T) {
 	dir := t.TempDir()
 	domainDir := filepath.Join(dir, "internal", "domain")
-	require.NoError(t, os.MkdirAll(domainDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "errors.go"), []byte("package domain"), 0644))
+	require.NoError(t, os.MkdirAll(domainDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "errors.go"), []byte("package domain"), 0o644))
 
 	ncd := NewNameConflictDetector(dir)
 	err := ncd.ScanExistingEntities()
@@ -195,8 +195,8 @@ func TestNameConflictDetector_ScanNoDomainDir(t *testing.T) {
 func TestNameConflictDetector_CheckNameConflict(t *testing.T) {
 	dir := t.TempDir()
 	domainDir := filepath.Join(dir, "internal", "domain")
-	require.NoError(t, os.MkdirAll(domainDir, 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0644))
+	require.NoError(t, os.MkdirAll(domainDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0o644))
 
 	ncd := NewNameConflictDetector(dir)
 	require.NoError(t, ncd.ScanExistingEntities())

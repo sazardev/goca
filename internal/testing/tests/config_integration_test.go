@@ -8,11 +8,11 @@ import (
 	"github.com/sazardev/goca/cmd"
 )
 
-// TestConfigSystemIntegration prueba la integración completa del sistema de configuración
+// TestConfigSystemIntegration prueba la integración completa del sistema de configuración.
 func TestConfigSystemIntegration(t *testing.T) {
 	tempDir := t.TempDir()
 	projectPath := filepath.Join(tempDir, "integration-test")
-	err := os.MkdirAll(projectPath, 0755)
+	err := os.MkdirAll(projectPath, 0o755)
 	if err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -123,7 +123,7 @@ func TestConfigSystemIntegration(t *testing.T) {
 
 		// Test 1: No config file found
 		emptyDir := filepath.Join(tempDir, "empty")
-		os.MkdirAll(emptyDir, 0755)
+		os.MkdirAll(emptyDir, 0o755)
 
 		foundPath := manager.FindConfigFile(emptyDir)
 		if foundPath != "" {
@@ -132,7 +132,7 @@ func TestConfigSystemIntegration(t *testing.T) {
 
 		// Test 2: Config file found
 		configDir := filepath.Join(tempDir, "with-config")
-		os.MkdirAll(configDir, 0755)
+		os.MkdirAll(configDir, 0o755)
 
 		configPath := filepath.Join(configDir, ".goca.yaml")
 		testConfig := manager.CreateDefaultConfig(configDir)
@@ -193,11 +193,11 @@ func TestConfigSystemIntegration(t *testing.T) {
 	})
 }
 
-// TestConfigAndTemplateIntegration prueba la integración entre configuración y templates
+// TestConfigAndTemplateIntegration prueba la integración entre configuración y templates.
 func TestConfigAndTemplateIntegration(t *testing.T) {
 	tempDir := t.TempDir()
 	projectPath := filepath.Join(tempDir, "template-test")
-	err := os.MkdirAll(projectPath, 0755)
+	err := os.MkdirAll(projectPath, 0o755)
 	if err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
@@ -263,7 +263,7 @@ SnakeCase: {{toSnakeCase .ProjectName}}
 	})
 }
 
-// Helper functions
+// Helper functions.
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && s[len(s)-len(substr):] == substr ||
 		len(substr) == 0 ||

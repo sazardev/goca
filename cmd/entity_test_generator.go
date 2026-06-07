@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// generateEntityTests generates unit tests for entity validation and business logic
+// generateEntityTests generates unit tests for entity validation and business logic.
 func generateEntityTests(domainDir, entityName string, fields []Field, validation, businessRules bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Determine filename based on naming convention
 	var filename string
@@ -50,15 +50,15 @@ func generateEntityTests(domainDir, entityName string, fields []Field, validatio
 	}
 }
 
-// generateValidationTests creates table-driven tests for Validate() method
+// generateValidationTests creates table-driven tests for Validate() method.
 func generateValidationTests(content *strings.Builder, entityName string, fields []Field) {
 	entityLower := strings.ToLower(string(entityName[0])) + entityName[1:]
 
-	content.WriteString(fmt.Sprintf("// Test%s_Validate tests the Validate method with various scenarios\n", entityName))
-	content.WriteString(fmt.Sprintf("func Test%s_Validate(t *testing.T) {\n", entityName))
+	fmt.Fprintf(content, "// Test%s_Validate tests the Validate method with various scenarios\n", entityName)
+	fmt.Fprintf(content, "func Test%s_Validate(t *testing.T) {\n", entityName)
 	content.WriteString("\ttests := []struct {\n")
 	content.WriteString("\t\tname    string\n")
-	content.WriteString(fmt.Sprintf("\t\t%s    %s\n", entityLower, entityName))
+	fmt.Fprintf(content, "\t\t%s    %s\n", entityLower, entityName)
 	content.WriteString("\t\twantErr bool\n")
 	content.WriteString("\t\terrMsg   string\n")
 	content.WriteString("\t}{\n")
@@ -66,7 +66,7 @@ func generateValidationTests(content *strings.Builder, entityName string, fields
 	// Valid case
 	content.WriteString("\t\t{\n")
 	content.WriteString("\t\t\tname: \"valid entity\",\n")
-	content.WriteString(fmt.Sprintf("\t\t\t%s: %s{\n", entityLower, entityName))
+	fmt.Fprintf(content, "\t\t\t%s: %s{\n", entityLower, entityName)
 
 	// Generate valid field values
 	for _, field := range fields {
@@ -75,7 +75,7 @@ func generateValidationTests(content *strings.Builder, entityName string, fields
 		}
 
 		validValue := getValidFieldValue(field)
-		content.WriteString(fmt.Sprintf("\t\t\t\t%s: %s,\n", field.Name, validValue))
+		fmt.Fprintf(content, "\t\t\t\t%s: %s,\n", field.Name, validValue)
 	}
 
 	content.WriteString("\t\t\t},\n")
@@ -96,7 +96,7 @@ func generateValidationTests(content *strings.Builder, entityName string, fields
 	// Test execution
 	content.WriteString("\tfor _, tt := range tests {\n")
 	content.WriteString("\t\tt.Run(tt.name, func(t *testing.T) {\n")
-	content.WriteString(fmt.Sprintf("\t\t\terr := tt.%s.Validate()\n", entityLower))
+	fmt.Fprintf(content, "\t\t\terr := tt.%s.Validate()\n", entityLower)
 	content.WriteString("\t\t\tif tt.wantErr {\n")
 	content.WriteString("\t\t\t\tassert.Error(t, err)\n")
 	content.WriteString("\t\t\t\tif tt.errMsg != \"\" {\n")
@@ -110,13 +110,13 @@ func generateValidationTests(content *strings.Builder, entityName string, fields
 	content.WriteString("}\n\n")
 }
 
-// generateInvalidTestCase creates test cases for invalid field values
+// generateInvalidTestCase creates test cases for invalid field values.
 func generateInvalidTestCase(content *strings.Builder, entityName, entityLower string, invalidField Field, allFields []Field) {
 	fieldNameLower := strings.ToLower(invalidField.Name)
 
 	content.WriteString("\t\t{\n")
-	content.WriteString(fmt.Sprintf("\t\t\tname: \"invalid %s - %s\",\n", entityLower, getInvalidDescription(invalidField)))
-	content.WriteString(fmt.Sprintf("\t\t\t%s: %s{\n", entityLower, entityName))
+	fmt.Fprintf(content, "\t\t\tname: \"invalid %s - %s\",\n", entityLower, getInvalidDescription(invalidField))
+	fmt.Fprintf(content, "\t\t\t%s: %s{\n", entityLower, entityName)
 
 	// Generate field values
 	for _, field := range allFields {
@@ -127,27 +127,27 @@ func generateInvalidTestCase(content *strings.Builder, entityName, entityLower s
 		// Use invalid value for the field being tested
 		if field.Name == invalidField.Name {
 			invalidValue := getInvalidFieldValue(field)
-			content.WriteString(fmt.Sprintf("\t\t\t\t%s: %s,\n", field.Name, invalidValue))
+			fmt.Fprintf(content, "\t\t\t\t%s: %s,\n", field.Name, invalidValue)
 		} else {
 			// Use valid values for other fields
 			validValue := getValidFieldValue(field)
-			content.WriteString(fmt.Sprintf("\t\t\t\t%s: %s,\n", field.Name, validValue))
+			fmt.Fprintf(content, "\t\t\t\t%s: %s,\n", field.Name, validValue)
 		}
 	}
 
 	content.WriteString("\t\t\t},\n")
 	content.WriteString("\t\t\twantErr: true,\n")
-	content.WriteString(fmt.Sprintf("\t\t\terrMsg: \"%s\",\n", fieldNameLower))
+	fmt.Fprintf(content, "\t\t\terrMsg: \"%s\",\n", fieldNameLower)
 	content.WriteString("\t\t},\n")
 }
 
-// generateConstructorTests creates tests for entity initialization
+// generateConstructorTests creates tests for entity initialization.
 func generateConstructorTests(content *strings.Builder, entityName string, fields []Field) {
 	entityLower := strings.ToLower(string(entityName[0])) + entityName[1:]
 
-	content.WriteString(fmt.Sprintf("// Test%s_Initialization tests entity field initialization\n", entityName))
-	content.WriteString(fmt.Sprintf("func Test%s_Initialization(t *testing.T) {\n", entityName))
-	content.WriteString(fmt.Sprintf("\t%s := &%s{\n", entityLower, entityName))
+	fmt.Fprintf(content, "// Test%s_Initialization tests entity field initialization\n", entityName)
+	fmt.Fprintf(content, "func Test%s_Initialization(t *testing.T) {\n", entityName)
+	fmt.Fprintf(content, "\t%s := &%s{\n", entityLower, entityName)
 
 	// Generate sample initialization values
 	for _, field := range fields {
@@ -156,7 +156,7 @@ func generateConstructorTests(content *strings.Builder, entityName string, field
 		}
 
 		validValue := getValidFieldValue(field)
-		content.WriteString(fmt.Sprintf("\t\t%s: %s,\n", field.Name, validValue))
+		fmt.Fprintf(content, "\t\t%s: %s,\n", field.Name, validValue)
 	}
 
 	content.WriteString("\t}\n\n")
@@ -168,14 +168,14 @@ func generateConstructorTests(content *strings.Builder, entityName string, field
 		}
 
 		expectedValue := getValidFieldValue(field)
-		content.WriteString(fmt.Sprintf("\tassert.Equal(t, %s, %s.%s, \"%s should be set correctly\")\n",
-			expectedValue, entityLower, field.Name, field.Name))
+		fmt.Fprintf(content, "\tassert.Equal(t, %s, %s.%s, \"%s should be set correctly\")\n",
+			expectedValue, entityLower, field.Name, field.Name)
 	}
 
 	content.WriteString("}\n\n")
 }
 
-// generateFieldTests creates specific tests for field constraints
+// generateFieldTests creates specific tests for field constraints.
 func generateFieldTests(content *strings.Builder, entityName string, fields []Field) {
 	entityLower := strings.ToLower(string(entityName[0])) + entityName[1:]
 
@@ -186,9 +186,9 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 
 		// Test for string fields (length, empty)
 		if field.Type == "string" {
-			content.WriteString(fmt.Sprintf("// Test%s_%s_EdgeCases tests edge cases for %s field\n",
-				entityName, field.Name, field.Name))
-			content.WriteString(fmt.Sprintf("func Test%s_%s_EdgeCases(t *testing.T) {\n", entityName, field.Name))
+			fmt.Fprintf(content, "// Test%s_%s_EdgeCases tests edge cases for %s field\n",
+				entityName, field.Name, field.Name)
+			fmt.Fprintf(content, "func Test%s_%s_EdgeCases(t *testing.T) {\n", entityName, field.Name)
 			content.WriteString("\ttests := []struct {\n")
 			content.WriteString("\t\tname    string\n")
 			content.WriteString("\t\tvalue   string\n")
@@ -208,7 +208,7 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 			content.WriteString("\t}\n\n")
 			content.WriteString("\tfor _, tt := range tests {\n")
 			content.WriteString("\t\tt.Run(tt.name, func(t *testing.T) {\n")
-			content.WriteString(fmt.Sprintf("\t\t\t%s := &%s{\n", entityLower, entityName))
+			fmt.Fprintf(content, "\t\t\t%s := &%s{\n", entityLower, entityName)
 
 			// Set all required fields with valid values
 			for _, f := range fields {
@@ -217,15 +217,15 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 				}
 
 				if f.Name == field.Name {
-					content.WriteString(fmt.Sprintf("\t\t\t\t%s: tt.value,\n", f.Name))
+					fmt.Fprintf(content, "\t\t\t\t%s: tt.value,\n", f.Name)
 				} else {
 					validValue := getValidFieldValue(f)
-					content.WriteString(fmt.Sprintf("\t\t\t\t%s: %s,\n", f.Name, validValue))
+					fmt.Fprintf(content, "\t\t\t\t%s: %s,\n", f.Name, validValue)
 				}
 			}
 
 			content.WriteString("\t\t\t}\n\n")
-			content.WriteString(fmt.Sprintf("\t\t\terr := %s.Validate()\n", entityLower))
+			fmt.Fprintf(content, "\t\t\terr := %s.Validate()\n", entityLower)
 			content.WriteString("\t\t\tif tt.wantErr {\n")
 			content.WriteString("\t\t\t\tassert.Error(t, err)\n")
 			content.WriteString("\t\t\t} else {\n")
@@ -238,12 +238,12 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 
 		// Test for numeric fields (negative, zero, positive)
 		if field.Type == "int" || field.Type == "int64" || field.Type == "float64" {
-			content.WriteString(fmt.Sprintf("// Test%s_%s_NumericValidation tests numeric validation for %s\n",
-				entityName, field.Name, field.Name))
-			content.WriteString(fmt.Sprintf("func Test%s_%s_NumericValidation(t *testing.T) {\n", entityName, field.Name))
+			fmt.Fprintf(content, "// Test%s_%s_NumericValidation tests numeric validation for %s\n",
+				entityName, field.Name, field.Name)
+			fmt.Fprintf(content, "func Test%s_%s_NumericValidation(t *testing.T) {\n", entityName, field.Name)
 			content.WriteString("\ttests := []struct {\n")
 			content.WriteString("\t\tname    string\n")
-			content.WriteString(fmt.Sprintf("\t\tvalue   %s\n", field.Type))
+			fmt.Fprintf(content, "\t\tvalue   %s\n", field.Type)
 			content.WriteString("\t\twantErr bool\n")
 			content.WriteString("\t}{\n")
 
@@ -260,7 +260,7 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 			content.WriteString("\t}\n\n")
 			content.WriteString("\tfor _, tt := range tests {\n")
 			content.WriteString("\t\tt.Run(tt.name, func(t *testing.T) {\n")
-			content.WriteString(fmt.Sprintf("\t\t\t%s := &%s{\n", entityLower, entityName))
+			fmt.Fprintf(content, "\t\t\t%s := &%s{\n", entityLower, entityName)
 
 			// Set all required fields with valid values
 			for _, f := range fields {
@@ -269,15 +269,15 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 				}
 
 				if f.Name == field.Name {
-					content.WriteString(fmt.Sprintf("\t\t\t\t%s: tt.value,\n", f.Name))
+					fmt.Fprintf(content, "\t\t\t\t%s: tt.value,\n", f.Name)
 				} else {
 					validValue := getValidFieldValue(f)
-					content.WriteString(fmt.Sprintf("\t\t\t\t%s: %s,\n", f.Name, validValue))
+					fmt.Fprintf(content, "\t\t\t\t%s: %s,\n", f.Name, validValue)
 				}
 			}
 
 			content.WriteString("\t\t\t}\n\n")
-			content.WriteString(fmt.Sprintf("\t\t\terr := %s.Validate()\n", entityLower))
+			fmt.Fprintf(content, "\t\t\terr := %s.Validate()\n", entityLower)
 			content.WriteString("\t\t\tif tt.wantErr {\n")
 			content.WriteString("\t\t\t\tassert.Error(t, err)\n")
 			content.WriteString("\t\t\t} else {\n")

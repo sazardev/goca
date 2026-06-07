@@ -8,7 +8,7 @@ import (
 	"github.com/sazardev/goca/cmd"
 )
 
-// TestConfigCompleteWorkflow tests the complete workflow of the config system
+// TestConfigCompleteWorkflow tests the complete workflow of the config system.
 func TestConfigCompleteWorkflow(t *testing.T) {
 	t.Run("ConfigSystemCompleteFlow", func(t *testing.T) {
 		// Setup test environment
@@ -16,7 +16,7 @@ func TestConfigCompleteWorkflow(t *testing.T) {
 		projectName := "goca-config-test"
 		projectPath := filepath.Join(tempDir, projectName)
 
-		if err := os.MkdirAll(projectPath, 0755); err != nil {
+		if err := os.MkdirAll(projectPath, 0o755); err != nil {
 			t.Fatalf("Failed to create project directory: %v", err)
 		}
 
@@ -164,12 +164,12 @@ func TestConfigCompleteWorkflow(t *testing.T) {
 	})
 }
 
-// Helper function to create basic project structure
+// Helper function to create basic project structure.
 func createBasicStructure(projectPath string, config *cmd.GocaConfig) error {
 	// Create go.mod file
 	goModContent := "module " + config.Project.Module + "\n\ngo 1.21\n"
 	goModPath := filepath.Join(projectPath, "go.mod")
-	if err := os.WriteFile(goModPath, []byte(goModContent), 0644); err != nil {
+	if err := os.WriteFile(goModPath, []byte(goModContent), 0o644); err != nil {
 		return err
 	}
 
@@ -183,13 +183,13 @@ func createBasicStructure(projectPath string, config *cmd.GocaConfig) error {
 
 	for _, dir := range dirs {
 		fullPath := filepath.Join(projectPath, dir)
-		if err := os.MkdirAll(fullPath, 0755); err != nil {
+		if err := os.MkdirAll(fullPath, 0o755); err != nil {
 			return err
 		}
 
 		// Create a dummy .gitkeep file to make the directory exist
 		keepFile := filepath.Join(fullPath, ".gitkeep")
-		if err := os.WriteFile(keepFile, []byte(""), 0644); err != nil {
+		if err := os.WriteFile(keepFile, []byte(""), 0o644); err != nil {
 			return err
 		}
 	}

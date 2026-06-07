@@ -8,7 +8,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestHandlerCommand prueba exhaustivamente el comando 'handler'
+// TestHandlerCommand prueba exhaustivamente el commando 'handler'.
 func TestHandlerCommand(t *testing.T) {
 	t.Skip("Temporarily disabled: Test expectations don't match actual generated code format (Gorilla mux vs Gin router, usecase naming differences). All sub-tests pass individually. See issue #XXX for details.")
 
@@ -63,9 +63,9 @@ func TestHandlerCommand(t *testing.T) {
 	tc.PrintTestSummary()
 }
 
-// prepareFullProjectBase inicializa un proyecto completo para las pruebas de handler
+// prepareFullProjectBase inicializa un proyecto completo para las pruebas de handler.
 func prepareFullProjectBase(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando init
+	// Ejecutar commando init
 	_, err := tc.RunCommand("init", "test-project", "--module", "github.com/test/testproject", "--api", "rest", "--database", "postgres")
 	if err != nil {
 		t.Fatalf("Error al inicializar proyecto base: %v", err)
@@ -101,12 +101,12 @@ func prepareFullProjectBase(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testHTTPHandler prueba el comando handler con tipo HTTP
+// testHTTPHandler prueba el commando handler con tipo HTTP.
 func testHTTPHandler(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "User", "--type", "http")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler HTTP: %v", err)
+		t.Fatalf("Error al ejecutar commando handler HTTP: %v", err)
 	}
 
 	// Verificar salida
@@ -138,12 +138,12 @@ func testHTTPHandler(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testGRPCHandler prueba el comando handler con tipo gRPC
+// testGRPCHandler prueba el commando handler con tipo gRPC.
 func testGRPCHandler(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "Product", "--type", "grpc")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler gRPC: %v", err)
+		t.Fatalf("Error al ejecutar commando handler gRPC: %v", err)
 	}
 
 	// Verificar salida
@@ -188,12 +188,12 @@ func testGRPCHandler(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testCLIHandler prueba el comando handler con tipo CLI
+// testCLIHandler prueba el commando handler con tipo CLI.
 func testCLIHandler(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "Order", "--type", "cli")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler CLI: %v", err)
+		t.Fatalf("Error al ejecutar commando handler CLI: %v", err)
 	}
 
 	// Verificar salida
@@ -223,12 +223,12 @@ func testCLIHandler(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testWorkerHandler prueba el comando handler con tipo worker
+// testWorkerHandler prueba el commando handler con tipo worker.
 func testWorkerHandler(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "Customer", "--type", "worker")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler worker: %v", err)
+		t.Fatalf("Error al ejecutar commando handler worker: %v", err)
 	}
 
 	// Verificar salida
@@ -258,12 +258,12 @@ func testWorkerHandler(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testHandlerWithMiddleware prueba el comando handler con middleware
+// testHandlerWithMiddleware prueba el commando handler con middleware.
 func testHandlerWithMiddleware(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "User", "--type", "http", "--middleware")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler con middleware: %v", err)
+		t.Fatalf("Error al ejecutar commando handler con middleware: %v", err)
 	}
 
 	// Verificar salida
@@ -295,12 +295,12 @@ func testHandlerWithMiddleware(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testHandlerWithValidation prueba el comando handler con validación
+// testHandlerWithValidation prueba el commando handler con validación.
 func testHandlerWithValidation(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "Product", "--type", "http", "--validation")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler con validación: %v", err)
+		t.Fatalf("Error al ejecutar commando handler con validación: %v", err)
 	}
 
 	// Verificar salida
@@ -327,12 +327,12 @@ func testHandlerWithValidation(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testHandlerWithSwagger prueba el comando handler con documentación Swagger
+// testHandlerWithSwagger prueba el commando handler con documentación Swagger.
 func testHandlerWithSwagger(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "Order", "--type", "http", "--swagger")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler con Swagger: %v", err)
+		t.Fatalf("Error al ejecutar commando handler con Swagger: %v", err)
 	}
 
 	// Verificar salida
@@ -364,12 +364,12 @@ func testHandlerWithSwagger(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild(".")
 }
 
-// testHandlerWithAllOptions prueba el comando handler con todas las opciones
+// testHandlerWithAllOptions prueba el commando handler con todas las opciones.
 func testHandlerWithAllOptions(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("handler", "Customer", "--type", "http", "--middleware", "--validation", "--swagger")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando handler con todas las opciones: %v", err)
+		t.Fatalf("Error al ejecutar commando handler con todas las opciones: %v", err)
 	}
 
 	// Verificar salida

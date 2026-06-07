@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func generateGRPCHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
+func generateGRPCHandler(entity, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create gRPC directory
 	grpcDir := filepath.Join(DirInternal, DirHandler, DirGRPC)
 	_ = os.MkdirAll(grpcDir, 0o755)
@@ -16,7 +16,7 @@ func generateGRPCHandler(entity string, fileNamingConvention string, sm ...*Safe
 	generateGRPCServerFile(grpcDir, entity, fileNamingConvention, sm...)
 }
 
-func generateProtoFile(dir, entity string, fileNamingConvention string, sm ...*SafetyManager) {
+func generateProtoFile(dir, entity, fileNamingConvention string, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 
 	// Apply naming convention to filename
@@ -98,7 +98,7 @@ func generateProtoFile(dir, entity string, fileNamingConvention string, sm ...*S
 	}
 }
 
-func generateGRPCServerFile(dir, entity string, fileNamingConvention string, sm ...*SafetyManager) {
+func generateGRPCServerFile(dir, entity, fileNamingConvention string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)
@@ -174,7 +174,7 @@ func generateGRPCServerFile(dir, entity string, fileNamingConvention string, sm 
 	}
 }
 
-func generateCLIHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
+func generateCLIHandler(entity, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create CLI directory
 	cliDir := filepath.Join(DirInternal, DirHandler, DirCLI)
 	_ = os.MkdirAll(cliDir, 0o755)
@@ -279,7 +279,7 @@ func generateCLIHandler(entity string, fileNamingConvention string, sm ...*Safet
 	}
 }
 
-func generateWorkerHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
+func generateWorkerHandler(entity, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create worker directory
 	workerDir := filepath.Join(DirInternal, DirHandler, DirWorker)
 	_ = os.MkdirAll(workerDir, 0o755)
@@ -360,7 +360,7 @@ func (w *%sWorker) ProcessBatch%sJob(jobData []byte) error {
 	}
 }
 
-func generateSOAPHandler(entity string, fileNamingConvention string, sm ...*SafetyManager) {
+func generateSOAPHandler(entity, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create SOAP directory
 	soapDir := filepath.Join(DirInternal, DirHandler, DirSOAP)
 	_ = os.MkdirAll(soapDir, 0o755)

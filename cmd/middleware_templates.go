@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -54,8 +53,8 @@ func generateCORSMiddleware() string {
 	b.WriteString("\t\t\tif allowed {\n")
 	b.WriteString("\t\t\t\tw.Header().Set(\"Access-Control-Allow-Origin\", origin)\n")
 	b.WriteString("\t\t\t}\n")
-	b.WriteString(fmt.Sprintf("\t\t\tw.Header().Set(\"Access-Control-Allow-Methods\", joinStrings(cfg.AllowedMethods))\n"))
-	b.WriteString(fmt.Sprintf("\t\t\tw.Header().Set(\"Access-Control-Allow-Headers\", joinStrings(cfg.AllowedHeaders))\n\n"))
+	b.WriteString("\t\t\tw.Header().Set(\"Access-Control-Allow-Methods\", joinStrings(cfg.AllowedMethods))\n")
+	b.WriteString("\t\t\tw.Header().Set(\"Access-Control-Allow-Headers\", joinStrings(cfg.AllowedHeaders))\n\n")
 	b.WriteString("\t\t\tif r.Method == http.MethodOptions {\n")
 	b.WriteString("\t\t\t\tw.WriteHeader(http.StatusNoContent)\n")
 	b.WriteString("\t\t\t\treturn\n")

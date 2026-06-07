@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
-// addEntityToAutoMigration adds a domain entity to the auto-migration list in main.go
+// addEntityToAutoMigration adds a domain entity to the auto-migration list in main.go.
 func addEntityToAutoMigration(entity string, sm ...*SafetyManager) error {
 	mainPath, err := findMainGoFile()
 	if err != nil {
@@ -47,7 +48,7 @@ func addEntityToAutoMigration(entity string, sm ...*SafetyManager) error {
 	return nil
 }
 
-// findMainGoFile locates the main.go file in possible locations
+// findMainGoFile locates the main.go file in possible locations.
 func findMainGoFile() (string, error) {
 	possiblePaths := []string{
 		filepath.Join("cmd", "server", "main.go"),
@@ -61,10 +62,10 @@ func findMainGoFile() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("main.go not found in any expected location")
+	return "", errors.New("main.go not found in any expected location") //nolint:err113 // simple sentinel
 }
 
-// addEntityToMigrationSlice adds an entity reference to the migration entities slice
+// addEntityToMigrationSlice adds an entity reference to the migration entities slice.
 func addEntityToMigrationSlice(content, entityReference string) (string, error) {
 	commentPattern := "// Add domain entities here as they are created"
 
@@ -76,22 +77,22 @@ func addEntityToMigrationSlice(content, entityReference string) (string, error) 
 	return addEntityToEntitiesSlice(content, entityReference)
 }
 
-// addEntityToEntitiesSlice adds an entity to the entities slice as fallback
+// addEntityToEntitiesSlice adds an entity to the entities slice as fallback.
 func addEntityToEntitiesSlice(content, entityReference string) (string, error) {
 	entitiesPattern := "entities := []interface{}{"
 
 	if !strings.Contains(content, entitiesPattern) {
-		return "", fmt.Errorf("could not find auto-migration entities slice in main.go")
+		return "", errors.New("could not find auto-migration entities slice in main.go") //nolint:err113 // simple sentinel
 	}
 
 	startIdx := strings.Index(content, entitiesPattern)
 	if startIdx == -1 {
-		return "", fmt.Errorf("could not find entities slice start")
+		return "", errors.New("could not find entities slice start") //nolint:err113 // simple sentinel
 	}
 
 	closingIdx := findSliceClosingBrace(content, startIdx+len(entitiesPattern))
 	if closingIdx == -1 {
-		return "", fmt.Errorf("could not find entities slice closing brace")
+		return "", errors.New("could not find entities slice closing brace") //nolint:err113 // simple sentinel
 	}
 
 	beforeClosing := content[:closingIdx]
@@ -99,7 +100,7 @@ func addEntityToEntitiesSlice(content, entityReference string) (string, error) {
 	return beforeClosing + fmt.Sprintf("\n\t\t%s,", entityReference) + afterClosing, nil
 }
 
-// findSliceClosingBrace finds the closing brace of a slice starting from the given position
+// findSliceClosingBrace finds the closing brace of a slice starting from the given position.
 func findSliceClosingBrace(content string, startPos int) int {
 	braceCount := 1
 	for i := startPos; i < len(content) && braceCount > 0; i++ {
@@ -116,7 +117,7 @@ func findSliceClosingBrace(content string, startPos int) int {
 	return -1
 }
 
-// isEntityInMigrationList checks if an entity reference exists in the migration list (not in comments)
+// isEntityInMigrationList checks if an entity reference exists in the migration list (not in comments).
 func isEntityInMigrationList(content, entityReference string) bool {
 	// Find the entities slice
 	entitiesPattern := "entities := []interface{}{"
@@ -151,7 +152,7 @@ func isEntityInMigrationList(content, entityReference string) bool {
 	return false
 }
 
-// ensureDomainImport ensures that the internal/domain package is imported in main.go
+// ensureDomainImport ensures that the internal/domain package is imported in main.go.
 func ensureDomainImport(content string) (string, error) {
 	// Check if domain is already imported
 	if strings.Contains(content, "/internal/domain\"") {
@@ -161,7 +162,7 @@ func ensureDomainImport(content string) (string, error) {
 	// Get module name from go.mod
 	moduleName := getModuleName()
 	if moduleName == "" {
-		return "", fmt.Errorf("could not determine module name from go.mod")
+		return "", errors.New("could not determine module name from go.mod") //nolint:err113 // simple sentinel
 	}
 
 	domainImport := fmt.Sprintf("\"%s/internal/domain\"", moduleName)
@@ -172,7 +173,7 @@ func ensureDomainImport(content string) (string, error) {
 		// No import block, add one
 		packageEnd := strings.Index(content, "\n\n")
 		if packageEnd == -1 {
-			return "", fmt.Errorf("could not find appropriate place to add import")
+			return "", errors.New("could not find appropriate place to add import") //nolint:err113 // simple sentinel
 		}
 		newImport := fmt.Sprintf("\n\nimport (\n\t%s\n)", domainImport)
 		return content[:packageEnd] + newImport + content[packageEnd:], nil
@@ -181,7 +182,7 @@ func ensureDomainImport(content string) (string, error) {
 	// Find the end of import block
 	importEnd := strings.Index(content[importStart:], ")")
 	if importEnd == -1 {
-		return "", fmt.Errorf("could not find end of import block")
+		return "", errors.New("could not find end of import block") //nolint:err113 // simple sentinel
 	}
 	importEnd += importStart
 

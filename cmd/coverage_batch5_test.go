@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,7 +21,7 @@ func TestMcpText(t *testing.T) {
 
 func TestMcpErr(t *testing.T) {
 	t.Parallel()
-	result := mcpErr(fmt.Errorf("test error"))
+	result := mcpErr(errors.New("test error"))
 	assert.NotNil(t, result)
 	assert.True(t, result.IsError)
 }
@@ -41,7 +41,6 @@ func TestAppendIfTrue(t *testing.T) {
 		{"empty args false", nil, false, "--flag", 0},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := appendIfTrue(tc.args, tc.condition, tc.flag)
@@ -64,7 +63,6 @@ func TestAppendIfSet(t *testing.T) {
 		{"nil args non-empty", nil, "val", "--flag", 2},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := appendIfSet(tc.args, tc.value, tc.flag)
@@ -77,9 +75,9 @@ func TestAppendIfSet(t *testing.T) {
 
 func TestBuildDirTree(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "sub1"), 0755))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "file1.go"), []byte("x"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "sub1", "file2.go"), []byte("y"), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "sub1"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "file1.go"), []byte("x"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "sub1", "file2.go"), []byte("y"), 0o644))
 
 	tree, err := buildDirTree(dir, "", 0, 3)
 	require.NoError(t, err)
@@ -90,7 +88,7 @@ func TestBuildDirTree(t *testing.T) {
 
 func TestBuildDirTree_MaxDepth(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "a", "b", "c"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "a", "b", "c"), 0o755))
 
 	tree, err := buildDirTree(dir, "", 0, 1)
 	require.NoError(t, err)
@@ -185,7 +183,7 @@ func TestGenerateMocks_DryRun(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.MkdirAll("internal/mocks", 0755))
+	require.NoError(t, os.MkdirAll("internal/mocks", 0o755))
 
 	sm := NewSafetyManager(true, false, false)
 	err := generateMocks("Product", true, false, false, false, sm)
@@ -267,7 +265,7 @@ defaults:
   database: postgres
   handlers: http
 `
-	require.NoError(t, os.WriteFile(".goca.yaml", []byte(yamlContent), 0644))
+	require.NoError(t, os.WriteFile(".goca.yaml", []byte(yamlContent), 0o644))
 
 	ci := NewConfigIntegration()
 	err := ci.LoadConfigForProject()

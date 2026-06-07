@@ -9,8 +9,7 @@ import (
 	"github.com/sazardev/goca/cmd"
 )
 
-// TestGocaYamlDocumentation validates all .goca.yaml features that will be documented
-// This ensures documentation accuracy by testing real functionality
+// This ensures documentation accuracy by testing real functionality.
 func TestGocaYamlDocumentation(t *testing.T) {
 	t.Run("BasicConfiguration", func(t *testing.T) {
 		tmpDir := t.TempDir()
@@ -50,7 +49,7 @@ generation:
     enabled: false
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -97,7 +96,7 @@ database:
     uuid: true
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -133,7 +132,7 @@ architecture:
     constants: SCREAMING_SNAKE
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -170,7 +169,7 @@ testing:
   integration: true
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -202,7 +201,7 @@ templates:
     copyright: "2024"
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -232,7 +231,7 @@ database:
   type: mysql
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -302,7 +301,7 @@ testing:
   framework: testify
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -349,7 +348,7 @@ testing:
   invalid_yaml_structure
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
@@ -382,7 +381,7 @@ testing:
 	})
 }
 
-// TestRealProjectWithGocaYaml creates a real project and generates features using .goca.yaml
+// TestRealProjectWithGocaYaml creates a real project and generates features using .goca.yaml.
 func TestRealProjectWithGocaYaml(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
@@ -392,7 +391,7 @@ func TestRealProjectWithGocaYaml(t *testing.T) {
 	projectDir := filepath.Join(tmpDir, "test-project")
 
 	// Create project structure
-	if err := os.MkdirAll(projectDir, 0755); err != nil {
+	if err := os.MkdirAll(projectDir, 0o755); err != nil {
 		t.Fatalf("Failed to create project dir: %v", err)
 	}
 
@@ -436,14 +435,14 @@ testing:
   framework: testify
 `
 	configPath := filepath.Join(projectDir, ".goca.yaml")
-	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 		t.Fatalf("Failed to write config: %v", err)
 	}
 
 	// Initialize go.mod
 	goModContent := "module github.com/test/project\n\ngo 1.21\n"
 	goModPath := filepath.Join(projectDir, "go.mod")
-	if err := os.WriteFile(goModPath, []byte(goModContent), 0644); err != nil {
+	if err := os.WriteFile(goModPath, []byte(goModContent), 0o644); err != nil {
 		t.Fatalf("Failed to write go.mod: %v", err)
 	}
 
@@ -482,7 +481,7 @@ testing:
 	t.Log("✓ Real project with .goca.yaml validated successfully")
 }
 
-// TestConfigurationMergeStrategies tests different merge strategies
+// TestConfigurationMergeStrategies tests different merge strategies.
 func TestConfigurationMergeStrategies(t *testing.T) {
 	t.Run("ConfigOverridesDefaults", func(t *testing.T) {
 		tmpDir := t.TempDir()
@@ -494,7 +493,7 @@ database:
   type: mysql
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		os.WriteFile(configPath, []byte(configContent), 0644)
+		os.WriteFile(configPath, []byte(configContent), 0o644)
 
 		// Change to tmpDir
 		originalDir, _ := os.Getwd()
@@ -521,7 +520,7 @@ database:
   type: mysql
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		os.WriteFile(configPath, []byte(configContent), 0644)
+		os.WriteFile(configPath, []byte(configContent), 0o644)
 
 		// Change to tmpDir
 		originalDir, _ := os.Getwd()
@@ -563,7 +562,7 @@ database:
 	})
 }
 
-// TestConfigurationExamples tests various configuration examples from documentation
+// TestConfigurationExamples tests various configuration examples from documentation.
 func TestConfigurationExamples(t *testing.T) {
 	examples := map[string]string{
 		"minimal": `project:
@@ -642,7 +641,7 @@ architecture:
 			tmpDir := t.TempDir()
 			configPath := filepath.Join(tmpDir, ".goca.yaml")
 
-			if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 				t.Fatalf("Failed to write %s config: %v", name, err)
 			}
 
@@ -671,7 +670,7 @@ architecture:
 	}
 }
 
-// TestConfigurationBestPractices validates best practices
+// TestConfigurationBestPractices validates best practices.
 func TestConfigurationBestPractices(t *testing.T) {
 	t.Run("ShouldHaveProjectSection", func(t *testing.T) {
 		tmpDir := t.TempDir()
@@ -681,7 +680,7 @@ func TestConfigurationBestPractices(t *testing.T) {
   type: postgres
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		os.WriteFile(configPath, []byte(configContent), 0644)
+		os.WriteFile(configPath, []byte(configContent), 0o644)
 
 		manager := cmd.NewConfigManager()
 		// Should not fail
@@ -705,7 +704,7 @@ database:
   type: ` + dbType + `
 `
 			configPath := filepath.Join(tmpDir, ".goca.yaml")
-			os.WriteFile(configPath, []byte(configContent), 0644)
+			os.WriteFile(configPath, []byte(configContent), 0o644)
 
 			manager := cmd.NewConfigManager()
 			if err := manager.LoadConfig(tmpDir); err != nil {
@@ -736,7 +735,7 @@ architecture:
       directory: internal/handler
 `
 		configPath := filepath.Join(tmpDir, ".goca.yaml")
-		os.WriteFile(configPath, []byte(configContent), 0644)
+		os.WriteFile(configPath, []byte(configContent), 0o644)
 
 		manager := cmd.NewConfigManager()
 		if err := manager.LoadConfig(tmpDir); err != nil {

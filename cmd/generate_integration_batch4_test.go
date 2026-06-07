@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bytes"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,17 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// helper to set up UI and return cleanup
-func setupTestUI(t *testing.T) (*bytes.Buffer, func()) {
-	t.Helper()
-	buf := &bytes.Buffer{}
-	testUI := NewUIRenderer(buf, true, 2)
-	oldUI := ui
-	ui = testUI
-	return buf, func() { ui = oldUI }
-}
-
-// helper to set up UI with discard writer and return cleanup
+// helper to set up UI with discard writer and return cleanup.
 func setupDiscardUI(t *testing.T) func() {
 	t.Helper()
 	testUI := NewUIRenderer(io.Discard, true, 0)
@@ -30,7 +19,7 @@ func setupDiscardUI(t *testing.T) func() {
 	return func() { ui = oldUI }
 }
 
-// helper to set up a project directory with go.mod
+// helper to set up a project directory with go.mod.
 func setupProjectDir(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -43,7 +32,7 @@ require (
 	gorm.io/gorm v1.25.5
 )
 `
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644))
 	return dir
 }
 
@@ -60,7 +49,7 @@ func TestCreateGoMod_DryRun(t *testing.T) {
 	dir := t.TempDir()
 	os.Chdir(dir)
 	projDir := filepath.Join(dir, "testproj")
-	require.NoError(t, os.MkdirAll(projDir, 0755))
+	require.NoError(t, os.MkdirAll(projDir, 0o755))
 
 	sm := NewSafetyManager(true, false, false)
 	tests := []struct {
@@ -78,7 +67,6 @@ func TestCreateGoMod_DryRun(t *testing.T) {
 		{"sqlserver", DBSQLServer, false},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			sm2 := NewSafetyManager(true, false, false)
 			createGoMod("testproj", "github.com/test/proj", tc.database, tc.auth, sm2)
@@ -99,7 +87,7 @@ func TestCreateMainGo_DryRun(t *testing.T) {
 	dir := t.TempDir()
 	os.Chdir(dir)
 	projDir := filepath.Join(dir, "testproj")
-	require.NoError(t, os.MkdirAll(filepath.Join(projDir, "cmd", "server"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(projDir, "cmd", "server"), 0o755))
 
 	tests := []struct {
 		name     string
@@ -113,7 +101,6 @@ func TestCreateMainGo_DryRun(t *testing.T) {
 		{"elasticsearch", DBElasticsearch},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			sm := NewSafetyManager(true, false, false)
 			createMainGo("testproj", "github.com/test/proj", tc.database, sm)
@@ -189,7 +176,6 @@ func TestCreateEnvFiles_DryRun(t *testing.T) {
 		{"mongodb", "mongodb"},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			sm := NewSafetyManager(true, false, false)
 			createEnvFiles(dir, tc.database, sm)
@@ -430,7 +416,6 @@ func TestGetDatabasePort_Extended(t *testing.T) {
 		{"unknown", "5432"},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.db, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.port, getDatabasePort(tc.db))
@@ -451,7 +436,6 @@ func TestGetDatabaseUser_Extended(t *testing.T) {
 		{"unknown", "postgres"},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.db, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.user, getDatabaseUser(tc.db))

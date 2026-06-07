@@ -14,14 +14,14 @@ func TestFilePathResolution(t *testing.T) {
 
 	// Create a test directory structure
 	testProjectDir := filepath.Join(tc.TempDir, "test-project")
-	err := os.MkdirAll(filepath.Join(testProjectDir, "internal", "domain"), 0755)
+	err := os.MkdirAll(filepath.Join(testProjectDir, "internal", "domain"), 0o755)
 	if err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
 	// Create a test file
 	userEntityPath := filepath.Join(testProjectDir, "internal", "domain", "user.go")
-	err = os.WriteFile(userEntityPath, []byte("package domain\n\ntype User struct {\n\tName string\n\tEmail string\n}"), 0644)
+	err = os.WriteFile(userEntityPath, []byte("package domain\n\ntype User struct {\n\tName string\n\tEmail string\n}"), 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create test file: %v", err)
 	}

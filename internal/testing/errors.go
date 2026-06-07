@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// TestError represents a test error with detailed context
+// TestError represents a test error with detailed context.
 type TestError struct {
 	Type        string
 	File        string
@@ -15,7 +15,7 @@ type TestError struct {
 	Severity    ErrorSeverity
 }
 
-// ErrorSeverity represents the severity level of a test error
+// ErrorSeverity represents the severity level of a test error.
 type ErrorSeverity int
 
 const (
@@ -40,12 +40,12 @@ func (s ErrorSeverity) String() string {
 	}
 }
 
-// Error implements the error interface
+// Error implements the error interface.
 func (e *TestError) Error() string {
 	return fmt.Sprintf("[%s] %s: %s", e.Severity, e.Type, e.Description)
 }
 
-// DetailedError returns a detailed error message with context
+// DetailedError returns a detailed error message with context.
 func (e *TestError) DetailedError() string {
 	var parts []string
 
@@ -73,7 +73,7 @@ func (e *TestError) DetailedError() string {
 
 // Error constructors for different types of validation errors
 
-// NewFileError creates a file-related error
+// NewFileError creates a file-related error.
 func NewFileError(file, operation, description string) *TestError {
 	return &TestError{
 		Type:        "FILE_ERROR",
@@ -83,7 +83,7 @@ func NewFileError(file, operation, description string) *TestError {
 	}
 }
 
-// NewStructureError creates a project structure error
+// NewStructureError creates a project structure error.
 func NewStructureError(path, description string) *TestError {
 	return &TestError{
 		Type:        "STRUCTURE_ERROR",
@@ -93,7 +93,7 @@ func NewStructureError(path, description string) *TestError {
 	}
 }
 
-// NewSyntaxError creates a syntax error
+// NewSyntaxError creates a syntax error.
 func NewSyntaxError(file, description string) *TestError {
 	return &TestError{
 		Type:        "SYNTAX_ERROR",
@@ -103,7 +103,7 @@ func NewSyntaxError(file, description string) *TestError {
 	}
 }
 
-// NewComplianceError creates a compliance error
+// NewComplianceError creates a compliance error.
 func NewComplianceError(file, component, description string) *TestError {
 	return &TestError{
 		Type:        "COMPLIANCE_ERROR",
@@ -113,7 +113,7 @@ func NewComplianceError(file, component, description string) *TestError {
 	}
 }
 
-// NewDependencyError creates a dependency violation error
+// NewDependencyError creates a dependency violation error.
 func NewDependencyError(file, fromLayer, toLayer, description string) *TestError {
 	return &TestError{
 		Type:        "DEPENDENCY_ERROR",
@@ -123,7 +123,7 @@ func NewDependencyError(file, fromLayer, toLayer, description string) *TestError
 	}
 }
 
-// NewLocationError creates a file location error
+// NewLocationError creates a file location error.
 func NewLocationError(file, expectedLocation, description string) *TestError {
 	return &TestError{
 		Type:        "LOCATION_ERROR",
@@ -134,7 +134,7 @@ func NewLocationError(file, expectedLocation, description string) *TestError {
 	}
 }
 
-// NewNamingError creates a naming convention error
+// NewNamingError creates a naming convention error.
 func NewNamingError(file, element, expected, actual string) *TestError {
 	return &TestError{
 		Type:        "NAMING_ERROR",
@@ -146,7 +146,7 @@ func NewNamingError(file, element, expected, actual string) *TestError {
 	}
 }
 
-// NewImportError creates an import-related error
+// NewImportError creates an import-related error.
 func NewImportError(file, importType, description string) *TestError {
 	return &TestError{
 		Type:        "IMPORT_ERROR",
@@ -156,7 +156,7 @@ func NewImportError(file, importType, description string) *TestError {
 	}
 }
 
-// NewGenerationError creates a code generation error
+// NewGenerationError creates a code generation error.
 func NewGenerationError(component, description string) *TestError {
 	return &TestError{
 		Type:        "GENERATION_ERROR",
@@ -165,7 +165,7 @@ func NewGenerationError(component, description string) *TestError {
 	}
 }
 
-// NewFlagError creates a CLI flag error
+// NewFlagError creates a CLI flag error.
 func NewFlagError(flag, expected, actual, description string) *TestError {
 	return &TestError{
 		Type:        "FLAG_ERROR",
@@ -176,7 +176,7 @@ func NewFlagError(flag, expected, actual, description string) *TestError {
 	}
 }
 
-// ErrorSummary provides a summary of test errors
+// ErrorSummary provides a summary of test errors.
 type ErrorSummary struct {
 	Total    int
 	Critical int
@@ -187,7 +187,7 @@ type ErrorSummary struct {
 	ByFile   map[string]int
 }
 
-// NewErrorSummary creates an error summary from a list of errors
+// NewErrorSummary creates an error summary from a list of errors.
 func NewErrorSummary(errors []*TestError) *ErrorSummary {
 	summary := &ErrorSummary{
 		Total:  len(errors),
@@ -216,7 +216,7 @@ func NewErrorSummary(errors []*TestError) *ErrorSummary {
 	return summary
 }
 
-// String returns a formatted summary
+// String returns a formatted summary.
 func (s *ErrorSummary) String() string {
 	if s.Total == 0 {
 		return "No errors found - all tests passed! ✅"
@@ -241,12 +241,12 @@ func (s *ErrorSummary) String() string {
 	return strings.Join(parts, " | ")
 }
 
-// HasCriticalErrors returns true if there are critical errors
+// HasCriticalErrors returns true if there are critical errors.
 func (s *ErrorSummary) HasCriticalErrors() bool {
 	return s.Critical > 0
 }
 
-// HasHighPriorityErrors returns true if there are critical or high severity errors
+// HasHighPriorityErrors returns true if there are critical or high severity errors.
 func (s *ErrorSummary) HasHighPriorityErrors() bool {
 	return s.Critical > 0 || s.High > 0
 }

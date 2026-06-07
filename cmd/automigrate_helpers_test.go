@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindSliceClosingBrace(t *testing.T) {
@@ -45,7 +46,6 @@ func TestFindSliceClosingBrace(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := findSliceClosingBrace(tc.content, tc.startPos)
@@ -95,7 +95,7 @@ func TestAddEntityToEntitiesSlice(t *testing.T) {
 		&domain.Product{},
 	}`
 		result, err := addEntityToEntitiesSlice(content, "&domain.User{}")
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Contains(t, result, "&domain.User{}")
 		assert.Contains(t, result, "&domain.Product{}")
 	})

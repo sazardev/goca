@@ -1,6 +1,6 @@
 package domain
 
-// GetUserSeeds retorna datos de ejemplo para user
+// GetUserSeeds retorna datos de ejemplo para user.
 func GetUserSeeds() []User {
 	return []User{
 		{
@@ -21,7 +21,7 @@ func GetUserSeeds() []User {
 	}
 }
 
-// GetSQLUserSeeds retorna sentencias SQL INSERT para user
+// GetSQLUserSeeds retorna sentencias SQL INSERT para user.
 func GetSQLUserSeeds() string {
 	return `-- Datos de ejemplo para tabla user
 INSERT INTO users (name, email, age) VALUES ('Juan Pérez', 'juan@ejemplo.com', 25);\nINSERT INTO users (name, email, age) VALUES ('María García', 'maria@ejemplo.com', 30);\nINSERT INTO users (name, email, age) VALUES ('Carlos López', 'carlos@ejemplo.com', 35);\n`

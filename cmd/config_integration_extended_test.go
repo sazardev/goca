@@ -22,7 +22,6 @@ func TestGetNamingConvention_NilConfig(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.element, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, ci.GetNamingConvention(tc.element))

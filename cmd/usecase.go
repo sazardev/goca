@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -66,7 +67,7 @@ clear interfaces and encapsulated business logic.`,
 
 		if configIntegration.config != nil {
 			if !cmd.Flags().Changed("dto-validation") {
-				ui.KeyValueFromConfig("DTO Validation", fmt.Sprintf("%v", effectiveDtoValidation))
+				ui.KeyValueFromConfig("DTO Validation", strconv.FormatBool(effectiveDtoValidation))
 			}
 			if effectiveBusinessRules {
 				ui.KeyValueFromConfig("Business Rules", "enabled")
@@ -108,7 +109,7 @@ func generateUseCase(usecaseName, entity, operations string, dtoValidation, asyn
 func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValidation, async bool, fields string, sm ...*SafetyManager) {
 	// Create usecase directory
 	usecaseDir := filepath.Join(DirInternal, DirUseCase)
-	_ = os.MkdirAll(usecaseDir, 0755)
+	_ = os.MkdirAll(usecaseDir, 0o755)
 
 	// Parse operations
 	ops := parseOperations(operations)
@@ -213,7 +214,7 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 		content.WriteString(" validate:\"required,min=2\"")
 	}
 	content.WriteString("`\n")
-	content.WriteString("\tDescripcion string `json:\"descripcion\"")
+	content.WriteString("\tDescription string `json:\"description\"")
 	if validation {
 		content.WriteString(" validate:\"required,min=5\"")
 	}
@@ -235,7 +236,7 @@ func generateUpdateDTO(content *strings.Builder, entity string, validation bool)
 		content.WriteString(" validate:\"omitempty,min=2\"")
 	}
 	content.WriteString("`\n")
-	content.WriteString("\tDescripcion *string `json:\"descripcion,omitempty\"")
+	content.WriteString("\tDescription *string `json:\"description,omitempty\"")
 	if validation {
 		content.WriteString(" validate:\"omitempty,min=5\"")
 	}
@@ -681,7 +682,7 @@ func getValidationTag(fieldType string) string {
 	}
 }
 
-// ensureImportInDTOFile ensures a specific import exists in the DTO file content
+// ensureImportInDTOFile ensures a specific import exists in the DTO file content.
 func ensureImportInDTOFile(content, importPkg, moduleName string) string {
 	// Check if import already exists
 	importLine := fmt.Sprintf("\"%s\"", importPkg)

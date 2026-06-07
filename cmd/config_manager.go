@@ -2,16 +2,18 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
-// ConfigManager handles loading, validation, and management of Goca configuration
+// ConfigManager handles loading, validation, and management of Goca configuration.
 type ConfigManager struct {
 	config   *GocaConfig
 	filePath string
@@ -19,7 +21,7 @@ type ConfigManager struct {
 	warnings []ConfigWarning
 }
 
-// ConfigError represents a configuration error
+// ConfigError represents a configuration error.
 type ConfigError struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
@@ -28,7 +30,7 @@ type ConfigError struct {
 	Column  int    `json:"column,omitempty"`
 }
 
-// ConfigWarning represents a configuration warning
+// ConfigWarning represents a configuration warning.
 type ConfigWarning struct {
 	Field      string `json:"field"`
 	Message    string `json:"message"`
@@ -36,7 +38,7 @@ type ConfigWarning struct {
 	Suggestion string `json:"suggestion"`
 }
 
-// NewConfigManager creates a new configuration manager
+// NewConfigManager creates a new configuration manager.
 func NewConfigManager() *ConfigManager {
 	return &ConfigManager{
 		config:   nil,
@@ -45,7 +47,7 @@ func NewConfigManager() *ConfigManager {
 	}
 }
 
-// LoadConfig loads configuration from file or creates default
+// LoadConfig loads configuration from file or creates default.
 func (cm *ConfigManager) LoadConfig(projectPath string) error {
 	configPath := cm.findConfigFile(projectPath)
 
@@ -59,7 +61,7 @@ func (cm *ConfigManager) LoadConfig(projectPath string) error {
 	return cm.loadFromFile(configPath)
 }
 
-// findConfigFile searches for configuration file in project
+// findConfigFile searches for configuration file in project.
 func (cm *ConfigManager) findConfigFile(projectPath string) string {
 	candidates := []string{
 		".goca.yaml",
@@ -80,7 +82,7 @@ func (cm *ConfigManager) findConfigFile(projectPath string) string {
 	return ""
 }
 
-// loadFromFile loads and validates configuration from YAML file
+// loadFromFile loads and validates configuration from YAML file.
 func (cm *ConfigManager) loadFromFile(filePath string) error {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -108,7 +110,7 @@ func (cm *ConfigManager) loadFromFile(filePath string) error {
 	return nil
 }
 
-// createDefaultConfig creates a default configuration
+// createDefaultConfig creates a default configuration.
 func (cm *ConfigManager) createDefaultConfig(projectPath string) *GocaConfig {
 	projectName := filepath.Base(projectPath)
 	if projectName == "." || projectName == "" {
@@ -246,7 +248,7 @@ func (cm *ConfigManager) createDefaultConfig(projectPath string) *GocaConfig {
 			Variables: map[string]string{
 				"author":  "Goca CLI",
 				"license": "MIT",
-				"year":    fmt.Sprintf("%d", time.Now().Year()),
+				"year":    strconv.Itoa(time.Now().Year()),
 			},
 		},
 		Features: FeatureConfig{
@@ -304,7 +306,7 @@ func (cm *ConfigManager) createDefaultConfig(projectPath string) *GocaConfig {
 	}
 }
 
-// validateConfig validates the configuration and collects errors/warnings
+// validateConfig validates the configuration and collects errors/warnings.
 func (cm *ConfigManager) validateConfig(config *GocaConfig) error {
 	cm.errors = make([]ConfigError, 0)
 	cm.warnings = make([]ConfigWarning, 0)
@@ -335,7 +337,7 @@ func (cm *ConfigManager) validateConfig(config *GocaConfig) error {
 	return nil
 }
 
-// validateProject validates project configuration
+// validateProject validates project configuration.
 func (cm *ConfigManager) validateProject(project *ProjectConfig) {
 	if project.Name == "" {
 		cm.addError("project.name", "project name is required", "")
@@ -350,7 +352,7 @@ func (cm *ConfigManager) validateProject(project *ProjectConfig) {
 	}
 }
 
-// validateArchitecture validates architecture configuration
+// validateArchitecture validates architecture configuration.
 func (cm *ConfigManager) validateArchitecture(arch *ArchitectureConfig) {
 	// Validate naming conventions
 	validNamings := []string{"PascalCase", "camelCase", "snake_case", "kebab-case", "UPPER_CASE", "lowercase"}
@@ -370,7 +372,7 @@ func (cm *ConfigManager) validateArchitecture(arch *ArchitectureConfig) {
 	}
 }
 
-// validateDatabase validates database configuration
+// validateDatabase validates database configuration.
 func (cm *ConfigManager) validateDatabase(db *DatabaseConfig) {
 	validDBTypes := []string{"postgres", "mysql", "mongodb", "sqlite"}
 	if !cm.contains(validDBTypes, db.Type) {
@@ -378,15 +380,15 @@ func (cm *ConfigManager) validateDatabase(db *DatabaseConfig) {
 	}
 
 	if db.Port <= 0 || db.Port > 65535 {
-		cm.addError("database.port", "invalid port number", fmt.Sprintf("%d", db.Port))
+		cm.addError("database.port", "invalid port number", strconv.Itoa(db.Port))
 	}
 
 	if db.Connection.MaxOpen <= 0 {
-		cm.addWarning("database.connection.max_open", "max_open should be > 0", fmt.Sprintf("%d", db.Connection.MaxOpen), "25")
+		cm.addWarning("database.connection.max_open", "max_open should be > 0", strconv.Itoa(db.Connection.MaxOpen), "25")
 	}
 }
 
-// validateGeneration validates generation configuration
+// validateGeneration validates generation configuration.
 func (cm *ConfigManager) validateGeneration(gen *GenerationConfig) {
 	// Validate validation library
 	validLibs := []string{"builtin", "validator", "ozzo-validation"}
@@ -396,11 +398,11 @@ func (cm *ConfigManager) validateGeneration(gen *GenerationConfig) {
 
 	// Validate style configuration
 	if gen.Style.LineLength <= 0 {
-		cm.addWarning("generation.style.line_length", "line_length should be > 0", fmt.Sprintf("%d", gen.Style.LineLength), "120")
+		cm.addWarning("generation.style.line_length", "line_length should be > 0", strconv.Itoa(gen.Style.LineLength), "120")
 	}
 }
 
-// validateTesting validates testing configuration
+// validateTesting validates testing configuration.
 func (cm *ConfigManager) validateTesting(test *TestingConfig) {
 	validFrameworks := []string{"testify", "ginkgo", "builtin"}
 	if !cm.contains(validFrameworks, test.Framework) {
@@ -412,7 +414,7 @@ func (cm *ConfigManager) validateTesting(test *TestingConfig) {
 	}
 }
 
-// validateFeatures validates features configuration
+// validateFeatures validates features configuration.
 func (cm *ConfigManager) validateFeatures(features *FeatureConfig) {
 	// Validate auth type
 	if features.Auth.Enabled {
@@ -431,7 +433,7 @@ func (cm *ConfigManager) validateFeatures(features *FeatureConfig) {
 	}
 }
 
-// applyDefaults applies default values for missing configuration
+// applyDefaults applies default values for missing configuration.
 func (cm *ConfigManager) applyDefaults(config *GocaConfig) {
 	// Apply database defaults
 	if config.Database.Type == "" {
@@ -518,25 +520,25 @@ func (cm *ConfigManager) applyDefaults(config *GocaConfig) {
 	}
 }
 
-// GetConfig returns the loaded configuration
+// GetConfig returns the loaded configuration.
 func (cm *ConfigManager) GetConfig() *GocaConfig {
 	return cm.config
 }
 
-// GetErrors returns configuration errors
+// GetErrors returns configuration errors.
 func (cm *ConfigManager) GetErrors() []ConfigError {
 	return cm.errors
 }
 
-// GetWarnings returns configuration warnings
+// GetWarnings returns configuration warnings.
 func (cm *ConfigManager) GetWarnings() []ConfigWarning {
 	return cm.warnings
 }
 
-// SaveConfig saves the current configuration to file
+// SaveConfig saves the current configuration to file.
 func (cm *ConfigManager) SaveConfig(filePath string) error {
 	if cm.config == nil {
-		return fmt.Errorf("no configuration loaded")
+		return errors.New("no configuration loaded")
 	}
 
 	data, err := yaml.Marshal(cm.config)
@@ -546,11 +548,11 @@ func (cm *ConfigManager) SaveConfig(filePath string) error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0o644); err != nil {
 		return fmt.Errorf("failed to write configuration file: %w", err)
 	}
 
@@ -558,7 +560,7 @@ func (cm *ConfigManager) SaveConfig(filePath string) error {
 	return nil
 }
 
-// GenerateDefaultConfig generates a default .goca.yaml file
+// GenerateDefaultConfig generates a default .goca.yaml file.
 func (cm *ConfigManager) GenerateDefaultConfig(projectPath, projectName, module, database string) error {
 	// Create default config with provided parameters
 	config := cm.createDefaultConfig(projectPath)
@@ -579,7 +581,7 @@ func (cm *ConfigManager) GenerateDefaultConfig(projectPath, projectName, module,
 	return cm.SaveConfig(configPath)
 }
 
-// MergeWithFlags merges configuration with CLI flags
+// MergeWithFlags merges configuration with CLI flags.
 func (cm *ConfigManager) MergeWithFlags(flags map[string]interface{}) {
 	if cm.config == nil {
 		return
@@ -648,7 +650,7 @@ func (cm *ConfigManager) contains(slice []string, item string) bool {
 	return false
 }
 
-// PrintSummary prints configuration summary
+// PrintSummary prints configuration summary.
 func (cm *ConfigManager) PrintSummary() {
 	if cm.config == nil {
 		if ui != nil {
@@ -665,7 +667,7 @@ func (cm *ConfigManager) PrintSummary() {
 		ui.KeyValue("Module", cm.config.Project.Module)
 		ui.KeyValue("Database", cm.config.Database.Type)
 		ui.KeyValue("Layers", fmt.Sprintf("%d enabled", cm.countEnabledLayers()))
-		ui.KeyValue("Tests", fmt.Sprintf("%t", cm.config.Testing.Enabled))
+		ui.KeyValue("Tests", strconv.FormatBool(cm.config.Testing.Enabled))
 
 		if len(cm.warnings) > 0 {
 			ui.Blank()
@@ -724,32 +726,32 @@ func (cm *ConfigManager) countEnabledLayers() int {
 
 // Testing Methods - Public wrappers for testing private functionality
 
-// CreateDefaultConfig creates a default configuration (public for testing)
+// CreateDefaultConfig creates a default configuration (public for testing).
 func (cm *ConfigManager) CreateDefaultConfig(projectPath string) *GocaConfig {
 	return cm.createDefaultConfig(projectPath)
 }
 
-// ValidateConfig validates the configuration and collects errors/warnings (public for testing)
+// ValidateConfig validates the configuration and collects errors/warnings (public for testing).
 func (cm *ConfigManager) ValidateConfig(config *GocaConfig) error {
 	return cm.validateConfig(config)
 }
 
-// FindConfigFile searches for configuration file in project (public for testing)
+// FindConfigFile searches for configuration file in project (public for testing).
 func (cm *ConfigManager) FindConfigFile(projectPath string) string {
 	return cm.findConfigFile(projectPath)
 }
 
-// LoadFromFile loads and validates configuration from YAML file (public for testing)
+// LoadFromFile loads and validates configuration from YAML file (public for testing).
 func (cm *ConfigManager) LoadFromFile(filePath string) error {
 	return cm.loadFromFile(filePath)
 }
 
-// ApplyDefaults applies default values for missing configuration (public for testing)
+// ApplyDefaults applies default values for missing configuration (public for testing).
 func (cm *ConfigManager) ApplyDefaults(config *GocaConfig) {
 	cm.applyDefaults(config)
 }
 
-// SetConfig sets the configuration (public for testing)
+// SetConfig sets the configuration (public for testing).
 func (cm *ConfigManager) SetConfig(config *GocaConfig) {
 	cm.config = config
 }

@@ -41,7 +41,6 @@ func TestValidateEntityCommand(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := v.ValidateEntityCommand(tc.entity, tc.fields)
@@ -73,7 +72,6 @@ func TestValidateRepositoryCommand(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := v.ValidateRepositoryCommand(tc.entity, tc.database)
@@ -105,7 +103,6 @@ func TestValidateUseCaseCommand(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := v.ValidateUseCaseCommand(tc.usecase, tc.entity, tc.operations)
@@ -138,7 +135,6 @@ func TestValidateHandlerCommand(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := v.ValidateHandlerCommand(tc.entity, tc.handlerType)
@@ -171,7 +167,6 @@ func TestValidateFeatureCommand(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := v.ValidateFeatureCommand(tc.feature, tc.fields, tc.database, tc.handlers)

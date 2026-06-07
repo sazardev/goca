@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"go/constant"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -8,7 +9,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestEntityCommand prueba exhaustivamente el comando 'entity'
+// TestEntityCommand prueba exhaustivamente el commando 'entity'.
 func TestEntityCommand(t *testing.T) {
 	// Crear contexto de test
 	tc := framework.NewTestContext(t)
@@ -57,9 +58,9 @@ func TestEntityCommand(t *testing.T) {
 	tc.PrintTestSummary()
 }
 
-// prepareBaseProject inicializa un proyecto base para las pruebas de entity
+// prepareBaseProject inicializa un proyecto base para las pruebas de entity.
 func prepareBaseProject(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando init
+	// Ejecutar commando init
 	_, err := tc.RunCommand("init", "test-project", "--module", "github.com/test/testproject")
 	if err != nil {
 		t.Fatalf("Error al inicializar proyecto base: %v", err)
@@ -70,12 +71,12 @@ func prepareBaseProject(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testEntityWithRequiredFields prueba el comando entity con campos requeridos
+// testEntityWithRequiredFields prueba el commando entity con campos requeridos.
 func testEntityWithRequiredFields(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("entity", "User", "--fields", "name:string,email:string,age:int")
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando entity: %v", err)
+		t.Fatalf("Error al ejecutar commando entity: %v", err)
 	}
 
 	// Verificar salida
@@ -106,15 +107,14 @@ func testEntityWithRequiredFields(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testEntityWithValidation prueba el comando entity con validación
+// testEntityWithValidation prueba el commando entity con validación.
 func testEntityWithValidation(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("entity", "Product",
 		"--fields", "name:string,price:float64,sku:string",
 		"--validation")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando entity con validación: %v", err)
+		t.Fatalf("Error al ejecutar commando entity con validación: %v", err)
 	}
 
 	// Verificar salida
@@ -153,15 +153,14 @@ func testEntityWithValidation(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testEntityWithBusinessRules prueba el comando entity con reglas de negocio
+// testEntityWithBusinessRules prueba el commando entity con reglas de negocio.
 func testEntityWithBusinessRules(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("entity", "Order",
 		"--fields", "orderID:string,total:float64,status:string",
 		"--business-rules")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando entity con reglas de negocio: %v", err)
+		t.Fatalf("Error al ejecutar commando entity con reglas de negocio: %v", err)
 	}
 
 	// Verificar salida
@@ -184,15 +183,14 @@ func testEntityWithBusinessRules(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testEntityWithTimestamps prueba el comando entity con timestamps
+// testEntityWithTimestamps prueba el commando entity con timestamps.
 func testEntityWithTimestamps(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("entity", "Category",
 		"--fields", "name:string,description:string",
 		"--timestamps")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando entity con timestamps: %v", err)
+		t.Fatalf("Error al ejecutar commando entity con timestamps: %v", err)
 	}
 
 	// Verificar salida
@@ -223,15 +221,14 @@ func testEntityWithTimestamps(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testEntityWithSoftDelete prueba el comando entity con soft delete
+// testEntityWithSoftDelete prueba el commando entity con soft delete.
 func testEntityWithSoftDelete(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("entity", "Customer",
 		"--fields", "name:string,email:string,phone:string",
 		"--soft-delete")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando entity con soft delete: %v", err)
+		t.Fatalf("Error al ejecutar commando entity con soft delete: %v", err)
 	}
 
 	// Verificar salida
@@ -253,18 +250,17 @@ func testEntityWithSoftDelete(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testEntityWithAllOptions prueba el comando entity con todas las opciones
+// testEntityWithAllOptions prueba el commando entity con todas las opciones.
 func testEntityWithAllOptions(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando
+	// Ejecutar commando
 	output, err := tc.RunCommand("entity", "Invoice",
 		"--fields", "number:string,amount:float64,paid:bool,client_id:int",
 		"--validation",
 		"--business-rules",
 		"--timestamps",
 		"--soft-delete")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando entity con todas las opciones: %v", err)
+		t.Fatalf("Error al ejecutar commando entity con todas las opciones: %v", err)
 	}
 
 	// Verificar salida
@@ -307,14 +303,13 @@ func testEntityWithAllOptions(tc *framework.TestContext, t *testing.T) {
 	tc.AssertGoBuild("test-project")
 }
 
-// testEntityWithDifferentFieldTypes prueba el comando entity con diferentes tipos de campos
+// testEntityWithDifferentFieldTypes prueba el commando entity con diferentes tipos de campos.
 func testEntityWithDifferentFieldTypes(tc *framework.TestContext, t *testing.T) {
-	// Ejecutar comando con muchos tipos de campos diferentes
-	output, err := tc.RunCommand("entity", "Complex",
+	// Ejecutar commando con muchos tipos de campos diferentes
+	output, err := tc.RunCommand("entity", constant.Complex.String(),
 		"--fields", "complexID:string,count:int,active:bool,price:float64,created:time.Time,items:[]string,metadata:interface{}")
-
 	if err != nil {
-		t.Fatalf("Error al ejecutar comando entity con diferentes tipos: %v", err)
+		t.Fatalf("Error al ejecutar commando entity con diferentes tipos: %v", err)
 	}
 
 	// Verificar salida

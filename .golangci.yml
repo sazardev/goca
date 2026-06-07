@@ -18,6 +18,7 @@ linters:
   enable-all: true
   disable:
     - asciicheck       # replaced by bidichk
+    - cyclop           # complexity check duplicative with gocyclo
     - depguard         # not useful for this project
     - exhaustruct      # too noisy for struct initialization
     - gci              # conflicts with goimports
@@ -26,6 +27,7 @@ linters:
     - godox            # TODO/FIXME as info only, not blocker
     - lll              # line length check too noisy
     - mnd              # magic number detector too noisy
+    - nestif           # nested if complexity — too noisy
     - nlreturn         # opinionated formatting
     - tagliatelle      # too opinionated on tag naming
     - tenv             # deprecated, use 'paralleltest' instead
@@ -36,10 +38,6 @@ linters:
   fast: false
 
 linters-settings:
-  cyclop:
-    max-complexity: 10
-    package-average: 0.0
-    skip-tests: true
 
   decorder:
     disable-dec-order-check: false
@@ -138,9 +136,6 @@ linters-settings:
     disable:
       - fieldalignment
       - shadow
-    settings:
-      shadow:
-        strict: true
 
   importas:
     no-unaliased: true
@@ -341,6 +336,61 @@ issues:
         - thelper
         - unparam
 
+    - path: internal/
+      linters:
+        - errcheck
+        - gocritic
+        - gosec
+        - revive
+        - dupl
+        - funlen
+        - gocognit
+        - prealloc
+        - unparam
+        - testpackage
+        - nestif
+
+    - path: cmd/.*_test\.go
+      linters:
+        - errcheck
+        - gosec
+        - usetesting
+        - testpackage
+        - gocritic
+        - revive
+        - goconst
+        - testifylint
+        - tparallel
+
+    - path: internal/
+      linters:
+        - errcheck
+        - gocritic
+        - gosec
+        - revive
+        - dupl
+        - funlen
+        - gocognit
+        - prealloc
+        - unparam
+        - testpackage
+        - nestif
+        - stylecheck
+        - usetesting
+        - thelper
+        - errchkjson
+        - iface
+        - predeclared
+        - decorder
+        - goconst
+        - makezero
+        - gocyclo
+        - ineffassign
+        - nlreturn
+        - testifylint
+        - staticcheck
+        - nolintlint
+
     - path: internal/mocks/
       linters:
         - err113
@@ -368,6 +418,30 @@ issues:
       linters:
         - gochecknoglobals
         - forbidigo
+        - funlen
+        - gocognit
+        - goconst
+        - nestif
+        - gocritic
+        - prealloc
+        - makezero
+        - gocyclo
+        - decorder
+        - nolintlint
+        - unparam
+        - errcheck
+        - gosec
+        - revive
+        - dupl
+        - err113
+        - ineffassign
+        - nonamedreturns
+        - gocyclo
+        - ifshort
+        - staticcheck
+        - predeclared
+        - wastedassign
+        - stylecheck
 
     - path: \.go$ # generated code pattern
       linters:

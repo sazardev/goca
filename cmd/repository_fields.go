@@ -64,7 +64,7 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 	}
 }
 
-// generateRepositoryImplementationWithFields generates repository implementations with dynamic methods
+// generateRepositoryImplementationWithFields generates repository implementations with dynamic methods.
 func generateRepositoryImplementationWithFields(dir, entity, database string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	switch database {
 	case DBPostgres:
@@ -78,7 +78,7 @@ func generateRepositoryImplementationWithFields(dir, entity, database string, fi
 	}
 }
 
-// generatePostgresRepositoryWithFields generates PostgreSQL repository with dynamic methods
+// generatePostgresRepositoryWithFields generates PostgreSQL repository with dynamic methods.
 func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "postgres_"+entityLower+"_repository.go")
@@ -131,7 +131,7 @@ func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, ca
 	}
 }
 
-// generateBasicCRUDMethods generates basic CRUD methods
+// generateBasicCRUDMethods generates basic CRUD methods.
 func generateBasicCRUDMethods(content *strings.Builder, entity, repoName string) {
 	entityLower := strings.ToLower(entity)
 
@@ -174,7 +174,7 @@ func generateBasicCRUDMethods(content *strings.Builder, entity, repoName string)
 	content.WriteString("}\n\n")
 }
 
-// generateTransactionMethods generates methods that support transactions
+// generateTransactionMethods generates methods that support transactions.
 func generateTransactionMethods(content *strings.Builder, entity, repoName string) {
 	entityLower := strings.ToLower(entity)
 
@@ -199,13 +199,13 @@ func generateTransactionMethods(content *strings.Builder, entity, repoName strin
 	content.WriteString("}\n\n")
 }
 
-// generateMySQLRepositoryWithFields generates MySQL repository with dynamic methods
+// generateMySQLRepositoryWithFields generates MySQL repository with dynamic methods.
 func generateMySQLRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	// For MySQL we use the same logic as PostgreSQL since both use GORM
 	generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 }
 
-// generateMongoRepositoryWithFields generates MongoDB repository with dynamic methods
+// generateMongoRepositoryWithFields generates MongoDB repository with dynamic methods.
 func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, "mongo_"+entityLower+"_repository.go")
@@ -259,7 +259,7 @@ func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache
 	}
 }
 
-// generateBasicMongoCRUDMethods generates basic CRUD methods for MongoDB
+// generateBasicMongoCRUDMethods generates basic CRUD methods for MongoDB.
 func generateBasicMongoCRUDMethods(content *strings.Builder, entity, repoName string) {
 	entityLower := strings.ToLower(entity)
 
@@ -287,7 +287,7 @@ func generateBasicMongoCRUDMethods(content *strings.Builder, entity, repoName st
 	content.WriteString("// Other basic CRUD methods for MongoDB...\n\n")
 }
 
-// generateMongoSearchMethodImplementation generates search method implementation for MongoDB
+// generateMongoSearchMethodImplementation generates search method implementation for MongoDB.
 func generateMongoSearchMethodImplementation(method SearchMethod, repoName, entity string) string {
 	paramName := strings.ToLower(method.FieldName)
 	entityVar := strings.ToLower(entity)

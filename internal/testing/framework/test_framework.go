@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-// TestContext mantiene el contexto para todos los tests
+// TestContext mantiene el contexto para todos los tests.
 type TestContext struct {
 	T               *testing.T
 	TempDir         string
@@ -22,7 +22,7 @@ type TestContext struct {
 	ProjectDir      string // Directory of the initialized project
 }
 
-// NewTestContext crea un nuevo contexto de test
+// NewTestContext crea un nuevo contexto de test.
 func NewTestContext(t *testing.T) *TestContext {
 	// Crear directorio temporal para los tests
 	tempDir, err := os.MkdirTemp("", "goca-test-*")
@@ -53,7 +53,7 @@ func NewTestContext(t *testing.T) *TestContext {
 	}
 }
 
-// Cleanup limpia los recursos utilizados por el test
+// Cleanup limpia los recursos utilizados por el test.
 func (tc *TestContext) Cleanup() {
 	if tc.TempDir != "" {
 		if err := os.RemoveAll(tc.TempDir); err != nil {
@@ -62,12 +62,12 @@ func (tc *TestContext) Cleanup() {
 	}
 }
 
-// SetProjectDir sets the project directory for subsequent commands
+// SetProjectDir sets the project directory for subsequent commands.
 func (tc *TestContext) SetProjectDir(projectName string) {
 	tc.ProjectDir = filepath.Join(tc.TempDir, projectName)
 }
 
-// GetWorkingDir returns the appropriate working directory for commands
+// GetWorkingDir returns the appropriate working directory for commands.
 func (tc *TestContext) GetWorkingDir() string {
 	if tc.ProjectDir != "" {
 		return tc.ProjectDir
@@ -75,7 +75,7 @@ func (tc *TestContext) GetWorkingDir() string {
 	return tc.TempDir
 }
 
-// RunCommand ejecuta un comando de Goca y retorna su salida
+// RunCommand ejecuta un commando de Goca y retorna su salida.
 func (tc *TestContext) RunCommand(args ...string) (string, error) {
 	// Inject --no-color to prevent ANSI escape codes in captured output.
 	// When noColor is true, lipgloss uses termenv.Ascii profile which suppresses
@@ -87,7 +87,7 @@ func (tc *TestContext) RunCommand(args ...string) (string, error) {
 
 	output, err := cmd.CombinedOutput()
 
-	// Log del comando y su resultado
+	// Log del commando y su resultado
 	tc.T.Logf("Ejecutando: %s %s", tc.BinaryPath, strings.Join(args, " "))
 	tc.T.Logf("Directorio de trabajo: %s", workDir)
 
@@ -104,7 +104,7 @@ func (tc *TestContext) RunCommand(args ...string) (string, error) {
 	return string(output), nil
 }
 
-// AssertFileExists verifica que un archivo existe
+// AssertFileExists verifica que un archivo existe.
 func (tc *TestContext) AssertFileExists(relativePath string) bool {
 	tc.T.Logf("🔍 Buscando archivo: %s", relativePath)
 
@@ -172,7 +172,7 @@ func (tc *TestContext) AssertFileExists(relativePath string) bool {
 	return false
 }
 
-// AssertFileContains verifica que un archivo contiene un texto
+// AssertFileContains verifica que un archivo contiene un texto.
 func (tc *TestContext) AssertFileContains(relativePath, content string) bool {
 	tc.T.Logf("🔍 Verificando contenido en archivo: %s", relativePath)
 
@@ -254,7 +254,7 @@ func (tc *TestContext) AssertFileContains(relativePath, content string) bool {
 	return true
 }
 
-// Helper function for min
+// Helper function for min.
 func min(a, b int) int {
 	if a < b {
 		return a
@@ -262,7 +262,7 @@ func min(a, b int) int {
 	return b
 }
 
-// AssertCompiles verifica que el proyecto compila
+// AssertCompiles verifica que el proyecto compila.
 func (tc *TestContext) AssertCompiles(projectDir string) bool {
 	// Si se ha establecido SkipCompilation, omitir la verificación
 	if tc.SkipCompilation {
@@ -285,7 +285,7 @@ func (tc *TestContext) AssertCompiles(projectDir string) bool {
 	return true
 }
 
-// AssertGoBuild es un alias de AssertCompiles para mantener compatibilidad con tests existentes
+// AssertGoBuild es un alias de AssertCompiles para mantener compatibilidad con tests existentes.
 func (tc *TestContext) AssertGoBuild(projectDir string) bool {
 	return tc.AssertCompiles(projectDir)
 } // AssertGoVet verifica que el código pasa go vet sin errores
@@ -312,7 +312,7 @@ func (tc *TestContext) AssertGoVet(projectDir string) bool {
 	return true
 }
 
-// ListProjectFiles lists all files in the project directory to help debug
+// ListProjectFiles lists all files in the project directory to help debug.
 func (tc *TestContext) ListProjectFiles() {
 	// List all files in the temp directory
 	tc.T.Logf("📂 LISTANDO ARCHIVOS EN: %s", tc.TempDir)
@@ -342,7 +342,7 @@ func (tc *TestContext) ListProjectFiles() {
 	}
 }
 
-// PrintTestSummary imprime un resumen del test
+// PrintTestSummary imprime un resumen del test.
 func (tc *TestContext) PrintTestSummary() {
 	// List all files in the project directory to help debug issues
 	tc.ListProjectFiles()

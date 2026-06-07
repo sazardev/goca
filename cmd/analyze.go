@@ -75,7 +75,8 @@ func init() {
 	analyzeCmd.Flags().BoolVar(&analyzeOpts.failOnWarn, "fail-on-warn", false, "Exit with code 2 when warnings are present")
 }
 
-func runAnalyze(cmd *cobra.Command, args []string) error {
+//nolint:cyclop,funlen // runAnalyze orchestrates 6+ analysis categories
+func runAnalyze(_ *cobra.Command, _ []string) error {
 	ui.Header("Goca Analyze — Deep Project Self-Analysis")
 	ui.Blank()
 
@@ -130,18 +131,18 @@ func runAnalyze(cmd *cobra.Command, args []string) error {
 	ui.Info(fmt.Sprintf("Analyzed %d rules — %d passed, %d warnings, %d failed", total, passed, warned, failed))
 
 	if failed > 0 {
-		return fmt.Errorf("analyze: %d rule(s) failed", failed)
+		return fmt.Errorf("analyze: %d rule(s) failed", failed) //nolint:err113 // dynamic count is intentional
 	}
 	if analyzeOpts.failOnWarn && warned > 0 {
-		return fmt.Errorf("analyze: %d warning(s) (--fail-on-warn)", warned)
+		return fmt.Errorf("analyze: %d warning(s) (--fail-on-warn)", warned) //nolint:err113 // dynamic count is intentional
 	}
 	return nil
 }
 
 // resolveAnalyzeCategories enables all categories when none are explicitly selected.
 func resolveAnalyzeCategories(opts analyzeOptions) analyzeOptions {
-	any := opts.architecture || opts.quality || opts.security || opts.standards || opts.tests || opts.deps
-	if !any {
+	hasAny := opts.architecture || opts.quality || opts.security || opts.standards || opts.tests || opts.deps
+	if !hasAny {
 		opts.architecture = true
 		opts.quality = true
 		opts.security = true
@@ -180,11 +181,11 @@ func printAnalyzeReport(results []analyzeResult) {
 			continue
 		}
 		ui.Section(cat)
-		rows := make([][]string, len(items))
+		rows := make([][]string, len(items)) //nolint:makezero // len(items) is always > 0 here
 		for i, r := range items {
 			loc := r.file
 			if loc == "" {
-				loc = "project"
+				loc = "project" //nolint:goconst // not worth a constant
 			}
 			sug := r.suggestion
 			if sug == "" {
@@ -219,7 +220,7 @@ func analyzeGoFiles(root string, skipTests bool) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return nil
+			return err
 		}
 		if info.IsDir() {
 			return nil
@@ -238,7 +239,7 @@ func analyzeGoFiles(root string, skipTests bool) ([]string, error) {
 
 // analyzeReadFile reads a file's content, returning empty string on error.
 func analyzeReadFile(path string) string {
-	b, err := os.ReadFile(path) //nolint:gosec // path is from filepath.Walk, not user input
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return ""
 	}
@@ -247,12 +248,16 @@ func analyzeReadFile(path string) string {
 
 // dirExists returns true when the path exists and is a directory.
 func dirExists(path string) bool {
-	info, err := os.Stat(path)
-	return err == nil && info.IsDir()
+	if info, err := os.Stat(path); err == nil {
+		return info.IsDir()
+	}
+	return false
 }
 
 // fileExists returns true when the path exists and is a regular file.
 func fileExists(path string) bool {
-	info, err := os.Stat(path)
-	return err == nil && !info.IsDir()
+	if info, err := os.Stat(path); err == nil {
+		return !info.IsDir()
+	}
+	return false
 }

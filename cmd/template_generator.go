@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-// TemplateData holds all data needed for template generation
+// TemplateData holds all data needed for template generation.
 type TemplateData struct {
 	Entity      EntityData
 	Fields      []FieldData
@@ -18,7 +18,7 @@ type TemplateData struct {
 	Validations []ValidationData
 }
 
-// EntityData holds entity-specific information
+// EntityData holds entity-specific information.
 type EntityData struct {
 	Name       string
 	NameLower  string
@@ -26,7 +26,7 @@ type EntityData struct {
 	Package    string
 }
 
-// FieldData holds field-specific information
+// FieldData holds field-specific information.
 type FieldData struct {
 	Name         string
 	Type         string
@@ -38,7 +38,7 @@ type FieldData struct {
 	IsSearchable bool
 }
 
-// FeatureFlags holds feature configuration
+// FeatureFlags holds feature configuration.
 type FeatureFlags struct {
 	Validation    bool
 	BusinessRules bool
@@ -49,7 +49,7 @@ type FeatureFlags struct {
 	Auth          bool
 }
 
-// MethodData holds method generation information
+// MethodData holds method generation information.
 type MethodData struct {
 	Name       string
 	Params     []ParamData
@@ -57,13 +57,13 @@ type MethodData struct {
 	Body       string
 }
 
-// ParamData holds parameter information
+// ParamData holds parameter information.
 type ParamData struct {
 	Name string
 	Type string
 }
 
-// ValidationData holds validation information
+// ValidationData holds validation information.
 type ValidationData struct {
 	Field    string
 	Rule     string
@@ -71,19 +71,19 @@ type ValidationData struct {
 	Priority int
 }
 
-// TemplateGenerator generates code from templates with dynamic data
+// TemplateGenerator generates code from templates with dynamic data.
 type TemplateGenerator struct {
 	fieldValidator *FieldValidator
 }
 
-// NewTemplateGenerator creates a new template generator
+// NewTemplateGenerator creates a new template generator.
 func NewTemplateGenerator() *TemplateGenerator {
 	return &TemplateGenerator{
 		fieldValidator: NewFieldValidator(),
 	}
 }
 
-// GenerateFromTemplate generates code using template and data
+// GenerateFromTemplate generates code using template and data.
 func (g *TemplateGenerator) GenerateFromTemplate(templateName string, data *TemplateData) (string, error) {
 	tmpl, err := g.getTemplate(templateName)
 	if err != nil {
@@ -98,7 +98,7 @@ func (g *TemplateGenerator) GenerateFromTemplate(templateName string, data *Temp
 	return result.String(), nil
 }
 
-// PrepareTemplateData prepares template data from command parameters
+// PrepareTemplateData prepares template data from command parameters.
 func (g *TemplateGenerator) PrepareTemplateData(entityName, fields string, features FeatureFlags) (*TemplateData, error) {
 	// Parse fields using the field validator
 	fieldsList, err := g.fieldValidator.ParseFieldsWithValidation(fields)
@@ -149,7 +149,7 @@ func (g *TemplateGenerator) PrepareTemplateData(entityName, fields string, featu
 	}, nil
 }
 
-// getTemplate returns the appropriate template for the given name
+// getTemplate returns the appropriate template for the given name.
 func (g *TemplateGenerator) getTemplate(templateName string) (*template.Template, error) {
 	switch templateName {
 	case "entity":
@@ -165,7 +165,7 @@ func (g *TemplateGenerator) getTemplate(templateName string) (*template.Template
 	}
 }
 
-// Helper functions
+// Helper functions.
 func isRequiredField(fieldName string) bool {
 	requiredFields := []string{"name", "email", "title"}
 	for _, required := range requiredFields {
@@ -262,7 +262,7 @@ func removeDuplicates(slice []string) []string {
 	return result
 }
 
-// Template generation methods would be implemented here
+// Template generation methods would be implemented here.
 func (g *TemplateGenerator) getEntityTemplate() *template.Template {
 	return template.Must(template.New("entity").Parse(entityTemplate))
 }

@@ -110,7 +110,7 @@ func TestDetectGoVersionFromMod_ValidFile(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n\ngo 1.25\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n\ngo 1.25\n"), 0o644))
 
 	v := detectGoVersionFromMod()
 	assert.Equal(t, "1.25", v)
@@ -131,7 +131,7 @@ func TestDetectGoVersionFromMod_NoDirective(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n"), 0o644))
 
 	v := detectGoVersionFromMod()
 	assert.Equal(t, "1.25", v)
@@ -143,7 +143,7 @@ func TestBuildCITemplateData_DefaultGoVersion(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n\ngo 1.24\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n\ngo 1.24\n"), 0o644))
 
 	data := buildCITemplateData("")
 	assert.Equal(t, "1.24", data.GoVersion)
@@ -156,7 +156,7 @@ func TestBuildCITemplateData_ExplicitGoVersion(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n\ngo 1.24\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/app\n\ngo 1.24\n"), 0o644))
 
 	data := buildCITemplateData("1.22")
 	assert.Equal(t, "1.22", data.GoVersion, "explicit version should override go.mod")

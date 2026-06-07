@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -83,10 +84,10 @@ var handlerCmd = &cobra.Command{
 				}
 			}
 			if !cmd.Flags().Changed("validation") {
-				ui.KeyValueFromConfig("Validation", fmt.Sprintf("%v", effectiveValidation))
+				ui.KeyValueFromConfig("Validation", strconv.FormatBool(effectiveValidation))
 			}
 			if !cmd.Flags().Changed("swagger") {
-				ui.KeyValueFromConfig("Swagger", fmt.Sprintf("%v", effectiveSwagger))
+				ui.KeyValueFromConfig("Swagger", strconv.FormatBool(effectiveSwagger))
 			}
 		}
 
@@ -158,7 +159,7 @@ func generateHandler(entity, handlerType string, middleware, validation, swagger
 func generateHTTPHandler(entity string, middleware, validation, swagger bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create handlers directory if it doesn't exist
 	handlerDir := filepath.Join(DirInternal, DirHandler, DirHTTP)
-	_ = os.MkdirAll(handlerDir, 0755)
+	_ = os.MkdirAll(handlerDir, 0o755)
 
 	// Generate handler file
 	generateHTTPHandlerFile(handlerDir, entity, validation, fileNamingConvention, sm...)

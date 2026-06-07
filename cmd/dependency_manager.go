@@ -9,14 +9,14 @@ import (
 	"strings"
 )
 
-// DependencyManager handles go.mod updates and version checking
+// DependencyManager handles go.mod updates and version checking.
 type DependencyManager struct {
 	projectRoot string
 	goModPath   string
 	dryRun      bool
 }
 
-// Dependency represents a Go module dependency
+// Dependency represents a Go module dependency.
 type Dependency struct {
 	Module  string
 	Version string
@@ -24,7 +24,7 @@ type Dependency struct {
 	Reason  string
 }
 
-// NewDependencyManager creates a new dependency manager
+// NewDependencyManager creates a new dependency manager.
 func NewDependencyManager(projectRoot string, dryRun bool) *DependencyManager {
 	return &DependencyManager{
 		projectRoot: projectRoot,
@@ -33,7 +33,7 @@ func NewDependencyManager(projectRoot string, dryRun bool) *DependencyManager {
 	}
 }
 
-// CommonDependencies returns list of commonly used dependencies
+// CommonDependencies returns list of commonly used dependencies.
 func (dm *DependencyManager) CommonDependencies() map[string]Dependency {
 	return map[string]Dependency{
 		"validator": {
@@ -93,7 +93,7 @@ func (dm *DependencyManager) CommonDependencies() map[string]Dependency {
 	}
 }
 
-// SuggestDependencies suggests optional dependencies based on features
+// SuggestDependencies suggests optional dependencies based on features.
 func (dm *DependencyManager) SuggestDependencies(features []string) []Dependency {
 	suggestions := make([]Dependency, 0)
 	commonDeps := dm.CommonDependencies()
@@ -116,7 +116,7 @@ func (dm *DependencyManager) SuggestDependencies(features []string) []Dependency
 	return suggestions
 }
 
-// AddDependency adds a dependency to go.mod
+// AddDependency adds a dependency to go.mod.
 func (dm *DependencyManager) AddDependency(dep Dependency) error {
 	if dm.dryRun {
 		if ui != nil {
@@ -154,7 +154,7 @@ func (dm *DependencyManager) AddDependency(dep Dependency) error {
 		stop()
 	}
 	if err != nil {
-		return fmt.Errorf("failed to add dependency %s: %v\n%s", dep.Module, err, string(output))
+		return fmt.Errorf("failed to add dependency %s: %w\n%s", dep.Module, err, string(output))
 	}
 
 	if ui != nil {
@@ -165,7 +165,7 @@ func (dm *DependencyManager) AddDependency(dep Dependency) error {
 	return nil
 }
 
-// DependencyExists checks if a dependency is already in go.mod
+// DependencyExists checks if a dependency is already in go.mod.
 func (dm *DependencyManager) DependencyExists(module string) (bool, error) {
 	content, err := os.ReadFile(dm.goModPath)
 	if err != nil {
@@ -176,12 +176,12 @@ func (dm *DependencyManager) DependencyExists(module string) (bool, error) {
 	return strings.Contains(string(content), module), nil
 }
 
-// CheckGoVersion verifies the Go version is compatible
+// CheckGoVersion verifies the Go version is compatible.
 func (dm *DependencyManager) CheckGoVersion(requiredVersion string) error {
 	cmd := exec.Command("go", "version")
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to get Go version: %v", err)
+		return fmt.Errorf("failed to get Go version: %w", err)
 	}
 
 	// Extract version from output: "go version go1.21.0 linux/amd64"
@@ -201,7 +201,7 @@ func (dm *DependencyManager) CheckGoVersion(requiredVersion string) error {
 	return nil
 }
 
-// isVersionCompatible checks if current version meets required version
+// isVersionCompatible checks if current version meets required version.
 func (dm *DependencyManager) isVersionCompatible(current, required string) bool {
 	// Parse versions
 	var currMajor, currMinor, reqMajor, reqMinor int
@@ -217,7 +217,7 @@ func (dm *DependencyManager) isVersionCompatible(current, required string) bool 
 	return false
 }
 
-// UpdateGoMod runs go mod tidy to update go.mod and go.sum
+// UpdateGoMod runs go mod tidy to update go.mod and go.sum.
 func (dm *DependencyManager) UpdateGoMod() error {
 	if dm.dryRun {
 		if ui != nil {
@@ -239,7 +239,7 @@ func (dm *DependencyManager) UpdateGoMod() error {
 		stop()
 	}
 	if err != nil {
-		return fmt.Errorf("go mod tidy failed: %v\n%s", err, string(output))
+		return fmt.Errorf("go mod tidy failed: %w\n%s", err, string(output))
 	}
 
 	if ui != nil {
@@ -250,7 +250,7 @@ func (dm *DependencyManager) UpdateGoMod() error {
 	return nil
 }
 
-// PrintDependencySuggestions prints suggested optional dependencies
+// PrintDependencySuggestions prints suggested optional dependencies.
 func (dm *DependencyManager) PrintDependencySuggestions(suggestions []Dependency) {
 	if len(suggestions) == 0 {
 		return
@@ -278,20 +278,20 @@ func (dm *DependencyManager) PrintDependencySuggestions(suggestions []Dependency
 	}
 }
 
-// VerifyDependencyVersions checks if all dependencies have compatible versions
+// VerifyDependencyVersions checks if all dependencies have compatible versions.
 func (dm *DependencyManager) VerifyDependencyVersions() error {
 	cmd := exec.Command("go", "mod", "verify")
 	cmd.Dir = dm.projectRoot
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("dependency verification failed: %v\n%s", err, string(output))
+		return fmt.Errorf("dependency verification failed: %w\n%s", err, string(output))
 	}
 
 	fmt.Println("All dependencies verified")
 	return nil
 }
 
-// GetRequiredDependenciesForFeature returns required dependencies for a feature type
+// GetRequiredDependenciesForFeature returns required dependencies for a feature type.
 func (dm *DependencyManager) GetRequiredDependenciesForFeature(featureType string, options map[string]bool) []Dependency {
 	required := make([]Dependency, 0)
 	commonDeps := dm.CommonDependencies()

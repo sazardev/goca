@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -86,14 +87,14 @@ func downloadDependencies(projectName string) error {
 	cmd := exec.Command("go", "mod", "tidy")
 	cmd.Dir = projectName
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("go mod tidy failed: %v", err)
+		return fmt.Errorf("go mod tidy failed: %w", err)
 	}
 
 	// Then download the dependencies
 	cmd = exec.Command("go", "mod", "download")
 	cmd.Dir = projectName
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("go mod download failed: %v", err)
+		return fmt.Errorf("go mod download failed: %w", err)
 	}
 
 	return nil
@@ -149,11 +150,11 @@ Thumbs.db
 	}
 }
 
-// initializeGitRepository initializes a Git repository in the project directory
+// initializeGitRepository initializes a Git repository in the project directory.
 func initializeGitRepository(projectName string) error {
 	// Check if git is available
 	if _, err := exec.LookPath("git"); err != nil {
-		return fmt.Errorf("git is not installed or not in PATH")
+		return errors.New("git is not installed or not in PATH")
 	}
 
 	projectPath := filepath.Join(".", projectName)
@@ -162,14 +163,14 @@ func initializeGitRepository(projectName string) error {
 	cmdInit := exec.Command("git", "init")
 	cmdInit.Dir = projectPath
 	if err := cmdInit.Run(); err != nil {
-		return fmt.Errorf("failed to initialize git repository: %v", err)
+		return fmt.Errorf("failed to initialize git repository: %w", err)
 	}
 
 	// Add all files to staging
 	cmdAdd := exec.Command("git", "add", ".")
 	cmdAdd.Dir = projectPath
 	if err := cmdAdd.Run(); err != nil {
-		return fmt.Errorf("failed to add files to git: %v", err)
+		return fmt.Errorf("failed to add files to git: %w", err)
 	}
 
 	// Create initial commit
@@ -177,7 +178,7 @@ func initializeGitRepository(projectName string) error {
 	cmdCommit := exec.Command("git", "commit", "-m", commitMessage)
 	cmdCommit.Dir = projectPath
 	if err := cmdCommit.Run(); err != nil {
-		return fmt.Errorf("failed to create initial commit: %v", err)
+		return fmt.Errorf("failed to create initial commit: %w", err)
 	}
 
 	return nil
@@ -206,16 +207,7 @@ This project follows Clean Architecture principles:
 ### 2. Configure database (PostgreSQL):
 
 #### Option A: Using Docker (Recommended)
-`+"```bash\n"+`# Run PostgreSQL
-docker run --name postgres-dev \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=%s \
-  -p 5432:5432 \
-  -d postgres:15
-
-# Or using docker-compose
-docker-compose up -d postgres
-`+"```\n"+`
+`+"```bash\n"+"# Run PostgreSQL\ndocker run --name postgres-dev \\\n  -e POSTGRES_PASSWORD=password \\\n  -e POSTGRES_DB=%s \\\n  -p 5432:5432 \\\n  -d postgres:15\n\n# Or using docker-compose\nup -d"+"```\n"+`
 
 #### Option B: Local PostgreSQL
 `+"```bash\n"+`# Create database

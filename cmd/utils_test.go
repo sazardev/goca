@@ -22,7 +22,6 @@ func TestGetImportPath(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, getImportPath(tc.module))
@@ -57,7 +56,6 @@ func TestIsSearchableField(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, isSearchableField(tc.fieldName, tc.fieldType))
@@ -86,7 +84,6 @@ func TestIsUniqueField(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, isUniqueField(tc.fieldName))

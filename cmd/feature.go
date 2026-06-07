@@ -234,7 +234,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 		ui.Blank()
 		ui.Dim("Additional useful commands:")
 		ui.Dim("   goca integrate --all     # Integrate existing features")
-		ui.Dim(fmt.Sprintf("   goca feature Product --fields \"name:string,price:float64\"  # Add another feature"))
+		ui.Dim("   goca feature Product --fields \"name:string,price:float64\"  # Add another feature")
 		if !generateMocksFlag {
 			ui.Dim(fmt.Sprintf("   goca mocks %s           # Generate mocks for this feature", featureName))
 		}
@@ -302,12 +302,14 @@ func printFeatureStructure(featureName, handlers string) {
 		handlerType = strings.TrimSpace(handlerType)
 		switch handlerType {
 		case "http":
-			rows = append(rows,
+			rows = append(
+				rows,
 				[]string{"Handler", fmt.Sprintf("http/%s_handler.go", featureLower), "HTTP handler"},
 				[]string{"Handler", "http/routes.go", "HTTP routes"},
 			)
 		case HandlerGRPC:
-			rows = append(rows,
+			rows = append(
+				rows,
 				[]string{"Handler", fmt.Sprintf("grpc/%s.proto", featureLower), "gRPC definition"},
 				[]string{"Handler", fmt.Sprintf("grpc/%s_server.go", featureLower), "gRPC server"},
 			)
@@ -320,7 +322,8 @@ func printFeatureStructure(featureName, handlers string) {
 		}
 	}
 
-	rows = append(rows,
+	rows = append(
+		rows,
 		[]string{"Messages", "errors.go", "Error messages"},
 		[]string{"Messages", "responses.go", "Response messages"},
 	)
@@ -328,7 +331,7 @@ func printFeatureStructure(featureName, handlers string) {
 	ui.Table([]string{"Layer", "File", "Description"}, rows)
 }
 
-// autoIntegrateFeature automatically integrates the feature with DI and main.go
+// autoIntegrateFeature automatically integrates the feature with DI and main.go.
 func autoIntegrateFeature(featureName, handlers string, cache bool, sm ...*SafetyManager) {
 	ui.Dim("   Updating DI container...")
 	updateDIContainer(featureName, cache, sm...)
@@ -341,7 +344,7 @@ func autoIntegrateFeature(featureName, handlers string, cache bool, sm ...*Safet
 	ui.Info("Integration completed")
 }
 
-// updateDIContainer updates or creates DI container with new feature
+// updateDIContainer updates or creates DI container with new feature.
 func updateDIContainer(featureName string, cache bool, sm ...*SafetyManager) {
 	// Check if DI container exists
 	diPath := filepath.Join("internal", "di", "container.go")
@@ -357,7 +360,7 @@ func updateDIContainer(featureName string, cache bool, sm ...*SafetyManager) {
 	}
 }
 
-// addFeatureToDI adds a new feature to existing DI container
+// addFeatureToDI adds a new feature to existing DI container.
 func addFeatureToDI(featureName string, cache bool, sm ...*SafetyManager) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
@@ -390,7 +393,7 @@ func addFeatureToDI(featureName string, cache bool, sm ...*SafetyManager) {
 	ui.Success(fmt.Sprintf("%s integrated into DI container", featureName))
 }
 
-// addFieldsToDIContainer adds the repository, use case, and handler fields to the DI container
+// addFieldsToDIContainer adds the repository, use case, and handler fields to the DI container.
 func addFieldsToDIContainer(content, featureName, featureLower string) string {
 	// Add repository field
 	repoField := fmt.Sprintf("\t%sRepo    repository.%sRepository\n", featureLower, featureName)
@@ -408,7 +411,7 @@ func addFieldsToDIContainer(content, featureName, featureLower string) string {
 	return content
 }
 
-// addSetupMethodsToDI adds setup method calls for the feature
+// addSetupMethodsToDI adds setup method calls for the feature.
 func addSetupMethodsToDI(content, featureName, featureLower string, cache bool) string {
 	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
 
@@ -436,7 +439,7 @@ func addSetupMethodsToDI(content, featureName, featureLower string, cache bool) 
 	return content
 }
 
-// addGetterMethodsToDI adds getter methods for the feature components
+// addGetterMethodsToDI adds getter methods for the feature components.
 func addGetterMethodsToDI(content, featureName, featureLower string) string {
 	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
 
@@ -457,7 +460,7 @@ func (c *Container) %sRepository() repository.%sRepository {
 	return content + getters
 }
 
-// updateMainRoutes updates main.go to include new feature routes
+// updateMainRoutes updates main.go to include new feature routes.
 func updateMainRoutes(featureName string) {
 	mainPath, found := findMainGoPath()
 	if !found {
@@ -489,7 +492,7 @@ func updateMainRoutes(featureName string) {
 	setupMainGoWithFeature(mainPath, featureName, moduleName, string(content))
 }
 
-// findMainGoPath locates the main.go file in possible locations
+// findMainGoPath locates the main.go file in possible locations.
 func findMainGoPath() (string, bool) {
 	possiblePaths := []string{
 		"main.go", // Root directory (default from init)
@@ -505,20 +508,20 @@ func findMainGoPath() (string, bool) {
 	return "", false
 }
 
-// handleMainGoNotFound handles the case when main.go is not found
+// handleMainGoNotFound handles the case when main.go is not found.
 func handleMainGoNotFound(featureName string) {
 	ui.Warning("main.go not found in any expected location, skipping route registration")
 	ui.Dim("   Tip: You can manually add the routes to your main.go file")
 	printManualIntegrationInstructions(featureName)
 }
 
-// isFeatureAlreadyRegistered checks if feature routes are already present
+// isFeatureAlreadyRegistered checks if feature routes are already present.
 func isFeatureAlreadyRegistered(content, featureName string) bool {
 	featureLower := strings.ToLower(featureName)
 	return strings.Contains(content, fmt.Sprintf("/%ss", featureLower))
 }
 
-// setupMainGoWithFeature sets up the main.go file with the new feature
+// setupMainGoWithFeature sets up the main.go file with the new feature.
 func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
 	// Always use complete GORM setup for consistency
 	ui.Dim("   Setting up complete main.go with DI...")
@@ -556,7 +559,7 @@ func init() {
 	_ = featureCmd.MarkFlagRequired("fields")
 }
 
-// updateMainGoWithCompleteSetup replaces the basic main.go with a complete DI-integrated version
+// updateMainGoWithCompleteSetup replaces the basic main.go with a complete DI-integrated version.
 func updateMainGoWithCompleteSetup(mainPath, featureName, moduleName string) bool {
 	// Simplified to avoid format errors
 	ui.Dim(fmt.Sprintf("   Updating main.go for feature %s", featureName))
@@ -565,7 +568,7 @@ func updateMainGoWithCompleteSetup(mainPath, featureName, moduleName string) boo
 	return true
 }
 
-// printManualIntegrationInstructions prints instructions for manual integration
+// printManualIntegrationInstructions prints instructions for manual integration.
 func printManualIntegrationInstructions(featureName string) {
 	featureLower := strings.ToLower(featureName)
 	moduleName := getModuleName()

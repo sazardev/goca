@@ -24,7 +24,6 @@ func TestSkipTestField(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, skipTestField(tc.field))
@@ -61,7 +60,6 @@ func TestTestLiteral(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, testLiteral(tc.field, tc.typ, tc.entity))
@@ -89,7 +87,6 @@ func TestUpdatedTestLiteral(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, updatedTestLiteral(tc.field, tc.typ, tc.entity))
@@ -113,7 +110,6 @@ func TestNeedsFmtImport(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, needsFmtImport(tc.fields))

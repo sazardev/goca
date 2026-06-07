@@ -1,7 +1,7 @@
 package messages
 
 const (
-	// TestFeature success messages
+	// TestFeature success messages.
 	TestFeatureCreatedSuccessfully = "testfeature creado exitosamente"
 	TestFeatureUpdatedSuccessfully = "testfeature actualizado exitosamente"
 	TestFeatureDeletedSuccessfully = "testfeature eliminado exitosamente"
@@ -10,7 +10,7 @@ const (
 	TestFeatureProcessingStarted   = "procesamiento de testfeature iniciado"
 	TestFeatureProcessingCompleted = "procesamiento de testfeature completado"
 	TestFeatureValidationPassed    = "validación de testfeature exitosa"
-	// User success messages
+	// User success messages.
 	UserCreatedSuccessfully = "user creado exitosamente"
 	UserUpdatedSuccessfully = "user actualizado exitosamente"
 	UserDeletedSuccessfully = "user eliminado exitosamente"
@@ -19,7 +19,7 @@ const (
 	UserProcessingStarted   = "procesamiento de user iniciado"
 	UserProcessingCompleted = "procesamiento de user completado"
 	UserValidationPassed    = "validación de user exitosa"
-	// Product success messages
+	// Product success messages.
 	ProductCreatedSuccessfully = "product creado exitosamente"
 	ProductUpdatedSuccessfully = "product actualizado exitosamente"
 	ProductDeletedSuccessfully = "product eliminado exitosamente"
@@ -28,7 +28,7 @@ const (
 	ProductProcessingStarted   = "procesamiento de product iniciado"
 	ProductProcessingCompleted = "procesamiento de product completado"
 	ProductValidationPassed    = "validación de product exitosa"
-	// Order success messages
+	// Order success messages.
 	OrderCreatedSuccessfully = "order creado exitosamente"
 	OrderUpdatedSuccessfully = "order actualizado exitosamente"
 	OrderDeletedSuccessfully = "order eliminado exitosamente"

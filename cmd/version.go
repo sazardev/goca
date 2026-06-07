@@ -10,14 +10,13 @@ import (
 )
 
 var (
-	// Version is injected at compile time through -ldflags
-	// Default to "dev" for development builds (go install, go build without ldflags)
+	// Default to "dev" for development builds (go install, go build without ldflags).
 	Version = "dev"
-	// BuildTime is injected at compile time through -ldflags
+	// BuildTime is injected at compile time through -ldflags.
 	BuildTime = "unknown"
-	// GoVersion contains the Go runtime version
+	// GoVersion contains the Go runtime version.
 	GoVersion = runtime.Version()
-	// GitCommit is injected at compile time through -ldflags
+	// GitCommit is injected at compile time through -ldflags.
 	GitCommit = "unknown"
 )
 

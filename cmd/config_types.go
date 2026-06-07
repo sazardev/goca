@@ -4,446 +4,446 @@ import (
 	"time"
 )
 
-// GocaConfig represents the complete configuration structure for a Goca project
+// GocaConfig represents the complete configuration structure for a Goca project.
 type GocaConfig struct {
 	// Core project configuration
-	Project ProjectConfig `yaml:"project" json:"project"`
+	Project ProjectConfig `json:"project" yaml:"project"`
 
 	// Architecture and patterns configuration
-	Architecture ArchitectureConfig `yaml:"architecture" json:"architecture"`
+	Architecture ArchitectureConfig `json:"architecture" yaml:"architecture"`
 
 	// Database configuration
-	Database DatabaseConfig `yaml:"database" json:"database"`
+	Database DatabaseConfig `json:"database" yaml:"database"`
 
 	// Code generation preferences
-	Generation GenerationConfig `yaml:"generation" json:"generation"`
+	Generation GenerationConfig `json:"generation" yaml:"generation"`
 
 	// Testing configuration
-	Testing TestingConfig `yaml:"testing" json:"testing"`
+	Testing TestingConfig `json:"testing" yaml:"testing"`
 
 	// Templates and customization
-	Templates TemplateConfig `yaml:"templates" json:"templates"`
+	Templates TemplateConfig `json:"templates" yaml:"templates"`
 
 	// Features and plugins
-	Features FeatureConfig `yaml:"features" json:"features"`
+	Features FeatureConfig `json:"features" yaml:"features"`
 
 	// Deployment and infrastructure
-	Deploy DeployConfig `yaml:"deploy" json:"deploy"`
+	Deploy DeployConfig `json:"deploy" yaml:"deploy"`
 }
 
-// ProjectConfig contains basic project information
+// ProjectConfig contains basic project information.
 type ProjectConfig struct {
-	Name        string            `yaml:"name" json:"name"`
-	Module      string            `yaml:"module" json:"module"`
-	Description string            `yaml:"description" json:"description"`
-	Version     string            `yaml:"version" json:"version"`
-	Author      string            `yaml:"author" json:"author"`
-	License     string            `yaml:"license" json:"license"`
-	Repository  string            `yaml:"repository" json:"repository"`
-	Tags        []string          `yaml:"tags" json:"tags"`
-	Metadata    map[string]string `yaml:"metadata" json:"metadata"`
+	Name        string            `json:"name"        yaml:"name"`
+	Module      string            `json:"module"      yaml:"module"`
+	Description string            `json:"description" yaml:"description"`
+	Version     string            `json:"version"     yaml:"version"`
+	Author      string            `json:"author"      yaml:"author"`
+	License     string            `json:"license"     yaml:"license"`
+	Repository  string            `json:"repository"  yaml:"repository"`
+	Tags        []string          `json:"tags"        yaml:"tags"`
+	Metadata    map[string]string `json:"metadata"    yaml:"metadata"`
 }
 
-// ArchitectureConfig defines Clean Architecture preferences
+// ArchitectureConfig defines Clean Architecture preferences.
 type ArchitectureConfig struct {
 	// Layers configuration
-	Layers LayersConfig `yaml:"layers" json:"layers"`
+	Layers LayersConfig `json:"layers" yaml:"layers"`
 
 	// Patterns to apply
-	Patterns []string `yaml:"patterns" json:"patterns"`
+	Patterns []string `json:"patterns" yaml:"patterns"`
 
 	// Dependency injection type
-	DI DIConfig `yaml:"di" json:"di"`
+	DI DIConfig `json:"di" yaml:"di"`
 
 	// Naming conventions
-	Naming NamingConfig `yaml:"naming" json:"naming"`
+	Naming NamingConfig `json:"naming" yaml:"naming"`
 }
 
-// LayersConfig defines which layers to generate and their structure
+// LayersConfig defines which layers to generate and their structure.
 type LayersConfig struct {
-	Domain     LayerConfig   `yaml:"domain" json:"domain"`
-	UseCase    LayerConfig   `yaml:"usecase" json:"usecase"`
-	Repository LayerConfig   `yaml:"repository" json:"repository"`
-	Handler    LayerConfig   `yaml:"handler" json:"handler"`
-	Custom     []LayerConfig `yaml:"custom" json:"custom"`
+	Domain     LayerConfig   `json:"domain"     yaml:"domain"`
+	UseCase    LayerConfig   `json:"usecase"    yaml:"usecase"`
+	Repository LayerConfig   `json:"repository" yaml:"repository"`
+	Handler    LayerConfig   `json:"handler"    yaml:"handler"`
+	Custom     []LayerConfig `json:"custom"     yaml:"custom"`
 }
 
-// LayerConfig defines configuration for a specific layer
+// LayerConfig defines configuration for a specific layer.
 type LayerConfig struct {
-	Enabled     bool              `yaml:"enabled" json:"enabled"`
-	Directory   string            `yaml:"directory" json:"directory"`
-	Patterns    []string          `yaml:"patterns" json:"patterns"`
-	Templates   []string          `yaml:"templates" json:"templates"`
-	Validations []string          `yaml:"validations" json:"validations"`
-	Extensions  map[string]string `yaml:"extensions" json:"extensions"`
+	Enabled     bool              `json:"enabled"     yaml:"enabled"`
+	Directory   string            `json:"directory"   yaml:"directory"`
+	Patterns    []string          `json:"patterns"    yaml:"patterns"`
+	Templates   []string          `json:"templates"   yaml:"templates"`
+	Validations []string          `json:"validations" yaml:"validations"`
+	Extensions  map[string]string `json:"extensions"  yaml:"extensions"`
 }
 
-// DIConfig defines dependency injection preferences
+// DIConfig defines dependency injection preferences.
 type DIConfig struct {
-	Type       string            `yaml:"type" json:"type"` // manual, wire, fx, dig
-	AutoWire   bool              `yaml:"auto_wire" json:"auto_wire"`
-	Providers  []string          `yaml:"providers" json:"providers"`
-	Modules    []string          `yaml:"modules" json:"modules"`
-	Extensions map[string]string `yaml:"extensions" json:"extensions"`
+	Type       string            `json:"type"       yaml:"type"` // manual, wire, fx, dig
+	AutoWire   bool              `json:"auto_wire"  yaml:"auto_wire"`
+	Providers  []string          `json:"providers"  yaml:"providers"`
+	Modules    []string          `json:"modules"    yaml:"modules"`
+	Extensions map[string]string `json:"extensions" yaml:"extensions"`
 }
 
-// NamingConfig defines naming conventions
+// NamingConfig defines naming conventions.
 type NamingConfig struct {
-	Entities  string `yaml:"entities" json:"entities"`   // PascalCase, camelCase, snake_case
-	Fields    string `yaml:"fields" json:"fields"`       // PascalCase, camelCase, snake_case
-	Files     string `yaml:"files" json:"files"`         // snake_case, kebab-case, camelCase
-	Packages  string `yaml:"packages" json:"packages"`   // lowercase, snake_case
-	Constants string `yaml:"constants" json:"constants"` // UPPER_CASE, PascalCase
-	Variables string `yaml:"variables" json:"variables"` // camelCase, snake_case
-	Functions string `yaml:"functions" json:"functions"` // camelCase, PascalCase
+	Entities  string `json:"entities"  yaml:"entities"`  // PascalCase, camelCase, snake_case
+	Fields    string `json:"fields"    yaml:"fields"`    // PascalCase, camelCase, snake_case
+	Files     string `json:"files"     yaml:"files"`     // snake_case, kebab-case, camelCase
+	Packages  string `json:"packages"  yaml:"packages"`  // lowercase, snake_case
+	Constants string `json:"constants" yaml:"constants"` // UPPER_CASE, PascalCase
+	Variables string `json:"variables" yaml:"variables"` // camelCase, snake_case
+	Functions string `json:"functions" yaml:"functions"` // camelCase, PascalCase
 }
 
-// DatabaseConfig contains database configuration
+// DatabaseConfig contains database configuration.
 type DatabaseConfig struct {
-	Type        string                `yaml:"type" json:"type"` // postgres, mysql, mongodb, sqlite
-	Host        string                `yaml:"host" json:"host"`
-	Port        int                   `yaml:"port" json:"port"`
-	Name        string                `yaml:"name" json:"name"`
-	Migrations  MigrationConfig       `yaml:"migrations" json:"migrations"`
-	Connection  ConnectionConfig      `yaml:"connection" json:"connection"`
-	Features    DatabaseFeatureConfig `yaml:"features" json:"features"`
-	Extensions  []string              `yaml:"extensions" json:"extensions"`
-	CustomTypes map[string]string     `yaml:"custom_types" json:"custom_types"`
+	Type        string                `json:"type"         yaml:"type"` // postgres, mysql, mongodb, sqlite
+	Host        string                `json:"host"         yaml:"host"`
+	Port        int                   `json:"port"         yaml:"port"`
+	Name        string                `json:"name"         yaml:"name"`
+	Migrations  MigrationConfig       `json:"migrations"   yaml:"migrations"`
+	Connection  ConnectionConfig      `json:"connection"   yaml:"connection"`
+	Features    DatabaseFeatureConfig `json:"features"     yaml:"features"`
+	Extensions  []string              `json:"extensions"   yaml:"extensions"`
+	CustomTypes map[string]string     `json:"custom_types" yaml:"custom_types"`
 }
 
-// MigrationConfig defines migration preferences
+// MigrationConfig defines migration preferences.
 type MigrationConfig struct {
-	Enabled      bool     `yaml:"enabled" json:"enabled"`
-	AutoGenerate bool     `yaml:"auto_generate" json:"auto_generate"`
-	Directory    string   `yaml:"directory" json:"directory"`
-	Naming       string   `yaml:"naming" json:"naming"`
-	Versioning   string   `yaml:"versioning" json:"versioning"`
-	Tools        []string `yaml:"tools" json:"tools"`
+	Enabled      bool     `json:"enabled"       yaml:"enabled"`
+	AutoGenerate bool     `json:"auto_generate" yaml:"auto_generate"`
+	Directory    string   `json:"directory"     yaml:"directory"`
+	Naming       string   `json:"naming"        yaml:"naming"`
+	Versioning   string   `json:"versioning"    yaml:"versioning"`
+	Tools        []string `json:"tools"         yaml:"tools"`
 }
 
-// ConnectionConfig defines database connection settings
+// ConnectionConfig defines database connection settings.
 type ConnectionConfig struct {
-	MaxOpen     int           `yaml:"max_open" json:"max_open"`
-	MaxIdle     int           `yaml:"max_idle" json:"max_idle"`
-	MaxLifetime time.Duration `yaml:"max_lifetime" json:"max_lifetime"`
-	SSLMode     string        `yaml:"ssl_mode" json:"ssl_mode"`
-	Timezone    string        `yaml:"timezone" json:"timezone"`
-	Charset     string        `yaml:"charset" json:"charset"`
-	Collation   string        `yaml:"collation" json:"collation"`
+	MaxOpen     int           `json:"max_open"     yaml:"max_open"`
+	MaxIdle     int           `json:"max_idle"     yaml:"max_idle"`
+	MaxLifetime time.Duration `json:"max_lifetime" yaml:"max_lifetime"`
+	SSLMode     string        `json:"ssl_mode"     yaml:"ssl_mode"`
+	Timezone    string        `json:"timezone"     yaml:"timezone"`
+	Charset     string        `json:"charset"      yaml:"charset"`
+	Collation   string        `json:"collation"    yaml:"collation"`
 }
 
-// DatabaseFeatureConfig defines database-specific features
+// DatabaseFeatureConfig defines database-specific features.
 type DatabaseFeatureConfig struct {
-	SoftDelete   bool     `yaml:"soft_delete" json:"soft_delete"`
-	Timestamps   bool     `yaml:"timestamps" json:"timestamps"`
-	UUID         bool     `yaml:"uuid" json:"uuid"`
-	Audit        bool     `yaml:"audit" json:"audit"`
-	Versioning   bool     `yaml:"versioning" json:"versioning"`
-	Partitioning bool     `yaml:"partitioning" json:"partitioning"`
-	Indexes      []string `yaml:"indexes" json:"indexes"`
-	Constraints  []string `yaml:"constraints" json:"constraints"`
+	SoftDelete   bool     `json:"soft_delete"  yaml:"soft_delete"`
+	Timestamps   bool     `json:"timestamps"   yaml:"timestamps"`
+	UUID         bool     `json:"uuid"         yaml:"uuid"`
+	Audit        bool     `json:"audit"        yaml:"audit"`
+	Versioning   bool     `json:"versioning"   yaml:"versioning"`
+	Partitioning bool     `json:"partitioning" yaml:"partitioning"`
+	Indexes      []string `json:"indexes"      yaml:"indexes"`
+	Constraints  []string `json:"constraints"  yaml:"constraints"`
 }
 
-// GenerationConfig defines code generation preferences
+// GenerationConfig defines code generation preferences.
 type GenerationConfig struct {
 	// Field validation preferences
-	Validation ValidationConfig `yaml:"validation" json:"validation"`
+	Validation ValidationConfig `json:"validation" yaml:"validation"`
 
 	// Business rules generation
-	BusinessRules BusinessRulesConfig `yaml:"business_rules" json:"business_rules"`
+	BusinessRules BusinessRulesConfig `json:"business_rules" yaml:"business_rules"`
 
 	// Documentation generation
-	Documentation DocumentationConfig `yaml:"documentation" json:"documentation"`
+	Documentation DocumentationConfig `json:"documentation" yaml:"documentation"`
 
 	// Code style preferences
-	Style StyleConfig `yaml:"style" json:"style"`
+	Style StyleConfig `json:"style" yaml:"style"`
 
 	// Import management
-	Imports ImportConfig `yaml:"imports" json:"imports"`
+	Imports ImportConfig `json:"imports" yaml:"imports"`
 }
 
-// ValidationConfig defines validation generation preferences
+// ValidationConfig defines validation generation preferences.
 type ValidationConfig struct {
-	Enabled   bool     `yaml:"enabled" json:"enabled"`
-	Library   string   `yaml:"library" json:"library"` // builtin, validator, ozzo-validation
-	Tags      []string `yaml:"tags" json:"tags"`
-	Custom    []string `yaml:"custom" json:"custom"`
-	Sanitize  bool     `yaml:"sanitize" json:"sanitize"`
-	Transform bool     `yaml:"transform" json:"transform"`
+	Enabled   bool     `json:"enabled"   yaml:"enabled"`
+	Library   string   `json:"library"   yaml:"library"` // builtin, validator, ozzo-validation
+	Tags      []string `json:"tags"      yaml:"tags"`
+	Custom    []string `json:"custom"    yaml:"custom"`
+	Sanitize  bool     `json:"sanitize"  yaml:"sanitize"`
+	Transform bool     `json:"transform" yaml:"transform"`
 }
 
-// BusinessRulesConfig defines business rules generation
+// BusinessRulesConfig defines business rules generation.
 type BusinessRulesConfig struct {
-	Enabled   bool     `yaml:"enabled" json:"enabled"`
-	Patterns  []string `yaml:"patterns" json:"patterns"`
-	Templates []string `yaml:"templates" json:"templates"`
-	Events    bool     `yaml:"events" json:"events"`
-	Guards    bool     `yaml:"guards" json:"guards"`
+	Enabled   bool     `json:"enabled"   yaml:"enabled"`
+	Patterns  []string `json:"patterns"  yaml:"patterns"`
+	Templates []string `json:"templates" yaml:"templates"`
+	Events    bool     `json:"events"    yaml:"events"`
+	Guards    bool     `json:"guards"    yaml:"guards"`
 }
 
-// DocumentationConfig defines documentation generation
+// DocumentationConfig defines documentation generation.
 type DocumentationConfig struct {
-	Swagger  SwaggerConfig  `yaml:"swagger" json:"swagger"`
-	Postman  PostmanConfig  `yaml:"postman" json:"postman"`
-	Markdown MarkdownConfig `yaml:"markdown" json:"markdown"`
-	Comments CommentsConfig `yaml:"comments" json:"comments"`
+	Swagger  SwaggerConfig  `json:"swagger"  yaml:"swagger"`
+	Postman  PostmanConfig  `json:"postman"  yaml:"postman"`
+	Markdown MarkdownConfig `json:"markdown" yaml:"markdown"`
+	Comments CommentsConfig `json:"comments" yaml:"comments"`
 }
 
-// SwaggerConfig defines Swagger/OpenAPI generation
+// SwaggerConfig defines Swagger/OpenAPI generation.
 type SwaggerConfig struct {
-	Enabled     bool              `yaml:"enabled" json:"enabled"`
-	Version     string            `yaml:"version" json:"version"`
-	Output      string            `yaml:"output" json:"output"`
-	Title       string            `yaml:"title" json:"title"`
-	Description string            `yaml:"description" json:"description"`
-	Host        string            `yaml:"host" json:"host"`
-	BasePath    string            `yaml:"base_path" json:"base_path"`
-	Schemes     []string          `yaml:"schemes" json:"schemes"`
-	Tags        []SwaggerTag      `yaml:"tags" json:"tags"`
-	Extensions  map[string]string `yaml:"extensions" json:"extensions"`
+	Enabled     bool              `json:"enabled"     yaml:"enabled"`
+	Version     string            `json:"version"     yaml:"version"`
+	Output      string            `json:"output"      yaml:"output"`
+	Title       string            `json:"title"       yaml:"title"`
+	Description string            `json:"description" yaml:"description"`
+	Host        string            `json:"host"        yaml:"host"`
+	BasePath    string            `json:"base_path"   yaml:"base_path"`
+	Schemes     []string          `json:"schemes"     yaml:"schemes"`
+	Tags        []SwaggerTag      `json:"tags"        yaml:"tags"`
+	Extensions  map[string]string `json:"extensions"  yaml:"extensions"`
 }
 
-// SwaggerTag defines Swagger tag configuration
+// SwaggerTag defines Swagger tag configuration.
 type SwaggerTag struct {
-	Name        string `yaml:"name" json:"name"`
-	Description string `yaml:"description" json:"description"`
+	Name        string `json:"name"        yaml:"name"`
+	Description string `json:"description" yaml:"description"`
 }
 
-// PostmanConfig defines Postman collection generation
+// PostmanConfig defines Postman collection generation.
 type PostmanConfig struct {
-	Enabled     bool   `yaml:"enabled" json:"enabled"`
-	Output      string `yaml:"output" json:"output"`
-	Environment bool   `yaml:"environment" json:"environment"`
-	Tests       bool   `yaml:"tests" json:"tests"`
-	Variables   bool   `yaml:"variables" json:"variables"`
+	Enabled     bool   `json:"enabled"     yaml:"enabled"`
+	Output      string `json:"output"      yaml:"output"`
+	Environment bool   `json:"environment" yaml:"environment"`
+	Tests       bool   `json:"tests"       yaml:"tests"`
+	Variables   bool   `json:"variables"   yaml:"variables"`
 }
 
-// MarkdownConfig defines Markdown documentation generation
+// MarkdownConfig defines Markdown documentation generation.
 type MarkdownConfig struct {
-	Enabled  bool   `yaml:"enabled" json:"enabled"`
-	Output   string `yaml:"output" json:"output"`
-	Template string `yaml:"template" json:"template"`
-	TOC      bool   `yaml:"toc" json:"toc"`
-	Examples bool   `yaml:"examples" json:"examples"`
+	Enabled  bool   `json:"enabled"  yaml:"enabled"`
+	Output   string `json:"output"   yaml:"output"`
+	Template string `json:"template" yaml:"template"`
+	TOC      bool   `json:"toc"      yaml:"toc"`
+	Examples bool   `json:"examples" yaml:"examples"`
 }
 
-// CommentsConfig defines code comments generation
+// CommentsConfig defines code comments generation.
 type CommentsConfig struct {
-	Enabled    bool   `yaml:"enabled" json:"enabled"`
-	Language   string `yaml:"language" json:"language"` // spanish, english
-	Style      string `yaml:"style" json:"style"`       // godoc, standard
-	Examples   bool   `yaml:"examples" json:"examples"`
-	TODO       bool   `yaml:"todo" json:"todo"`
-	Deprecated bool   `yaml:"deprecated" json:"deprecated"`
+	Enabled    bool   `json:"enabled"    yaml:"enabled"`
+	Language   string `json:"language"   yaml:"language"` // spanish, english
+	Style      string `json:"style"      yaml:"style"`    // godoc, standard
+	Examples   bool   `json:"examples"   yaml:"examples"`
+	TODO       bool   `json:"todo"       yaml:"todo"`
+	Deprecated bool   `json:"deprecated" yaml:"deprecated"`
 }
 
-// StyleConfig defines code style preferences
+// StyleConfig defines code style preferences.
 type StyleConfig struct {
-	Gofmt       bool     `yaml:"gofmt" json:"gofmt"`
-	Goimports   bool     `yaml:"goimports" json:"goimports"`
-	Golint      bool     `yaml:"golint" json:"golint"`
-	Govet       bool     `yaml:"govet" json:"govet"`
-	Staticcheck bool     `yaml:"staticcheck" json:"staticcheck"`
-	Custom      []string `yaml:"custom" json:"custom"`
-	LineLength  int      `yaml:"line_length" json:"line_length"`
-	TabWidth    int      `yaml:"tab_width" json:"tab_width"`
+	Gofmt       bool     `json:"gofmt"       yaml:"gofmt"`
+	Goimports   bool     `json:"goimports"   yaml:"goimports"`
+	Golint      bool     `json:"golint"      yaml:"golint"`
+	Govet       bool     `json:"govet"       yaml:"govet"`
+	Staticcheck bool     `json:"staticcheck" yaml:"staticcheck"`
+	Custom      []string `json:"custom"      yaml:"custom"`
+	LineLength  int      `json:"line_length" yaml:"line_length"`
+	TabWidth    int      `json:"tab_width"   yaml:"tab_width"`
 }
 
-// ImportConfig defines import management
+// ImportConfig defines import management.
 type ImportConfig struct {
-	GroupStandard   bool    `yaml:"group_standard" json:"group_standard"`
-	GroupThirdParty bool    `yaml:"group_third_party" json:"group_third_party"`
-	GroupLocal      bool    `yaml:"group_local" json:"group_local"`
-	SortAlpha       bool    `yaml:"sort_alpha" json:"sort_alpha"`
-	RemoveUnused    bool    `yaml:"remove_unused" json:"remove_unused"`
-	Aliases         []Alias `yaml:"aliases" json:"aliases"`
+	GroupStandard   bool    `json:"group_standard"    yaml:"group_standard"`
+	GroupThirdParty bool    `json:"group_third_party" yaml:"group_third_party"`
+	GroupLocal      bool    `json:"group_local"       yaml:"group_local"`
+	SortAlpha       bool    `json:"sort_alpha"        yaml:"sort_alpha"`
+	RemoveUnused    bool    `json:"remove_unused"     yaml:"remove_unused"`
+	Aliases         []Alias `json:"aliases"           yaml:"aliases"`
 }
 
-// Alias defines import alias configuration
+// Alias defines import alias configuration.
 type Alias struct {
-	Package string `yaml:"package" json:"package"`
-	Alias   string `yaml:"alias" json:"alias"`
+	Package string `json:"package" yaml:"package"`
+	Alias   string `json:"alias"   yaml:"alias"`
 }
 
-// TestingConfig defines testing generation preferences
+// TestingConfig defines testing generation preferences.
 type TestingConfig struct {
-	Enabled     bool           `yaml:"enabled" json:"enabled"`
-	Framework   string         `yaml:"framework" json:"framework"` // testify, ginkgo, builtin
-	Coverage    CoverageConfig `yaml:"coverage" json:"coverage"`
-	Mocks       MockConfig     `yaml:"mocks" json:"mocks"`
-	Integration bool           `yaml:"integration" json:"integration"`
-	Benchmarks  bool           `yaml:"benchmarks" json:"benchmarks"`
-	Examples    bool           `yaml:"examples" json:"examples"`
-	Fixtures    FixtureConfig  `yaml:"fixtures" json:"fixtures"`
+	Enabled     bool           `json:"enabled"     yaml:"enabled"`
+	Framework   string         `json:"framework"   yaml:"framework"` // testify, ginkgo, builtin
+	Coverage    CoverageConfig `json:"coverage"    yaml:"coverage"`
+	Mocks       MockConfig     `json:"mocks"       yaml:"mocks"`
+	Integration bool           `json:"integration" yaml:"integration"`
+	Benchmarks  bool           `json:"benchmarks"  yaml:"benchmarks"`
+	Examples    bool           `json:"examples"    yaml:"examples"`
+	Fixtures    FixtureConfig  `json:"fixtures"    yaml:"fixtures"`
 }
 
-// CoverageConfig defines test coverage preferences
+// CoverageConfig defines test coverage preferences.
 type CoverageConfig struct {
-	Enabled   bool     `yaml:"enabled" json:"enabled"`
-	Threshold float64  `yaml:"threshold" json:"threshold"`
-	Output    string   `yaml:"output" json:"output"`
-	Format    string   `yaml:"format" json:"format"`
-	Exclude   []string `yaml:"exclude" json:"exclude"`
+	Enabled   bool     `json:"enabled"   yaml:"enabled"`
+	Threshold float64  `json:"threshold" yaml:"threshold"`
+	Output    string   `json:"output"    yaml:"output"`
+	Format    string   `json:"format"    yaml:"format"`
+	Exclude   []string `json:"exclude"   yaml:"exclude"`
 }
 
-// MockConfig defines mock generation preferences
+// MockConfig defines mock generation preferences.
 type MockConfig struct {
-	Enabled    bool     `yaml:"enabled" json:"enabled"`
-	Tool       string   `yaml:"tool" json:"tool"` // gomock, testify, counterfeiter
-	Directory  string   `yaml:"directory" json:"directory"`
-	Suffix     string   `yaml:"suffix" json:"suffix"`
-	Interfaces []string `yaml:"interfaces" json:"interfaces"`
+	Enabled    bool     `json:"enabled"    yaml:"enabled"`
+	Tool       string   `json:"tool"       yaml:"tool"` // gomock, testify, counterfeiter
+	Directory  string   `json:"directory"  yaml:"directory"`
+	Suffix     string   `json:"suffix"     yaml:"suffix"`
+	Interfaces []string `json:"interfaces" yaml:"interfaces"`
 }
 
-// FixtureConfig defines test fixture preferences
+// FixtureConfig defines test fixture preferences.
 type FixtureConfig struct {
-	Enabled   bool     `yaml:"enabled" json:"enabled"`
-	Directory string   `yaml:"directory" json:"directory"`
-	Format    string   `yaml:"format" json:"format"` // json, yaml, sql
-	Seeds     bool     `yaml:"seeds" json:"seeds"`
-	Factories []string `yaml:"factories" json:"factories"`
+	Enabled   bool     `json:"enabled"   yaml:"enabled"`
+	Directory string   `json:"directory" yaml:"directory"`
+	Format    string   `json:"format"    yaml:"format"` // json, yaml, sql
+	Seeds     bool     `json:"seeds"     yaml:"seeds"`
+	Factories []string `json:"factories" yaml:"factories"`
 }
 
-// TemplateConfig defines custom templates
+// TemplateConfig defines custom templates.
 type TemplateConfig struct {
-	Directory string              `yaml:"directory" json:"directory"`
-	Custom    map[string]Template `yaml:"custom" json:"custom"`
-	Overrides map[string]Template `yaml:"overrides" json:"overrides"`
-	Variables map[string]string   `yaml:"variables" json:"variables"`
+	Directory string              `json:"directory" yaml:"directory"`
+	Custom    map[string]Template `json:"custom"    yaml:"custom"`
+	Overrides map[string]Template `json:"overrides" yaml:"overrides"`
+	Variables map[string]string   `json:"variables" yaml:"variables"`
 }
 
-// Template defines a custom template configuration
+// Template defines a custom template configuration.
 type Template struct {
-	Path       string            `yaml:"path" json:"path"`
-	Type       string            `yaml:"type" json:"type"`
-	Variables  map[string]string `yaml:"variables" json:"variables"`
-	Conditions []string          `yaml:"conditions" json:"conditions"`
+	Path       string            `json:"path"       yaml:"path"`
+	Type       string            `json:"type"       yaml:"type"`
+	Variables  map[string]string `json:"variables"  yaml:"variables"`
+	Conditions []string          `json:"conditions" yaml:"conditions"`
 }
 
-// FeatureConfig defines feature flags and plugins
+// FeatureConfig defines feature flags and plugins.
 type FeatureConfig struct {
 	// Authentication and authorization
-	Auth AuthConfig `yaml:"auth" json:"auth"`
+	Auth AuthConfig `json:"auth" yaml:"auth"`
 
 	// Caching configuration
-	Cache CacheConfig `yaml:"cache" json:"cache"`
+	Cache CacheConfig `json:"cache" yaml:"cache"`
 
 	// Logging configuration
-	Logging LoggingConfig `yaml:"logging" json:"logging"`
+	Logging LoggingConfig `json:"logging" yaml:"logging"`
 
 	// Monitoring configuration
-	Monitoring MonitoringConfig `yaml:"monitoring" json:"monitoring"`
+	Monitoring MonitoringConfig `json:"monitoring" yaml:"monitoring"`
 
 	// Security features
-	Security SecurityConfig `yaml:"security" json:"security"`
+	Security SecurityConfig `json:"security" yaml:"security"`
 
 	// Plugins and extensions
-	Plugins []PluginConfig `yaml:"plugins" json:"plugins"`
+	Plugins []PluginConfig `json:"plugins" yaml:"plugins"`
 }
 
-// AuthConfig defines authentication configuration
+// AuthConfig defines authentication configuration.
 type AuthConfig struct {
-	Enabled    bool     `yaml:"enabled" json:"enabled"`
-	Type       string   `yaml:"type" json:"type"` // jwt, oauth2, session, basic
-	Providers  []string `yaml:"providers" json:"providers"`
-	RBAC       bool     `yaml:"rbac" json:"rbac"`
-	Middleware bool     `yaml:"middleware" json:"middleware"`
+	Enabled    bool     `json:"enabled"    yaml:"enabled"`
+	Type       string   `json:"type"       yaml:"type"` // jwt, oauth2, session, basic
+	Providers  []string `json:"providers"  yaml:"providers"`
+	RBAC       bool     `json:"rbac"       yaml:"rbac"`
+	Middleware bool     `json:"middleware" yaml:"middleware"`
 }
 
-// CacheConfig defines caching configuration
+// CacheConfig defines caching configuration.
 type CacheConfig struct {
-	Enabled  bool     `yaml:"enabled" json:"enabled"`
-	Type     string   `yaml:"type" json:"type"` // redis, memcached, inmemory
-	TTL      string   `yaml:"ttl" json:"ttl"`
-	Layers   []string `yaml:"layers" json:"layers"`
-	Patterns []string `yaml:"patterns" json:"patterns"`
+	Enabled  bool     `json:"enabled"  yaml:"enabled"`
+	Type     string   `json:"type"     yaml:"type"` // redis, memcached, inmemory
+	TTL      string   `json:"ttl"      yaml:"ttl"`
+	Layers   []string `json:"layers"   yaml:"layers"`
+	Patterns []string `json:"patterns" yaml:"patterns"`
 }
 
-// LoggingConfig defines logging configuration
+// LoggingConfig defines logging configuration.
 type LoggingConfig struct {
-	Enabled    bool     `yaml:"enabled" json:"enabled"`
-	Level      string   `yaml:"level" json:"level"`
-	Format     string   `yaml:"format" json:"format"` // json, text, structured
-	Output     []string `yaml:"output" json:"output"` // stdout, file, syslog
-	Structured bool     `yaml:"structured" json:"structured"`
-	Tracing    bool     `yaml:"tracing" json:"tracing"`
+	Enabled    bool     `json:"enabled"    yaml:"enabled"`
+	Level      string   `json:"level"      yaml:"level"`
+	Format     string   `json:"format"     yaml:"format"` // json, text, structured
+	Output     []string `json:"output"     yaml:"output"` // stdout, file, syslog
+	Structured bool     `json:"structured" yaml:"structured"`
+	Tracing    bool     `json:"tracing"    yaml:"tracing"`
 }
 
-// MonitoringConfig defines monitoring and observability
+// MonitoringConfig defines monitoring and observability.
 type MonitoringConfig struct {
-	Enabled     bool     `yaml:"enabled" json:"enabled"`
-	Metrics     bool     `yaml:"metrics" json:"metrics"`
-	Tracing     bool     `yaml:"tracing" json:"tracing"`
-	HealthCheck bool     `yaml:"health_check" json:"health_check"`
-	Profiling   bool     `yaml:"profiling" json:"profiling"`
-	Tools       []string `yaml:"tools" json:"tools"` // prometheus, jaeger, datadog
+	Enabled     bool     `json:"enabled"      yaml:"enabled"`
+	Metrics     bool     `json:"metrics"      yaml:"metrics"`
+	Tracing     bool     `json:"tracing"      yaml:"tracing"`
+	HealthCheck bool     `json:"health_check" yaml:"health_check"`
+	Profiling   bool     `json:"profiling"    yaml:"profiling"`
+	Tools       []string `json:"tools"        yaml:"tools"` // prometheus, jaeger, datadog
 }
 
-// SecurityConfig defines security features
+// SecurityConfig defines security features.
 type SecurityConfig struct {
-	HTTPS        bool     `yaml:"https" json:"https"`
-	CORS         bool     `yaml:"cors" json:"cors"`
-	RateLimit    bool     `yaml:"rate_limit" json:"rate_limit"`
-	Validation   bool     `yaml:"validation" json:"validation"`
-	Sanitization bool     `yaml:"sanitization" json:"sanitization"`
-	Headers      []string `yaml:"headers" json:"headers"`
-	Middleware   []string `yaml:"middleware" json:"middleware"`
+	HTTPS        bool     `json:"https"        yaml:"https"`
+	CORS         bool     `json:"cors"         yaml:"cors"`
+	RateLimit    bool     `json:"rate_limit"   yaml:"rate_limit"`
+	Validation   bool     `json:"validation"   yaml:"validation"`
+	Sanitization bool     `json:"sanitization" yaml:"sanitization"`
+	Headers      []string `json:"headers"      yaml:"headers"`
+	Middleware   []string `json:"middleware"   yaml:"middleware"`
 }
 
-// PluginConfig defines plugin configuration
+// PluginConfig defines plugin configuration.
 type PluginConfig struct {
-	Name     string            `yaml:"name" json:"name"`
-	Version  string            `yaml:"version" json:"version"`
-	Enabled  bool              `yaml:"enabled" json:"enabled"`
-	Config   map[string]string `yaml:"config" json:"config"`
-	Priority int               `yaml:"priority" json:"priority"`
+	Name     string            `json:"name"     yaml:"name"`
+	Version  string            `json:"version"  yaml:"version"`
+	Enabled  bool              `json:"enabled"  yaml:"enabled"`
+	Config   map[string]string `json:"config"   yaml:"config"`
+	Priority int               `json:"priority" yaml:"priority"`
 }
 
-// DeployConfig defines deployment and infrastructure
+// DeployConfig defines deployment and infrastructure.
 type DeployConfig struct {
-	Docker      DockerConfig     `yaml:"docker" json:"docker"`
-	Kubernetes  KubernetesConfig `yaml:"kubernetes" json:"kubernetes"`
-	CI          CIConfig         `yaml:"ci" json:"ci"`
-	Environment []EnvConfig      `yaml:"environments" json:"environments"`
+	Docker      DockerConfig     `json:"docker"       yaml:"docker"`
+	Kubernetes  KubernetesConfig `json:"kubernetes"   yaml:"kubernetes"`
+	CI          CIConfig         `json:"ci"           yaml:"ci"`
+	Environment []EnvConfig      `json:"environments" yaml:"environments"`
 }
 
-// DockerConfig defines Docker configuration
+// DockerConfig defines Docker configuration.
 type DockerConfig struct {
-	Enabled    bool              `yaml:"enabled" json:"enabled"`
-	Dockerfile string            `yaml:"dockerfile" json:"dockerfile"`
-	Image      string            `yaml:"image" json:"image"`
-	Registry   string            `yaml:"registry" json:"registry"`
-	Compose    bool              `yaml:"compose" json:"compose"`
-	Multistage bool              `yaml:"multistage" json:"multistage"`
-	Labels     map[string]string `yaml:"labels" json:"labels"`
+	Enabled    bool              `json:"enabled"    yaml:"enabled"`
+	Dockerfile string            `json:"dockerfile" yaml:"dockerfile"`
+	Image      string            `json:"image"      yaml:"image"`
+	Registry   string            `json:"registry"   yaml:"registry"`
+	Compose    bool              `json:"compose"    yaml:"compose"`
+	Multistage bool              `json:"multistage" yaml:"multistage"`
+	Labels     map[string]string `json:"labels"     yaml:"labels"`
 }
 
-// KubernetesConfig defines Kubernetes configuration
+// KubernetesConfig defines Kubernetes configuration.
 type KubernetesConfig struct {
-	Enabled    bool              `yaml:"enabled" json:"enabled"`
-	Namespace  string            `yaml:"namespace" json:"namespace"`
-	Manifests  string            `yaml:"manifests" json:"manifests"`
-	Helm       bool              `yaml:"helm" json:"helm"`
-	Ingress    bool              `yaml:"ingress" json:"ingress"`
-	ConfigMaps bool              `yaml:"config_maps" json:"config_maps"`
-	Secrets    bool              `yaml:"secrets" json:"secrets"`
-	Labels     map[string]string `yaml:"labels" json:"labels"`
+	Enabled    bool              `json:"enabled"     yaml:"enabled"`
+	Namespace  string            `json:"namespace"   yaml:"namespace"`
+	Manifests  string            `json:"manifests"   yaml:"manifests"`
+	Helm       bool              `json:"helm"        yaml:"helm"`
+	Ingress    bool              `json:"ingress"     yaml:"ingress"`
+	ConfigMaps bool              `json:"config_maps" yaml:"config_maps"`
+	Secrets    bool              `json:"secrets"     yaml:"secrets"`
+	Labels     map[string]string `json:"labels"      yaml:"labels"`
 }
 
-// CIConfig defines CI/CD configuration
+// CIConfig defines CI/CD configuration.
 type CIConfig struct {
-	Enabled   bool     `yaml:"enabled" json:"enabled"`
-	Provider  string   `yaml:"provider" json:"provider"` // github-actions, gitlab-ci, jenkins
-	Workflows []string `yaml:"workflows" json:"workflows"`
-	Tests     bool     `yaml:"tests" json:"tests"`
-	Build     bool     `yaml:"build" json:"build"`
-	Deploy    bool     `yaml:"deploy" json:"deploy"`
+	Enabled   bool     `json:"enabled"   yaml:"enabled"`
+	Provider  string   `json:"provider"  yaml:"provider"` // github-actions, gitlab-ci, jenkins
+	Workflows []string `json:"workflows" yaml:"workflows"`
+	Tests     bool     `json:"tests"     yaml:"tests"`
+	Build     bool     `json:"build"     yaml:"build"`
+	Deploy    bool     `json:"deploy"    yaml:"deploy"`
 }
 
-// EnvConfig defines environment-specific configuration
+// EnvConfig defines environment-specific configuration.
 type EnvConfig struct {
-	Name      string            `yaml:"name" json:"name"`
-	Default   bool              `yaml:"default" json:"default"`
-	Variables map[string]string `yaml:"variables" json:"variables"`
-	Overrides GocaConfig        `yaml:"overrides" json:"overrides"`
+	Name      string            `json:"name"      yaml:"name"`
+	Default   bool              `json:"default"   yaml:"default"`
+	Variables map[string]string `json:"variables" yaml:"variables"`
+	Overrides GocaConfig        `json:"overrides" yaml:"overrides"`
 }

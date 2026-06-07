@@ -26,7 +26,7 @@ func setupAnalyzeProject(t *testing.T) string {
 		"internal/mocks",
 	}
 	for _, d := range dirs {
-		require.NoError(t, os.MkdirAll(filepath.Join(dir, d), 0755))
+		require.NoError(t, os.MkdirAll(filepath.Join(dir, d), 0o755))
 	}
 
 	// go.mod
@@ -138,8 +138,8 @@ func TestUser_Validate(t *testing.T) {
 func writeTestFile(t *testing.T, base, rel, content string) {
 	t.Helper()
 	path := filepath.Join(base, rel)
-	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0755))
-	require.NoError(t, os.WriteFile(path, []byte(content), 0644))
+	require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
+	require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
 }
 
 // ─── resolveAnalyzeCategories ─────────────────────────────────────────────────
@@ -221,7 +221,7 @@ func TestCheckDomainHasNoExternalImports_Pass(t *testing.T) {
 
 func TestCheckDomainHasNoExternalImports_Fail(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0o755))
 	writeTestFile(t, dir, "internal/domain/user.go", `package domain
 
 import "gorm.io/gorm"
@@ -272,7 +272,7 @@ func TestCheckEmptyGoFiles_Pass(t *testing.T) {
 
 func TestCheckEmptyGoFiles_Warn(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0o755))
 	writeTestFile(t, dir, "internal/domain/stub.go", "package domain\n")
 	old, _ := os.Getwd()
 	require.NoError(t, os.Chdir(dir))
@@ -290,7 +290,7 @@ func TestCheckPackageNamingConvention_Pass(t *testing.T) {
 
 func TestCheckPackageNamingConvention_Fail(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0o755))
 	writeTestFile(t, dir, "internal/domain/bad.go", "package my_Domain\n\ntype User struct{}\n")
 	old, _ := os.Getwd()
 	require.NoError(t, os.Chdir(dir))
@@ -326,7 +326,7 @@ func TestCheckNoHardcodedSecrets_Pass(t *testing.T) {
 
 func TestCheckNoHardcodedSecrets_Fail(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0o755))
 	writeTestFile(t, dir, "internal/domain/cfg.go", `package domain
 
 const dbPassword = "supersecret123"
@@ -348,7 +348,7 @@ func TestCheckNoRawSQLStringFormat_Pass(t *testing.T) {
 
 func TestCheckNoRawSQLStringFormat_Fail(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/repository"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/repository"), 0o755))
 	writeTestFile(t, dir, "internal/repository/repo.go", `package repository
 
 import "fmt"
@@ -373,7 +373,7 @@ func TestCheckNoUnsafePackage_Pass(t *testing.T) {
 
 func TestCheckNoUnsafePackage_Fail(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0o755))
 	writeTestFile(t, dir, "internal/domain/hack.go", `package domain
 
 import "unsafe"
@@ -436,7 +436,7 @@ func TestCheckFileNamingSnakeCase_Pass(t *testing.T) {
 
 func TestCheckFileNamingSnakeCase_Warn(t *testing.T) {
 	dir := t.TempDir()
-	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "internal/domain"), 0o755))
 	writeTestFile(t, dir, "internal/domain/user-repository.go", "package domain\n\ntype X struct{}\n")
 	old, _ := os.Getwd()
 	require.NoError(t, os.Chdir(dir))
@@ -549,7 +549,7 @@ func TestFileExists(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	f := filepath.Join(dir, "x.txt")
-	require.NoError(t, os.WriteFile(f, []byte("hi"), 0644))
+	require.NoError(t, os.WriteFile(f, []byte("hi"), 0o644))
 	assert.True(t, fileExists(f))
 	assert.False(t, fileExists(filepath.Join(dir, "nofile.txt")))
 	assert.False(t, fileExists(dir)) // dir is not a file
@@ -558,8 +558,8 @@ func TestFileExists(t *testing.T) {
 func TestAnalyzeGoFiles_SkipsTests(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "a.go"), []byte("package p"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(dir, "a_test.go"), []byte("package p"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "a.go"), []byte("package p"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "a_test.go"), []byte("package p"), 0o644))
 
 	all, _ := analyzeGoFiles(dir, false)
 	noTests, _ := analyzeGoFiles(dir, true)
@@ -574,7 +574,7 @@ func TestCollectEntityNames(t *testing.T) {
 
 type User struct{ ID uint }
 type privateStruct struct{}
-`), 0644))
+`), 0o644))
 
 	names := collectEntityNames(dir)
 	assert.Contains(t, names, "User")

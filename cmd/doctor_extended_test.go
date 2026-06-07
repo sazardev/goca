@@ -28,7 +28,7 @@ func TestCheckGoMod_ValidFile(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/project\n\ngo 1.21\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module github.com/test/project\n\ngo 1.21\n"), 0o644))
 
 	check := checkGoMod()
 	assert.Equal(t, "✓", check.status)
@@ -41,7 +41,7 @@ func TestCheckGoMod_NoModuleDeclaration(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile("go.mod", []byte("go 1.21\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("go 1.21\n"), 0o644))
 
 	check := checkGoMod()
 	assert.Equal(t, "⚠", check.status)
@@ -64,7 +64,7 @@ func TestCheckGocaYaml_ValidFile(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile(".goca.yaml", []byte("project: test\ndatabase: postgres\n"), 0644))
+	require.NoError(t, os.WriteFile(".goca.yaml", []byte("project: test\ndatabase: postgres\n"), 0o644))
 
 	check := checkGocaYaml()
 	assert.Equal(t, "✓", check.status)
@@ -77,7 +77,7 @@ func TestCheckGocaYaml_EmptyFile(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.WriteFile(".goca.yaml", []byte("  \n"), 0644))
+	require.NoError(t, os.WriteFile(".goca.yaml", []byte("  \n"), 0o644))
 
 	check := checkGocaYaml()
 	assert.Equal(t, "⚠", check.status)
@@ -91,7 +91,7 @@ func TestCheckProjectStructure_AllPresent(t *testing.T) {
 	dir := t.TempDir()
 	os.Chdir(dir)
 	for _, d := range []string{"internal/domain", "internal/usecase", "internal/repository", "internal/handler"} {
-		require.NoError(t, os.MkdirAll(d, 0755))
+		require.NoError(t, os.MkdirAll(d, 0o755))
 	}
 
 	check := checkProjectStructure()
@@ -160,7 +160,7 @@ func TestCheckDIContainer_Found(t *testing.T) {
 
 	dir := t.TempDir()
 	os.Chdir(dir)
-	require.NoError(t, os.MkdirAll("internal/di", 0755))
+	require.NoError(t, os.MkdirAll("internal/di", 0o755))
 
 	check := checkDIContainer()
 	assert.Equal(t, "✓", check.status)

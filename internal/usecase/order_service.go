@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"github.com/sazardev/goca/internal/domain"
+	domain "github.com/sazardev/goca/internal/domain"
 	"github.com/sazardev/goca/internal/repository"
 )
 

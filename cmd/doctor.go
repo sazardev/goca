@@ -155,7 +155,7 @@ func checkProjectStructure() doctorCheck {
 
 	if doctorFix {
 		for _, dir := range missing {
-			if err := os.MkdirAll(dir, 0755); err != nil {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
 				check.status = "✗"
 				check.message = fmt.Sprintf("Failed to create %s: %v", dir, err)
 				check.suggestion = fmt.Sprintf("Create directory manually: mkdir -p %s", dir)
@@ -183,7 +183,6 @@ func checkGoBuild() doctorCheck {
 		return check
 	}
 
-	//nolint:gosec // args are not user-controlled
 	out, err := exec.Command("go", "build", "./...").CombinedOutput()
 	if err != nil {
 		check.status = "✗"
@@ -206,7 +205,6 @@ func checkGoVet() doctorCheck {
 		return check
 	}
 
-	//nolint:gosec // args are not user-controlled
 	out, err := exec.Command("go", "vet", "./...").CombinedOutput()
 	if err != nil {
 		check.status = "⚠"

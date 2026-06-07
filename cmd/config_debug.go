@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// configCmd command group for configuration management
+// configCmd command group for configuration management.
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage GOCA configuration",
@@ -32,7 +32,7 @@ If no subcommand is provided, defaults to 'show'.`,
 	},
 }
 
-// configShowCmd shows current configuration
+// configShowCmd shows current configuration.
 var configShowCmd = &cobra.Command{
 	Use:   "show",
 	Short: "Show current configuration",
@@ -42,7 +42,7 @@ var configShowCmd = &cobra.Command{
 	},
 }
 
-// configInitCmd initializes a new configuration file
+// configInitCmd initializes a new configuration file.
 var configInitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize configuration file",
@@ -55,7 +55,7 @@ based on your project structure and specified options.`,
 	},
 }
 
-// configValidateCmd validates the current configuration
+// configValidateCmd validates the current configuration.
 var configValidateCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validate configuration file",
@@ -65,7 +65,7 @@ var configValidateCmd = &cobra.Command{
 	},
 }
 
-// configTemplateCmd manages template configurations
+// configTemplateCmd manages template configurations.
 var configTemplateCmd = &cobra.Command{
 	Use:   "template",
 	Short: "Manage configuration templates",
@@ -92,7 +92,7 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
-// showCurrentConfig displays the current configuration
+// showCurrentConfig displays the current configuration.
 func showCurrentConfig() {
 	ui.Header("Current GOCA Configuration")
 
@@ -129,7 +129,7 @@ func showCurrentConfig() {
 	validateConfigSilent(config)
 }
 
-// initializeConfig creates a new configuration file
+// initializeConfig creates a new configuration file.
 func initializeConfig(cmd *cobra.Command) {
 	template, _ := cmd.Flags().GetString("template")
 	force, _ := cmd.Flags().GetBool("force")
@@ -162,7 +162,7 @@ func initializeConfig(cmd *cobra.Command) {
 	}
 
 	// Write config file
-	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 		ui.Error(fmt.Sprintf("Error writing configuration: %v", err))
 		return
 	}
@@ -174,7 +174,7 @@ func initializeConfig(cmd *cobra.Command) {
 	ui.Dim("Tip: Run 'goca config show' to view the configuration")
 }
 
-// validateConfiguration validates the current config file
+// validateConfiguration validates the current config file.
 func validateConfiguration() {
 	ui.Info("Validating configuration...")
 
@@ -208,7 +208,7 @@ func validateConfiguration() {
 	}
 }
 
-// showTemplateOptions shows available configuration templates
+// showTemplateOptions shows available configuration templates.
 func showTemplateOptions() {
 	ui.Header("Available Configuration Templates")
 
@@ -229,7 +229,7 @@ func showTemplateOptions() {
 	ui.Dim("  goca config init --template web --database postgres --handlers http,grpc")
 }
 
-// Helper functions for config generation
+// Helper functions for config generation.
 func generateDefaultTemplate(database string, handlers []string) string {
 	db := database
 	if db == "" {
@@ -438,7 +438,7 @@ func generateFullTemplate(database string, handlers []string) string {
 	return generateDefaultTemplate(database, handlers) // Simplified for now
 }
 
-// Helper validation functions
+// Helper validation functions.
 func validateConfigSilent(config map[string]interface{}) {
 	errors := validateConfigStructure(config)
 	if len(errors) == 0 {

@@ -73,7 +73,7 @@ useful for Test-Driven Development (TDD).`,
 func generateInterfaces(entity string, usecase, repository, handler bool, sm ...*SafetyManager) {
 	// Create interfaces directory
 	interfacesDir := filepath.Join("internal", "interfaces")
-	_ = os.MkdirAll(interfacesDir, 0755)
+	_ = os.MkdirAll(interfacesDir, 0o755)
 
 	if usecase {
 		generateUseCaseInterfaceFile(interfacesDir, entity, sm...)

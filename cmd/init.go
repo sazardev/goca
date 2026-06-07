@@ -166,7 +166,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 
 	for _, dir := range dirs {
-		_ = os.MkdirAll(dir, 0755)
+		_ = os.MkdirAll(dir, 0o755)
 	}
 
 	// Create go.mod

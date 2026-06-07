@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +12,7 @@ func TestHandleError_TestMode(t *testing.T) {
 	eh := &ErrorHandler{TestMode: true}
 
 	// Should not panic or os.Exit in test mode
-	eh.HandleError(fmt.Errorf("test error"), "test context")
+	eh.HandleError(errors.New("test error"), "test context")
 }
 
 func TestHandleError_NilError(t *testing.T) {
@@ -27,7 +27,7 @@ func TestHandleValidationError_TestMode(t *testing.T) {
 	t.Parallel()
 	eh := &ErrorHandler{TestMode: true}
 
-	eh.HandleValidationError(fmt.Errorf("invalid"), "name")
+	eh.HandleValidationError(errors.New("invalid"), "name")
 }
 
 func TestHandleValidationError_NilError(t *testing.T) {

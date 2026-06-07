@@ -34,7 +34,6 @@ func TestFieldValidator_ValidateFieldName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := v.ValidateFieldName(tc.input)
@@ -120,7 +119,7 @@ func TestFieldValidator_SmartSplitFields(t *testing.T) {
 	t.Run("simple split", func(t *testing.T) {
 		t.Parallel()
 		result := v.smartSplitFields("Name:string,Age:int")
-		assert.Equal(t, 2, len(result))
+		assert.Len(t, result, 2)
 		assert.Equal(t, "Name:string", result[0])
 		assert.Equal(t, "Age:int", result[1])
 	})
@@ -128,13 +127,13 @@ func TestFieldValidator_SmartSplitFields(t *testing.T) {
 	t.Run("with nested brackets", func(t *testing.T) {
 		t.Parallel()
 		result := v.smartSplitFields("Name:string,Tags:[]string")
-		assert.Equal(t, 2, len(result))
+		assert.Len(t, result, 2)
 	})
 
 	t.Run("with parentheses", func(t *testing.T) {
 		t.Parallel()
 		result := v.smartSplitFields("Callback:func(string),Name:string")
-		assert.Equal(t, 2, len(result))
+		assert.Len(t, result, 2)
 	})
 }
 
@@ -157,7 +156,6 @@ func TestFieldValidator_ValidateFieldType_Extended(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			err := v.ValidateFieldType(tc.input)
@@ -211,7 +209,6 @@ func TestParseFieldsWithValidation_ComplexTypes(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			fields, err := v.ParseFieldsWithValidation(tc.input)
@@ -221,7 +218,7 @@ func TestParseFieldsWithValidation_ComplexTypes(t *testing.T) {
 			}
 			require.NoError(t, err)
 			// ParseFieldsWithValidation prepends the ID field (+1)
-			assert.Equal(t, tc.wantCount+1, len(fields), "unexpected field count for input: %q", tc.input)
+			assert.Len(t, fields, tc.wantCount+1, "unexpected field count for input: %q", tc.input)
 		})
 	}
 }
@@ -240,7 +237,6 @@ func TestCapitalizeFirst(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tc.expected, capitalizeFirst(tc.input))

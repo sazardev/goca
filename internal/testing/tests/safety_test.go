@@ -8,7 +8,7 @@ import (
 	"github.com/sazardev/goca/cmd"
 )
 
-// TestSafetyManager tests the SafetyManager functionality
+// TestSafetyManager tests the SafetyManager functionality.
 func TestSafetyManager(t *testing.T) {
 	t.Run("DryRunMode", func(t *testing.T) {
 		sm := cmd.NewSafetyManager(true, false, false)
@@ -29,7 +29,7 @@ func TestSafetyManager(t *testing.T) {
 		testFile := filepath.Join(tempDir, "existing.go")
 
 		// Create existing file
-		err := os.WriteFile(testFile, []byte("existing content"), 0644)
+		err := os.WriteFile(testFile, []byte("existing content"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create test file: %v", err)
 		}
@@ -47,14 +47,13 @@ func TestSafetyManager(t *testing.T) {
 		testFile := filepath.Join(tempDir, "existing.go")
 
 		// Create existing file
-		err := os.WriteFile(testFile, []byte("existing content"), 0644)
+		err := os.WriteFile(testFile, []byte("existing content"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create test file: %v", err)
 		}
 
 		sm := cmd.NewSafetyManager(false, true, false)
 		err = sm.CheckFileConflict(testFile)
-
 		if err != nil {
 			t.Errorf("Force mode should not error on conflict: %v", err)
 		}
@@ -65,7 +64,7 @@ func TestSafetyManager(t *testing.T) {
 		testFile := filepath.Join(tempDir, "test.go")
 		originalContent := "original content"
 
-		err := os.WriteFile(testFile, []byte(originalContent), 0644)
+		err := os.WriteFile(testFile, []byte(originalContent), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create test file: %v", err)
 		}
@@ -91,12 +90,12 @@ func TestSafetyManager(t *testing.T) {
 	})
 }
 
-// TestNameConflictDetector tests the NameConflictDetector functionality
+// TestNameConflictDetector tests the NameConflictDetector functionality.
 func TestNameConflictDetector(t *testing.T) {
 	t.Run("ScanExistingEntities", func(t *testing.T) {
 		tempDir := t.TempDir()
 		domainDir := filepath.Join(tempDir, "internal", "domain")
-		err := os.MkdirAll(domainDir, 0755)
+		err := os.MkdirAll(domainDir, 0o755)
 		if err != nil {
 			t.Fatalf("Failed to create domain directory: %v", err)
 		}
@@ -104,7 +103,7 @@ func TestNameConflictDetector(t *testing.T) {
 		// Create test entity files
 		entities := []string{"user.go", "product.go", "order.go", "errors.go"}
 		for _, entity := range entities {
-			err := os.WriteFile(filepath.Join(domainDir, entity), []byte("package domain"), 0644)
+			err := os.WriteFile(filepath.Join(domainDir, entity), []byte("package domain"), 0o644)
 			if err != nil {
 				t.Fatalf("Failed to create entity file %s: %v", entity, err)
 			}
@@ -126,13 +125,13 @@ func TestNameConflictDetector(t *testing.T) {
 	t.Run("DetectNameConflict", func(t *testing.T) {
 		tempDir := t.TempDir()
 		domainDir := filepath.Join(tempDir, "internal", "domain")
-		err := os.MkdirAll(domainDir, 0755)
+		err := os.MkdirAll(domainDir, 0o755)
 		if err != nil {
 			t.Fatalf("Failed to create domain directory: %v", err)
 		}
 
 		// Create existing User entity
-		err = os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0644)
+		err = os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create user.go: %v", err)
 		}
@@ -159,12 +158,12 @@ func TestNameConflictDetector(t *testing.T) {
 	t.Run("CaseInsensitiveDetection", func(t *testing.T) {
 		tempDir := t.TempDir()
 		domainDir := filepath.Join(tempDir, "internal", "domain")
-		err := os.MkdirAll(domainDir, 0755)
+		err := os.MkdirAll(domainDir, 0o755)
 		if err != nil {
 			t.Fatalf("Failed to create domain directory: %v", err)
 		}
 
-		err = os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0644)
+		err = os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0o644)
 		if err != nil {
 			t.Fatalf("Failed to create user.go: %v", err)
 		}
@@ -186,7 +185,7 @@ func TestNameConflictDetector(t *testing.T) {
 	})
 }
 
-// TestDependencyManager tests the DependencyManager functionality
+// TestDependencyManager tests the DependencyManager functionality.
 func TestDependencyManager(t *testing.T) {
 	t.Run("CommonDependencies", func(t *testing.T) {
 		tempDir := t.TempDir()

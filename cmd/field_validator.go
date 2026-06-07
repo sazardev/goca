@@ -1,21 +1,22 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
 )
 
-// FieldValidator validates field definitions and entity names
+// FieldValidator validates field definitions and entity names.
 type FieldValidator struct{}
 
-// NewFieldValidator creates a new field validator instance
+// NewFieldValidator creates a new field validator instance.
 func NewFieldValidator() *FieldValidator {
 	return &FieldValidator{}
 }
 
-// ValidateFields validates the complete fields string
+// ValidateFields validates the complete fields string.
 func (v *FieldValidator) ValidateFields(fields string) error {
 	if fields == "" {
 		return fmt.Errorf("%s", ErrEmptyFields)
@@ -49,7 +50,7 @@ func (v *FieldValidator) ValidateFields(fields string) error {
 	return nil
 }
 
-// smartSplitFields splits fields while respecting parentheses and brackets
+// smartSplitFields splits fields while respecting parentheses and brackets.
 func (v *FieldValidator) smartSplitFields(fields string) []string {
 	var result []string
 	var current strings.Builder
@@ -94,10 +95,10 @@ func (v *FieldValidator) smartSplitFields(fields string) []string {
 	return result
 }
 
-// ValidateField validates a single field definition
+// ValidateField validates a single field definition.
 func (v *FieldValidator) ValidateField(fieldDef string) (*Field, error) {
 	if fieldDef == "" {
-		return nil, fmt.Errorf("definición de campo vacía")
+		return nil, errors.New("definición de campo vacía")
 	}
 
 	parts := strings.Split(fieldDef, ":")
@@ -124,10 +125,10 @@ func (v *FieldValidator) ValidateField(fieldDef string) (*Field, error) {
 	}, nil
 }
 
-// ValidateFieldName validates a field name
+// ValidateFieldName validates a field name.
 func (v *FieldValidator) ValidateFieldName(name string) error {
 	if name == "" {
-		return fmt.Errorf("field name cannot be empty")
+		return errors.New("field name cannot be empty")
 	}
 
 	if len(name) < MinFieldNameLength || len(name) > MaxFieldNameLength {
@@ -148,10 +149,10 @@ func (v *FieldValidator) ValidateFieldName(name string) error {
 	return nil
 }
 
-// ValidateFieldType validates a field type with comprehensive Go type support
+// ValidateFieldType validates a field type with comprehensive Go type support.
 func (v *FieldValidator) ValidateFieldType(fieldType string) error {
 	if fieldType == "" {
-		return fmt.Errorf("field type cannot be empty")
+		return errors.New("field type cannot be empty")
 	}
 
 	// Check if it's a valid basic type
@@ -165,7 +166,7 @@ func (v *FieldValidator) ValidateFieldType(fieldType string) error {
 	return v.validateComplexType(fieldType)
 }
 
-// validateComplexType handles validation of complex Go types
+// validateComplexType handles validation of complex Go types.
 func (v *FieldValidator) validateComplexType(fieldType string) error {
 	// Trim leading/trailing whitespace but preserve internal spaces for channel/func parsing
 	fieldType = strings.TrimSpace(fieldType)
@@ -225,7 +226,7 @@ func (v *FieldValidator) validateComplexType(fieldType string) error {
 		ErrInvalidFieldType, fieldType, strings.Join(ValidFieldTypes, ", "))
 }
 
-// validateMapType validates map types with comprehensive key/value type support
+// validateMapType validates map types with comprehensive key/value type support.
 func (v *FieldValidator) validateMapType(fieldType string) error {
 	// Pattern for map[keyType]valueType
 	mapPattern := regexp.MustCompile(`^map\[([^\]]+)\](.+)$`)
@@ -251,7 +252,7 @@ func (v *FieldValidator) validateMapType(fieldType string) error {
 	return nil
 }
 
-// validateMapKeyType validates that a type can be used as a map key (must be comparable)
+// validateMapKeyType validates that a type can be used as a map key (must be comparable).
 func (v *FieldValidator) validateMapKeyType(keyType string) error {
 	// Go comparable types that can be map keys
 	comparableTypes := []string{
@@ -299,7 +300,7 @@ func (v *FieldValidator) validateMapKeyType(keyType string) error {
 	return nil
 }
 
-// validateChannelType validates channel types
+// validateChannelType validates channel types.
 func (v *FieldValidator) validateChannelType(fieldType string) error {
 	// Handle specific channel patterns
 
@@ -336,7 +337,7 @@ func (v *FieldValidator) validateChannelType(fieldType string) error {
 	return fmt.Errorf("invalid channel format: %s", fieldType)
 }
 
-// validateFunctionType validates function types
+// validateFunctionType validates function types.
 func (v *FieldValidator) validateFunctionType(fieldType string) error {
 	// More flexible function signature validation
 	// Allow: func(), func(params), func(params) return, func(params) (returns)
@@ -348,24 +349,24 @@ func (v *FieldValidator) validateFunctionType(fieldType string) error {
 	return fmt.Errorf("invalid function format: %s", fieldType)
 }
 
-// isChannelType checks if a type is a channel type
+// isChannelType checks if a type is a channel type.
 func (v *FieldValidator) isChannelType(fieldType string) bool {
 	return strings.HasPrefix(fieldType, "chan ") ||
 		strings.HasPrefix(fieldType, "chan<-") ||
 		strings.HasPrefix(fieldType, "<-chan")
 }
 
-// isInterfaceType checks if a type is an interface type
+// isInterfaceType checks if a type is an interface type.
 func (v *FieldValidator) isInterfaceType(fieldType string) bool {
 	return fieldType == "interface{}" || strings.HasSuffix(fieldType, "interface{}")
 }
 
-// isQualifiedType checks if a type is a qualified type (package.Type)
+// isQualifiedType checks if a type is a qualified type (package.Type).
 func (v *FieldValidator) isQualifiedType(fieldType string) bool {
 	return strings.Contains(fieldType, ".") && !strings.HasPrefix(fieldType, ".")
 }
 
-// isCustomType checks if a type is a custom type (starts with uppercase letter)
+// isCustomType checks if a type is a custom type (starts with uppercase letter).
 func (v *FieldValidator) isCustomType(fieldType string) bool {
 	if len(fieldType) == 0 {
 		return false
@@ -373,10 +374,10 @@ func (v *FieldValidator) isCustomType(fieldType string) bool {
 	return unicode.IsUpper(rune(fieldType[0])) && regexp.MustCompile(`^[A-Z][a-zA-Z0-9]*$`).MatchString(fieldType)
 }
 
-// ValidateEntityName validates an entity name
+// ValidateEntityName validates an entity name.
 func (v *FieldValidator) ValidateEntityName(name string) error {
 	if name == "" {
-		return fmt.Errorf("entity name cannot be empty")
+		return errors.New("entity name cannot be empty")
 	}
 
 	if len(name) < MinEntityNameLength || len(name) > MaxEntityNameLength {
@@ -397,7 +398,7 @@ func (v *FieldValidator) ValidateEntityName(name string) error {
 	return nil
 }
 
-// ValidateDatabase validates a database type
+// ValidateDatabase validates a database type.
 func (v *FieldValidator) ValidateDatabase(database string) error {
 	for _, validDB := range ValidDatabases {
 		if database == validDB {
@@ -407,7 +408,7 @@ func (v *FieldValidator) ValidateDatabase(database string) error {
 	return fmt.Errorf("%s. Recibido: %s", ErrInvalidDatabase, database)
 }
 
-// ValidateHandlers validates handler types
+// ValidateHandlers validates handler types.
 func (v *FieldValidator) ValidateHandlers(handlers string) error {
 	if handlers == "" {
 		return nil // Empty is valid, will use default
@@ -430,7 +431,7 @@ func (v *FieldValidator) ValidateHandlers(handlers string) error {
 	return nil
 }
 
-// ValidateOperations validates operation types
+// ValidateOperations validates operation types.
 func (v *FieldValidator) ValidateOperations(operations string) error {
 	if operations == "" {
 		return nil // Empty is valid, will use default
@@ -453,7 +454,7 @@ func (v *FieldValidator) ValidateOperations(operations string) error {
 	return nil
 }
 
-// ValidateReservedNames checks for Go reserved words and common conflicts
+// ValidateReservedNames checks for Go reserved words and common conflicts.
 func (v *FieldValidator) ValidateReservedNames(name string) error {
 	lowerName := strings.ToLower(name)
 
@@ -478,15 +479,15 @@ func (v *FieldValidator) ValidateReservedNames(name string) error {
 	}
 
 	for _, conflict := range conflictNames {
-		if lowerName == strings.ToLower(conflict) {
-			return fmt.Errorf("'%s' puede causar conflictos. Usa un nombre diferente", name)
+		if strings.EqualFold(lowerName, conflict) {
+			return fmt.Errorf("'%s' puede causar conflicts. Usa un nombre diferente", name)
 		}
 	}
 
 	return nil
 }
 
-// ParseFieldsWithValidation parses and validates fields string
+// ParseFieldsWithValidation parses and validates fields string.
 func (v *FieldValidator) ParseFieldsWithValidation(fields string) ([]Field, error) {
 	if err := v.ValidateFields(fields); err != nil {
 		return nil, err
@@ -522,7 +523,7 @@ func (v *FieldValidator) ParseFieldsWithValidation(fields string) ([]Field, erro
 	return fieldsList, nil
 }
 
-// capitalizeFirst capitalizes the first letter of a string
+// capitalizeFirst capitalizes the first letter of a string.
 func capitalizeFirst(s string) string {
 	if s == "" {
 		return s
@@ -530,7 +531,7 @@ func capitalizeFirst(s string) string {
 	return strings.ToUpper(string(s[0])) + strings.ToLower(s[1:])
 }
 
-// GenerateQueryMethodsForFields generates appropriate query methods based on field types
+// GenerateQueryMethodsForFields generates appropriate query methods based on field types.
 func (v *FieldValidator) GenerateQueryMethodsForFields(entity string, fields []Field) []QueryMethod {
 	var methods []QueryMethod
 	entityLower := strings.ToLower(entity)
@@ -574,7 +575,7 @@ func (v *FieldValidator) GenerateQueryMethodsForFields(entity string, fields []F
 	return methods
 }
 
-// isLikelyUniqueField checks if a field is likely to be unique
+// isLikelyUniqueField checks if a field is likely to be unique.
 func (v *FieldValidator) isLikelyUniqueField(fieldName string) bool {
 	uniqueFields := []string{"email", "username", "slug", "code", "sku", "token", "uuid"}
 	for _, unique := range uniqueFields {
@@ -585,7 +586,7 @@ func (v *FieldValidator) isLikelyUniqueField(fieldName string) bool {
 	return false
 }
 
-// isCommonQueryField checks if a field is commonly used for queries
+// isCommonQueryField checks if a field is commonly used for queries.
 func (v *FieldValidator) isCommonQueryField(entityName, fieldName string) bool {
 	// Check general common query fields
 	for _, common := range CommonQueryFields {
@@ -605,7 +606,7 @@ func (v *FieldValidator) isCommonQueryField(entityName, fieldName string) bool {
 	return false
 }
 
-// QueryMethod represents a dynamic query method
+// QueryMethod represents a dynamic query method.
 type QueryMethod struct {
 	Name       string // Full method name (FindByUserEmail)
 	MethodName string // Method name only (FindByEmail)

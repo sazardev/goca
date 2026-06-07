@@ -196,7 +196,7 @@ func TestConfigManager_FindConfigFile(t *testing.T) {
 		t.Parallel()
 		dir := t.TempDir()
 		configPath := filepath.Join(dir, ".goca.yaml")
-		require.NoError(t, os.WriteFile(configPath, []byte("project:\n  name: test\n  module: test\n"), 0644))
+		require.NoError(t, os.WriteFile(configPath, []byte("project:\n  name: test\n  module: test\n"), 0o644))
 
 		result := cm.FindConfigFile(dir)
 		assert.Equal(t, configPath, result)
@@ -206,7 +206,7 @@ func TestConfigManager_FindConfigFile(t *testing.T) {
 		t.Parallel()
 		dir := t.TempDir()
 		configPath := filepath.Join(dir, ".goca.yml")
-		require.NoError(t, os.WriteFile(configPath, []byte("project:\n  name: test\n"), 0644))
+		require.NoError(t, os.WriteFile(configPath, []byte("project:\n  name: test\n"), 0o644))
 
 		result := cm.FindConfigFile(dir)
 		assert.Equal(t, configPath, result)
@@ -283,7 +283,7 @@ func TestConfigManager_LoadFromFile_InvalidYAML(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "bad.yaml")
-	require.NoError(t, os.WriteFile(configPath, []byte(":::invalid yaml:::"), 0644))
+	require.NoError(t, os.WriteFile(configPath, []byte(":::invalid yaml:::"), 0o644))
 
 	cm := NewConfigManager()
 	err := cm.LoadFromFile(configPath)

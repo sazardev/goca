@@ -19,7 +19,7 @@ func TestGenerateCachePackage_Basic(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, "cache"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, "cache"), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	err := generateCachePackage(sm)
@@ -47,7 +47,7 @@ func TestGenerateCachePackage_DryRun(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, "cache"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, "cache"), 0o755))
 
 	sm := NewSafetyManager(true, false, false)
 	err := generateCachePackage(sm)
@@ -78,7 +78,7 @@ func TestGenerateCachePackage_Imports(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, "cache"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(DirInternal, "cache"), 0o755))
 
 	sm := NewSafetyManager(false, true, false)
 	err := generateCachePackage(sm)
@@ -129,7 +129,7 @@ func TestGenerateManualDI_WithCache(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 
 	sm := NewSafetyManager(false, true, false)
 	generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "postgres", true, sm)
@@ -163,7 +163,7 @@ func TestGenerateManualDI_WithoutCache(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(dir)
 
-	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0644))
+	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
 
 	sm := NewSafetyManager(false, true, false)
 	generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "postgres", false, sm)

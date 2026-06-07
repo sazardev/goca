@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -144,7 +145,7 @@ without external dependencies and with complete business validations.`,
 func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete, tests bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create domain directory if it doesn't exist
 	domainDir := "internal/domain"
-	_ = os.MkdirAll(domainDir, 0755)
+	_ = os.MkdirAll(domainDir, 0o755)
 
 	// Parse fields - generates real fields based on the input
 	// Note: ParseFieldsWithValidation already adds the ID field
@@ -223,7 +224,7 @@ func parseFieldsWithValidation(fields string, withValidation bool) []Field {
 func getValidateTag(fieldName, fieldType string) string {
 	switch fieldType {
 	case FieldString:
-		if fieldName == "Email" || strings.ToLower(fieldName) == "email" {
+		if fieldName == "Email" || strings.EqualFold(fieldName, "email") {
 			return "required,email"
 		}
 		return "required"
@@ -262,7 +263,7 @@ func getGormTag(fieldName, fieldType string) string {
 	}
 }
 
-// hasStringBusinessRules checks if any field will require the strings package for business rules
+// hasStringBusinessRules checks if any field will require the strings package for business rules.
 func hasStringBusinessRules(fields []Field) bool {
 	for _, field := range fields {
 		if field.Name == "Email" {
@@ -307,7 +308,7 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 	}
 }
 
-// writeEntityHeader writes package declaration and imports
+// writeEntityHeader writes package declaration and imports.
 func writeEntityHeader(content *strings.Builder, fields []Field, businessRules, timestamps, softDelete bool) {
 	content.WriteString("package domain\n\n")
 
@@ -339,7 +340,7 @@ func writeEntityHeader(content *strings.Builder, fields []Field, businessRules, 
 	}
 }
 
-// writeEntityStruct writes the entity struct definition
+// writeEntityStruct writes the entity struct definition.
 func writeEntityStruct(content *strings.Builder, entityName string, fields []Field) {
 	fmt.Fprintf(content, "type %s struct {\n", entityName)
 	for _, field := range fields {
@@ -348,7 +349,7 @@ func writeEntityStruct(content *strings.Builder, entityName string, fields []Fie
 	content.WriteString("}\n\n")
 }
 
-// writeValidationMethod writes the Validate method for the entity
+// writeValidationMethod writes the Validate method for the entity.
 func writeValidationMethod(content *strings.Builder, entityName string, fields []Field) {
 	entityVar := strings.ToLower(string(entityName[0]))
 	fmt.Fprintf(content, "func (%s *%s) Validate() error {\n", entityVar, entityName)
@@ -365,7 +366,7 @@ func writeValidationMethod(content *strings.Builder, entityName string, fields [
 	content.WriteString("}\n\n")
 }
 
-// writeFieldValidation writes validation logic for a specific field
+// writeFieldValidation writes validation logic for a specific field.
 func writeFieldValidation(content *strings.Builder, entityVar, entityName string, field Field) {
 	switch field.Type {
 	case FieldString:
@@ -379,7 +380,7 @@ func writeFieldValidation(content *strings.Builder, entityVar, entityName string
 	}
 }
 
-// writeSoftDeleteMethods writes soft delete helper methods
+// writeSoftDeleteMethods writes soft delete helper methods.
 func writeSoftDeleteMethods(content *strings.Builder, entityName string) {
 	entityVar := strings.ToLower(string(entityName[0]))
 
@@ -392,7 +393,7 @@ func writeSoftDeleteMethods(content *strings.Builder, entityName string) {
 	content.WriteString("}\n\n")
 }
 
-// isSystemField checks if a field is a system-managed field
+// isSystemField checks if a field is a system-managed field.
 func isSystemField(fieldName string) bool {
 	systemFields := []string{"ID", StringCreatedAt, "UpdatedAt", "DeletedAt"}
 	for _, sf := range systemFields {
@@ -445,7 +446,7 @@ func generateErrorsFile(dir, entityName string, fields []Field, sm ...*SafetyMan
 	}
 }
 
-// readExistingErrors reads existing error definitions from the file
+// readExistingErrors reads existing error definitions from the file.
 func readExistingErrors(filename, entityName string) []string {
 	var existingErrors []string
 
@@ -465,14 +466,14 @@ func readExistingErrors(filename, entityName string) []string {
 	return existingErrors
 }
 
-// writeErrorsHeader writes the package declaration and imports
+// writeErrorsHeader writes the package declaration and imports.
 func writeErrorsHeader(content *strings.Builder) {
 	content.WriteString("package domain\n\n")
 	content.WriteString("import \"errors\"\n\n")
 	content.WriteString("var (\n")
 }
 
-// writeEntityErrors writes all error definitions for the entity
+// writeEntityErrors writes all error definitions for the entity.
 func writeEntityErrors(content *strings.Builder, entityName string, fields []Field, existingErrors []string) {
 	writeGeneralError(content, entityName, existingErrors)
 	writeExistingErrors(content, existingErrors)
@@ -480,7 +481,7 @@ func writeEntityErrors(content *strings.Builder, entityName string, fields []Fie
 	content.WriteString(")\n")
 }
 
-// writeGeneralError writes the general entity error
+// writeGeneralError writes the general entity error.
 func writeGeneralError(content *strings.Builder, entityName string, existingErrors []string) {
 	generalError := fmt.Sprintf("\tErrInvalid%sData = errors.New(\"invalid %s data\")",
 		entityName, strings.ToLower(entityName))
@@ -489,14 +490,14 @@ func writeGeneralError(content *strings.Builder, entityName string, existingErro
 	}
 }
 
-// writeExistingErrors writes previously defined errors
+// writeExistingErrors writes previously defined errors.
 func writeExistingErrors(content *strings.Builder, existingErrors []string) {
 	for _, err := range existingErrors {
 		content.WriteString(err + "\n")
 	}
 }
 
-// writeFieldErrors writes validation errors for all fields
+// writeFieldErrors writes validation errors for all fields.
 func writeFieldErrors(content *strings.Builder, entityName string, fields []Field, existingErrors []string) {
 	for _, field := range fields {
 		if isSystemField(field.Name) {
@@ -508,7 +509,7 @@ func writeFieldErrors(content *strings.Builder, entityName string, fields []Fiel
 	}
 }
 
-// writeRequiredFieldError writes the required field error
+// writeRequiredFieldError writes the required field error.
 func writeRequiredFieldError(content *strings.Builder, entityName string, field Field, existingErrors []string) {
 	fieldLower := strings.ToLower(field.Name)
 	requiredError := fmt.Sprintf("\tErrInvalid%s%s = errors.New(\"%s is required\")",
@@ -518,7 +519,7 @@ func writeRequiredFieldError(content *strings.Builder, entityName string, field 
 	}
 }
 
-// writeTypeSpecificErrors writes type-specific validation errors
+// writeTypeSpecificErrors writes type-specific validation errors.
 func writeTypeSpecificErrors(content *strings.Builder, entityName string, field Field, existingErrors []string) {
 	fieldLower := strings.ToLower(field.Name)
 
@@ -532,7 +533,7 @@ func writeTypeSpecificErrors(content *strings.Builder, entityName string, field 
 	}
 }
 
-// writeStringFieldErrors writes string-specific validation errors
+// writeStringFieldErrors writes string-specific validation errors.
 func writeStringFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
 	if strings.Contains(fieldLower, FieldEmailType) {
 		emailError := fmt.Sprintf("\tErrInvalid%s%sFormat = errors.New(\"invalid %s format\")",
@@ -551,7 +552,7 @@ func writeStringFieldErrors(content *strings.Builder, entityName string, field F
 	}
 }
 
-// writeIntegerFieldErrors writes integer-specific validation errors
+// writeIntegerFieldErrors writes integer-specific validation errors.
 func writeIntegerFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
 	var rangeError string
 	if strings.Contains(fieldLower, "age") {
@@ -566,7 +567,7 @@ func writeIntegerFieldErrors(content *strings.Builder, entityName string, field 
 	}
 }
 
-// writeFloatFieldErrors writes float-specific validation errors
+// writeFloatFieldErrors writes float-specific validation errors.
 func writeFloatFieldErrors(content *strings.Builder, entityName string, field Field, fieldLower string, existingErrors []string) {
 	var rangeError string
 	if strings.Contains(fieldLower, "price") || strings.Contains(fieldLower, "amount") {
@@ -581,7 +582,7 @@ func writeFloatFieldErrors(content *strings.Builder, entityName string, field Fi
 	}
 }
 
-// getFieldDisplayName converts field names to human-readable display names for error messages
+// getFieldDisplayName converts field names to human-readable display names for error messages.
 func getFieldDisplayName(fieldName string) string {
 	fieldTranslations := map[string]string{
 		"name":        "name",
@@ -609,7 +610,7 @@ func getFieldDisplayName(fieldName string) string {
 	return fieldName
 }
 
-// Helper function to check if a slice contains a string
+// Helper function to check if a slice contains a string.
 func contains(slice []string, item string) bool {
 	for _, s := range slice {
 		if strings.TrimSpace(s) == strings.TrimSpace(item) {
@@ -619,7 +620,7 @@ func contains(slice []string, item string) bool {
 	return false
 }
 
-// generateSeedData creates seed data based on actual fields
+// generateSeedData creates seed data based on actual fields.
 func generateSeedData(dir, entityName string, fields []Field, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, strings.ToLower(entityName)+"_seeds.go")
 
@@ -633,7 +634,7 @@ func generateSeedData(dir, entityName string, fields []Field, sm ...*SafetyManag
 	}
 }
 
-// writeSeedFileHeader writes the package declaration and imports for seed file
+// writeSeedFileHeader writes the package declaration and imports for seed file.
 func writeSeedFileHeader(content *strings.Builder, fields []Field) {
 	content.WriteString("package domain\n\n")
 
@@ -651,7 +652,7 @@ func writeSeedFileHeader(content *strings.Builder, fields []Field) {
 	}
 }
 
-// writeGoSeeds writes the Go struct seed data function
+// writeGoSeeds writes the Go struct seed data function.
 func writeGoSeeds(content *strings.Builder, entityName string, fields []Field) {
 	fmt.Fprintf(content, "// Get%sSeeds retorna datos de ejemplo para %s\n", entityName, strings.ToLower(entityName))
 	fmt.Fprintf(content, "func Get%sSeeds() []%s {\n", entityName, entityName)
@@ -666,7 +667,7 @@ func writeGoSeeds(content *strings.Builder, entityName string, fields []Field) {
 	content.WriteString("}\n\n")
 }
 
-// writeGoSeedRecord writes a single Go seed record
+// writeGoSeedRecord writes a single Go seed record.
 func writeGoSeedRecord(content *strings.Builder, fields []Field, recordNum int) {
 	content.WriteString("\t\t{\n")
 	for _, field := range fields {
@@ -680,7 +681,7 @@ func writeGoSeedRecord(content *strings.Builder, fields []Field, recordNum int) 
 	content.WriteString("\t\t},\n")
 }
 
-// writeSQLSeeds writes the SQL INSERT seed data function
+// writeSQLSeeds writes the SQL INSERT seed data function.
 func writeSQLSeeds(content *strings.Builder, entityName string, fields []Field) {
 	fmt.Fprintf(content, "// GetSQL%sSeeds retorna sentencias SQL INSERT para %s\n", entityName, strings.ToLower(entityName))
 	fmt.Fprintf(content, "func GetSQL%sSeeds() string {\n", entityName)
@@ -695,7 +696,7 @@ func writeSQLSeeds(content *strings.Builder, entityName string, fields []Field) 
 	content.WriteString("}\n")
 }
 
-// writeSQLInsertStatement writes a single SQL INSERT statement
+// writeSQLInsertStatement writes a single SQL INSERT statement.
 func writeSQLInsertStatement(content *strings.Builder, entityName string, fields []Field, recordNum int) {
 	fmt.Fprintf(content, "INSERT INTO %s (", strings.ToLower(entityName)+"s")
 
@@ -710,7 +711,7 @@ func writeSQLInsertStatement(content *strings.Builder, entityName string, fields
 	content.WriteString(");\\n")
 }
 
-// getNonSystemFieldNames returns field names excluding system fields
+// getNonSystemFieldNames returns field names excluding system fields.
 func getNonSystemFieldNames(fields []Field) []string {
 	var fieldNames []string
 	for _, field := range fields {
@@ -721,7 +722,7 @@ func getNonSystemFieldNames(fields []Field) []string {
 	return fieldNames
 }
 
-// getSQLFieldValues returns SQL-formatted field values
+// getSQLFieldValues returns SQL-formatted field values.
 func getSQLFieldValues(fields []Field, recordNum int) []string {
 	var values []string
 	for _, field := range fields {
@@ -733,7 +734,7 @@ func getSQLFieldValues(fields []Field, recordNum int) []string {
 	return values
 }
 
-// generateSampleValue creates realistic sample data based on field type and name
+// generateSampleValue creates realistic sample data based on field type and name.
 func generateSampleValue(field Field, index int) string {
 	switch field.Type {
 	case FieldString:
@@ -743,7 +744,7 @@ func generateSampleValue(field Field, index int) string {
 	case "float64", "float32":
 		return generateFloatSampleValue(field.Name, index)
 	case FieldBool:
-		return fmt.Sprintf("%t", index%2 == 1)
+		return strconv.FormatBool(index%2 == 1)
 	case "time.Time":
 		return "time.Now()"
 	default:
@@ -751,7 +752,7 @@ func generateSampleValue(field Field, index int) string {
 	}
 }
 
-// generateStringSampleValue generates string sample values based on field name
+// generateStringSampleValue generates string sample values based on field name.
 func generateStringSampleValue(fieldName string, index int) string {
 	fieldLower := strings.ToLower(fieldName)
 
@@ -779,26 +780,26 @@ func generateStringSampleValue(fieldName string, index int) string {
 	}
 }
 
-// generateIntSampleValue generates integer sample values based on field name
+// generateIntSampleValue generates integer sample values based on field name.
 func generateIntSampleValue(fieldName string, index int) string {
 	fieldLower := strings.ToLower(fieldName)
 
 	switch {
 	case strings.Contains(fieldLower, "age"):
 		ages := []int{25, 30, 35}
-		return fmt.Sprintf("%d", ages[(index-1)%len(ages)])
+		return strconv.Itoa(ages[(index-1)%len(ages)])
 	case strings.Contains(fieldLower, "stock"):
 		stocks := []int{100, 50, 75}
-		return fmt.Sprintf("%d", stocks[(index-1)%len(stocks)])
+		return strconv.Itoa(stocks[(index-1)%len(stocks)])
 	case strings.Contains(fieldLower, "quantity"):
 		quantities := []int{10, 5, 15}
-		return fmt.Sprintf("%d", quantities[(index-1)%len(quantities)])
+		return strconv.Itoa(quantities[(index-1)%len(quantities)])
 	default:
-		return fmt.Sprintf("%d", index*10)
+		return strconv.Itoa(index * 10)
 	}
 }
 
-// generateFloatSampleValue generates float sample values based on field name
+// generateFloatSampleValue generates float sample values based on field name.
 func generateFloatSampleValue(fieldName string, index int) string {
 	fieldLower := strings.ToLower(fieldName)
 
@@ -814,23 +815,23 @@ func generateFloatSampleValue(fieldName string, index int) string {
 	}
 }
 
-// generateDefaultSampleValue generates default sample values for unknown types
+// generateDefaultSampleValue generates default sample values for unknown types.
 func generateDefaultSampleValue(fieldType string, index int) string {
 	switch {
 	case strings.Contains(fieldType, FieldInt):
-		return fmt.Sprintf("%d", index*10)
+		return strconv.Itoa(index * 10)
 	case strings.Contains(fieldType, FieldString):
 		return fmt.Sprintf("\"Valor%d\"", index)
 	case strings.Contains(fieldType, "float"):
 		return fmt.Sprintf("%.2f", float64(index)*10.5)
 	case strings.Contains(fieldType, FieldBool):
-		return fmt.Sprintf("%t", index%2 == 1)
+		return strconv.FormatBool(index%2 == 1)
 	default:
 		return "nil // Tipo personalizado"
 	}
 }
 
-// generateSQLSampleValue creates SQL-compatible sample values
+// generateSQLSampleValue creates SQL-compatible sample values.
 func generateSQLSampleValue(field Field, index int) string {
 	fieldLower := strings.ToLower(field.Name)
 
@@ -857,12 +858,12 @@ func generateSQLSampleValue(field Field, index int) string {
 		switch {
 		case strings.Contains(fieldLower, "age"):
 			ages := []int{25, 30, 35}
-			return fmt.Sprintf("%d", ages[(index-1)%len(ages)])
+			return strconv.Itoa(ages[(index-1)%len(ages)])
 		case strings.Contains(fieldLower, "stock"):
 			stocks := []int{100, 50, 75}
-			return fmt.Sprintf("%d", stocks[(index-1)%len(stocks)])
+			return strconv.Itoa(stocks[(index-1)%len(stocks)])
 		default:
-			return fmt.Sprintf("%d", index*10)
+			return strconv.Itoa(index * 10)
 		}
 
 	case "float64", "float32":
@@ -875,7 +876,7 @@ func generateSQLSampleValue(field Field, index int) string {
 		}
 
 	case "bool":
-		return fmt.Sprintf("%t", index%2 == 1)
+		return strconv.FormatBool(index%2 == 1)
 
 	case "time.Time":
 		return "NOW()"

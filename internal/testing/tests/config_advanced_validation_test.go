@@ -9,7 +9,7 @@ import (
 	"github.com/sazardev/goca/cmd"
 )
 
-// TestConfigAdvancedValidation tests comprehensive validation scenarios
+// TestConfigAdvancedValidation tests comprehensive validation scenarios.
 func TestConfigAdvancedValidation(t *testing.T) {
 	t.Run("InvalidDatabaseTypes", func(t *testing.T) {
 		testCases := []struct {
@@ -41,7 +41,7 @@ database:
   port: 5432
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -87,7 +87,7 @@ database:
   port: %d
 `, tc.port)
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -124,13 +124,12 @@ architecture:
     files: "` + convention + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
 				manager := cmd.NewConfigManager()
 				err := manager.LoadConfig(tempDir)
-
 				if err != nil {
 					t.Errorf("Expected validation to pass for convention '%s' but got error: %v", convention, err)
 				}
@@ -149,7 +148,7 @@ architecture:
     entities: "` + convention + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -191,7 +190,7 @@ architecture:
     type: "` + tc.diType + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -236,7 +235,7 @@ testing:
     threshold: ` + tc.threshold + `
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -270,13 +269,12 @@ testing:
   framework: "` + framework + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
 				manager := cmd.NewConfigManager()
 				err := manager.LoadConfig(tempDir)
-
 				if err != nil {
 					t.Errorf("Expected validation to pass for framework '%s' but got error: %v", framework, err)
 				}
@@ -294,7 +292,7 @@ testing:
   framework: "` + framework + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -326,13 +324,12 @@ features:
     type: "` + authType + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
 				manager := cmd.NewConfigManager()
 				err := manager.LoadConfig(tempDir)
-
 				if err != nil {
 					t.Errorf("Expected validation to pass for auth type '%s' but got error: %v", authType, err)
 				}
@@ -352,7 +349,7 @@ features:
     type: "` + authType + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -384,13 +381,12 @@ features:
     type: "` + cacheType + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
 				manager := cmd.NewConfigManager()
 				err := manager.LoadConfig(tempDir)
-
 				if err != nil {
 					t.Errorf("Expected validation to pass for cache type '%s' but got error: %v", cacheType, err)
 				}
@@ -410,7 +406,7 @@ features:
     type: "` + cacheType + `"
 `
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -457,7 +453,7 @@ project:
 			t.Run(tc.name, func(t *testing.T) {
 				tempDir := t.TempDir()
 				configPath := filepath.Join(tempDir, ".goca.yaml")
-				if err := os.WriteFile(configPath, []byte(tc.content), 0644); err != nil {
+				if err := os.WriteFile(configPath, []byte(tc.content), 0o644); err != nil {
 					t.Fatalf("Failed to write config: %v", err)
 				}
 
@@ -609,13 +605,12 @@ deploy:
     namespace: "production"
 `
 		configPath := filepath.Join(tempDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config: %v", err)
 		}
 
 		manager := cmd.NewConfigManager()
 		err := manager.LoadConfig(tempDir)
-
 		if err != nil {
 			t.Fatalf("Expected complex nested configuration to be valid but got error: %v", err)
 		}

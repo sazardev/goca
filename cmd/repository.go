@@ -119,7 +119,7 @@ well-defined interfaces and database-specific implementations.`,
 func generateRepository(entity, database string, interfaceOnly, implementation, cache, transactions bool, fields string, sm ...*SafetyManager) {
 	// Create repository directory if it doesn't exist
 	repoDir := "internal/repository"
-	_ = os.MkdirAll(repoDir, 0755)
+	_ = os.MkdirAll(repoDir, 0o755)
 
 	// Parse fields if provided
 	var parsedFields []Field

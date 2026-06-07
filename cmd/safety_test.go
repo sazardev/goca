@@ -64,7 +64,7 @@ func TestSafetyManager_CheckFileConflict_ExistingFile_NoForce(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	filePath := filepath.Join(dir, "existing.go")
-	require.NoError(t, os.WriteFile(filePath, []byte("old"), 0644))
+	require.NoError(t, os.WriteFile(filePath, []byte("old"), 0o644))
 
 	sm := NewSafetyManager(false, false, false)
 	err := sm.CheckFileConflict(filePath)
@@ -76,7 +76,7 @@ func TestSafetyManager_CheckFileConflict_DryRun(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	filePath := filepath.Join(dir, "existing.go")
-	require.NoError(t, os.WriteFile(filePath, []byte("old"), 0644))
+	require.NoError(t, os.WriteFile(filePath, []byte("old"), 0o644))
 
 	sm := NewSafetyManager(true, false, false)
 	err := sm.CheckFileConflict(filePath)
@@ -89,7 +89,7 @@ func TestSafetyManager_CheckFileConflict_Force_WithBackup(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	filePath := filepath.Join(dir, "existing.go")
-	require.NoError(t, os.WriteFile(filePath, []byte("old content"), 0644))
+	require.NoError(t, os.WriteFile(filePath, []byte("old content"), 0o644))
 
 	sm := NewSafetyManager(false, true, true)
 	sm.BackupDir = filepath.Join(dir, ".goca-backup")
@@ -123,12 +123,12 @@ func TestNameConflictDetector_ScanAndCheck(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	domainDir := filepath.Join(dir, "internal", "domain")
-	require.NoError(t, os.MkdirAll(domainDir, 0755))
+	require.NoError(t, os.MkdirAll(domainDir, 0o755))
 
 	// Create entity files
-	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0644))
-	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "errors.go"), []byte("package domain"), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(domainDir, "errors.go"), []byte("package domain"), 0o644))
 
 	ncd := NewNameConflictDetector(dir)
 	require.NoError(t, ncd.ScanExistingEntities())

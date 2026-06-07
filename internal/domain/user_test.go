@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestUser_Validate tests the Validate method with various scenarios
+// TestUser_Validate tests the Validate method with various scenarios.
 func TestUser_Validate(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -70,7 +70,7 @@ func TestUser_Validate(t *testing.T) {
 	}
 }
 
-// TestUser_Initialization tests entity field initialization
+// TestUser_Initialization tests entity field initialization.
 func TestUser_Initialization(t *testing.T) {
 	user := &User{
 		Name:  "John Doe",
@@ -83,7 +83,7 @@ func TestUser_Initialization(t *testing.T) {
 	assert.Equal(t, 25, user.Age, "Age should be set correctly")
 }
 
-// TestUser_Name_EdgeCases tests edge cases for Name field
+// TestUser_Name_EdgeCases tests edge cases for Name field.
 func TestUser_Name_EdgeCases(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -112,7 +112,7 @@ func TestUser_Name_EdgeCases(t *testing.T) {
 	}
 }
 
-// TestUser_Email_EdgeCases tests edge cases for Email field
+// TestUser_Email_EdgeCases tests edge cases for Email field.
 func TestUser_Email_EdgeCases(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -142,7 +142,7 @@ func TestUser_Email_EdgeCases(t *testing.T) {
 	}
 }
 
-// TestUser_Age_NumericValidation tests numeric validation for Age
+// TestUser_Age_NumericValidation tests numeric validation for Age.
 func TestUser_Age_NumericValidation(t *testing.T) {
 	tests := []struct {
 		name    string

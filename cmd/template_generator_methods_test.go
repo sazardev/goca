@@ -79,7 +79,6 @@ func TestTemplateGenerator_GenerateFromTemplate_AllTemplates(t *testing.T) {
 		Module: "myproject",
 	}
 	for _, name := range []string{"entity", "usecase", "repository", "handler"} {
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			result, err := gen.GenerateFromTemplate(name, data)

@@ -9,7 +9,7 @@ import (
 	"github.com/sazardev/goca/cmd"
 )
 
-// TestProjectTemplates tests the project template system
+// TestProjectTemplates tests the project template system.
 func TestProjectTemplates(t *testing.T) {
 	t.Run("GetProjectTemplates", func(t *testing.T) {
 		templates := cmd.GetProjectTemplates()
@@ -117,7 +117,7 @@ func TestProjectTemplates(t *testing.T) {
 	})
 }
 
-// TestTemplateConfigurations validates each template configuration
+// TestTemplateConfigurations validates each template configuration.
 func TestTemplateConfigurations(t *testing.T) {
 	templates := cmd.GetProjectTemplates()
 
@@ -225,7 +225,7 @@ func TestTemplateConfigurations(t *testing.T) {
 	})
 }
 
-// TestTemplateYAMLValidity tests that each template generates valid YAML
+// TestTemplateYAMLValidity tests that each template generates valid YAML.
 func TestTemplateYAMLValidity(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping template YAML validation in short mode")
@@ -243,7 +243,7 @@ func TestTemplateYAMLValidity(t *testing.T) {
 			// Replace placeholders
 			configContent := strings.ReplaceAll(template.Config, "project:", "project:\n  name: test-project\n  module: github.com/test/project")
 
-			err := os.WriteFile(configPath, []byte(configContent), 0644)
+			err := os.WriteFile(configPath, []byte(configContent), 0o644)
 			if err != nil {
 				t.Fatalf("Failed to write config file: %v", err)
 			}
@@ -263,7 +263,7 @@ func TestTemplateYAMLValidity(t *testing.T) {
 	}
 }
 
-// TestTemplateIntegrationWithInit tests template integration with init command
+// TestTemplateIntegrationWithInit tests template integration with init command.
 func TestTemplateIntegrationWithInit(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping template integration tests in short mode")
@@ -290,7 +290,7 @@ func TestTemplateIntegrationWithInit(t *testing.T) {
 			}
 
 			// Create project directory
-			if err := os.MkdirAll(projectDir, 0755); err != nil {
+			if err := os.MkdirAll(projectDir, 0o755); err != nil {
 				t.Fatalf("Failed to create project dir: %v", err)
 			}
 
@@ -298,7 +298,7 @@ func TestTemplateIntegrationWithInit(t *testing.T) {
 			configPath := filepath.Join(projectDir, ".goca.yaml")
 			configWithProject := strings.ReplaceAll(configContent, "project:", "project:\n  name: test-project\n  module: github.com/test/project")
 
-			if err := os.WriteFile(configPath, []byte(configWithProject), 0644); err != nil {
+			if err := os.WriteFile(configPath, []byte(configWithProject), 0o644); err != nil {
 				t.Fatalf("Failed to write config: %v", err)
 			}
 
@@ -323,7 +323,7 @@ func TestTemplateIntegrationWithInit(t *testing.T) {
 	}
 }
 
-// TestTemplateConfigurationOverrides tests that templates work with CLI flag overrides
+// TestTemplateConfigurationOverrides tests that templates work with CLI flag overrides.
 func TestTemplateConfigurationOverrides(t *testing.T) {
 	tmpDir := t.TempDir()
 
@@ -337,7 +337,7 @@ func TestTemplateConfigurationOverrides(t *testing.T) {
 	configPath := filepath.Join(tmpDir, ".goca.yaml")
 	configWithProject := strings.ReplaceAll(configContent, "project:", "project:\n  name: test-api\n  module: github.com/test/api")
 
-	if err := os.WriteFile(configPath, []byte(configWithProject), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(configWithProject), 0o644); err != nil {
 		t.Fatalf("Failed to write config: %v", err)
 	}
 

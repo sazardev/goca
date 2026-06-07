@@ -1,6 +1,6 @@
 package cmd
 
-// Entity template for dynamic generation
+// Entity template for dynamic generation.
 const entityTemplate = `package domain
 
 {{range .Imports}}import "{{.}}"
@@ -29,7 +29,7 @@ func ({{$.Entity.NameLower}} *{{$.Entity.Name}}) {{.Name}}({{range .Params}}{{.N
 {{end}}
 `
 
-// UseCase template for dynamic generation
+// UseCase template for dynamic generation.
 const useCaseTemplate = `package usecase
 
 import (
@@ -76,7 +76,7 @@ type List{{.Entity.Name}}sOutput struct {
 }
 `
 
-// Repository template for dynamic generation
+// Repository template for dynamic generation.
 const repositoryTemplate = `package repository
 
 import (
@@ -97,7 +97,7 @@ type {{.Entity.Name}}Repository interface {
 {{end}}}
 `
 
-// Handler template for dynamic generation
+// Handler template for dynamic generation.
 const handlerTemplate = `package http
 
 import (

@@ -66,7 +66,7 @@ all layers of the system using Google Wire.`,
 func generateDI(features, database string, wire, cache bool, sm ...*SafetyManager) {
 	diDir := "internal/di"
 	// Create di directory if it doesn't exist
-	_ = os.MkdirAll(diDir, 0755)
+	_ = os.MkdirAll(diDir, 0o755)
 
 	// Parse features
 	featureList := strings.Split(features, ",")
@@ -269,14 +269,14 @@ func generateWireFile(dir string, features []string, database string, sm ...*Saf
 	}
 }
 
-// writeWireHeader writes the Wire file header with build tags
+// writeWireHeader writes the Wire file header with build tags.
 func writeWireHeader(content *strings.Builder) {
 	content.WriteString("//go:build wireinject\n")
 	content.WriteString("// +build wireinject\n\n")
 	content.WriteString("package di\n\n")
 }
 
-// writeWireImports writes the import section for Wire file
+// writeWireImports writes the import section for Wire file.
 func writeWireImports(content *strings.Builder, importPath string) {
 	content.WriteString("import (\n")
 	content.WriteString("\t\"database/sql\"\n\n")
@@ -287,7 +287,7 @@ func writeWireImports(content *strings.Builder, importPath string) {
 	content.WriteString(")\n\n")
 }
 
-// writeWireSets writes all Wire sets (Repository, UseCase, Handler, All)
+// writeWireSets writes all Wire sets (Repository, UseCase, Handler, All).
 func writeWireSets(content *strings.Builder, features []string, database string) {
 	content.WriteString("// Wire sets\n")
 	content.WriteString("var (\n")
@@ -300,7 +300,7 @@ func writeWireSets(content *strings.Builder, features []string, database string)
 	content.WriteString(")\n\n")
 }
 
-// writeRepositorySet writes the Repository Wire set
+// writeRepositorySet writes the Repository Wire set.
 func writeRepositorySet(content *strings.Builder, features []string, database string) {
 	content.WriteString("\tRepositorySet = wire.NewSet(\n")
 	for _, feature := range features {
@@ -318,7 +318,7 @@ func writeRepositorySet(content *strings.Builder, features []string, database st
 	content.WriteString("\t)\n\n")
 }
 
-// writeUseCaseSet writes the UseCase Wire set
+// writeUseCaseSet writes the UseCase Wire set.
 func writeUseCaseSet(content *strings.Builder, features []string) {
 	content.WriteString("\tUseCaseSet = wire.NewSet(\n")
 	for _, feature := range features {
@@ -327,7 +327,7 @@ func writeUseCaseSet(content *strings.Builder, features []string) {
 	content.WriteString("\t)\n\n")
 }
 
-// writeHandlerSet writes the Handler Wire set
+// writeHandlerSet writes the Handler Wire set.
 func writeHandlerSet(content *strings.Builder, features []string) {
 	content.WriteString("\tHandlerSet = wire.NewSet(\n")
 	for _, feature := range features {
@@ -336,7 +336,7 @@ func writeHandlerSet(content *strings.Builder, features []string) {
 	content.WriteString("\t)\n\n")
 }
 
-// writeAllSet writes the combined All Wire set
+// writeAllSet writes the combined All Wire set.
 func writeAllSet(content *strings.Builder) {
 	content.WriteString("\tAllSet = wire.NewSet(\n")
 	content.WriteString("\t\tRepositorySet,\n")
@@ -345,7 +345,7 @@ func writeAllSet(content *strings.Builder) {
 	content.WriteString("\t)\n")
 }
 
-// writeWireFunctions writes Wire initialization functions
+// writeWireFunctions writes Wire initialization functions.
 func writeWireFunctions(content *strings.Builder, features []string) {
 	for _, feature := range features {
 		fmt.Fprintf(content, "func Initialize%sHandler(db *sql.DB) *http.%sHandler {\n",

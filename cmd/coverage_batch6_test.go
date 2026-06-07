@@ -136,7 +136,7 @@ func TestDependencyManager_AddDependency_DryRun(t *testing.T) {
 
 	dir := t.TempDir()
 	goModPath := filepath.Join(dir, "go.mod")
-	os.WriteFile(goModPath, []byte("module test\n\ngo 1.21\n"), 0644)
+	os.WriteFile(goModPath, []byte("module test\n\ngo 1.21\n"), 0o644)
 
 	dm := &DependencyManager{
 		projectRoot: dir,
@@ -160,7 +160,7 @@ func TestDependencyManager_AddDependency_DryRun_NoUI(t *testing.T) {
 func TestDependencyManager_DependencyExists_Coverage(t *testing.T) {
 	dir := t.TempDir()
 	goModPath := filepath.Join(dir, "go.mod")
-	os.WriteFile(goModPath, []byte("module test\n\ngo 1.21\n\nrequire github.com/test/lib v1.0.0\n"), 0644)
+	os.WriteFile(goModPath, []byte("module test\n\ngo 1.21\n\nrequire github.com/test/lib v1.0.0\n"), 0o644)
 
 	dm := &DependencyManager{goModPath: goModPath}
 
@@ -224,13 +224,13 @@ func TestAddFeatureToDI_AlreadyExists(t *testing.T) {
 	os.Chdir(dir)
 
 	diDir := filepath.Join("internal", "di")
-	os.MkdirAll(diDir, 0755)
+	os.MkdirAll(diDir, 0o755)
 	content := `package di
 type Container struct {
 	productRepo repository.ProductRepository
 }
 `
-	os.WriteFile(filepath.Join(diDir, "container.go"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(diDir, "container.go"), []byte(content), 0o644)
 
 	addFeatureToDI("Product", false)
 	// "already in the DI container" path
@@ -247,7 +247,7 @@ func TestAddFeatureToDI_WithDryRun(t *testing.T) {
 	os.Chdir(dir)
 
 	diDir := filepath.Join("internal", "di")
-	os.MkdirAll(diDir, 0755)
+	os.MkdirAll(diDir, 0o755)
 	content := `package di
 
 type Container struct {
@@ -269,7 +269,7 @@ func (c *Container) setupHandlers() {
 
 // Getters
 `
-	os.WriteFile(filepath.Join(diDir, "container.go"), []byte(content), 0644)
+	os.WriteFile(filepath.Join(diDir, "container.go"), []byte(content), 0o644)
 
 	sm := NewSafetyManager(true, false, false)
 	addFeatureToDI("Order", false, sm)
@@ -291,7 +291,7 @@ func TestSetupMainGoWithFeature_Coverage(t *testing.T) {
 func main() {
 }
 `
-	os.WriteFile("main.go", []byte(mainContent), 0644)
+	os.WriteFile("main.go", []byte(mainContent), 0o644)
 
 	setupMainGoWithFeature("main.go", "Product", "github.com/test/proj", mainContent)
 }
@@ -313,16 +313,16 @@ func TestDetectExistingFeatures_Coverage(t *testing.T) {
 
 	// Create domain dir with entity files
 	domainDir := filepath.Join("internal", "domain")
-	os.MkdirAll(domainDir, 0755)
-	os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0644)
-	os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0644)
-	os.WriteFile(filepath.Join(domainDir, "errors.go"), []byte("package domain"), 0644)        // filtered
-	os.WriteFile(filepath.Join(domainDir, "product_seeds.go"), []byte("package domain"), 0644) // filtered
+	os.MkdirAll(domainDir, 0o755)
+	os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0o644)
+	os.WriteFile(filepath.Join(domainDir, "user.go"), []byte("package domain"), 0o644)
+	os.WriteFile(filepath.Join(domainDir, "errors.go"), []byte("package domain"), 0o644)        // filtered
+	os.WriteFile(filepath.Join(domainDir, "product_seeds.go"), []byte("package domain"), 0o644) // filtered
 
 	// Create handler dir
 	httpDir := filepath.Join("internal", "handler", "http")
-	os.MkdirAll(httpDir, 0755)
-	os.WriteFile(filepath.Join(httpDir, "order_handler.go"), []byte("package http"), 0644)
+	os.MkdirAll(httpDir, 0o755)
+	os.WriteFile(filepath.Join(httpDir, "order_handler.go"), []byte("package http"), 0o644)
 
 	features := detectExistingFeatures()
 	assert.Contains(t, features, "Product")
@@ -365,7 +365,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 `
-	os.WriteFile(mainPath, []byte(content), 0644)
+	os.WriteFile(mainPath, []byte(content), 0o644)
 	sm := NewSafetyManager(true, false, false)
 	addMissingFeaturesToMain(mainPath, []string{"Product", "User"}, content, "github.com/test/proj", sm)
 }
@@ -398,8 +398,8 @@ func main() {
 	router := mux.NewRouter()
 }
 `
-	os.WriteFile("main.go", []byte(mainContent), 0644)
-	os.WriteFile("go.mod", []byte("module github.com/test/proj\n\ngo 1.21\n"), 0644)
+	os.WriteFile("main.go", []byte(mainContent), 0o644)
+	os.WriteFile("go.mod", []byte("module github.com/test/proj\n\ngo 1.21\n"), 0o644)
 
 	sm := NewSafetyManager(true, false, false)
 	updateMainGoWithAllFeatures([]string{"Product"}, sm)
@@ -471,8 +471,8 @@ func TestTemplateManager_LoadTemplate_Coverage(t *testing.T) {
 
 	// Create template file
 	tmplDir := filepath.Join(dir, "templates")
-	os.MkdirAll(tmplDir, 0755)
-	os.WriteFile(filepath.Join(tmplDir, "entity.tmpl"), []byte("entity: {{.Name}}"), 0644)
+	os.MkdirAll(tmplDir, 0o755)
+	os.WriteFile(filepath.Join(tmplDir, "entity.tmpl"), []byte("entity: {{.Name}}"), 0o644)
 
 	tm := &TemplateManager{
 		baseDir:   tmplDir,
@@ -488,7 +488,7 @@ func TestTemplateManager_LoadTemplate_Coverage(t *testing.T) {
 func TestTemplateManager_LoadTemplate_BadContent(t *testing.T) {
 	dir := t.TempDir()
 
-	os.WriteFile(filepath.Join(dir, "bad.tmpl"), []byte("{{.Unclosed"), 0644)
+	os.WriteFile(filepath.Join(dir, "bad.tmpl"), []byte("{{.Unclosed"), 0o644)
 
 	tm := &TemplateManager{
 		baseDir:   dir,
@@ -535,7 +535,7 @@ func TestRunUpgrade_WithConfig(t *testing.T) {
 database:
   type: postgres
 `
-	os.WriteFile(".goca.yaml", []byte(yamlContent), 0644)
+	os.WriteFile(".goca.yaml", []byte(yamlContent), 0o644)
 
 	cmd := &cobra.Command{}
 	cmd.Flags().Bool("update", false, "")
@@ -566,7 +566,7 @@ func TestWriteGocaVersionToConfig_Real(t *testing.T) {
   name: testproject
   module: github.com/test/proj
 `)
-	os.WriteFile(configPath, raw, 0644)
+	os.WriteFile(configPath, raw, 0o644)
 
 	err := writeGocaVersionToConfig(configPath, raw, false)
 	assert.NoError(t, err)
@@ -593,7 +593,7 @@ func TestShowCurrentConfig_WithFile(t *testing.T) {
 database:
   type: postgres
 `
-	os.WriteFile(".goca.yaml", []byte(yamlContent), 0644)
+	os.WriteFile(".goca.yaml", []byte(yamlContent), 0o644)
 	showCurrentConfig()
 }
 
@@ -607,7 +607,7 @@ func TestShowCurrentConfig_InvalidYAML(t *testing.T) {
 	dir := t.TempDir()
 	os.Chdir(dir)
 
-	os.WriteFile(".goca.yaml", []byte("not: [valid: yaml\n"), 0644)
+	os.WriteFile(".goca.yaml", []byte("not: [valid: yaml\n"), 0o644)
 	showCurrentConfig()
 }
 
@@ -627,7 +627,7 @@ func TestValidateConfiguration_WithFile(t *testing.T) {
 database:
   type: postgres
 `
-	os.WriteFile(".goca.yaml", []byte(yamlContent), 0644)
+	os.WriteFile(".goca.yaml", []byte(yamlContent), 0o644)
 	validateConfiguration()
 }
 
@@ -652,7 +652,7 @@ func TestValidateConfiguration_InvalidYAML(t *testing.T) {
 	dir := t.TempDir()
 	os.Chdir(dir)
 
-	os.WriteFile(".goca.yaml", []byte("invalid: [yaml\n"), 0644)
+	os.WriteFile(".goca.yaml", []byte("invalid: [yaml\n"), 0o644)
 	validateConfiguration()
 }
 
@@ -688,7 +688,7 @@ func TestInitializeConfig_AlreadyExists(t *testing.T) {
 	dir := t.TempDir()
 	os.Chdir(dir)
 
-	os.WriteFile(".goca.yaml", []byte("existing"), 0644)
+	os.WriteFile(".goca.yaml", []byte("existing"), 0o644)
 
 	cmd := &cobra.Command{}
 	cmd.Flags().String("template", "", "")
@@ -845,7 +845,7 @@ func runAutoMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(entities...)
 }
 `
-	os.WriteFile("main.go", []byte(mainContent), 0644)
+	os.WriteFile("main.go", []byte(mainContent), 0o644)
 
 	sm := NewSafetyManager(true, false, false)
 	err := addEntityToAutoMigration("Product", sm)
@@ -886,7 +886,7 @@ func runAutoMigrations(db *gorm.DB) error {
 	return db.AutoMigrate(entities...)
 }
 `
-	os.WriteFile("main.go", []byte(mainContent), 0644)
+	os.WriteFile("main.go", []byte(mainContent), 0o644)
 
 	err := addEntityToAutoMigration("Product")
 	assert.NoError(t, err) // already exists, returns nil
@@ -1089,8 +1089,8 @@ func TestCreateOrUpdateDIContainer_ExistingDI(t *testing.T) {
 	os.Chdir(dir)
 
 	diDir := filepath.Join("internal", "di")
-	os.MkdirAll(diDir, 0755)
-	os.WriteFile(filepath.Join(diDir, "container.go"), []byte("package di\ntype Container struct{}"), 0644)
+	os.MkdirAll(diDir, 0o755)
+	os.WriteFile(filepath.Join(diDir, "container.go"), []byte("package di\ntype Container struct{}"), 0o644)
 
 	createOrUpdateDIContainer([]string{"Product"})
 }
@@ -1191,7 +1191,7 @@ func TestDependencyManager_AddDependency_AlreadyExists(t *testing.T) {
 
 	dir := t.TempDir()
 	goModPath := filepath.Join(dir, "go.mod")
-	os.WriteFile(goModPath, []byte("module test\n\ngo 1.21\n\nrequire github.com/test/lib v1.0.0\n"), 0644)
+	os.WriteFile(goModPath, []byte("module test\n\ngo 1.21\n\nrequire github.com/test/lib v1.0.0\n"), 0o644)
 
 	dm := &DependencyManager{
 		projectRoot: dir,
@@ -1251,31 +1251,20 @@ func TestVerifyIntegration_Coverage(t *testing.T) {
 
 	// Create expected files
 	domainDir := filepath.Join("internal", "domain")
-	os.MkdirAll(domainDir, 0755)
-	os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0644)
+	os.MkdirAll(domainDir, 0o755)
+	os.WriteFile(filepath.Join(domainDir, "product.go"), []byte("package domain"), 0o644)
 
 	usecaseDir := filepath.Join("internal", "usecase")
-	os.MkdirAll(usecaseDir, 0755)
-	os.WriteFile(filepath.Join(usecaseDir, "product_service.go"), []byte("package usecase"), 0644)
+	os.MkdirAll(usecaseDir, 0o755)
+	os.WriteFile(filepath.Join(usecaseDir, "product_service.go"), []byte("package usecase"), 0o644)
 
 	repoDir := filepath.Join("internal", "repository")
-	os.MkdirAll(repoDir, 0755)
+	os.MkdirAll(repoDir, 0o755)
 
 	handlerDir := filepath.Join("internal", "handler", "http")
-	os.MkdirAll(handlerDir, 0755)
+	os.MkdirAll(handlerDir, 0o755)
 
 	verifyIntegration([]string{"Product"})
-}
-
-// --- ensureTestUI helper (if not defined elsewhere in test files, define here) ---
-
-func ensureTestUIBatch6(t *testing.T) func() {
-	t.Helper()
-	oldUI := ui
-	ui = NewUIRenderer(&bytes.Buffer{}, true, 0)
-	return func() {
-		ui = oldUI
-	}
 }
 
 // --- ConfigIntegration.InitializeTemplateSystem error path ---
@@ -1299,8 +1288,8 @@ func TestFindMainGoFile_InCmdServer(t *testing.T) {
 	os.Chdir(dir)
 
 	serverDir := filepath.Join("cmd", "server")
-	os.MkdirAll(serverDir, 0755)
-	os.WriteFile(filepath.Join(serverDir, "main.go"), []byte("package main"), 0644)
+	os.MkdirAll(serverDir, 0o755)
+	os.WriteFile(filepath.Join(serverDir, "main.go"), []byte("package main"), 0o644)
 
 	path, err := findMainGoFile()
 	assert.NoError(t, err)
@@ -1334,7 +1323,7 @@ func TestDependencyManager_AddDependency_AlreadyExists_NoUI(t *testing.T) {
 
 	dir := t.TempDir()
 	goModPath := filepath.Join(dir, "go.mod")
-	os.WriteFile(goModPath, []byte("module test\nrequire github.com/test/lib v1.0.0\n"), 0644)
+	os.WriteFile(goModPath, []byte("module test\nrequire github.com/test/lib v1.0.0\n"), 0o644)
 
 	dm := &DependencyManager{
 		projectRoot: dir,

@@ -10,7 +10,7 @@ import (
 	"github.com/sazardev/goca/internal/testing/framework"
 )
 
-// TestConfigManagerBasics tests basic ConfigManager functionality
+// TestConfigManagerBasics tests basic ConfigManager functionality.
 func TestConfigManagerBasics(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -92,7 +92,7 @@ func TestConfigManagerBasics(t *testing.T) {
 	})
 }
 
-// TestConfigValidation tests configuration validation
+// TestConfigValidation tests configuration validation.
 func TestConfigValidation(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -188,7 +188,7 @@ func TestConfigValidation(t *testing.T) {
 	})
 }
 
-// TestConfigFileDiscovery tests configuration file discovery
+// TestConfigFileDiscovery tests configuration file discovery.
 func TestConfigFileDiscovery(t *testing.T) {
 	tc := framework.NewTestContext(t)
 	defer tc.Cleanup()
@@ -196,7 +196,7 @@ func TestConfigFileDiscovery(t *testing.T) {
 	t.Run("FindConfigFile", func(t *testing.T) {
 		// Create test directory structure
 		testDir := filepath.Join(tc.TempDir, "project")
-		if err := os.MkdirAll(testDir, 0755); err != nil {
+		if err := os.MkdirAll(testDir, 0o755); err != nil {
 			t.Fatalf("Failed to create test directory: %v", err)
 		}
 
@@ -210,7 +210,7 @@ database:
   port: 5432
 `
 		configPath := filepath.Join(testDir, ".goca.yaml")
-		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
 
@@ -230,7 +230,7 @@ database:
 	t.Run("ConfigFileNotFound", func(t *testing.T) {
 		// Create empty directory
 		testDir := filepath.Join(tc.TempDir, "empty-project")
-		if err := os.MkdirAll(testDir, 0755); err != nil {
+		if err := os.MkdirAll(testDir, 0o755); err != nil {
 			t.Fatalf("Failed to create test directory: %v", err)
 		}
 
@@ -245,7 +245,7 @@ database:
 	t.Run("MultipleConfigFiles", func(t *testing.T) {
 		// Create test directory
 		testDir := filepath.Join(tc.TempDir, "multi-config")
-		if err := os.MkdirAll(testDir, 0755); err != nil {
+		if err := os.MkdirAll(testDir, 0o755); err != nil {
 			t.Fatalf("Failed to create test directory: %v", err)
 		}
 
@@ -258,19 +258,19 @@ database:
 `
 
 		// Create lower priority files first
-		if err := os.WriteFile(filepath.Join(testDir, "goca.yml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(testDir, "goca.yml"), []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
-		if err := os.WriteFile(filepath.Join(testDir, "goca.yaml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(testDir, "goca.yaml"), []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
-		if err := os.WriteFile(filepath.Join(testDir, ".goca.yml"), []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(testDir, ".goca.yml"), []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
 
 		// Create highest priority file
 		highPriorityPath := filepath.Join(testDir, ".goca.yaml")
-		if err := os.WriteFile(highPriorityPath, []byte(configContent), 0644); err != nil {
+		if err := os.WriteFile(highPriorityPath, []byte(configContent), 0o644); err != nil {
 			t.Fatalf("Failed to write config file: %v", err)
 		}
 
@@ -283,7 +283,7 @@ database:
 	})
 }
 
-// TestConfigMerging tests configuration merging with CLI flags
+// TestConfigMerging tests configuration merging with CLI flags.
 func TestConfigMerging(t *testing.T) {
 	manager := cmd.NewConfigManager()
 	config := manager.CreateDefaultConfig("merge-test")
@@ -315,7 +315,7 @@ func TestConfigMerging(t *testing.T) {
 	}
 }
 
-// TestConfigDefaults tests intelligent default application
+// TestConfigDefaults tests intelligent default application.
 func TestConfigDefaults(t *testing.T) {
 	manager := cmd.NewConfigManager()
 

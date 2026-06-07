@@ -14,8 +14,7 @@ type DryRunEntry struct {
 	Size   int
 }
 
-// SafetyManager handles file safety operations like conflict detection,
-// backups, and dry-run mode
+// backups, and dry-run mode.
 type SafetyManager struct {
 	DryRun       bool
 	Force        bool
@@ -26,7 +25,7 @@ type SafetyManager struct {
 	pendingFiles []DryRunEntry
 }
 
-// NewSafetyManager creates a new safety manager instance
+// NewSafetyManager creates a new safety manager instance.
 func NewSafetyManager(dryRun, force, backup bool) *SafetyManager {
 	return &SafetyManager{
 		DryRun:       dryRun,
@@ -39,7 +38,7 @@ func NewSafetyManager(dryRun, force, backup bool) *SafetyManager {
 	}
 }
 
-// CheckFileConflict checks if a file exists and handles it according to flags
+// CheckFileConflict checks if a file exists and handles it according to flags.
 func (sm *SafetyManager) CheckFileConflict(filePath string) error {
 	if _, err := os.Stat(filePath); err == nil {
 		// File exists
@@ -54,17 +53,17 @@ func (sm *SafetyManager) CheckFileConflict(filePath string) error {
 
 		if sm.Backup {
 			if err := sm.BackupFile(filePath); err != nil {
-				return fmt.Errorf("failed to backup file %s: %v", filePath, err)
+				return fmt.Errorf("failed to backup file %s: %w", filePath, err)
 			}
 		}
 	}
 	return nil
 }
 
-// BackupFile creates a backup of an existing file
+// BackupFile creates a backup of an existing file.
 func (sm *SafetyManager) BackupFile(filePath string) error {
 	// Create backup directory if it doesn't exist
-	if err := os.MkdirAll(sm.BackupDir, 0755); err != nil {
+	if err := os.MkdirAll(sm.BackupDir, 0o755); err != nil {
 		return err
 	}
 
@@ -77,7 +76,8 @@ func (sm *SafetyManager) BackupFile(filePath string) error {
 	// Use only the base filename for backup to avoid path issues
 	baseFileName := filepath.Base(filePath)
 	backupFile := filepath.Join(sm.BackupDir, baseFileName+".backup")
-	if err := os.WriteFile(backupFile, content, 0644); err != nil {
+	//#nosec G703 // backup path is derived from validated filePath
+	if err := os.WriteFile(backupFile, content, 0o644); err != nil {
 		return err
 	}
 
@@ -89,7 +89,7 @@ func (sm *SafetyManager) BackupFile(filePath string) error {
 	return nil
 }
 
-// WriteFile writes a file with safety checks
+// WriteFile writes a file with safety checks.
 func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	// Check for conflicts first
 	if err := sm.CheckFileConflict(filePath); err != nil && !sm.Force {
@@ -109,13 +109,14 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(filePath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("failed to create directory %s: %v", dir, err)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", dir, err)
 	}
 
 	// Write file
-	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
-		return fmt.Errorf("failed to write file %s: %v", filePath, err)
+	//#nosec G703 // path is validated by SafetyManager.WriteFile
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("failed to write file %s: %w", filePath, err)
 	}
 
 	sm.createdFiles = append(sm.createdFiles, filePath)
@@ -132,17 +133,17 @@ func (sm *SafetyManager) GetPendingFiles() []DryRunEntry {
 	return sm.pendingFiles
 }
 
-// GetConflicts returns list of file conflicts found
+// GetConflicts returns list of file conflicts found.
 func (sm *SafetyManager) GetConflicts() []string {
 	return sm.conflicts
 }
 
-// GetCreatedFiles returns list of files that would be/were created
+// GetCreatedFiles returns list of files that would be/were created.
 func (sm *SafetyManager) GetCreatedFiles() []string {
 	return sm.createdFiles
 }
 
-// PrintSummary prints a summary of the operation
+// PrintSummary prints a summary of the operation.
 func (sm *SafetyManager) PrintSummary() {
 	if ui != nil {
 		sm.printSummaryStyled()
@@ -205,14 +206,14 @@ func (sm *SafetyManager) printSummaryPlain() {
 	}
 }
 
-// NameConflictDetector detects naming conflicts in the project
+// NameConflictDetector detects naming conflicts in the project.
 type NameConflictDetector struct {
 	projectRoot string
 	entities    map[string]bool
 	features    map[string]bool
 }
 
-// NewNameConflictDetector creates a new name conflict detector
+// NewNameConflictDetector creates a new name conflict detector.
 func NewNameConflictDetector(projectRoot string) *NameConflictDetector {
 	return &NameConflictDetector{
 		projectRoot: projectRoot,
@@ -221,7 +222,7 @@ func NewNameConflictDetector(projectRoot string) *NameConflictDetector {
 	}
 }
 
-// ScanExistingEntities scans the project for existing entities
+// ScanExistingEntities scans the project for existing entities.
 func (ncd *NameConflictDetector) ScanExistingEntities() error {
 	domainPath := filepath.Join(ncd.projectRoot, "internal", "domain")
 
@@ -249,7 +250,7 @@ func (ncd *NameConflictDetector) ScanExistingEntities() error {
 	return nil
 }
 
-// CheckNameConflict checks if a name conflicts with existing entities/features
+// CheckNameConflict checks if a name conflicts with existing entities/features.
 func (ncd *NameConflictDetector) CheckNameConflict(name string) error {
 	normalizedName := strings.ToLower(name)
 
@@ -264,7 +265,7 @@ func (ncd *NameConflictDetector) CheckNameConflict(name string) error {
 	return nil
 }
 
-// GetExistingEntities returns list of existing entities
+// GetExistingEntities returns list of existing entities.
 func (ncd *NameConflictDetector) GetExistingEntities() []string {
 	entities := make([]string, 0, len(ncd.entities))
 	for entity := range ncd.entities {

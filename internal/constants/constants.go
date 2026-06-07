@@ -1,7 +1,7 @@
 package constants
 
 const (
-	// Order constants
+	// Order constants.
 	MinOrderAge         = 0
 	MaxOrderAge         = 150
 	MinOrderNameLength  = 2
@@ -18,7 +18,7 @@ const (
 	DefaultOrderPerPage = 20
 )
 
-// Status constants
+// Status constants.
 const (
 	OrderStatusActive   = "active"
 	OrderStatusInactive = "inactive"

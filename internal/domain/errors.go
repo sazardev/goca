@@ -3,7 +3,7 @@ package domain
 import "errors"
 
 var (
-	// User errors
+	// User errors.
 	ErrInvalidUserData       = errors.New("invalid user data")
 	ErrInvalidUserName       = errors.New("name is required")
 	ErrInvalidUserNameLength = errors.New("name must be between 2 and 100 characters")
@@ -11,7 +11,7 @@ var (
 	ErrInvalidUserAge        = errors.New("age is required")
 	ErrInvalidUserAgeRange   = errors.New("age must be greater than 0")
 
-	// Product errors
+	// Product errors.
 	ErrInvalidProductData        = errors.New("invalid product data")
 	ErrInvalidProductName        = errors.New("name is required")
 	ErrInvalidProductNameLength  = errors.New("name must be between 2 and 100 characters")
@@ -19,10 +19,10 @@ var (
 	ErrInvalidProductPriceRange  = errors.New("price must be greater than 0 and less than 999,999,999.99")
 	ErrInvalidProductDescription = errors.New("description is required")
 
-	// Common errors
+	// Common errors.
 	ErrNotFound = errors.New("resource not found")
 
-	// Order errors
+	// Order errors.
 	ErrInvalidOrderData            = errors.New("invalid order data")
 	ErrInvalidOrderCustomerID      = errors.New("customer_id is required")
 	ErrInvalidOrderCustomerIDRange = errors.New("customer_id must be a positive number")

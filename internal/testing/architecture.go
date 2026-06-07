@@ -8,17 +8,17 @@ import (
 	"strings"
 )
 
-// ArchitectureValidator validates Clean Architecture patterns in generated code
+// ArchitectureValidator validates Clean Architecture patterns in generated code.
 type ArchitectureValidator struct {
 	suite *TestSuite
 }
 
-// NewArchitectureValidator creates a new architecture validator
+// NewArchitectureValidator creates a new architecture validator.
 func NewArchitectureValidator(suite *TestSuite) *ArchitectureValidator {
 	return &ArchitectureValidator{suite: suite}
 }
 
-// ValidateProjectStructure checks if project follows Clean Architecture structure
+// ValidateProjectStructure checks if project follows Clean Architecture structure.
 func (v *ArchitectureValidator) ValidateProjectStructure(projectDir string) []*TestError {
 	var errors []*TestError
 
@@ -44,7 +44,7 @@ func (v *ArchitectureValidator) ValidateProjectStructure(projectDir string) []*T
 	return errors
 }
 
-// ValidateLayerSeparation ensures layers don't have forbidden dependencies
+// ValidateLayerSeparation ensures layers don't have forbidden dependencies.
 func (v *ArchitectureValidator) ValidateLayerSeparation(projectDir string) []*TestError {
 	var errors []*TestError
 
@@ -69,7 +69,7 @@ func (v *ArchitectureValidator) ValidateLayerSeparation(projectDir string) []*Te
 	return errors
 }
 
-// ValidateEntityCompliance checks if entity follows domain rules
+// ValidateEntityCompliance checks if entity follows domain rules.
 func (v *ArchitectureValidator) ValidateEntityCompliance(entityFile string) []*TestError {
 	var errors []*TestError
 
@@ -97,7 +97,7 @@ func (v *ArchitectureValidator) ValidateEntityCompliance(entityFile string) []*T
 	return errors
 }
 
-// ValidateUseCaseCompliance checks if usecase follows clean architecture rules
+// ValidateUseCaseCompliance checks if usecase follows clean architecture rules.
 func (v *ArchitectureValidator) ValidateUseCaseCompliance(usecaseFile string) []*TestError {
 	var errors []*TestError
 
@@ -132,7 +132,7 @@ func (v *ArchitectureValidator) ValidateUseCaseCompliance(usecaseFile string) []
 	return errors
 }
 
-// ValidateRepositoryCompliance checks if repository follows clean architecture rules
+// ValidateRepositoryCompliance checks if repository follows clean architecture rules.
 func (v *ArchitectureValidator) ValidateRepositoryCompliance(repoFile string) []*TestError {
 	var errors []*TestError
 
@@ -167,7 +167,7 @@ func (v *ArchitectureValidator) ValidateRepositoryCompliance(repoFile string) []
 	return errors
 }
 
-// ValidateHandlerCompliance checks if handler follows clean architecture rules
+// ValidateHandlerCompliance checks if handler follows clean architecture rules.
 func (v *ArchitectureValidator) ValidateHandlerCompliance(handlerFile string) []*TestError {
 	var errors []*TestError
 
@@ -202,7 +202,7 @@ func (v *ArchitectureValidator) ValidateHandlerCompliance(handlerFile string) []
 	return errors
 }
 
-// ValidateDependencyInjection checks if DI configuration is correct
+// ValidateDependencyInjection checks if DI configuration is correct.
 func (v *ArchitectureValidator) ValidateDependencyInjection(diFile string) []*TestError {
 	var errors []*TestError
 
