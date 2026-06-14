@@ -201,6 +201,7 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 	body := bodyB.String()
 	usesErrors := strings.Contains(body, "errors.")
 	usesStrings := strings.Contains(body, "strings.")
+	usesTime := strings.Contains(body, "time.")
 
 	var content strings.Builder
 
@@ -217,12 +218,15 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 				return
 			}
 
-			// Ensure errors/strings are imported only if the new DTOs use them.
+			// Ensure errors/strings/time are imported only if the new DTOs use them.
 			if usesErrors {
 				existingStr = ensureImportInDTOFile(existingStr, "errors", moduleName)
 			}
 			if usesStrings {
 				existingStr = ensureImportInDTOFile(existingStr, "strings", moduleName)
+			}
+			if usesTime {
+				existingStr = ensureImportInDTOFile(existingStr, "time", moduleName)
 			}
 
 			// Add the existing content without the final newline
@@ -239,7 +243,10 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 		if usesStrings {
 			content.WriteString("\t\"strings\"\n")
 		}
-		if usesErrors || usesStrings {
+		if usesTime {
+			content.WriteString("\t\"time\"\n")
+		}
+		if usesErrors || usesStrings || usesTime {
 			content.WriteString("\n")
 		}
 		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))

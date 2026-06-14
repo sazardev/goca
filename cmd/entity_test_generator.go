@@ -24,9 +24,14 @@ func generateEntityTests(domainDir, entityName string, fields []Field, validatio
 	// Package declaration
 	content.WriteString("package domain\n\n")
 
-	// Imports - no time import since we don't test timestamp fields
+	// Imports. The generated tests use time.Now() for any time.Time field that
+	// is exercised (user-declared fields as well as the timestamp/soft-delete
+	// fields), so the "time" import is required whenever such a field exists.
 	content.WriteString("import (\n")
 	content.WriteString("\t\"testing\"\n")
+	if fieldsNeedTimeImport(fields) {
+		content.WriteString("\t\"time\"\n")
+	}
 	content.WriteString("\n\t\"github.com/stretchr/testify/assert\"\n")
 	content.WriteString(")\n\n") // Generate validation tests if validation is enabled
 	if validation {
@@ -184,6 +189,15 @@ func generateConstructorTests(content *strings.Builder, entityName string, field
 			continue
 		}
 
+		// time.Time fields are initialized with time.Now(); two separate
+		// time.Now() calls never compare equal, so assert the field is simply
+		// non-zero instead of equal to a fresh timestamp.
+		if field.Type == "time.Time" {
+			fmt.Fprintf(content, "\tassert.False(t, %s.%s.IsZero(), \"%s should be set correctly\")\n",
+				entityLower, field.Name, field.Name)
+			continue
+		}
+
 		expectedValue := getValidFieldValue(field)
 		fmt.Fprintf(content, "\tassert.Equal(t, %s, %s.%s, \"%s should be set correctly\")\n",
 			expectedValue, entityLower, field.Name, field.Name)
@@ -308,6 +322,23 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 	}
 }
 
+// isTestSkippedField reports whether a field is excluded from the generated
+// test value-setting loops (the framework-managed fields).
+func isTestSkippedField(name string) bool {
+	return name == "ID" || name == "CreatedAt" || name == "UpdatedAt" || name == "DeletedAt"
+}
+
+// fieldsNeedTimeImport reports whether any field exercised by the generated
+// tests is a time.Time, which requires importing the "time" package.
+func fieldsNeedTimeImport(fields []Field) bool {
+	for _, f := range fields {
+		if f.Type == "time.Time" && !isTestSkippedField(f.Name) {
+			return true
+		}
+	}
+	return false
+}
+
 // Helper functions to generate test values
 
 func getValidFieldValue(field Field) string {
@@ -373,8 +404,10 @@ func compositeOrZeroLiteral(fieldType string) string {
 	if v, ok := generateDefaultSampleValue(fieldType, 1); ok {
 		return v
 	}
-	// Unknown named type: an empty composite literal is valid for structs.
-	return fieldType + "{}"
+	// Unknown named scalar type: the entity generator emits these as
+	// `type <T> string` stubs, so a string conversion is a valid zero literal
+	// (an empty composite literal would not compile for a string-based type).
+	return fieldType + "(\"\")"
 }
 
 func getInvalidDescription(field Field) string {

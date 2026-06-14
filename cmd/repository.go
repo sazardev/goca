@@ -227,7 +227,12 @@ func generateRepositoryImplementation(dir, entity, database string, cache, trans
 	case DBMongoDB:
 		generateMongoRepository(dir, entity, cache, transactions, sm...)
 	case DBSQLite:
-		generateSQLiteRepository(dir, entity, cache, transactions, sm...)
+		// SQLite projects run on GORM (gorm.io/driver/sqlite) just like the
+		// other SQL backends: the generated main.go/DI container hold a
+		// *gorm.DB, so the repository must be GORM-based (NewPostgres<Entity>
+		// Repository(*gorm.DB)) to wire correctly. A bespoke database/sql
+		// implementation (*sql.DB) could never be injected by that container.
+		generatePostgresRepository(dir, entity, cache, transactions, sm...)
 	case DBSQLServer:
 		generateSQLServerRepository(dir, entity, cache, transactions, sm...)
 	case DBElasticsearch:

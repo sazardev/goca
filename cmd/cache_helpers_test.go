@@ -203,7 +203,50 @@ func TestGenerateManualDI_WithoutCache(t *testing.T) {
 }
 
 func TestAddSetupMethodsToDI_WithCache(t *testing.T) {
-	t.Parallel()
+	// Not parallel: relies on os.Chdir so hasCacheDecorator can find the file.
+	origDir, _ := os.Getwd()
+	defer os.Chdir(origDir)
+	dir := t.TempDir()
+	require.NoError(t, os.Chdir(dir))
+
+	// Cache wiring is only emitted when a decorator file exists AND the
+	// container exposes a redisClient field; set up both preconditions.
+	repoDir := filepath.Join(DirInternal, DirRepository)
+	require.NoError(t, os.MkdirAll(repoDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(repoDir, "cached_product_repository.go"), []byte("package repository\n"), 0o644))
+
+	content := `type Container struct {
+	redisClient *redis.Client
+}
+
+func (c *Container) setupRepositories() {
+}
+
+func (c *Container) setupUseCases() {
+}
+
+func (c *Container) setupHandlers() {
+}
+
+// Getters`
+
+	result := addSetupMethodsToDI(content, "Product", "product", "postgres", true)
+	assert.Contains(t, result, "baseProductRepo := repository.NewPostgresProductRepository(c.db)")
+	assert.Contains(t, result, "c.productRepo = repository.NewCachedProductRepository(baseProductRepo, c.redisClient, 5*time.Minute)")
+}
+
+// TestAddSetupMethodsToDI_CacheWithoutRedisClient verifies that when the
+// container has no redisClient field, the cache decorator is NOT wired (which
+// would otherwise reference an undefined field) and the bare repo is used.
+func TestAddSetupMethodsToDI_CacheWithoutRedisClient(t *testing.T) {
+	origDir, _ := os.Getwd()
+	defer os.Chdir(origDir)
+	dir := t.TempDir()
+	require.NoError(t, os.Chdir(dir))
+
+	repoDir := filepath.Join(DirInternal, DirRepository)
+	require.NoError(t, os.MkdirAll(repoDir, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(repoDir, "cached_product_repository.go"), []byte("package repository\n"), 0o644))
 
 	content := `func (c *Container) setupRepositories() {
 }
@@ -216,9 +259,9 @@ func (c *Container) setupHandlers() {
 
 // Getters`
 
-	result := addSetupMethodsToDI(content, "Product", "product", true)
-	assert.Contains(t, result, "baseProductRepo := repository.NewPostgresProductRepository(c.db)")
-	assert.Contains(t, result, "c.productRepo = repository.NewCachedProductRepository(baseProductRepo, c.redisClient, 5*time.Minute)")
+	result := addSetupMethodsToDI(content, "Product", "product", "postgres", true)
+	assert.Contains(t, result, "c.productRepo = repository.NewPostgresProductRepository(c.db)")
+	assert.NotContains(t, result, "NewCachedProductRepository")
 }
 
 func TestAddSetupMethodsToDI_WithoutCache(t *testing.T) {
@@ -235,7 +278,7 @@ func (c *Container) setupHandlers() {
 
 // Getters`
 
-	result := addSetupMethodsToDI(content, "Order", "order", false)
+	result := addSetupMethodsToDI(content, "Order", "order", "postgres", false)
 	assert.Contains(t, result, "c.orderRepo = repository.NewPostgresOrderRepository(c.db)")
 	assert.NotContains(t, result, "baseOrderRepo")
 	assert.NotContains(t, result, "NewCachedOrderRepository")

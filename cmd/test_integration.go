@@ -181,7 +181,7 @@ func Test%[1]sIntegration(t *testing.T) {
 	defer cleanupTestDatabase(t, db)
 
 	// Initialize dependencies
-	repo := repository.NewPostgres%[1]sRepository(db)
+	repo := repository.New%[4]s%[1]sRepository(db)
 	service := usecase.New%[1]sService(repo)
 
 
@@ -274,7 +274,7 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 	db := setupTestDatabase(t, "%[2]s")
 	defer cleanupTestDatabase(t, db)
 
-	repo := repository.NewPostgres%[1]sRepository(db)
+	repo := repository.New%[4]s%[1]sRepository(db)
 
 	t.Run("SaveAndFindByID", func(t *testing.T) {
 		%[3]s := &domain.%[1]s{
@@ -324,7 +324,7 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
-`, entityName, database, lowerEntity)
+`, entityName, database, lowerEntity, repoConstructorPrefix(database))
 	return replaceIntegrationTestTODOs(content, fields, entityName)
 }
 
