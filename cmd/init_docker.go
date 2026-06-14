@@ -75,7 +75,7 @@ This directory contains database migration files.
 ## Usage
 
 ### Using golang-migrate tool
-bash
+` + "```bash" + `
 # Install golang-migrate
 go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
@@ -84,16 +84,16 @@ migrate -path ./migrations -database "postgres://user:password@localhost/dbname?
 
 # Rollback last migration
 migrate -path ./migrations -database "postgres://user:password@localhost/dbname?sslmode=disable" down 1
-
+` + "```" + `
 
 ### Manual execution
-bash
+` + "```bash" + `
 # Apply migration
 psql -h localhost -U postgres -d your_db -f migrations/001_initial.up.sql
 
-# Rollback migration  
+# Rollback migration
 psql -h localhost -U postgres -d your_db -f migrations/001_initial.down.sql
-
+` + "```" + `
 
 ## Creating new migrations
 1. Create new files: 002_description.up.sql and 002_description.down.sql
@@ -250,8 +250,24 @@ CMD ["./%s"]
 		ui.Warning(fmt.Sprintf("Error creating Dockerfile: %v", err))
 	}
 
-	// Docker Compose
-	dockerComposeContent := fmt.Sprintf(`version: '3.8'
+	// Docker Compose. SQLite is file-based, so emit only the app service with
+	// no DB container (INIT-B6).
+	var dockerComposeContent string
+	if database == DBSQLite {
+		dockerComposeContent = fmt.Sprintf(`version: '3.8'
+
+services:
+  %s:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_NAME=%s
+    restart: unless-stopped
+`, projectName, projectName)
+	} else {
+		port := getDatabasePort(database)
+		dockerComposeContent = fmt.Sprintf(`version: '3.8'
 
 services:
   %s:
@@ -260,6 +276,7 @@ services:
       - "8080:8080"
     environment:
       - DB_HOST=database
+      - DB_PORT=%s
       - DB_USER=%s
       - DB_PASSWORD=password
       - DB_NAME=%s
@@ -274,7 +291,7 @@ services:
     ports:
       - "%s:%s"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - db_data:%s
     healthcheck:
       test: %s
       interval: 10s
@@ -284,7 +301,8 @@ services:
 
 volumes:
   db_data:
-`, projectName, getDatabaseUser(database), projectName, getDatabaseImage(database), getDatabaseEnvVars(database, projectName), getDatabasePort(database), getDatabasePort(database), getDatabaseHealthCheck(database))
+`, projectName, port, getDatabaseUser(database), projectName, getDatabaseImage(database), getDatabaseEnvVars(database, projectName), port, port, getDatabaseVolumePath(database), getDatabaseHealthCheck(database))
+	}
 
 	if err := writeFile(filepath.Join(projectName, "docker-compose.yml"), dockerComposeContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error creating docker-compose.yml: %v", err))
@@ -333,33 +351,71 @@ coverage.html
 
 func getDatabaseImage(database string) string {
 	switch database {
-	case "mysql":
+	case DBMySQL:
 		return "mysql:8.0"
-	case "mongodb":
+	case DBMongoDB:
 		return "mongo:7.0"
-	default:
+	case DBSQLServer:
+		return "mcr.microsoft.com/mssql/server:2022-latest"
+	case DBDynamoDB:
+		return "amazon/dynamodb-local:latest"
+	case DBElasticsearch:
+		return "docker.elastic.co/elasticsearch/elasticsearch:8.10.1"
+	default: // postgres, postgres-json
 		return "postgres:15"
 	}
 }
 
 func getDatabaseEnvVars(database, projectName string) string {
 	switch database {
-	case "mysql":
+	case DBMySQL:
 		return fmt.Sprintf("\n      - MYSQL_ROOT_PASSWORD=password\n      - MYSQL_DATABASE=%s", projectName)
-	case "mongodb":
+	case DBMongoDB:
 		return fmt.Sprintf("\n      - MONGO_INITDB_ROOT_USERNAME=admin\n      - MONGO_INITDB_ROOT_PASSWORD=password\n      - MONGO_INITDB_DATABASE=%s", projectName)
-	default:
+	case DBSQLServer:
+		return "\n      - ACCEPT_EULA=Y\n      - MSSQL_SA_PASSWORD=Your_password123"
+	case DBDynamoDB:
+		return "\n      - AWS_ACCESS_KEY_ID=local\n      - AWS_SECRET_ACCESS_KEY=local"
+	case DBElasticsearch:
+		return "\n      - discovery.type=single-node\n      - xpack.security.enabled=false\n      - ES_JAVA_OPTS=-Xms512m -Xmx512m"
+	default: // postgres, postgres-json
 		return fmt.Sprintf("\n      - POSTGRES_USER=postgres\n      - POSTGRES_PASSWORD=password\n      - POSTGRES_DB=%s", projectName)
 	}
 }
 
 func getDatabaseHealthCheck(database string) string {
 	switch database {
-	case "mysql":
+	case DBMySQL:
 		return `["CMD", "mysqladmin", "ping", "-h", "localhost"]`
-	case "mongodb":
-		return `["CMD", "mongo", "--eval", "db.adminCommand('ping')"]`
-	default:
+	case DBMongoDB:
+		// mongo:7.0 ships mongosh, not the removed legacy mongo shell (INIT-B7).
+		return `["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]`
+	case DBSQLServer:
+		return `["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Your_password123 -Q 'SELECT 1' || exit 1"]`
+	case DBDynamoDB:
+		return `["CMD-SHELL", "curl -f http://localhost:8000 || exit 1"]`
+	case DBElasticsearch:
+		return `["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]`
+	default: // postgres, postgres-json
 		return `["CMD-SHELL", "pg_isready -U postgres"]`
+	}
+}
+
+// getDatabaseVolumePath returns the in-container data directory for the database
+// image, so the named volume is mounted at the correct path (INIT-B5).
+func getDatabaseVolumePath(database string) string {
+	switch database {
+	case DBMySQL:
+		return "/var/lib/mysql"
+	case DBMongoDB:
+		return "/data/db"
+	case DBSQLServer:
+		return "/var/opt/mssql"
+	case DBDynamoDB:
+		return "/home/dynamodblocal/data"
+	case DBElasticsearch:
+		return "/usr/share/elasticsearch/data"
+	default: // postgres, postgres-json
+		return "/var/lib/postgresql/data"
 	}
 }

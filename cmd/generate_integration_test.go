@@ -73,7 +73,7 @@ func TestDryRunGenerators_Sequential(t *testing.T) {
 		dir := t.TempDir()
 		require.NoError(t, os.Chdir(dir))
 		require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
-		generateHTTPHandlerFile(filepath.Join(dir, "handler"), "Product", false, "", sm)
+		generateHTTPHandlerFile(filepath.Join(dir, "handler"), "Product", false, false, "", sm)
 	})
 
 	// Subtest: generateHTTPRoutesFile

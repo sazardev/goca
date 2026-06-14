@@ -36,10 +36,11 @@ func TestSafetyManager_CheckFileConflict(t *testing.T) {
 		f := filepath.Join(dir, "existing.go")
 		require.NoError(t, os.WriteFile(f, []byte("package x"), 0o644))
 
+		// In dry-run mode an existing file must NOT cause an error; it is just
+		// recorded as a conflict and previewed as "would overwrite".
 		sm := NewSafetyManager(true, false, false)
 		err := sm.CheckFileConflict(f)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "dry-run")
+		assert.NoError(t, err)
 		assert.Len(t, sm.GetConflicts(), 1)
 	})
 

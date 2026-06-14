@@ -111,10 +111,28 @@ var handlerCmd = &cobra.Command{
 			ui.DryRun("Previewing changes without creating files")
 		}
 
+		// Validate that the entity and its usecase exist before generating a
+		// handler that would reference an undefined usecase.<Entity>UseCase.
+		if !entityExistsForHandler(entity) {
+			ui.Warning(fmt.Sprintf("Entity %q not found in internal/domain — the generated handler will reference an undefined type. Generate it first with: goca entity %s", entity, entity))
+		}
+		if !usecaseExistsForHandler(entity) {
+			ui.Warning(fmt.Sprintf("Usecase usecase.%sUseCase not found in internal/usecase — the generated handler will not compile until you run: goca usecase %s", entity, entity))
+		}
+
+		filesBefore := len(sm.GetCreatedFiles())
 		generateHandler(entity, effectiveHandlerType, effectiveMiddleware, effectiveValidation, effectiveSwagger, fileNamingConvention, sm)
+		filesWritten := len(sm.GetCreatedFiles()) - filesBefore
 
 		if dryRun {
 			sm.PrintSummary()
+			return
+		}
+
+		// If nothing was written (e.g. files already exist and --force was not
+		// given), don't claim success or touch dependencies.
+		if filesWritten == 0 {
+			ui.Warning(fmt.Sprintf("No files were generated for '%s' (they may already exist — use --force to overwrite).", entity))
 			return
 		}
 
@@ -129,13 +147,84 @@ var handlerCmd = &cobra.Command{
 			}
 		}
 		if len(requiredDeps) > 0 {
-			if err := depMgr.UpdateGoMod(); err != nil {
-				ui.Warning(fmt.Sprintf("Could not update go.mod: %v", err))
+			// Best-effort: `go mod tidy` performs network fetches and can fail for
+			// a module not yet pushed to its remote (internal/* become
+			// unresolvable). A failed tidy must never corrupt go.mod, so we snapshot
+			// go.mod/go.sum and restore them if tidy fails, warning only.
+			if err := updateGoModBestEffort(depMgr, projectRoot); err != nil {
+				ui.Warning(fmt.Sprintf("Could not update go.mod (left unchanged): %v", err))
 			}
 		}
 
 		ui.Success(fmt.Sprintf("Handler '%s' for '%s' generated successfully!", effectiveHandlerType, entity))
 	},
+}
+
+// entityExistsForHandler reports whether the domain entity file for the given
+// entity exists under internal/domain.
+func entityExistsForHandler(entity string) bool {
+	candidates := []string{
+		filepath.Join(DirInternal, "domain", strings.ToLower(entity)+".go"),
+		filepath.Join(DirInternal, "domain", toSnakeCase(entity)+".go"),
+		filepath.Join(DirInternal, "domain", toKebabCase(entity)+".go"),
+	}
+	for _, c := range candidates {
+		if _, err := os.Stat(c); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+// usecaseExistsForHandler reports whether a usecase.<Entity>UseCase appears to be
+// defined under internal/usecase. It scans the usecase package for the interface
+// declaration so renamed files are still detected.
+func usecaseExistsForHandler(entity string) bool {
+	usecaseDir := filepath.Join(DirInternal, "usecase")
+	entries, err := os.ReadDir(usecaseDir)
+	if err != nil {
+		return false
+	}
+	needle := fmt.Sprintf("type %sUseCase ", entity)
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(usecaseDir, e.Name()))
+		if err != nil {
+			continue
+		}
+		if strings.Contains(string(data), needle) {
+			return true
+		}
+	}
+	return false
+}
+
+// updateGoModBestEffort runs the dependency manager's go mod tidy but guarantees
+// that a failure leaves go.mod and go.sum exactly as they were. This prevents a
+// failing network tidy (common for not-yet-pushed modules) from corrupting the
+// project's module files.
+func updateGoModBestEffort(depMgr *DependencyManager, projectRoot string) error {
+	goModPath := filepath.Join(projectRoot, "go.mod")
+	goSumPath := filepath.Join(projectRoot, "go.sum")
+
+	goModBackup, goModErr := os.ReadFile(goModPath)
+	goSumBackup, goSumErr := os.ReadFile(goSumPath)
+
+	if err := depMgr.UpdateGoMod(); err != nil {
+		// Restore the snapshots so a failed tidy never corrupts the module files.
+		if goModErr == nil {
+			//#nosec G703 // path is projectRoot/go.mod, restoring our own snapshot
+			_ = os.WriteFile(goModPath, goModBackup, 0o644)
+		}
+		if goSumErr == nil {
+			//#nosec G703 // path is projectRoot/go.sum, restoring our own snapshot
+			_ = os.WriteFile(goSumPath, goSumBackup, 0o644)
+		}
+		return err
+	}
+	return nil
 }
 
 func generateHandler(entity, handlerType string, middleware, validation, swagger bool, fileNamingConvention string, sm ...*SafetyManager) {
@@ -162,7 +251,7 @@ func generateHTTPHandler(entity string, middleware, validation, swagger bool, fi
 	_ = os.MkdirAll(handlerDir, 0o755)
 
 	// Generate handler file
-	generateHTTPHandlerFile(handlerDir, entity, validation, fileNamingConvention, sm...)
+	generateHTTPHandlerFile(handlerDir, entity, validation, swagger, fileNamingConvention, sm...)
 
 	// Generate routes file
 	generateHTTPRoutesFile(handlerDir, entity, middleware, sm...)
@@ -178,7 +267,7 @@ func generateHTTPHandler(entity string, middleware, validation, swagger bool, fi
 	}
 }
 
-func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConvention string, sm ...*SafetyManager) {
+func generateHTTPHandlerFile(dir, entity string, validation, swagger bool, fileNamingConvention string, sm ...*SafetyManager) {
 	// Apply naming convention to filename
 	var filename string
 	if fileNamingConvention == "snake_case" {
@@ -219,11 +308,11 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	content.WriteString("}\n\n")
 
 	// Generate HTTP methods
-	generateCreateHandlerMethod(&content, entity, handlerName, validation)
-	generateGetHandlerMethod(&content, entity, handlerName)
-	generateUpdateHandlerMethod(&content, entity, handlerName, validation)
-	generateDeleteHandlerMethod(&content, entity, handlerName)
-	generateListHandlerMethod(&content, entity, handlerName)
+	generateCreateHandlerMethod(&content, entity, handlerName, validation, swagger)
+	generateGetHandlerMethod(&content, entity, handlerName, swagger)
+	generateUpdateHandlerMethod(&content, entity, handlerName, validation, swagger)
+	generateDeleteHandlerMethod(&content, entity, handlerName, swagger)
+	generateListHandlerMethod(&content, entity, handlerName, swagger)
 
 	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing handler file: %v", err))
@@ -231,8 +320,39 @@ func generateHTTPHandlerFile(dir, entity string, validation bool, fileNamingConv
 	}
 }
 
-func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName string, validation bool) {
+// writeSwaggerAnnotations emits the swaggo godoc annotation block for a handler
+// method when swagger is enabled.
+func writeSwaggerAnnotations(content *strings.Builder, entity, summary, method, route, successCode, successType, bodyType string) {
+	entityLower := strings.ToLower(entity)
+	pluralTag := entityLower + "s"
+	fmt.Fprintf(content, "// %s godoc\n", summary)
+	fmt.Fprintf(content, "// @Summary %s\n", summary)
+	fmt.Fprintf(content, "// @Tags %s\n", pluralTag)
+	content.WriteString("// @Accept json\n")
+	content.WriteString("// @Produce json\n")
+	if strings.Contains(route, "{id}") {
+		fmt.Fprintf(content, "// @Param id path int true \"%s ID\"\n", entity)
+	}
+	if bodyType != "" {
+		fmt.Fprintf(content, "// @Param body body %s true \"%s payload\"\n", bodyType, entity)
+	}
+	if successType != "" {
+		fmt.Fprintf(content, "// @Success %s {object} %s\n", successCode, successType)
+	} else {
+		fmt.Fprintf(content, "// @Success %s\n", successCode)
+	}
+	content.WriteString("// @Failure 400 {object} map[string]string\n")
+	content.WriteString("// @Failure 500 {object} map[string]string\n")
+	fmt.Fprintf(content, "// @Router %s [%s]\n", route, method)
+}
+
+func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName string, validation, swagger bool) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
+	entityLower := strings.ToLower(entity)
+
+	if swagger {
+		writeSwaggerAnnotations(content, entity, fmt.Sprintf("Create %s", entityLower), "post", "/"+entityLower+"s", "201", fmt.Sprintf("usecase.Create%sOutput", entity), fmt.Sprintf("usecase.Create%sInput", entity))
+	}
 
 	fmt.Fprintf(content, "func (%s *%s) Create%s(w http.ResponseWriter, r *http.Request) {\n",
 		handlerVar, handlerName, entity)
@@ -262,8 +382,13 @@ func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName s
 	content.WriteString("}\n\n")
 }
 
-func generateGetHandlerMethod(content *strings.Builder, entity, handlerName string) {
+func generateGetHandlerMethod(content *strings.Builder, entity, handlerName string, swagger bool) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
+	entityLower := strings.ToLower(entity)
+
+	if swagger {
+		writeSwaggerAnnotations(content, entity, fmt.Sprintf("Get %s by ID", entityLower), "get", "/"+entityLower+"s/{id}", "200", fmt.Sprintf("usecase.Get%sOutput", entity), "")
+	}
 
 	fmt.Fprintf(content, "func (%s *%s) Get%s(w http.ResponseWriter, r *http.Request) {\n",
 		handlerVar, handlerName, entity)
@@ -285,8 +410,13 @@ func generateGetHandlerMethod(content *strings.Builder, entity, handlerName stri
 	content.WriteString("}\n\n")
 }
 
-func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName string, validation bool) {
+func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName string, validation, swagger bool) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
+	entityLower := strings.ToLower(entity)
+
+	if swagger {
+		writeSwaggerAnnotations(content, entity, fmt.Sprintf("Update %s", entityLower), "put", "/"+entityLower+"s/{id}", "204", "", fmt.Sprintf("usecase.Update%sInput", entity))
+	}
 
 	fmt.Fprintf(content, "func (%s *%s) Update%s(w http.ResponseWriter, r *http.Request) {\n",
 		handlerVar, handlerName, entity)
@@ -319,8 +449,13 @@ func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName s
 	content.WriteString("}\n\n")
 }
 
-func generateDeleteHandlerMethod(content *strings.Builder, entity, handlerName string) {
+func generateDeleteHandlerMethod(content *strings.Builder, entity, handlerName string, swagger bool) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
+	entityLower := strings.ToLower(entity)
+
+	if swagger {
+		writeSwaggerAnnotations(content, entity, fmt.Sprintf("Delete %s", entityLower), "delete", "/"+entityLower+"s/{id}", "204", "", "")
+	}
 
 	fmt.Fprintf(content, "func (%s *%s) Delete%s(w http.ResponseWriter, r *http.Request) {\n",
 		handlerVar, handlerName, entity)
@@ -340,8 +475,13 @@ func generateDeleteHandlerMethod(content *strings.Builder, entity, handlerName s
 	content.WriteString("}\n\n")
 }
 
-func generateListHandlerMethod(content *strings.Builder, entity, handlerName string) {
+func generateListHandlerMethod(content *strings.Builder, entity, handlerName string, swagger bool) {
 	handlerVar := strings.ToLower(string(handlerName[0]))
+	entityLower := strings.ToLower(entity)
+
+	if swagger {
+		writeSwaggerAnnotations(content, entity, fmt.Sprintf("List %ss", entityLower), "get", "/"+entityLower+"s", "200", fmt.Sprintf("usecase.List%ssOutput", entity), "")
+	}
 
 	fmt.Fprintf(content, "func (%s *%s) List%ss(w http.ResponseWriter, r *http.Request) {\n",
 		handlerVar, handlerName, entity)
@@ -359,12 +499,29 @@ func generateListHandlerMethod(content *strings.Builder, entity, handlerName str
 func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "routes.go")
 
+	// Detect whether the standalone middleware package exists.
+	middlewarePkgExists := middlewarePackageExists()
+
+	// If routes.go already exists (a previous feature created it), append only the
+	// new Setup<Entity>Routes function so multiple features coexist in one routes
+	// file — the package declaration, imports and middleware helpers are already
+	// present. Idempotent: do nothing when this entity's function already exists.
+	if existing, err := os.ReadFile(filename); err == nil {
+		if strings.Contains(string(existing), fmt.Sprintf("func Setup%sRoutes(", entity)) {
+			return
+		}
+		var fn strings.Builder
+		writeRouteSetupFunc(&fn, entity, middleware, middlewarePkgExists)
+		merged := strings.TrimRight(string(existing), "\n") + "\n\n" + fn.String()
+		if err := writeGoFileMerged(filename, merged, sm...); err != nil {
+			ui.Error(fmt.Sprintf("Error writing routes file: %v", err))
+		}
+		return
+	}
+
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)
-
-	// Detect whether the standalone middleware package exists.
-	middlewarePkgExists := middlewarePackageExists()
 
 	var content strings.Builder
 	content.WriteString("package http\n\n")
@@ -380,6 +537,23 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyMa
 	}
 	content.WriteString(")\n\n")
 
+	writeRouteSetupFunc(&content, entity, middleware, middlewarePkgExists)
+
+	if middleware && !middlewarePkgExists {
+		content.WriteString("\n// Middleware functions\n")
+		generateMiddlewareFunctions(&content)
+	}
+
+	if err := writeGoFile(filename, content.String(), sm...); err != nil {
+		ui.Error(fmt.Sprintf("Error writing routes file: %v", err))
+		return
+	}
+}
+
+// writeRouteSetupFunc writes the Setup<Entity>Routes function body into content.
+// Shared by the initial routes.go generation and the append path used when a
+// later feature adds its routes to an existing file.
+func writeRouteSetupFunc(content *strings.Builder, entity string, middleware, middlewarePkgExists bool) {
 	entityLower := strings.ToLower(entity)
 	pluralEntity := entityLower + "s"
 
@@ -391,8 +565,8 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyMa
 		content.WriteString("\t// Apply middleware\n")
 		content.WriteString(fmt.Sprintf("\t%sRouter := router.PathPrefix(\"/%s\").Subrouter()\n", entityLower, pluralEntity))
 		if middlewarePkgExists {
-			content.WriteString(fmt.Sprintf("\t%sRouter.Use(middleware.CORS(middleware.DefaultCORSConfig()))\n", entityLower))
-			content.WriteString(fmt.Sprintf("\t%sRouter.Use(middleware.Logging())\n\n", entityLower))
+			content.WriteString(fmt.Sprintf("\t%sRouter.Use(mux.MiddlewareFunc(middleware.CORS(middleware.DefaultCORSConfig())))\n", entityLower))
+			content.WriteString(fmt.Sprintf("\t%sRouter.Use(mux.MiddlewareFunc(middleware.Logging()))\n\n", entityLower))
 		} else {
 			content.WriteString(fmt.Sprintf("\t%sRouter.Use(corsMiddleware)\n", entityLower))
 			content.WriteString(fmt.Sprintf("\t%sRouter.Use(loggingMiddleware)\n\n", entityLower))
@@ -422,16 +596,6 @@ func generateHTTPRoutesFile(dir, entity string, middleware bool, sm ...*SafetyMa
 	}
 
 	content.WriteString("}\n")
-
-	if middleware && !middlewarePkgExists {
-		content.WriteString("\n// Middleware functions\n")
-		generateMiddlewareFunctions(&content)
-	}
-
-	if err := writeGoFile(filename, content.String(), sm...); err != nil {
-		ui.Error(fmt.Sprintf("Error writing routes file: %v", err))
-		return
-	}
 }
 
 func generateMiddlewareFunctions(content *strings.Builder) {

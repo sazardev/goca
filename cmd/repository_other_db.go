@@ -14,7 +14,6 @@ func generatePostgresJSONRepository(dir, entity string, cache, transactions bool
 	var content strings.Builder
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
-	content.WriteString("\t\"encoding/json\"\n")
 	content.WriteString("\t\"gorm.io/datatypes\"\n")
 	content.WriteString("\t\"gorm.io/gorm\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
@@ -155,9 +154,9 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\t\"bytes\"\n")
 	content.WriteString("\t\"context\"\n")
 	content.WriteString("\t\"encoding/json\"\n")
-	content.WriteString("\t\"fmt\"\n")
-	content.WriteString("\t\"github.com/elastic/go-elasticsearch/v8\"\n")
 	content.WriteString("\t\"strconv\"\n")
+	content.WriteString("\t\"github.com/elastic/go-elasticsearch/v8\"\n")
+	content.WriteString("\t\"github.com/elastic/go-elasticsearch/v8/esapi\"\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString(")\n\n")
 
@@ -276,7 +275,6 @@ func generateDynamoDBRepository(dir, entity string, cache, transactions bool, sm
 	content.WriteString("package repository\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"context\"\n")
-	content.WriteString("\t\"encoding/json\"\n")
 	content.WriteString("\t\"fmt\"\n")
 	content.WriteString("\t\"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue\"\n")
 	content.WriteString("\t\"github.com/aws/aws-sdk-go-v2/service/dynamodb\"\n")

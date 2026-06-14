@@ -21,11 +21,18 @@ func TestGetValidateTag(t *testing.T) {
 		{name: "email lower", fieldName: "email", fieldType: "string", expected: "required,email"},
 		{name: "string field", fieldName: "Name", fieldType: "string", expected: "required"},
 		{name: "int field", fieldName: "Age", fieldType: "int", expected: "required,gte=0"},
+		{name: "int32 field", fieldName: "Count", fieldType: "int32", expected: "required,gte=0"},
 		{name: "int64 field", fieldName: "Count", fieldType: "int64", expected: "required,gte=0"},
-		{name: "uint field", fieldName: "ID", fieldType: "uint", expected: "required,gte=0"},
+		{name: "float32 field", fieldName: "Rate", fieldType: "float32", expected: "required,gte=0"},
 		{name: "float64 field", fieldName: "Price", fieldType: "float64", expected: "required,gte=0"},
+		// Unsigned integers are always >= 0, so gte=0 is omitted.
+		{name: "uint field", fieldName: "Qty", fieldType: "uint", expected: "required"},
+		{name: "uint32 field", fieldName: "Qty", fieldType: "uint32", expected: "required"},
 		{name: "bool field", fieldName: "Active", fieldType: "bool", expected: ""},
 		{name: "time field", fieldName: "CreatedAt", fieldType: "time.Time", expected: "required"},
+		// Slices/pointers get no validate tag (no coherent runtime check).
+		{name: "slice field", fieldName: "Tags", fieldType: "[]string", expected: ""},
+		{name: "pointer field", fieldName: "LastLogin", fieldType: "*time.Time", expected: ""},
 	}
 
 	for _, tc := range cases {

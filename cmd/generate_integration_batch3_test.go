@@ -240,4 +240,11 @@ func TestGenerateUpdateMethod(t *testing.T) {
 	assert.Contains(t, result, "func (P *ProductService) UpdateProduct")
 	assert.Contains(t, result, "UpdateProductInput")
 	assert.Contains(t, result, "repo.FindByID")
+	// The generic update method must reference the actual generic DTO fields
+	// (pointer Name/Description), not the old hardcoded Spanish fields.
+	assert.Contains(t, result, "if input.Name != nil {")
+	assert.Contains(t, result, "product.Name = *input.Name")
+	assert.Contains(t, result, "if input.Description != nil {")
+	assert.NotContains(t, result, "Nombre")
+	assert.NotContains(t, result, "input.Email")
 }

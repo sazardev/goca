@@ -149,6 +149,9 @@ func (u *UIRenderer) FileCreated(path string) {
 	if u == nil {
 		return
 	}
+	if u.verbosity < 1 {
+		return
+	}
 	check := lipgloss.NewStyle().Foreground(colorGreen).Render("✓")
 	dimPath := lipgloss.NewStyle().Foreground(colorDim).Render(path)
 	fmt.Fprintf(u.writer, "  %s Created: %s\n", check, dimPath)
@@ -208,6 +211,9 @@ func (u *UIRenderer) Feature(text string, fromConfig bool) {
 // Table prints a formatted table with headers and rows.
 func (u *UIRenderer) Table(headers []string, rows [][]string) {
 	if u == nil {
+		return
+	}
+	if u.verbosity < 1 {
 		return
 	}
 	if len(headers) == 0 {

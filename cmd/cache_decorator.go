@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -18,6 +19,11 @@ func generateCacheDecorator(entity string, fields []Field, sm ...*SafetyManager)
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)
 
+	// Detect whether the interface includes transaction methods so the decorator
+	// can also delegate the WithTx methods and remain substitutable for the
+	// <Entity>Repository interface.
+	transactions := interfaceHasTransactions(filepath.Join(repoDir, "interfaces.go"), entity)
+
 	var b strings.Builder
 
 	b.WriteString("package repository\n\n")
@@ -28,6 +34,9 @@ func generateCacheDecorator(entity string, fields []Field, sm ...*SafetyManager)
 	b.WriteString("\t\"time\"\n\n")
 	b.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n\n", importPath))
 	b.WriteString("\t\"github.com/redis/go-redis/v9\"\n")
+	if transactions {
+		b.WriteString("\t\"gorm.io/gorm\"\n")
+	}
 	b.WriteString(")\n\n")
 
 	// Struct
@@ -89,17 +98,15 @@ func generateCacheDecorator(entity string, fields []Field, sm ...*SafetyManager)
 	b.WriteString("\treturn entity, nil\n")
 	b.WriteString("}\n\n")
 
-	// Dynamic search methods from fields — delegate only (no caching for search)
+	// Dynamic search methods from fields — delegate only (no caching for search).
+	// Only emit finders that actually exist on the interface (derived from the
+	// parsed fields); when no fields are known, emit none so we never reference
+	// an undefined inner method like FindByEmail on an entity without that field.
 	if len(fields) > 0 {
 		searchMethods := generateSearchMethods(fields, entity)
 		for _, m := range searchMethods {
 			generateCacheSearchMethodDelegate(&b, entity, m)
 		}
-	} else {
-		// Default FindByEmail when no fields are specified
-		b.WriteString(fmt.Sprintf("func (r *Cached%sRepository) FindByEmail(email string) (*domain.%s, error) {\n", entity, entity))
-		b.WriteString("\treturn r.inner.FindByEmail(email)\n")
-		b.WriteString("}\n\n")
 	}
 
 	// Update — delegate + invalidate
@@ -140,9 +147,35 @@ func generateCacheDecorator(entity string, fields []Field, sm ...*SafetyManager)
 	b.WriteString("\treturn entities, nil\n")
 	b.WriteString("}\n")
 
+	// Transaction methods — delegate to inner so the decorator still satisfies a
+	// transactional <Entity>Repository interface.
+	if transactions {
+		b.WriteString("\n")
+		fmt.Fprintf(&b, "func (r *Cached%sRepository) SaveWithTx(tx *gorm.DB, %s *domain.%s) error {\n", entity, entityLower, entity)
+		fmt.Fprintf(&b, "\treturn r.inner.SaveWithTx(tx, %s)\n", entityLower)
+		b.WriteString("}\n\n")
+		fmt.Fprintf(&b, "func (r *Cached%sRepository) UpdateWithTx(tx *gorm.DB, %s *domain.%s) error {\n", entity, entityLower, entity)
+		fmt.Fprintf(&b, "\treturn r.inner.UpdateWithTx(tx, %s)\n", entityLower)
+		b.WriteString("}\n\n")
+		fmt.Fprintf(&b, "func (r *Cached%sRepository) DeleteWithTx(tx *gorm.DB, id int) error {\n", entity)
+		b.WriteString("\treturn r.inner.DeleteWithTx(tx, id)\n")
+		b.WriteString("}\n")
+	}
+
 	if err := writeGoFile(filename, b.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing cache decorator: %v", err))
 	}
+}
+
+// interfaceHasTransactions reports whether the generated repository interface for
+// the entity declares transactional methods (SaveWithTx). It reads the already
+// generated interfaces.go; if it cannot be read, it returns false.
+func interfaceHasTransactions(interfacesPath, entity string) bool {
+	data, err := os.ReadFile(interfacesPath)
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(data), fmt.Sprintf("SaveWithTx(tx *gorm.DB, %s *domain.%s)", strings.ToLower(entity), entity))
 }
 
 // generateCacheSearchMethodDelegate generates a delegate-only method for a search method.

@@ -9,6 +9,9 @@ func generateChainMiddleware(module string) string {
 	var b strings.Builder
 	b.WriteString("package middleware\n\n")
 	b.WriteString("import \"net/http\"\n\n")
+	b.WriteString("// contextKey is the private type used for context value keys set by\n")
+	b.WriteString("// middleware in this package (e.g. claims, request ID).\n")
+	b.WriteString("type contextKey string\n\n")
 	b.WriteString("// Middleware is a function that wraps an http.Handler.\n")
 	b.WriteString("type Middleware func(http.Handler) http.Handler\n\n")
 	b.WriteString("// Chain composes multiple middleware functions into a single Middleware.\n")
@@ -129,7 +132,6 @@ func generateAuthMiddleware() string {
 	b.WriteString("\t\"strings\"\n\n")
 	b.WriteString("\t\"github.com/golang-jwt/jwt/v5\"\n")
 	b.WriteString(")\n\n")
-	b.WriteString("type contextKey string\n\n")
 	b.WriteString("const claimsKey contextKey = \"claims\"\n\n")
 	b.WriteString("// ClaimsFromContext extracts JWT claims from the request context.\n")
 	b.WriteString("func ClaimsFromContext(ctx context.Context) (jwt.MapClaims, bool) {\n")

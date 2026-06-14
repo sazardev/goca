@@ -438,7 +438,6 @@ func (ts *TestSuite) verifyFeatureStructure(entity string) {
 		"internal/handler/http/routes.go",
 		"internal/domain/errors.go",
 		"internal/usecase/dto.go",
-		"internal/usecase/interfaces.go",
 		"internal/repository/interfaces.go",
 		"internal/messages/errors.go",
 		"internal/messages/responses.go",
@@ -536,8 +535,11 @@ func (ts *TestSuite) verifyUseCases(entity string) {
 	ts.verifyFileExists(dtoFile)
 	ts.verifyGoSyntax(dtoFile)
 
-	// Verify interfaces
-	interfacesFile := filepath.Join(ts.projectPath, "internal/usecase", "interfaces.go")
+	// Verify the repository interface the service depends on. The use case
+	// command no longer emits a contradictory usecase-package repository
+	// interface; the service depends on repository.<Entity>Repository, whose
+	// interface lives in internal/repository/interfaces.go.
+	interfacesFile := filepath.Join(ts.projectPath, "internal/repository", "interfaces.go")
 	ts.verifyFileExists(interfacesFile)
 	ts.verifyGoSyntax(interfacesFile)
 }

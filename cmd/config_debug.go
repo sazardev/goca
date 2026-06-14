@@ -50,8 +50,8 @@ var configInitCmd = &cobra.Command{
 
 This creates a comprehensive configuration file with intelligent defaults
 based on your project structure and specified options.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		initializeConfig(cmd)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return initializeConfig(cmd)
 	},
 }
 
@@ -132,19 +132,44 @@ func showCurrentConfig() {
 	validateConfigSilent(config)
 }
 
+// allowed values for `goca config init` flags.
+var (
+	validConfigTemplates = []string{"web", "api", "microservice", "full", "default"}
+	validConfigDatabases = []string{"postgres", "postgres-json", "mysql", "mongodb", "sqlite", "sqlserver", "dynamodb", "elasticsearch"}
+)
+
+func isOneOf(value string, allowed []string) bool {
+	for _, a := range allowed {
+		if value == a {
+			return true
+		}
+	}
+	return false
+}
+
 // initializeConfig creates a new configuration file.
-func initializeConfig(cmd *cobra.Command) {
+func initializeConfig(cmd *cobra.Command) error {
 	template, _ := cmd.Flags().GetString("template")
 	force, _ := cmd.Flags().GetBool("force")
 	database, _ := cmd.Flags().GetString("database")
 	handlers, _ := cmd.Flags().GetStringSlice("handlers")
+
+	// Validate flag values against the allowed sets (empty = use default).
+	if template != "" && !isOneOf(template, validConfigTemplates) {
+		ui.Error(fmt.Sprintf("Invalid template %q. Allowed: %s", template, strings.Join(validConfigTemplates, ", ")))
+		return fmt.Errorf("invalid template: %s", template)
+	}
+	if database != "" && !isOneOf(database, validConfigDatabases) {
+		ui.Error(fmt.Sprintf("Invalid database %q. Allowed: %s", database, strings.Join(validConfigDatabases, ", ")))
+		return fmt.Errorf("invalid database: %s", database)
+	}
 
 	configPath := ".goca.yaml"
 
 	// Check if file exists
 	if _, err := os.Stat(configPath); err == nil && !force {
 		ui.Warning(fmt.Sprintf("File %s already exists. Use --force to overwrite.", configPath))
-		return
+		return nil
 	}
 
 	ui.Info("Initializing GOCA configuration...")
@@ -167,7 +192,7 @@ func initializeConfig(cmd *cobra.Command) {
 	// Write config file
 	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
 		ui.Error(fmt.Sprintf("Error writing configuration: %v", err))
-		return
+		return fmt.Errorf("writing configuration: %w", err)
 	}
 
 	ui.Success(fmt.Sprintf("Configuration file created: %s", configPath))
@@ -175,6 +200,7 @@ func initializeConfig(cmd *cobra.Command) {
 		ui.Info(fmt.Sprintf("Template applied: %s", template))
 	}
 	ui.Dim("Tip: Run 'goca config show' to view the configuration")
+	return nil
 }
 
 // validateConfiguration validates the current config file.
@@ -190,30 +216,39 @@ func validateConfiguration() error {
 		return fmt.Errorf("configuration file not found: %s", configPath)
 	}
 
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		ui.Error(fmt.Sprintf("Error reading file: %v", err))
-		return fmt.Errorf("reading configuration: %w", err)
+	// Use the rich ConfigManager validator so semantic errors (bad database.type,
+	// empty module, invalid DI type, invalid naming, etc.) are reported instead of
+	// only checking that top-level sections are present.
+	cm := NewConfigManager()
+	loadErr := cm.LoadConfig(".")
+
+	cfgErrors := cm.GetErrors()
+	if loadErr != nil && len(cfgErrors) == 0 {
+		// Parse/read failure (e.g. invalid YAML) — surface it directly.
+		ui.Error(fmt.Sprintf("Invalid configuration: %v", loadErr))
+		return fmt.Errorf("invalid configuration: %w", loadErr)
 	}
 
-	var config map[string]interface{}
-	if err := yaml.Unmarshal(data, &config); err != nil {
-		ui.Error(fmt.Sprintf("Invalid YAML: %v", err))
-		return fmt.Errorf("invalid YAML: %w", err)
-	}
-
-	// Validate structure
-	errors := validateConfigStructure(config)
-	if len(errors) == 0 {
+	if len(cfgErrors) == 0 {
 		ui.Success("Configuration is valid")
+		if warnings := cm.GetWarnings(); len(warnings) > 0 {
+			ui.Warning(fmt.Sprintf("%d warning(s):", len(warnings)))
+			for i, w := range warnings {
+				ui.Println(fmt.Sprintf("  %d. %s: %s", i+1, w.Field, w.Message))
+			}
+		}
 		return nil
 	}
 
-	ui.Warning(fmt.Sprintf("Found %d errors:", len(errors)))
-	for i, err := range errors {
-		ui.Println(fmt.Sprintf("  %d. %s", i+1, err))
+	ui.Warning(fmt.Sprintf("Found %d error(s):", len(cfgErrors)))
+	for i, e := range cfgErrors {
+		detail := fmt.Sprintf("%s: %s", e.Field, e.Message)
+		if e.Value != "" {
+			detail += fmt.Sprintf(" (got %q)", e.Value)
+		}
+		ui.Println(fmt.Sprintf("  %d. %s", i+1, detail))
 	}
-	return fmt.Errorf("configuration has %d error(s)", len(errors))
+	return fmt.Errorf("configuration has %d error(s)", len(cfgErrors))
 }
 
 // showTemplateOptions shows available configuration templates.

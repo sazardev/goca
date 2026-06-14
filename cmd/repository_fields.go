@@ -75,8 +75,146 @@ func generateRepositoryImplementationWithFields(dir, entity, database string, fi
 		generateMySQLRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	case DBMongoDB:
 		generateMongoRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+	case DBPostgresJSON:
+		generatePostgresJSONRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+	case DBSQLServer:
+		generateSQLServerRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+	case DBSQLite:
+		generateSQLiteRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+	case DBElasticsearch:
+		generateElasticsearchRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+	case DBDynamoDB:
+		generateDynamoDBRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	default:
 		generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+	}
+}
+
+// The dedicated DB generators (in repository_other_db.go) already emit a full
+// CRUD set. For the field-aware path the interface additionally declares the
+// per-field finders, so we generate the base repository and then append the
+// finder implementations rendered in the backend's native style.
+
+func generatePostgresJSONRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
+	generatePostgresJSONRepository(dir, entity, cache, transactions, sm...)
+	appendGormFinders(dir, "postgres_json_"+strings.ToLower(entity)+"_repository.go", fmt.Sprintf("postgresJSON%sRepository", entity), entity, fields, sm...)
+}
+
+func generateSQLServerRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
+	generateSQLServerRepository(dir, entity, cache, transactions, sm...)
+	appendGormFinders(dir, "sqlserver_"+strings.ToLower(entity)+"_repository.go", fmt.Sprintf("sqlserver%sRepository", entity), entity, fields, sm...)
+}
+
+func generateSQLiteRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
+	generateSQLiteRepository(dir, entity, cache, transactions, sm...)
+	appendSQLiteFinders(dir, entity, fields, sm...)
+}
+
+func generateElasticsearchRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
+	generateElasticsearchRepository(dir, entity, cache, transactions, sm...)
+	appendDelegatingFinders(dir, "elasticsearch_"+strings.ToLower(entity)+"_repository.go", fmt.Sprintf("elasticsearch%sRepository", entity), "e", entity, fields, sm...)
+}
+
+func generateDynamoDBRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
+	generateDynamoDBRepository(dir, entity, cache, transactions, sm...)
+	appendDelegatingFinders(dir, "dynamodb_"+strings.ToLower(entity)+"_repository.go", fmt.Sprintf("dynamodb%sRepository", entity), "d", entity, fields, sm...)
+}
+
+// appendGormFinders appends GORM-based per-field finder implementations to an
+// already-generated repository file whose receiver exposes a `db *gorm.DB`.
+func appendGormFinders(dir, file, repoName, entity string, fields []Field, sm ...*SafetyManager) {
+	methods := generateSearchMethods(fields, entity)
+	if len(methods) == 0 {
+		return
+	}
+	var b strings.Builder
+	for _, m := range methods {
+		b.WriteString(m.generateSearchMethodImplementation(strings.ToLower(string(repoName[0])), repoName, entity))
+	}
+	appendToRepoFile(filepath.Join(dir, file), b.String(), nil, sm...)
+}
+
+// appendSQLiteFinders appends raw-SQL per-field finders for the SQLite repo.
+func appendSQLiteFinders(dir, entity string, fields []Field, sm ...*SafetyManager) {
+	methods := generateSearchMethods(fields, entity)
+	if len(methods) == 0 {
+		return
+	}
+	entityLower := strings.ToLower(entity)
+	repoName := fmt.Sprintf("sqlite%sRepository", entity)
+	var b strings.Builder
+	for _, m := range methods {
+		paramName := strings.ToLower(m.FieldName)
+		fmt.Fprintf(&b, "func (s *%s) %s(%s %s) %s {\n", repoName, m.MethodName, paramName, m.FieldType, m.ReturnType)
+		b.WriteString("\tvar data []byte\n")
+		fmt.Fprintf(&b, "\tquery := \"SELECT data FROM %ss WHERE json_extract(data, '$.%s') = ? LIMIT 1\"\n", entityLower, m.FieldName)
+		fmt.Fprintf(&b, "\tif err := s.db.QueryRow(query, %s).Scan(&data); err != nil {\n", paramName)
+		fmt.Fprintf(&b, "\t\tif err == sql.ErrNoRows {\n\t\t\treturn nil, fmt.Errorf(\"%s not found\")\n\t\t}\n", entity)
+		b.WriteString("\t\treturn nil, fmt.Errorf(\"failed to query: %w\", err)\n\t}\n")
+		fmt.Fprintf(&b, "\tvar %s domain.%s\n", entityLower, entity)
+		fmt.Fprintf(&b, "\tif err := json.Unmarshal(data, &%s); err != nil {\n", entityLower)
+		b.WriteString("\t\treturn nil, fmt.Errorf(\"failed to unmarshal: %w\", err)\n\t}\n")
+		fmt.Fprintf(&b, "\treturn &%s, nil\n", entityLower)
+		b.WriteString("}\n\n")
+	}
+	appendToRepoFile(filepath.Join(dir, "sqlite_"+entityLower+"_repository.go"), b.String(), nil, sm...)
+}
+
+// appendDelegatingFinders appends per-field finders that reuse FindAll and filter
+// in memory — used for backends (Elasticsearch, DynamoDB) where a dedicated query
+// per field is out of scope but the interface still requires the method.
+func appendDelegatingFinders(dir, file, repoName, recv, entity string, fields []Field, sm ...*SafetyManager) {
+	methods := generateSearchMethods(fields, entity)
+	if len(methods) == 0 {
+		return
+	}
+	entityLower := strings.ToLower(entity)
+	var b strings.Builder
+	for _, m := range methods {
+		paramName := strings.ToLower(m.FieldName)
+		fmt.Fprintf(&b, "func (%s *%s) %s(%s %s) %s {\n", recv, repoName, m.MethodName, paramName, m.FieldType, m.ReturnType)
+		fmt.Fprintf(&b, "\titems, err := %s.FindAll()\n", recv)
+		b.WriteString("\tif err != nil {\n\t\treturn nil, err\n\t}\n")
+		b.WriteString("\tfor i := range items {\n")
+		fmt.Fprintf(&b, "\t\tif items[i].%s == %s {\n", m.FieldName, paramName)
+		b.WriteString("\t\t\treturn &items[i], nil\n\t\t}\n")
+		b.WriteString("\t}\n")
+		fmt.Fprintf(&b, "\treturn nil, fmt.Errorf(\"%s not found\")\n", entityLower)
+		b.WriteString("}\n\n")
+	}
+	appendToRepoFile(filepath.Join(dir, file), b.String(), []string{"fmt"}, sm...)
+}
+
+// appendToRepoFile appends generated method source to an existing repository
+// file, respecting the SafetyManager (dry-run) if provided. ensureImports lists
+// stdlib import paths the appended code requires; any not already present are
+// injected into the file's import block.
+func appendToRepoFile(path, methods string, ensureImports []string, sm ...*SafetyManager) {
+	if strings.TrimSpace(methods) == "" {
+		return
+	}
+	if len(sm) > 0 && sm[0] != nil && sm[0].DryRun {
+		return
+	}
+	existing, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	src := string(existing)
+	for _, imp := range ensureImports {
+		quoted := "\"" + imp + "\""
+		if strings.Contains(src, quoted) {
+			continue
+		}
+		// Inject right after the opening of the import block.
+		if idx := strings.Index(src, "import (\n"); idx != -1 {
+			pos := idx + len("import (\n")
+			src = src[:pos] + "\t" + quoted + "\n" + src[pos:]
+		}
+	}
+	combined := strings.TrimRight(src, "\n") + "\n\n" + methods
+	if err := writeGoFile(path, combined); err != nil {
+		fmt.Printf("Error appending finders to %s: %v\n", path, err)
 	}
 }
 

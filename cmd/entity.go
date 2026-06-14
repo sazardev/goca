@@ -206,6 +206,18 @@ func parseFieldsWithValidation(fields string, withValidation bool) []Field {
 		os.Exit(1)
 	}
 
+	// Normalize field names to idiomatic Go PascalCase (handling snake_case,
+	// kebab-case and common initialisms like ID/URL/API). The struct tag keeps
+	// the snake_case form for json/gorm. The ID field is left untouched.
+	for i := range fieldsList {
+		if fieldsList[i].Name == "ID" {
+			continue
+		}
+		snake := strings.ToLower(strings.ReplaceAll(fieldsList[i].Name, "-", "_"))
+		fieldsList[i].Name = toGoFieldName(fieldsList[i].Name)
+		fieldsList[i].Tag = rebuildFieldTag(fieldsList[i].Tag, snake)
+	}
+
 	// If validation is enabled, add validate tags to the field tags
 	if withValidation {
 		for i := range fieldsList {
@@ -229,22 +241,145 @@ func parseFieldsWithValidation(fields string, withValidation bool) []Field {
 	return fieldsList
 }
 
+// commonInitialisms maps lowercase word fragments to their idiomatic Go
+// capitalization so field names like user_id -> UserID and api_url -> APIURL.
+var commonInitialisms = map[string]string{
+	"id": "ID", "url": "URL", "uri": "URI", "api": "API", "http": "HTTP",
+	"https": "HTTPS", "json": "JSON", "xml": "XML", "sql": "SQL", "uuid": "UUID",
+	"html": "HTML", "ip": "IP", "ssh": "SSH", "tcp": "TCP", "udp": "UDP",
+	"db": "DB", "ui": "UI", "ttl": "TTL", "ascii": "ASCII", "cpu": "CPU",
+}
+
+// toGoFieldName converts an arbitrary field name (snake_case, kebab-case,
+// camelCase or already PascalCase) into idiomatic Go PascalCase, honoring
+// common initialisms. Examples: last_login -> LastLogin, user_id -> UserID.
+func toGoFieldName(name string) string {
+	// Split on separators; also split camelCase boundaries.
+	var words []string
+	var cur strings.Builder
+	flush := func() {
+		if cur.Len() > 0 {
+			words = append(words, cur.String())
+			cur.Reset()
+		}
+	}
+	runes := []rune(name)
+	for i, r := range runes {
+		if r == '_' || r == '-' || r == ' ' {
+			flush()
+			continue
+		}
+		// Split on lower->upper boundary (camelCase) to re-segment words.
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			prev := runes[i-1]
+			if prev >= 'a' && prev <= 'z' {
+				flush()
+			}
+		}
+		cur.WriteRune(r)
+	}
+	flush()
+
+	var result strings.Builder
+	for _, w := range words {
+		lower := strings.ToLower(w)
+		if init, ok := commonInitialisms[lower]; ok {
+			result.WriteString(init)
+			continue
+		}
+		result.WriteString(strings.ToUpper(lower[:1]) + lower[1:])
+	}
+	return result.String()
+}
+
+// rebuildFieldTag rewrites the json and gorm tag keys of an existing struct tag
+// so they use the supplied snake_case field name, preserving any additional
+// gorm options (e.g. uniqueIndex;not null) that were generated from the field.
+func rebuildFieldTag(tag, snake string) string {
+	inner := strings.Trim(tag, "`")
+	// Replace json:"..." value with the snake_case name.
+	inner = replaceTagJSONName(inner, snake)
+	return "`" + inner + "`"
+}
+
+// replaceTagJSONName replaces the value of the json tag key with the given name,
+// keeping any options such as ",omitempty".
+func replaceTagJSONName(inner, snake string) string {
+	const key = `json:"`
+	idx := strings.Index(inner, key)
+	if idx < 0 {
+		return inner
+	}
+	start := idx + len(key)
+	end := strings.Index(inner[start:], `"`)
+	if end < 0 {
+		return inner
+	}
+	end += start
+	val := inner[start:end]
+	// Preserve options after the first comma (e.g. ",omitempty").
+	opts := ""
+	if c := strings.Index(val, ","); c >= 0 {
+		opts = val[c:]
+	}
+	return inner[:start] + snake + opts + inner[end:]
+}
+
 func getValidateTag(fieldName, fieldType string) string {
-	switch fieldType {
-	case FieldString:
+	switch {
+	case fieldType == FieldString:
 		if fieldName == "Email" || strings.EqualFold(fieldName, "email") {
 			return "required,email"
 		}
 		return "required"
-	case "int", "int64", "uint", "uint64":
+	case isSignedNumericType(fieldType):
 		return "required,gte=0"
-	case "float64":
-		return "required,gte=0"
-	case "bool":
+	case isUnsignedIntType(fieldType):
+		// Unsigned integers are always >= 0; gte=0 would be redundant.
+		return "required"
+	case fieldType == "bool":
 		return "" // Booleans don't usually need validation
+	case isSliceType(fieldType) || isPointerType(fieldType):
+		// required on a slice/pointer is dubious and the runtime Validate() body
+		// has no coherent check for these, so emit no validate tag (see ENTITY-9).
+		return ""
 	default:
 		return "required"
 	}
+}
+
+// isNumericType reports whether fieldType is any Go numeric subtype.
+func isNumericType(fieldType string) bool {
+	return isSignedNumericType(fieldType) || isUnsignedIntType(fieldType)
+}
+
+// isSignedNumericType reports whether fieldType is a signed integer (incl. rune)
+// or a float, i.e. a type for which a "< 0" runtime check is meaningful.
+func isSignedNumericType(fieldType string) bool {
+	switch fieldType {
+	case "int", "int8", "int16", "int32", "int64", "rune", "float32", "float64":
+		return true
+	}
+	return false
+}
+
+// isUnsignedIntType reports whether fieldType is an unsigned integer subtype.
+func isUnsignedIntType(fieldType string) bool {
+	switch fieldType {
+	case "uint", "uint8", "uint16", "uint32", "uint64", "byte":
+		return true
+	}
+	return false
+}
+
+// isSliceType reports whether fieldType is a slice type.
+func isSliceType(fieldType string) bool {
+	return strings.HasPrefix(fieldType, "[]")
+}
+
+// isPointerType reports whether fieldType is a pointer type.
+func isPointerType(fieldType string) bool {
+	return strings.HasPrefix(fieldType, "*")
 }
 
 func getGormTag(fieldName, fieldType string) string {
@@ -297,6 +432,9 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 
 	writeEntityHeader(&content, fields, businessRules, timestamps, softDelete)
 	writeEntityStruct(&content, entityName, fields)
+	// Emit stub definitions for unknown custom/named types referenced by fields
+	// (e.g. status:UserStatus) so the generated package compiles (ENTITY-1).
+	writeCustomTypeStubs(&content, entityName, fields)
 
 	if validation {
 		writeValidationMethod(&content, entityName, fields)
@@ -358,6 +496,62 @@ func writeEntityStruct(content *strings.Builder, entityName string, fields []Fie
 	content.WriteString("}\n\n")
 }
 
+// writeCustomTypeStubs emits a stub "type X string" definition for each unknown
+// custom/named type referenced by a field, so the generated domain package
+// compiles even when the user passes a type that does not yet exist.
+func writeCustomTypeStubs(content *strings.Builder, entityName string, fields []Field) {
+	seen := map[string]bool{}
+	var stubs []string
+	for _, field := range fields {
+		base := customTypeBase(field.Type)
+		if base == "" || base == entityName || seen[base] {
+			continue
+		}
+		seen[base] = true
+		stubs = append(stubs, base)
+	}
+	for _, t := range stubs {
+		fmt.Fprintf(content, "// %s is a generated stub type. Replace with your own definition.\n", t)
+		fmt.Fprintf(content, "type %s string\n\n", t)
+	}
+}
+
+// customTypeBase returns the underlying unqualified custom type name referenced
+// by fieldType (unwrapping leading []/*/[N]), or "" when the base is a builtin,
+// qualified (package.Type), composite or otherwise not a stubbable custom type.
+func customTypeBase(fieldType string) string {
+	t := fieldType
+	for {
+		switch {
+		case strings.HasPrefix(t, "[]"):
+			t = strings.TrimPrefix(t, "[]")
+		case strings.HasPrefix(t, "*"):
+			t = strings.TrimPrefix(t, "*")
+		default:
+			goto unwrapped
+		}
+	}
+unwrapped:
+	// Skip arrays, maps, channels, funcs, interfaces and qualified types.
+	if strings.ContainsAny(t, ".[]{}() <>") || strings.HasPrefix(t, "map") ||
+		strings.HasPrefix(t, "chan") || strings.HasPrefix(t, "func") ||
+		strings.HasPrefix(t, "interface") {
+
+		return ""
+	}
+	// Known builtin types never need a stub.
+	for _, vt := range ValidFieldTypes {
+		if t == vt {
+			return ""
+		}
+	}
+	// A stubbable custom type is an exported identifier.
+	if t == "" || t[0] < 'A' || t[0] > 'Z' {
+		return ""
+	}
+	return t
+}
+
 // writeValidationMethod writes the Validate method for the entity.
 func writeValidationMethod(content *strings.Builder, entityName string, fields []Field) {
 	entityVar := strings.ToLower(string(entityName[0]))
@@ -389,10 +583,14 @@ func writeFieldValidation(content *strings.Builder, entityVar, entityName string
 			fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
 			content.WriteString("\t}\n")
 		}
-	case "int", "int64", "float64":
-		fmt.Fprintf(content, "\tif %s.%s < 0 {\n", entityVar, field.Name)
-		fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
-		content.WriteString("\t}\n")
+	default:
+		// "< 0" is only meaningful for signed integers and floats; unsigned
+		// integers are always non-negative so no runtime check is emitted.
+		if isSignedNumericType(field.Type) {
+			fmt.Fprintf(content, "\tif %s.%s < 0 {\n", entityVar, field.Name)
+			fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
+			content.WriteString("\t}\n")
+		}
 	}
 }
 
@@ -565,9 +763,20 @@ func writeFieldErrors(content *strings.Builder, entityName string, fields []Fiel
 			continue
 		}
 
-		writeRequiredFieldError(content, entityName, field, existingErrors)
+		// Only declare ErrInvalid<Entity><Field> when Validate() actually emits a
+		// check for it (string emptiness or signed-numeric "< 0"); otherwise the
+		// constant would be declared but never used (ENTITY-9).
+		if fieldHasBaseValidation(field.Type) {
+			writeRequiredFieldError(content, entityName, field, existingErrors)
+		}
 		writeTypeSpecificErrors(content, entityName, field, existingErrors)
 	}
+}
+
+// fieldHasBaseValidation reports whether writeFieldValidation emits a check that
+// references the ErrInvalid<Entity><Field> "required" constant for this type.
+func fieldHasBaseValidation(fieldType string) bool {
+	return fieldType == FieldString || isSignedNumericType(fieldType)
 }
 
 // writeRequiredFieldError writes the required field error.
@@ -584,13 +793,14 @@ func writeRequiredFieldError(content *strings.Builder, entityName string, field 
 func writeTypeSpecificErrors(content *strings.Builder, entityName string, field Field, existingErrors []string) {
 	fieldLower := strings.ToLower(field.Name)
 
-	switch field.Type {
-	case FieldString:
+	switch {
+	case field.Type == FieldString:
 		writeStringFieldErrors(content, entityName, field, fieldLower, existingErrors)
-	case "int", "int64", "uint", "uint64":
-		writeIntegerFieldErrors(content, entityName, field, fieldLower, existingErrors)
-	case "float64", "float32":
+	case field.Type == "float32" || field.Type == "float64":
+		// Range error only for signed types where the runtime "< 0" check exists.
 		writeFloatFieldErrors(content, entityName, field, fieldLower, existingErrors)
+	case isSignedNumericType(field.Type):
+		writeIntegerFieldErrors(content, entityName, field, fieldLower, existingErrors)
 	}
 }
 
@@ -979,7 +1189,38 @@ func generateSQLSampleValue(field Field, index int) string {
 		return "NOW()"
 
 	default:
-		return "NULL"
+		return generateSQLCompositeSampleValue(field, index)
+	}
+}
+
+// generateSQLCompositeSampleValue produces a non-NULL SQL literal for composite
+// or custom field types (slices, pointers, custom named types). It keeps SQL
+// seeds consistent with the Go seeds and valid for NOT NULL columns (ENTITY-7).
+func generateSQLCompositeSampleValue(field Field, index int) string {
+	ft := field.Type
+	switch {
+	case strings.HasPrefix(ft, "[]"):
+		// Slices are persisted as text (e.g. comma-separated / JSON-like).
+		elem := strings.TrimPrefix(ft, "[]")
+		switch {
+		case elem == FieldString:
+			return fmt.Sprintf("'sample%d,sample%d'", index, index+1)
+		case isNumericType(elem):
+			return fmt.Sprintf("'%d,%d'", index*10, index*10+1)
+		case elem == FieldBool:
+			return "'true,false'"
+		default:
+			return fmt.Sprintf("'sample%d'", index)
+		}
+	case strings.HasPrefix(ft, "*"):
+		// Pointer: emit a value of the underlying type.
+		base := strings.TrimPrefix(ft, "*")
+		return generateSQLSampleValue(Field{Name: field.Name, Type: base}, index)
+	case ft == "time.Time":
+		return "NOW()"
+	default:
+		// Custom/named types (e.g. UserStatus): treat as text.
+		return fmt.Sprintf("'sample%d'", index)
 	}
 }
 

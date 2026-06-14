@@ -15,6 +15,16 @@ const (
 	dbMongoDB  = "mongodb"
 )
 
+// dbHandleType returns the Go type and its import path for the database handle
+// passed to the container/wire injectors. MongoDB repositories take a
+// *mongo.Database; everything else uses GORM's *gorm.DB.
+func dbHandleType(database string) (goType, importPath string) {
+	if database == dbMongoDB {
+		return "*mongo.Database", "go.mongodb.org/mongo-driver/mongo"
+	}
+	return "*gorm.DB", "gorm.io/gorm"
+}
+
 var diCmd = &cobra.Command{
 	Use:   "di",
 	Short: "Generate dependency injection container",
@@ -95,14 +105,21 @@ func generateManualDI(dir string, features []string, database string, cache bool
 
 	filename := filepath.Join(dir, "container.go")
 
+	// Only wire the Redis cache layer when --cache was requested AND at least
+	// one of the features has a generated cache decorator. Otherwise the
+	// redisClient field / redis + time imports would be unused (or reference a
+	// non-existent NewCached%sRepository) and the container would not compile.
+	effectiveCache := cache && anyFeatureHasCacheDecorator(features)
+	dbType, dbImport := dbHandleType(database)
+
 	var content strings.Builder
 	content.WriteString("package di\n\n")
 	content.WriteString("import (\n")
-	if cache {
+	if effectiveCache {
 		content.WriteString("\t\"time\"\n\n")
 	}
-	content.WriteString("\t\"gorm.io/gorm\"\n")
-	if cache {
+	fmt.Fprintf(&content, "\t%q\n", dbImport)
+	if effectiveCache {
 		content.WriteString("\t\"github.com/redis/go-redis/v9\"\n")
 	}
 	content.WriteString("\n")
@@ -111,8 +128,8 @@ func generateManualDI(dir string, features []string, database string, cache bool
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
 	content.WriteString(")\n\n") // Container struct
 	content.WriteString("type Container struct {\n")
-	content.WriteString("\tdb *gorm.DB\n")
-	if cache {
+	fmt.Fprintf(&content, "\tdb %s\n", dbType)
+	if effectiveCache {
 		content.WriteString("\tredisClient *redis.Client\n")
 	}
 	content.WriteString("\n")
@@ -141,11 +158,11 @@ func generateManualDI(dir string, features []string, database string, cache bool
 	content.WriteString("}\n\n")
 
 	// Constructor
-	if cache {
-		content.WriteString("func NewContainer(db *gorm.DB, redisClient *redis.Client) *Container {\n")
+	if effectiveCache {
+		fmt.Fprintf(&content, "func NewContainer(db %s, redisClient *redis.Client) *Container {\n", dbType)
 		content.WriteString("\tc := &Container{db: db, redisClient: redisClient}\n")
 	} else {
-		content.WriteString("func NewContainer(db *gorm.DB) *Container {\n")
+		fmt.Fprintf(&content, "func NewContainer(db %s) *Container {\n", dbType)
 		content.WriteString("\tc := &Container{db: db}\n")
 	}
 	content.WriteString("\tc.setupRepositories()\n")
@@ -155,7 +172,7 @@ func generateManualDI(dir string, features []string, database string, cache bool
 	content.WriteString("}\n\n")
 
 	// Setup methods
-	generateSetupRepositories(&content, features, database, cache)
+	generateSetupRepositories(&content, features, database, effectiveCache)
 	generateSetupUseCases(&content, features)
 	generateSetupHandlers(&content, features)
 
@@ -182,7 +199,10 @@ func generateSetupRepositories(content *strings.Builder, features []string, data
 			repoConstructor = fmt.Sprintf("repository.NewPostgres%sRepository(c.db)", feature)
 		}
 
-		if cache {
+		// Only wrap with the Redis cache decorator when one was actually
+		// generated for this entity (goca repository --cache). Emitting
+		// NewCached%sRepository otherwise references an undefined constructor.
+		if cache && hasCacheDecorator(feature) {
 			fmt.Fprintf(content, "\tbase%sRepo := %s\n", feature, repoConstructor)
 			fmt.Fprintf(content, "\tc.%sRepo = repository.NewCached%sRepository(base%sRepo, c.redisClient, 5*time.Minute)\n",
 				featureLower, feature, feature)
@@ -192,6 +212,28 @@ func generateSetupRepositories(content *strings.Builder, features []string, data
 	}
 
 	content.WriteString("}\n\n")
+}
+
+// hasCacheDecorator reports whether a Redis cache decorator
+// (cached_<entity>_repository.go) was generated for the entity.
+func hasCacheDecorator(feature string) bool {
+	path := filepath.Join(DirInternal, DirRepository, "cached_"+strings.ToLower(feature)+"_repository.go")
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
+}
+
+// anyFeatureHasCacheDecorator reports whether any feature has a generated cache
+// decorator.
+func anyFeatureHasCacheDecorator(features []string) bool {
+	for _, f := range features {
+		if hasCacheDecorator(f) {
+			return true
+		}
+	}
+	return false
 }
 
 func generateSetupUseCases(content *strings.Builder, features []string) {
@@ -261,9 +303,9 @@ func generateWireFile(dir string, features []string, database string, sm ...*Saf
 
 	var content strings.Builder
 	writeWireHeader(&content)
-	writeWireImports(&content, importPath)
+	writeWireImports(&content, importPath, database)
 	writeWireSets(&content, features, database)
-	writeWireFunctions(&content, features)
+	writeWireFunctions(&content, features, database)
 
 	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing Wire file: %v", err))
@@ -279,10 +321,11 @@ func writeWireHeader(content *strings.Builder) {
 }
 
 // writeWireImports writes the import section for Wire file.
-func writeWireImports(content *strings.Builder, importPath string) {
+func writeWireImports(content *strings.Builder, importPath, database string) {
+	_, dbImport := dbHandleType(database)
 	content.WriteString("import (\n")
-	content.WriteString("\t\"database/sql\"\n\n")
 	content.WriteString("\t\"github.com/google/wire\"\n")
+	fmt.Fprintf(content, "\t%q\n\n", dbImport)
 	fmt.Fprintf(content, "\t\"%s/internal/repository\"\n", importPath)
 	fmt.Fprintf(content, "\t\"%s/internal/usecase\"\n", importPath)
 	fmt.Fprintf(content, "\t\"%s/internal/handler/http\"\n", importPath)
@@ -345,21 +388,27 @@ func writeAllSet(content *strings.Builder) {
 }
 
 // writeWireFunctions writes Wire initialization functions.
-func writeWireFunctions(content *strings.Builder, features []string) {
+//
+// All injectors take the GORM *gorm.DB (the type repository constructors
+// expect) and return the WireContainer that NewWireContainer provides, keeping
+// the provider graph and the declared return types consistent so `wire` can
+// generate code without errors.
+func writeWireFunctions(content *strings.Builder, features []string, database string) {
+	dbType, _ := dbHandleType(database)
 	for _, feature := range features {
-		fmt.Fprintf(content, "func Initialize%sHandler(db *sql.DB) *http.%sHandler {\n",
-			feature, feature)
+		fmt.Fprintf(content, "func Initialize%sHandler(db %s) *http.%sHandler {\n",
+			feature, dbType, feature)
 		content.WriteString("\twire.Build(AllSet)\n")
 		fmt.Fprintf(content, "\treturn &http.%sHandler{}\n", feature)
 		content.WriteString("}\n\n")
 	}
 
-	content.WriteString("func InitializeContainer(db *sql.DB) *Container {\n")
+	fmt.Fprintf(content, "func InitializeContainer(db %s) *WireContainer {\n", dbType)
 	content.WriteString("\twire.Build(\n")
 	content.WriteString("\t\tAllSet,\n")
 	content.WriteString("\t\tNewWireContainer,\n")
 	content.WriteString("\t)\n")
-	content.WriteString("\treturn &Container{}\n")
+	content.WriteString("\treturn &WireContainer{}\n")
 	content.WriteString("}\n")
 }
 

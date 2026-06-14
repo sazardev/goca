@@ -81,13 +81,19 @@ func TestWriteWireHeader(t *testing.T) {
 func TestWriteWireImports(t *testing.T) {
 	t.Parallel()
 	var b strings.Builder
-	writeWireImports(&b, "mymodule")
+	writeWireImports(&b, "mymodule", "postgres")
 	output := b.String()
 	assert.Contains(t, output, "import (")
-	assert.Contains(t, output, "database/sql")
+	// Repositories take *gorm.DB, so wire injectors must too (not database/sql).
+	assert.Contains(t, output, "gorm.io/gorm")
+	assert.NotContains(t, output, "database/sql")
 	assert.Contains(t, output, "github.com/google/wire")
 	assert.Contains(t, output, "mymodule/internal/repository")
 	assert.Contains(t, output, "mymodule/internal/usecase")
+
+	var bMongo strings.Builder
+	writeWireImports(&bMongo, "mymodule", "mongodb")
+	assert.Contains(t, bMongo.String(), "go.mongodb.org/mongo-driver/mongo")
 }
 
 func TestWriteWireSets(t *testing.T) {
@@ -155,9 +161,10 @@ func TestWriteAllSet(t *testing.T) {
 func TestWriteWireFunctions(t *testing.T) {
 	t.Parallel()
 	var b strings.Builder
-	writeWireFunctions(&b, []string{"Product"})
+	writeWireFunctions(&b, []string{"Product"}, "postgres")
 	output := b.String()
-	assert.Contains(t, output, "func InitializeProductHandler(db *sql.DB)")
+	assert.Contains(t, output, "func InitializeProductHandler(db *gorm.DB)")
 	assert.Contains(t, output, "wire.Build(AllSet)")
-	assert.Contains(t, output, "func InitializeContainer(db *sql.DB)")
+	// Return type must match the only available provider (NewWireContainer).
+	assert.Contains(t, output, "func InitializeContainer(db *gorm.DB) *WireContainer")
 }

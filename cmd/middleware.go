@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -35,8 +36,10 @@ multiple middleware functions.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 
-		validator := NewFieldValidator()
-		if err := validator.ValidateEntityName(name); err != nil {
+		// The argument is a package label (e.g. "api"), not an entity, so it does
+		// not need to start with an uppercase letter. Only require a non-empty,
+		// identifier-like token.
+		if err := validateMiddlewareName(name); err != nil {
 			return err
 		}
 
@@ -82,6 +85,22 @@ func init() {
 	middlewareCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
 	middlewareCmd.Flags().Bool("force", false, "Overwrite existing files without asking")
 	middlewareCmd.Flags().Bool("backup", false, "Backup existing files before overwriting")
+}
+
+// middlewareNamePattern matches a valid middleware package label: it must start
+// with a letter and contain only letters, numbers, hyphens or underscores.
+var middlewareNamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]*$`)
+
+// validateMiddlewareName validates the package-label argument of the middleware
+// command. Unlike entity names, lowercase is allowed (e.g. "api").
+func validateMiddlewareName(name string) error {
+	if name == "" {
+		return fmt.Errorf("middleware name cannot be empty")
+	}
+	if !middlewareNamePattern.MatchString(name) {
+		return fmt.Errorf("invalid middleware name %q: must start with a letter and contain only letters, numbers, '-' or '_'", name)
+	}
+	return nil
 }
 
 // parseMiddlewareTypes splits a comma-separated types string and normalizes them.

@@ -42,15 +42,26 @@ func generateProtoFile(dir, entity, fileNamingConvention string, sm ...*SafetyMa
 	content.WriteString(fmt.Sprintf("  rpc List%ss(List%ssRequest) returns (List%ssResponse);\n", entity, entity, entity))
 	content.WriteString("}\n\n")
 
+	// Derive the proto fields from the real entity definition so the message
+	// shape matches the usecase output DTO. Fall back to id/name/email when the
+	// entity cannot be read.
+	entityFields := grpcEntityFields(entity)
+
 	content.WriteString(fmt.Sprintf("message %s {\n", entity))
 	content.WriteString("  int32 id = 1;\n")
-	content.WriteString("  string name = 2;\n")
-	content.WriteString("  string email = 3;\n")
+	idx := 2
+	for _, f := range entityFields {
+		fmt.Fprintf(&content, "  %s %s = %d;\n", protoType(f.Type), toSnakeCase(f.Name), idx)
+		idx++
+	}
 	content.WriteString("}\n\n")
 
 	content.WriteString(fmt.Sprintf("message Create%sRequest {\n", entity))
-	content.WriteString("  string name = 1;\n")
-	content.WriteString("  string email = 2;\n")
+	idx = 1
+	for _, f := range entityFields {
+		fmt.Fprintf(&content, "  %s %s = %d;\n", protoType(f.Type), toSnakeCase(f.Name), idx)
+		idx++
+	}
 	content.WriteString("}\n\n")
 
 	content.WriteString(fmt.Sprintf("message Create%sResponse {\n", entity))
@@ -142,10 +153,15 @@ func generateGRPCServerFile(dir, entity, fileNamingConvention string, sm ...*Saf
 	content.WriteString(fmt.Sprintf("\treturn &%sServer{usecase: uc}\n", entity))
 	content.WriteString("}\n\n")
 
+	// The usecase output DTOs are FLAT (output.ID, output.Name, ...), so the
+	// gRPC server maps flat output fields onto the nested protobuf message.
+	entityFields := grpcEntityFields(entity)
+
 	content.WriteString(fmt.Sprintf("func (s *%sServer) Create%s(ctx context.Context, req *pb.Create%sRequest) (*pb.Create%sResponse, error) {\n", entity, entity, entity, entity))
 	content.WriteString(fmt.Sprintf("\tinput := usecase.Create%sInput{\n", entity))
-	content.WriteString("\t\tName:  req.Name,\n")
-	content.WriteString("\t\tEmail: req.Email,\n")
+	for _, f := range entityFields {
+		fmt.Fprintf(&content, "\t\t%s: req.%s,\n", f.Name, protoGoFieldName(f.Name))
+	}
 	content.WriteString("\t}\n\n")
 
 	content.WriteString(fmt.Sprintf("\toutput, err := s.usecase.Create%s(input)\n", entity))
@@ -155,9 +171,10 @@ func generateGRPCServerFile(dir, entity, fileNamingConvention string, sm ...*Saf
 
 	content.WriteString(fmt.Sprintf("\treturn &pb.Create%sResponse{\n", entity))
 	content.WriteString(fmt.Sprintf("\t\t%s: &pb.%s{\n", entity, entity))
-	content.WriteString(fmt.Sprintf("\t\t\tId:    int32(output.%s.ID),\n", entity))
-	content.WriteString(fmt.Sprintf("\t\t\tName:  output.%s.Name,\n", entity))
-	content.WriteString(fmt.Sprintf("\t\t\tEmail: output.%s.Email,\n", entity))
+	content.WriteString("\t\t\tId: int32(output.ID),\n")
+	for _, f := range entityFields {
+		fmt.Fprintf(&content, "\t\t\t%s: output.%s,\n", protoGoFieldName(f.Name), f.Name)
+	}
 	content.WriteString("\t\t},\n")
 	content.WriteString("\t\tMessage: output.Message,\n")
 	content.WriteString("\t}, nil\n")
@@ -171,9 +188,10 @@ func generateGRPCServerFile(dir, entity, fileNamingConvention string, sm ...*Saf
 
 	content.WriteString(fmt.Sprintf("\treturn &pb.%sResponse{\n", entity))
 	content.WriteString(fmt.Sprintf("\t\t%s: &pb.%s{\n", entity, entity))
-	content.WriteString(fmt.Sprintf("\t\t\tId:    int32(%s.ID),\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t\t\tName:  %s.Name,\n", entityLower))
-	content.WriteString(fmt.Sprintf("\t\t\tEmail: %s.Email,\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\t\tId: int32(%s.ID),\n", entityLower))
+	for _, f := range entityFields {
+		fmt.Fprintf(&content, "\t\t\t%s: %s.%s,\n", protoGoFieldName(f.Name), entityLower, f.Name)
+	}
 	content.WriteString("\t\t},\n")
 	content.WriteString("\t}, nil\n")
 	content.WriteString("}\n")
@@ -182,6 +200,62 @@ func generateGRPCServerFile(dir, entity, fileNamingConvention string, sm ...*Saf
 		ui.Error(fmt.Sprintf("Error writing grpc server file: %v", err))
 		return
 	}
+}
+
+// grpcEntityFields returns the non-system fields of an entity (excluding ID,
+// which is always emitted explicitly) for use in proto/gRPC generation. It
+// falls back to Name/Email when the entity definition cannot be read so a
+// freshly scaffolded project still produces a coherent server.
+func grpcEntityFields(entity string) []Field {
+	var fields []Field
+	if fs := readEntityFieldsString(entity); fs != "" {
+		for _, f := range parseFields(fs) {
+			if isSystemField(f.Name) {
+				continue
+			}
+			// Only scalar proto-mappable fields are supported by the scaffold.
+			if protoType(f.Type) == "" {
+				continue
+			}
+			fields = append(fields, f)
+		}
+	}
+	if len(fields) == 0 {
+		fields = []Field{
+			{Name: "Name", Type: "string"},
+			{Name: "Email", Type: "string"},
+		}
+	}
+	return fields
+}
+
+// protoType maps a Go scalar type to its proto3 equivalent. It returns an empty
+// string for types without a natural scalar proto mapping.
+func protoType(goType string) string {
+	switch goType {
+	case "string":
+		return "string"
+	case "int", "int32":
+		return "int32"
+	case "int64", "uint", "uint64":
+		return "int64"
+	case "float32":
+		return "float"
+	case "float64":
+		return "double"
+	case "bool":
+		return "bool"
+	default:
+		return ""
+	}
+}
+
+// protoGoFieldName returns the Go field name protoc-gen-go produces for a proto
+// field whose snake_case name derives from the given entity field. protoc
+// converts snake_case to PascalCase, which for our PascalCase field names is the
+// field name itself.
+func protoGoFieldName(fieldName string) string {
+	return fieldName
 }
 
 // cliFlagFor returns the cobra flag accessor expression and declaration line

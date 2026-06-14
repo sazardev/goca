@@ -95,8 +95,23 @@ func TestGenerateCachePackage_Imports(t *testing.T) {
 	assert.Contains(t, src, `"github.com/redis/go-redis/v9"`)
 }
 
+// writeFakeCacheDecorators creates cached_<entity>_repository.go stubs under the
+// current working directory so cache-aware DI generation recognizes the decorators.
+func writeFakeCacheDecorators(t *testing.T, features ...string) {
+	t.Helper()
+	repoDir := filepath.Join(DirInternal, DirRepository)
+	require.NoError(t, os.MkdirAll(repoDir, 0o755))
+	for _, f := range features {
+		fn := filepath.Join(repoDir, "cached_"+strings.ToLower(f)+"_repository.go")
+		require.NoError(t, os.WriteFile(fn, []byte("package repository"), 0o644))
+	}
+}
+
 func TestGenerateSetupRepositories_WithCache(t *testing.T) {
-	t.Parallel()
+	origDir, _ := os.Getwd()
+	defer os.Chdir(origDir)
+	os.Chdir(t.TempDir())
+	writeFakeCacheDecorators(t, "Product", "User")
 
 	var b strings.Builder
 	features := []string{"Product", "User"}
@@ -110,7 +125,10 @@ func TestGenerateSetupRepositories_WithCache(t *testing.T) {
 }
 
 func TestGenerateSetupRepositories_WithCacheMySQL(t *testing.T) {
-	t.Parallel()
+	origDir, _ := os.Getwd()
+	defer os.Chdir(origDir)
+	os.Chdir(t.TempDir())
+	writeFakeCacheDecorators(t, "Order")
 
 	var b strings.Builder
 	generateSetupRepositories(&b, []string{"Order"}, "mysql", true)
@@ -130,6 +148,7 @@ func TestGenerateManualDI_WithCache(t *testing.T) {
 	os.Chdir(dir)
 
 	require.NoError(t, os.WriteFile("go.mod", []byte("module testproject\n\ngo 1.21\n"), 0o644))
+	writeFakeCacheDecorators(t, "Product")
 
 	sm := NewSafetyManager(false, true, false)
 	generateManualDI(filepath.Join(dir, "di"), []string{"Product"}, "postgres", true, sm)

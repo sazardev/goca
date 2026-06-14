@@ -46,10 +46,10 @@ func createGoMod(projectName, module, database string, auth bool, sm ...*SafetyM
 	case DBElasticsearch:
 		baseDeps += `
 	github.com/elastic/go-elasticsearch/v8 v8.10.1`
-	default: // postgres as fallback
+	default: // sqlite as the safe fallback (matches createMainGo/databaseURLBody)
 		baseDeps += `
 	gorm.io/gorm v1.25.5
-	gorm.io/driver/postgres v1.5.4`
+	gorm.io/driver/sqlite v1.5.4`
 	}
 
 	// Add JWT dependency if auth is enabled
@@ -68,13 +68,6 @@ go 1.21
 
 %s
 `, module, dependencies)
-
-	// Add replace directive for test modules to make them resolvable locally
-	if strings.Contains(module, "github.com/goca/testproject") {
-		content += `
-replace github.com/goca/testproject => ./
-`
-	}
 
 	if err := writeFile(filepath.Join(projectName, "go.mod"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing go.mod: %v", err))
@@ -173,10 +166,12 @@ func initializeGitRepository(projectName string) error {
 		return fmt.Errorf("failed to add files to git: %w", err)
 	}
 
-	// Create initial commit
+	// Create initial commit. Disable GPG signing and detach stdin so the
+	// command never blocks waiting for a passphrase/prompt (INIT-GIT).
 	commitMessage := "Initial commit - Goca Clean Architecture project"
-	cmdCommit := exec.Command("git", "commit", "-m", commitMessage)
+	cmdCommit := exec.Command("git", "-c", "commit.gpgsign=false", "commit", "-m", commitMessage)
 	cmdCommit.Dir = projectPath
+	cmdCommit.Stdin = nil
 	if err := cmdCommit.Run(); err != nil {
 		return fmt.Errorf("failed to create initial commit: %w", err)
 	}
@@ -184,7 +179,10 @@ func initializeGitRepository(projectName string) error {
 	return nil
 }
 
-func createReadme(projectName, module string, sm ...*SafetyManager) {
+func createReadme(projectName, module, database string, sm ...*SafetyManager) {
+	dbDisplay := getDatabaseDisplayName(database)
+	dbSection := getReadmeDatabaseSection(database, projectName)
+	dbTroubleshooting := getReadmeDatabaseTroubleshooting(database, projectName)
 	content := fmt.Sprintf(`# %s
 
 Generated with Goca - Go Clean Architecture Code Generator
@@ -193,7 +191,7 @@ Generated with Goca - Go Clean Architecture Code Generator
 
 This project follows Clean Architecture principles:
 
-- **Domain**: Entities and business rules  
+- **Domain**: Entities and business rules
 - **Use Cases**: Application logic
 - **Repository**: Data abstraction
 - **Handler**: Delivery adapters
@@ -204,15 +202,9 @@ This project follows Clean Architecture principles:
 `+"```bash\n"+`go mod tidy
 `+"```\n"+`
 
-### 2. Configure database (PostgreSQL):
+### 2. Configure database (%s):
 
-#### Option A: Using Docker (Recommended)
-`+"```bash\n"+"# Run PostgreSQL\ndocker run --name postgres-dev \\\n  -e POSTGRES_PASSWORD=password \\\n  -e POSTGRES_DB=%s \\\n  -p 5432:5432 \\\n  -d postgres:15\n\n# Or using docker-compose\nup -d"+"```\n"+`
-
-#### Option B: Local PostgreSQL
-`+"```bash\n"+`# Create database
-createdb %s
-`+"```\n"+`
+%s
 
 ### 3. Configure environment variables:
 `+"```bash\n"+`# Copy example file
@@ -292,32 +284,7 @@ make fmt
 
 ## Troubleshooting
 
-### Error: "dial tcp [::1]:5432: connection refused"
-PostgreSQL database is not running. 
-
-**Solution:**
-`+"```bash\n"+`# With Docker
-docker run --name postgres-dev \
-  -e POSTGRES_PASSWORD=password \
-  -e POSTGRES_DB=%s \
-  -p 5432:5432 \
-  -d postgres:15
-
-# Verify it's running
-docker ps
-`+"```\n"+`
-
-### Error: "database not configured"
-Database environment variables are not configured.
-
-**Solution:**
-`+"```bash\n"+`# Configure in .env
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=password
-DB_NAME=%s
-`+"```\n"+`
+%s
 
 ### Error: "command not found: goca"
 Goca CLI is not installed or not in PATH.
@@ -334,9 +301,9 @@ goca version
 Application runs but cannot connect to database.
 
 **Solution:**
-1. Verify PostgreSQL is running
+1. Verify %s is running
 2. Verify environment variables in .env
-3. Test connection manually: `+"`"+`psql -h localhost -U postgres -d %s`+"`"+`
+3. Verify your connection settings in .env
 
 ## Additional Resources
 
@@ -356,12 +323,81 @@ This project was generated with Goca. To contribute:
 ---
 
 Generated with [Goca](https://github.com/sazardev/goca)
-`, cases.Title(language.English).String(projectName), projectName, projectName, projectName, projectName, projectName, projectName, projectName)
+`, cases.Title(language.English).String(projectName), dbDisplay, dbSection, projectName, projectName, dbTroubleshooting, dbDisplay)
 
 	if err := writeFile(filepath.Join(projectName, "README.md"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing README.md: %v", err))
 		return
 	}
+}
+
+// getDatabaseDisplayName returns a human-friendly name for the database.
+func getDatabaseDisplayName(database string) string {
+	switch database {
+	case DBPostgres, DBPostgresJSON:
+		return "PostgreSQL"
+	case DBMySQL:
+		return "MySQL"
+	case DBMongoDB:
+		return "MongoDB"
+	case DBSQLite:
+		return "SQLite"
+	case DBSQLServer:
+		return "SQL Server"
+	case DBDynamoDB:
+		return "DynamoDB"
+	case DBElasticsearch:
+		return "Elasticsearch"
+	default:
+		return database
+	}
+}
+
+// getReadmeDatabaseSection returns the DB-specific "Configure database" section.
+func getReadmeDatabaseSection(database, projectName string) string {
+	fence := func(s string) string { return "```bash\n" + s + "\n```" }
+	switch database {
+	case DBSQLite:
+		return "SQLite is file-based; no server is required. The database file is created automatically on first run."
+	case DBMySQL:
+		return "#### Option A: Using Docker (Recommended)\n" +
+			fence(fmt.Sprintf("# Run MySQL\ndocker run --name mysql-dev \\\n  -e MYSQL_ROOT_PASSWORD=password \\\n  -e MYSQL_DATABASE=%s \\\n  -p 3306:3306 \\\n  -d mysql:8.0\n\n# Or using docker-compose\ndocker-compose up -d", projectName))
+	case DBMongoDB:
+		return "#### Option A: Using Docker (Recommended)\n" +
+			fence(fmt.Sprintf("# Run MongoDB\ndocker run --name mongo-dev \\\n  -e MONGO_INITDB_ROOT_USERNAME=admin \\\n  -e MONGO_INITDB_ROOT_PASSWORD=password \\\n  -e MONGO_INITDB_DATABASE=%s \\\n  -p 27017:27017 \\\n  -d mongo:7.0\n\n# Or using docker-compose\ndocker-compose up -d", projectName))
+	case DBSQLServer:
+		return "#### Option A: Using Docker (Recommended)\n" +
+			fence("# Run SQL Server\ndocker run --name sqlserver-dev \\\n  -e ACCEPT_EULA=Y \\\n  -e MSSQL_SA_PASSWORD=Your_password123 \\\n  -p 1433:1433 \\\n  -d mcr.microsoft.com/mssql/server:2022-latest\n\n# Or using docker-compose\ndocker-compose up -d")
+	case DBDynamoDB:
+		return "#### Option A: Using Docker (Recommended)\n" +
+			fence("# Run DynamoDB Local\ndocker run --name dynamodb-dev \\\n  -p 8000:8000 \\\n  -d amazon/dynamodb-local:latest\n\n# Or using docker-compose\ndocker-compose up -d")
+	case DBElasticsearch:
+		return "#### Option A: Using Docker (Recommended)\n" +
+			fence("# Run Elasticsearch\ndocker run --name elasticsearch-dev \\\n  -e discovery.type=single-node \\\n  -e xpack.security.enabled=false \\\n  -p 9200:9200 \\\n  -d docker.elastic.co/elasticsearch/elasticsearch:8.10.1\n\n# Or using docker-compose\ndocker-compose up -d")
+	default: // postgres, postgres-json
+		return "#### Option A: Using Docker (Recommended)\n" +
+			fence(fmt.Sprintf("# Run PostgreSQL\ndocker run --name postgres-dev \\\n  -e POSTGRES_PASSWORD=password \\\n  -e POSTGRES_DB=%s \\\n  -p 5432:5432 \\\n  -d postgres:15\n\n# Or using docker-compose\ndocker-compose up -d", projectName)) +
+			"\n\n#### Option B: Local PostgreSQL\n" +
+			fence(fmt.Sprintf("# Create database\ncreatedb %s", projectName))
+	}
+}
+
+// getReadmeDatabaseTroubleshooting returns the DB-specific troubleshooting block.
+func getReadmeDatabaseTroubleshooting(database, projectName string) string {
+	fence := func(s string) string { return "```bash\n" + s + "\n```" }
+	display := getDatabaseDisplayName(database)
+	port := getDatabasePort(database)
+	user := getDatabaseUser(database)
+
+	if database == DBSQLite {
+		return "### Error: \"unable to open database file\"\n" +
+			"SQLite cannot create or access the database file.\n\n" +
+			"**Solution:** Ensure the application has write permission in its working directory."
+	}
+
+	envBlock := fmt.Sprintf("# Configure in .env\nDB_HOST=localhost\nDB_PORT=%s\nDB_USER=%s\nDB_PASSWORD=password\nDB_NAME=%s", port, user, projectName)
+
+	return fmt.Sprintf("### Error: \"connection refused\"\n%s database is not running.\n\n**Solution:** Start the database service (see step 2) and verify it is reachable on port %s.\n\n### Error: \"database not configured\"\nDatabase environment variables are not configured.\n\n**Solution:**\n%s", display, port, fence(envBlock))
 }
 
 func createConfig(projectName, _, database string, sm ...*SafetyManager) {
@@ -414,8 +450,8 @@ func Load() *Config {
 		LogLevel:    getEnv("LOG_LEVEL", "info"),
 		Database: DatabaseConfig{
 			Host:         getEnv("DB_HOST", "localhost"),
-			Port:         getEnv("DB_PORT", "5432"),
-			User:         getEnv("DB_USER", "postgres"),
+			Port:         getEnv("DB_PORT", "%s"),
+			User:         getEnv("DB_USER", "%s"),
 			Password:     getEnv("DB_PASSWORD", ""),
 			Name:         getEnv("DB_NAME", "%s"),
 			SSLMode:      getEnv("DB_SSL_MODE", "disable"),
@@ -462,7 +498,7 @@ func getEnvAsDuration(key string, defaultValue string) time.Duration {
 	duration, _ := time.ParseDuration(defaultValue)
 	return duration
 }
-`, fmtImport, projectName, dbURLBody)
+`, fmtImport, getConfigDefaultPort(database), getDatabaseUser(database), projectName, dbURLBody)
 
 	if err := writeGoFile(filepath.Join(projectName, "pkg", "config", "config.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing config.go: %v", err))
@@ -484,8 +520,10 @@ func databaseURLBody(database string) string {
 		return "\treturn fmt.Sprintf(\"sqlserver://%s:%s@%s:%s?database=%s\",\n\t\tc.Database.User, c.Database.Password, c.Database.Host, c.Database.Port, c.Database.Name)"
 	case DBMongoDB:
 		return "\tif c.Database.User != \"\" && c.Database.Password != \"\" {\n\t\treturn fmt.Sprintf(\"mongodb://%s:%s@%s:%s\", c.Database.User, c.Database.Password, c.Database.Host, c.Database.Port)\n\t}\n\treturn fmt.Sprintf(\"mongodb://%s:%s\", c.Database.Host, c.Database.Port)"
-	default: // postgres, postgres-json
+	case DBPostgres, DBPostgresJSON:
 		return "\treturn fmt.Sprintf(\"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s\",\n\t\tc.Database.Host, c.Database.Port, c.Database.User, c.Database.Password, c.Database.Name, c.Database.SSLMode)"
+	default: // safe fallback: sqlite file path (matches createGoMod/createMainGo)
+		return "\tname := c.Database.Name\n\tif name == \"\" {\n\t\tname = \"app\"\n\t}\n\treturn name + \".db\""
 	}
 }
 
@@ -648,24 +686,46 @@ JWT_EXPIRY=24h
 	}
 }
 
+// getConfigDefaultPort returns the DB_PORT default for the generated config.go.
+// SQLite has no network port, so it returns an empty string.
+func getConfigDefaultPort(database string) string {
+	return getDatabasePort(database)
+}
+
 func getDatabasePort(database string) string {
 	switch database {
-	case "mysql":
+	case DBMySQL:
 		return "3306"
-	case "mongodb":
+	case DBMongoDB:
 		return "27017"
-	default: // postgres
+	case DBSQLServer:
+		return "1433"
+	case DBDynamoDB:
+		return "8000"
+	case DBElasticsearch:
+		return "9200"
+	case DBSQLite:
+		return ""
+	default: // postgres, postgres-json
 		return "5432"
 	}
 }
 
 func getDatabaseUser(database string) string {
 	switch database {
-	case "mysql":
+	case DBMySQL:
 		return "root"
-	case "mongodb":
+	case DBMongoDB:
 		return "admin"
-	default: // postgres
+	case DBSQLServer:
+		return "sa"
+	case DBElasticsearch:
+		return "elastic"
+	case DBDynamoDB:
+		return "local"
+	case DBSQLite:
+		return ""
+	default: // postgres, postgres-json
 		return "postgres"
 	}
 }

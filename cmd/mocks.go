@@ -103,10 +103,18 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 
 	importPath := getImportPath(getModuleName())
 
+	// Recover the entity's fields so the generated mocks include the same
+	// per-field finder methods (FindBy<Field>) that the real repository
+	// interface declares.
+	var fields []Field
+	if fs := readEntityFieldsString(entityName); fs != "" {
+		fields = parseFields(fs)
+	}
+
 	// Generate repository mock
 	if all || repository {
 		mockFile := filepath.Join(mocksDir, fmt.Sprintf("mock_%s_repository.go", strings.ToLower(entityName)))
-		content := fixGeneratedModulePath(generateRepositoryMock(entityName), importPath)
+		content := fixGeneratedModulePath(generateRepositoryMock(entityName, fields), importPath)
 		if err := writeFile(mockFile, content, sm...); err != nil {
 			return err
 		}
@@ -147,157 +155,118 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 	return nil
 }
 
-// generateRepositoryMock generates a mock for repository interface.
-func generateRepositoryMock(entityName string) string {
+// generateRepositoryMock generates a mock that satisfies repository.<Entity>Repository.
+// The generated finder methods (FindBy<Field>) mirror those produced for the real
+// repository interface by generateSearchMethods, so the mock implements the
+// interface exactly.
+func generateRepositoryMock(entityName string, fields []Field) string {
 	lowerEntity := strings.ToLower(entityName)
 
-	return fmt.Sprintf(
-		`package mocks
+	var b strings.Builder
+	b.WriteString("package mocks\n\n")
+	b.WriteString("import (\n")
+	b.WriteString("\t\"github.com/stretchr/testify/mock\"\n")
+	b.WriteString("\t\"github.com/sazardev/goca/internal/domain\"\n")
+	b.WriteString(")\n\n")
 
-import (
-	"github.com/stretchr/testify/mock"
-	"github.com/sazardev/goca/internal/domain"
-)
+	fmt.Fprintf(&b, "// Mock%sRepository is a mock implementation of repository.%sRepository\n", entityName, entityName)
+	fmt.Fprintf(&b, "type Mock%sRepository struct {\n\tmock.Mock\n}\n\n", entityName)
 
-// Mock%sRepository is a mock implementation of repository.%sRepository
-type Mock%sRepository struct {
-	mock.Mock
-}
+	// Save
+	fmt.Fprintf(&b, "// Save mocks the Save method\n")
+	fmt.Fprintf(&b, "func (m *Mock%sRepository) Save(%s *domain.%s) error {\n", entityName, lowerEntity, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(%s)\n\treturn args.Error(0)\n}\n\n", lowerEntity)
 
-// Save mocks the Save method
-func (m *Mock%sRepository) Save(%s *domain.%s) error {
-	args := m.Called(%s)
-	return args.Error(0)
-}
+	// FindByID
+	fmt.Fprintf(&b, "// FindByID mocks the FindByID method\n")
+	fmt.Fprintf(&b, "func (m *Mock%sRepository) FindByID(id int) (*domain.%s, error) {\n", entityName, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(id)\n\tif args.Get(0) == nil {\n\t\treturn nil, args.Error(1)\n\t}\n")
+	fmt.Fprintf(&b, "\treturn args.Get(0).(*domain.%s), args.Error(1)\n}\n\n", entityName)
 
-// FindByID mocks the FindByID method
-func (m *Mock%sRepository) FindByID(id int) (*domain.%s, error) {
-	args := m.Called(id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+	// Per-field finders, matching generateSearchMethods.
+	for _, method := range generateSearchMethods(fields, entityName) {
+		paramName := strings.ToLower(method.FieldName)
+		fmt.Fprintf(&b, "// %s mocks the %s method\n", method.MethodName, method.MethodName)
+		fmt.Fprintf(&b, "func (m *Mock%sRepository) %s(%s %s) (*domain.%s, error) {\n",
+			entityName, method.MethodName, paramName, method.FieldType, entityName)
+		fmt.Fprintf(&b, "\targs := m.Called(%s)\n\tif args.Get(0) == nil {\n\t\treturn nil, args.Error(1)\n\t}\n", paramName)
+		fmt.Fprintf(&b, "\treturn args.Get(0).(*domain.%s), args.Error(1)\n}\n\n", entityName)
 	}
-	return args.Get(0).(*domain.%s), args.Error(1)
+
+	// Update
+	fmt.Fprintf(&b, "// Update mocks the Update method\n")
+	fmt.Fprintf(&b, "func (m *Mock%sRepository) Update(%s *domain.%s) error {\n", entityName, lowerEntity, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(%s)\n\treturn args.Error(0)\n}\n\n", lowerEntity)
+
+	// Delete
+	fmt.Fprintf(&b, "// Delete mocks the Delete method\n")
+	fmt.Fprintf(&b, "func (m *Mock%sRepository) Delete(id int) error {\n", entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(id)\n\treturn args.Error(0)\n}\n\n")
+
+	// FindAll
+	fmt.Fprintf(&b, "// FindAll mocks the FindAll method\n")
+	fmt.Fprintf(&b, "func (m *Mock%sRepository) FindAll() ([]domain.%s, error) {\n", entityName, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called()\n\tif args.Get(0) == nil {\n\t\treturn nil, args.Error(1)\n\t}\n")
+	fmt.Fprintf(&b, "\treturn args.Get(0).([]domain.%s), args.Error(1)\n}\n\n", entityName)
+
+	fmt.Fprintf(&b, "// NewMock%sRepository creates a new mock repository\n", entityName)
+	fmt.Fprintf(&b, "func NewMock%sRepository() *Mock%sRepository {\n\treturn &Mock%sRepository{}\n}\n",
+		entityName, entityName, entityName)
+
+	return b.String()
 }
 
-// TODO: Add custom finder methods here (e.g., FindByEmail, FindByName, etc.)
-// These methods should match your repository interface definition in internal/repository/interfaces.go
-// Example:
-// func (m *Mock%sRepository) FindByEmail(email string) (*domain.%s, error) {
-//     args := m.Called(email)
-//     if args.Get(0) == nil {
-//         return nil, args.Error(1)
-//     }
-//     return args.Get(0).(*domain.%s), args.Error(1)
-// }
-
-// Update mocks the Update method
-func (m *Mock%sRepository) Update(%s *domain.%s) error {
-	args := m.Called(%s)
-	return args.Error(0)
-}
-
-// Delete mocks the Delete method
-func (m *Mock%sRepository) Delete(id int) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
-
-// FindAll mocks the FindAll method
-func (m *Mock%sRepository) FindAll() ([]domain.%s, error) {
-	args := m.Called()
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]domain.%s), args.Error(1)
-}
-
-// NewMock%sRepository creates a new mock repository
-func NewMock%sRepository() *Mock%sRepository {
-	return &Mock%sRepository{}
-}
-`,
-		entityName, entityName, entityName,
-		entityName, lowerEntity, entityName, lowerEntity,
-		entityName, entityName, entityName,
-		entityName, entityName, entityName,
-		entityName, lowerEntity, entityName, lowerEntity,
-		entityName,
-		entityName, entityName, entityName,
-		entityName, entityName, entityName, entityName,
-	)
-}
-
-// generateUseCaseMock generates a mock for use case interface.
+// generateUseCaseMock generates a mock that satisfies usecase.<Entity>UseCase
+// exactly: Create<Entity>, Get<Entity>, Update<Entity>, Delete<Entity> and
+// List<Entity>s, with the same signatures the real interface declares.
 func generateUseCaseMock(entityName string) string {
-	return fmt.Sprintf(
-		`package mocks
+	var b strings.Builder
+	b.WriteString("package mocks\n\n")
+	b.WriteString("import (\n")
+	b.WriteString("\t\"github.com/stretchr/testify/mock\"\n")
+	b.WriteString("\t\"github.com/sazardev/goca/internal/domain\"\n")
+	b.WriteString("\t\"github.com/sazardev/goca/internal/usecase\"\n")
+	b.WriteString(")\n\n")
 
-import (
-	"github.com/stretchr/testify/mock"
-	"github.com/sazardev/goca/internal/domain"
-	"github.com/sazardev/goca/internal/usecase"
-)
+	fmt.Fprintf(&b, "// Mock%sUseCase is a mock implementation of usecase.%sUseCase\n", entityName, entityName)
+	fmt.Fprintf(&b, "type Mock%sUseCase struct {\n\tmock.Mock\n}\n\n", entityName)
 
-// Mock%sUseCase is a mock implementation of usecase.%sUseCase
-type Mock%sUseCase struct {
-	mock.Mock
-}
+	// Create<Entity>(input Create<Entity>Input) (Create<Entity>Output, error)
+	fmt.Fprintf(&b, "// Create%s mocks the Create%s method\n", entityName, entityName)
+	fmt.Fprintf(&b, "func (m *Mock%sUseCase) Create%s(input usecase.Create%sInput) (usecase.Create%sOutput, error) {\n",
+		entityName, entityName, entityName, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(input)\n")
+	fmt.Fprintf(&b, "\treturn args.Get(0).(usecase.Create%sOutput), args.Error(1)\n}\n\n", entityName)
 
-// Create mocks the Create method
-func (m *Mock%sUseCase) Create(input usecase.Create%sInput) (*usecase.Create%sOutput, error) {
-	args := m.Called(input)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*usecase.Create%sOutput), args.Error(1)
-}
+	// Get<Entity>(id int) (*domain.<Entity>, error)
+	fmt.Fprintf(&b, "// Get%s mocks the Get%s method\n", entityName, entityName)
+	fmt.Fprintf(&b, "func (m *Mock%sUseCase) Get%s(id int) (*domain.%s, error) {\n", entityName, entityName, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(id)\n\tif args.Get(0) == nil {\n\t\treturn nil, args.Error(1)\n\t}\n")
+	fmt.Fprintf(&b, "\treturn args.Get(0).(*domain.%s), args.Error(1)\n}\n\n", entityName)
 
-// GetByID mocks the GetByID method
-func (m *Mock%sUseCase) GetByID(id uint) (*domain.%s, error) {
-	args := m.Called(id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.%s), args.Error(1)
-}
+	// Update<Entity>(id int, input Update<Entity>Input) error
+	fmt.Fprintf(&b, "// Update%s mocks the Update%s method\n", entityName, entityName)
+	fmt.Fprintf(&b, "func (m *Mock%sUseCase) Update%s(id int, input usecase.Update%sInput) error {\n",
+		entityName, entityName, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(id, input)\n\treturn args.Error(0)\n}\n\n")
 
-// Update mocks the Update method
-func (m *Mock%sUseCase) Update(id uint, input usecase.Update%sInput) (*domain.%s, error) {
-	args := m.Called(id, input)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.%s), args.Error(1)
-}
+	// Delete<Entity>(id int) error
+	fmt.Fprintf(&b, "// Delete%s mocks the Delete%s method\n", entityName, entityName)
+	fmt.Fprintf(&b, "func (m *Mock%sUseCase) Delete%s(id int) error {\n", entityName, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called(id)\n\treturn args.Error(0)\n}\n\n")
 
-// Delete mocks the Delete method
-func (m *Mock%sUseCase) Delete(id uint) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
+	// List<Entity>s() (List<Entity>Output, error)
+	fmt.Fprintf(&b, "// List%ss mocks the List%ss method\n", entityName, entityName)
+	fmt.Fprintf(&b, "func (m *Mock%sUseCase) List%ss() (usecase.List%sOutput, error) {\n",
+		entityName, entityName, entityName)
+	fmt.Fprintf(&b, "\targs := m.Called()\n")
+	fmt.Fprintf(&b, "\treturn args.Get(0).(usecase.List%sOutput), args.Error(1)\n}\n\n", entityName)
 
-// List mocks the List method
-func (m *Mock%sUseCase) List() (*usecase.List%sOutput, error) {
-	args := m.Called()
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*usecase.List%sOutput), args.Error(1)
-}
+	fmt.Fprintf(&b, "// NewMock%sUseCase creates a new mock use case\n", entityName)
+	fmt.Fprintf(&b, "func NewMock%sUseCase() *Mock%sUseCase {\n\treturn &Mock%sUseCase{}\n}\n",
+		entityName, entityName, entityName)
 
-// NewMock%sUseCase creates a new mock use case
-func NewMock%sUseCase() *Mock%sUseCase {
-	return &Mock%sUseCase{}
-}
-`,
-		entityName, entityName, entityName,
-		entityName, entityName, entityName, entityName,
-		entityName, entityName, entityName,
-		entityName, entityName, entityName, entityName,
-		entityName,
-		entityName, entityName, entityName,
-		entityName, entityName, entityName, entityName,
-	)
+	return b.String()
 }
 
 // generateHandlerMock generates a mock for HTTP handler interface.
@@ -358,8 +327,7 @@ func NewMock%sHandler() *Mock%sHandler {
 func generateMockUsageExamples(entityName string) string {
 	lowerEntity := strings.ToLower(entityName)
 
-	return fmt.Sprintf(
-		`package examples
+	return fmt.Sprintf(`package examples
 
 import (
 	"errors"
@@ -369,190 +337,63 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/sazardev/goca/internal/domain"
 	"github.com/sazardev/goca/internal/mocks"
+	"github.com/sazardev/goca/internal/repository"
 	"github.com/sazardev/goca/internal/usecase"
 )
 
-// Example: Testing use case with mocked repository
-func TestCreate%s_WithMockRepository(t *testing.T) {
-	// Arrange
-	mockRepo := mocks.NewMock%sRepository()
-	service := usecase.New%sService(mockRepo)
+// Compile-time assertions that the generated mocks satisfy the real interfaces.
+var (
+	_ repository.%[1]sRepository = (*mocks.Mock%[1]sRepository)(nil)
+	_ usecase.%[1]sUseCase       = (*mocks.Mock%[1]sUseCase)(nil)
+)
 
-	input := usecase.Create%sInput{
-		// Add your input fields here
-	}
+// Example: stubbing repository methods and verifying expectations.
+func TestMock%[1]sRepository_Usage(t *testing.T) {
+	mockRepo := mocks.NewMock%[1]sRepository()
 
-	expected%s := &domain.%s{
-		ID: 1,
-		// Add your expected fields here
-	}
+	expected := &domain.%[1]s{ID: 1}
+	mockRepo.On("FindByID", 1).Return(expected, nil)
+	mockRepo.On("Save", mock.AnythingOfType("*domain.%[1]s")).Return(nil)
 
-	// Setup mock expectation
-	mockRepo.On("Save", mock.AnythingOfType("*domain.%s")).Return(nil).Run(func(args mock.Arguments) {
-		%s := args.Get(0).(*domain.%s)
-		%s.ID = 1 // Simulate auto-increment
-	})
-
-	// Act
-	output, err := service.Create(input)
-
-	// Assert
+	got, err := mockRepo.FindByID(1)
 	assert.NoError(t, err)
-	assert.NotNil(t, output)
-	assert.Equal(t, expected%s.ID, output.%s.ID)
+	assert.Equal(t, expected, got)
 
-	// Verify all expectations were met
+	err = mockRepo.Save(&domain.%[1]s{})
+	assert.NoError(t, err)
+
 	mockRepo.AssertExpectations(t)
-	mockRepo.AssertCalled(t, "Save", mock.AnythingOfType("*domain.%s"))
 }
 
-// Example: Testing error scenarios
-func TestGet%sByID_NotFound_WithMockRepository(t *testing.T) {
-	// Arrange
-	mockRepo := mocks.NewMock%sRepository()
-	service := usecase.New%sService(mockRepo)
+// Example: stubbing an error return.
+func TestMock%[1]sRepository_NotFound(t *testing.T) {
+	mockRepo := mocks.NewMock%[1]sRepository()
 
-	expectedErr := errors.New("%s not found")
+	expectedErr := errors.New("%[2]s not found")
 	mockRepo.On("FindByID", 999).Return(nil, expectedErr)
 
-	// Act
-	result, err := service.GetByID(999)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, result)
+	got, err := mockRepo.FindByID(999)
+	assert.Nil(t, got)
 	assert.Equal(t, expectedErr, err)
 
-	// Verify expectations
 	mockRepo.AssertExpectations(t)
 }
 
-// Example: Testing use case with multiple repository calls
-func TestUpdate%s_WithMockRepository(t *testing.T) {
-	// Arrange
-	mockRepo := mocks.NewMock%sRepository()
-	service := usecase.New%sService(mockRepo)
+// Example: stubbing use-case methods.
+func TestMock%[1]sUseCase_Usage(t *testing.T) {
+	mockUC := mocks.NewMock%[1]sUseCase()
 
-	existing%s := &domain.%s{
-		ID: 1,
-		// Add fields
-	}
+	mockUC.On("Get%[1]s", 1).Return(&domain.%[1]s{ID: 1}, nil)
+	mockUC.On("Delete%[1]s", 1).Return(nil)
 
-	updateInput := usecase.Update%sInput{
-		// Add update fields
-	}
-
-	// Setup mock expectations (FindByID then Update)
-	mockRepo.On("FindByID", 1).Return(existing%s, nil)
-	mockRepo.On("Update", mock.AnythingOfType("*domain.%s")).Return(nil)
-
-	// Act
-	result, err := service.Update(1, updateInput)
-
-	// Assert
+	got, err := mockUC.Get%[1]s(1)
 	assert.NoError(t, err)
-	assert.NotNil(t, result)
+	assert.NotNil(t, got)
 
-	// Verify call order and expectations
-	mockRepo.AssertExpectations(t)
-	mockRepo.AssertNumberOfCalls(t, "FindByID", 1)
-	mockRepo.AssertNumberOfCalls(t, "Update", 1)
-}
+	err = mockUC.Delete%[1]s(1)
+	assert.NoError(t, err)
 
-// Example: Testing handler with mocked use case
-func TestCreate%sHandler_WithMockUseCase(t *testing.T) {
-	// Arrange
-	mockUC := mocks.NewMock%sUseCase()
-	// handler := http.New%sHandler(mockUC)
-
-	expectedOutput := &usecase.Create%sOutput{
-		%s: domain.%s{ID: 1},
-		Message: "%s created successfully",
-	}
-
-	mockUC.On("Create", mock.AnythingOfType("usecase.Create%sInput")).Return(expectedOutput, nil)
-
-	// Act
-	// Create HTTP request and response recorder
-	// Call handler method
-	// result, err := mockUC.Create(input)
-
-	// Assert
-	// assert.NoError(t, err)
-	// assert.Equal(t, http.StatusCreated, recorder.Code)
-
-	// Verify expectations
 	mockUC.AssertExpectations(t)
 }
-
-// Example: Testing argument matchers
-func TestSave%s_WithArgumentMatchers(t *testing.T) {
-	mockRepo := mocks.NewMock%sRepository()
-
-	// Match any %s with specific field value
-	mockRepo.On("Save", mock.MatchedBy(func(%s *domain.%s) bool {
-		return %s.ID > 0
-	})).Return(nil)
-
-	// Test with matching condition
-	valid%s := &domain.%s{ID: 1}
-	err := mockRepo.Save(valid%s)
-	assert.NoError(t, err)
-
-	// Test with non-matching condition
-	invalid%s := &domain.%s{ID: 0}
-	err = mockRepo.Save(invalid%s)
-	assert.Error(t, err) // Will fail because matcher doesn't match
-
-	mockRepo.AssertExpectations(t)
-}
-
-// Example: Testing method call verification
-func TestDelete%s_CallVerification(t *testing.T) {
-	mockRepo := mocks.NewMock%sRepository()
-	service := usecase.New%sService(mockRepo)
-
-	mockRepo.On("Delete", 1).Return(nil)
-
-	// Act
-	err := service.Delete(1)
-
-	// Assert
-	assert.NoError(t, err)
-
-	// Verify Delete was called exactly once with argument 1
-	mockRepo.AssertCalled(t, "Delete", 1)
-	mockRepo.AssertNumberOfCalls(t, "Delete", 1)
-	mockRepo.AssertNotCalled(t, "FindByID")
-}
-`,
-		entityName,                         // TestCreate%s_WithMockRepository
-		entityName, entityName, entityName, // NewMock%sRepository, New%sService, Create%sInput
-		entityName, entityName, // expected%s, domain.%s
-		entityName,                           // *domain.%s
-		lowerEntity, entityName, lowerEntity, // %s := args.Get(0), domain.%s, %s.ID = 1
-		entityName, entityName, // expected%s.ID, output.%s.ID
-		entityName,             // *domain.%s
-		entityName,             // TestGet%sByID_NotFound
-		entityName, entityName, // NewMock%sRepository, New%sService
-		lowerEntity,            // %s not found
-		entityName,             // TestUpdate%s_WithMockRepository
-		entityName, entityName, // NewMock%sRepository, New%sService
-		entityName, entityName, // existing%s, domain.%s
-		entityName,             // Update%sInput
-		entityName, entityName, // existing%s, *domain.%s
-		entityName,                         // TestCreate%sHandler
-		entityName, entityName, entityName, // NewMock%sUseCase, New%sHandler, Create%sOutput
-		entityName, entityName, // %s: domain.%s
-		entityName,                           // %s created successfully
-		entityName,                           // Create%sInput
-		lowerEntity,                          // TestSave%s_WithArgumentMatchers
-		entityName,                           // NewMock%sRepository
-		lowerEntity,                          // Match any %s with
-		lowerEntity, entityName, lowerEntity, // func(%s *domain.%s) bool, %s.ID > 0
-		entityName, entityName, entityName, // valid%s, domain.%s, valid%s
-		entityName, entityName, entityName, // invalid%s, domain.%s, invalid%s
-		entityName,             // TestDelete%s_CallVerification
-		entityName, entityName, // NewMock%sRepository, New%sService
-	)
+`, entityName, lowerEntity)
 }

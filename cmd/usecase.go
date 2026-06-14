@@ -34,6 +34,17 @@ clear interfaces and encapsulated business logic.`,
 			os.Exit(1)
 		}
 
+		// Ensure the target entity actually exists. Generating a use case for a
+		// non-existent entity produces code that references domain.<Entity> and
+		// won't compile, so fail fast with a clear message instead of silently
+		// emitting broken output.
+		entityFile := filepath.Join(DirInternal, DirDomain, strings.ToLower(entity)+".go")
+		if _, err := os.Stat(entityFile); os.IsNotExist(err) {
+			ui.Error(fmt.Sprintf("Entity '%s' not found: expected %s", entity, entityFile))
+			ui.Dim(fmt.Sprintf("Run 'goca entity %s --fields \"...\"' first to generate the domain entity.", entity))
+			os.Exit(1)
+		}
+
 		// Merge only explicitly changed CLI flags with config
 		flags := map[string]interface{}{}
 		if cmd.Flags().Changed("operations") {
@@ -127,8 +138,20 @@ func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValida
 	// Generate files
 	generateDTOFileWithFields(usecaseDir, entity, ops, dtoValidation, fields, sm...)
 	generateUseCaseInterface(usecaseDir, usecaseName, entity, ops, sm...)
-	generateUseCaseServiceWithFields(usecaseDir, usecaseName, entity, ops, async, fields, sm...)
-	generateUseCaseInterfaces(usecaseDir, entity, sm...)
+	generateUseCaseServiceWithFields(usecaseDir, usecaseName, entity, ops, dtoValidation, async, fields, sm...)
+
+	// The service depends on repository.<Entity>Repository (correct Clean
+	// Architecture layering). To make a standalone `goca usecase` compile, also
+	// generate the repository interface stub in package repository. This reuses
+	// the exact same generator as `goca repository`, so the two stay identical
+	// and idempotent (the generator no-ops if the interface already exists).
+	repoDir := filepath.Join(DirInternal, DirRepository)
+	_ = os.MkdirAll(repoDir, 0o755)
+	if fields != "" {
+		generateRepositoryInterfaceWithFields(repoDir, entity, parseFields(fields), false, sm...)
+	} else {
+		generateRepositoryInterface(repoDir, entity, false, sm...)
+	}
 }
 
 func parseOperations(operations string) []string {
@@ -318,7 +341,7 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 	}
 }
 
-func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operations []string, async bool, fields string, sm ...*SafetyManager) {
+func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operations []string, dtoValidation, async bool, fields string, sm ...*SafetyManager) {
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
@@ -328,20 +351,27 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 	var content strings.Builder
 	content.WriteString("package usecase\n\n")
 	content.WriteString("import (\n")
+	if async {
+		content.WriteString("\t\"log\"\n\n")
+	}
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/messages\"\n", getImportPath(moduleName)))
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/repository\"\n", getImportPath(moduleName)))
 	content.WriteString(")\n\n")
+
+	// Async support types, defined once per service file when --async is set.
+	if async {
+		content.WriteString("// AsyncTask represents a unit of work to be processed asynchronously.\n")
+		content.WriteString("type AsyncTask func()\n\n")
+	}
 
 	// Service struct
 	serviceName := fmt.Sprintf("%sService", entityLower)
 	content.WriteString(fmt.Sprintf("type %s struct {\n", serviceName))
 	content.WriteString(fmt.Sprintf("\trepo repository.%sRepository\n", entity))
 	if async {
-		content.WriteString("\t// Canal para procesamiento asíncrono\n")
+		content.WriteString("\t// asyncChannel buffers tasks for asynchronous processing.\n")
 		content.WriteString("\tasyncChannel chan AsyncTask\n")
-		content.WriteString("\t// Logger para operaciones asíncronas\n")
-		content.WriteString("\tlogger       Logger\n")
 	}
 	content.WriteString("}\n\n")
 
@@ -353,15 +383,39 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 	// unexported struct keeps its lowercased name.
 	content.WriteString(fmt.Sprintf("func New%sService(repo repository.%sRepository) %s {\n",
 		entity, entity, interfaceName))
-	content.WriteString(fmt.Sprintf("\treturn &%s{repo: repo}\n", serviceName))
+	if async {
+		content.WriteString(fmt.Sprintf("\ts := &%s{\n", serviceName))
+		content.WriteString("\t\trepo:         repo,\n")
+		content.WriteString("\t\tasyncChannel: make(chan AsyncTask, 100),\n")
+		content.WriteString("\t}\n")
+		content.WriteString("\tgo s.processAsyncTasks()\n")
+		content.WriteString("\treturn s\n")
+	} else {
+		content.WriteString(fmt.Sprintf("\treturn &%s{repo: repo}\n", serviceName))
+	}
 	content.WriteString("}\n\n")
+
+	// Async worker: drains the channel and runs queued tasks sequentially.
+	if async {
+		content.WriteString("// processAsyncTasks runs queued tasks from the async channel.\n")
+		content.WriteString(fmt.Sprintf("func (%s *%s) processAsyncTasks() {\n", string(serviceName[0]), serviceName))
+		content.WriteString(fmt.Sprintf("\tfor task := range %s.asyncChannel {\n", string(serviceName[0])))
+		content.WriteString("\t\ttask()\n")
+		content.WriteString("\t}\n")
+		content.WriteString("}\n\n")
+	}
+
+	// The generated Create<Entity>Input.Validate() method only exists when DTO
+	// validation is enabled AND the DTO was built from real entity fields, so
+	// only emit the input.Validate() call in that case.
+	callDTOValidate := dtoValidation && fields != ""
 
 	// Generate methods for each operation
 	for _, op := range operations {
 		switch op {
 		case "create":
 			if fields != "" {
-				generateCreateMethodWithFields(&content, serviceName, entity, fields)
+				generateCreateMethodWithFields(&content, serviceName, entity, fields, callDTOValidate)
 			} else {
 				generateCreateMethod(&content, serviceName, entity)
 			}
@@ -380,6 +434,17 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 		}
 	}
 
+	// When --async is enabled, emit a fire-and-forget wrapper for the create
+	// operation that queues the work on the service's async channel.
+	if async {
+		for _, op := range operations {
+			if op == "create" {
+				generateAsyncCreateMethod(&content, serviceName, entity)
+				break
+			}
+		}
+	}
+
 	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error creating use case service with fields: %v", err))
 	}
@@ -393,9 +458,8 @@ func generateCreateMethod(content *strings.Builder, serviceName, entity string) 
 		serviceVar, serviceName, entity, entity, entity)
 	fmt.Fprintf(content, "\t%s := domain.%s{\n", entityLower, entity)
 	content.WriteString("\t\t// Automatic field mapping - adjust according to your entity\n")
-	content.WriteString("\t\t// Nombre: input.Nombre,\n")
-	content.WriteString("\t\t// Email: input.Email,\n")
-	content.WriteString("\t\t// Edad: input.Edad,\n")
+	content.WriteString("\t\t// Name: input.Name,\n")
+	content.WriteString("\t\t// Description: input.Description,\n")
 	content.WriteString("\t}\n\n")
 
 	fmt.Fprintf(content, "\tif err := %s.Validate(); err != nil {\n", entityLower)
@@ -413,13 +477,22 @@ func generateCreateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString("}\n\n")
 }
 
-func generateCreateMethodWithFields(content *strings.Builder, serviceName, entity, fields string) {
+func generateCreateMethodWithFields(content *strings.Builder, serviceName, entity, fields string, callDTOValidate bool) {
 	entityLower := strings.ToLower(entity)
 	serviceVar := string(serviceName[0])
 	fieldsList := parseFields(fields)
 
 	fmt.Fprintf(content, "func (%s *%s) Create%s(input Create%sInput) (Create%sOutput, error) {\n",
 		serviceVar, serviceName, entity, entity, entity)
+
+	// Validate the input DTO first when DTO validation is enabled, so malformed
+	// requests are rejected before building the domain entity.
+	if callDTOValidate {
+		content.WriteString("\tif err := input.Validate(); err != nil {\n")
+		fmt.Fprintf(content, "\t\treturn Create%sOutput{}, err\n", entity)
+		content.WriteString("\t}\n\n")
+	}
+
 	fmt.Fprintf(content, "\t%s := domain.%s{\n", entityLower, entity)
 
 	// Map fields from input to entity
@@ -506,12 +579,14 @@ func generateUpdateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString("\t\treturn err\n")
 	content.WriteString("\t}\n\n")
 
+	// The generic Update<Entity>Input DTO exposes optional (pointer) Name and
+	// Description fields; apply them only when set. Adjust to your entity.
 	content.WriteString("\t// Update fields according to your entity\n")
-	content.WriteString("\tif input.Nombre != \"\" {\n")
-	fmt.Fprintf(content, "\t\t%s.Nombre = input.Nombre\n", entityVar)
+	content.WriteString("\tif input.Name != nil {\n")
+	fmt.Fprintf(content, "\t\t%s.Name = *input.Name\n", entityVar)
 	content.WriteString("\t}\n")
-	content.WriteString("\tif input.Email != \"\" {\n")
-	fmt.Fprintf(content, "\t\t%s.Email = input.Email\n", entityVar)
+	content.WriteString("\tif input.Description != nil {\n")
+	fmt.Fprintf(content, "\t\t%s.Description = *input.Description\n", entityVar)
 	content.WriteString("\t}\n")
 	content.WriteString("\t// Add more fields as needed\n\n")
 
@@ -547,35 +622,28 @@ func generateListMethod(content *strings.Builder, serviceName, entity string) {
 	content.WriteString("}\n\n")
 }
 
-func generateUseCaseInterfaces(dir, entity string, sm ...*SafetyManager) {
-	// Get the module name from go.mod
-	moduleName := getModuleName()
+// generateAsyncCreateMethod emits a fire-and-forget wrapper around Create that
+// queues the work on the service's async channel and logs any error.
+func generateAsyncCreateMethod(content *strings.Builder, serviceName, entity string) {
+	serviceVar := string(serviceName[0])
 
-	filename := filepath.Join(dir, "interfaces.go")
-
-	var content strings.Builder
-	content.WriteString("package usecase\n\n")
-	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
-
-	entityLower := strings.ToLower(entity)
-	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
-	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", entityLower, entity))
-	content.WriteString(fmt.Sprintf("\tFindByID(id int) (*domain.%s, error)\n", entity))
-	content.WriteString(fmt.Sprintf("\tUpdate(%s *domain.%s) error\n", entityLower, entity))
-	content.WriteString("\tDelete(id int) error\n")
-	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
-	content.WriteString("}\n")
-
-	if err := writeGoFileMerged(filename, content.String(), sm...); err != nil {
-		ui.Error(fmt.Sprintf("Error creating interfaces file: %v", err))
-	}
+	fmt.Fprintf(content, "// Create%sAsync queues the creation of a %s for asynchronous processing.\n",
+		entity, strings.ToLower(entity))
+	fmt.Fprintf(content, "func (%s *%s) Create%sAsync(input Create%sInput) {\n",
+		serviceVar, serviceName, entity, entity)
+	fmt.Fprintf(content, "\t%s.asyncChannel <- func() {\n", serviceVar)
+	fmt.Fprintf(content, "\t\tif _, err := %s.Create%s(input); err != nil {\n", serviceVar, entity)
+	fmt.Fprintf(content, "\t\t\tlog.Printf(\"async create %s failed: %%v\", err)\n", strings.ToLower(entity))
+	content.WriteString("\t\t}\n")
+	content.WriteString("\t}\n")
+	content.WriteString("}\n\n")
 }
 
 func generateCreateDTOWithFields(content *strings.Builder, entity string, validation bool, fields string) {
 	fieldsList := parseFields(fields)
 
 	// Generate Create Input DTO
-	fmt.Fprintf(content, "// Create%sInput DTO para crear un nuevo %s\n", entity, strings.ToLower(entity))
+	fmt.Fprintf(content, "// Create%sInput is the DTO for creating a new %s.\n", entity, strings.ToLower(entity))
 	fmt.Fprintf(content, "type Create%sInput struct {\n", entity)
 
 	for _, field := range fieldsList {
@@ -600,7 +668,7 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 
 	// Generate validation method for the DTO
 	if validation {
-		fmt.Fprintf(content, "// Validate valida los datos del DTO Create%sInput\n", entity)
+		fmt.Fprintf(content, "// Validate checks the Create%sInput DTO fields.\n", entity)
 		fmt.Fprintf(content, "func (r *Create%sInput) Validate() error {\n", entity)
 
 		for _, field := range fieldsList {

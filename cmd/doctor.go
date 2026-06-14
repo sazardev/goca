@@ -222,8 +222,8 @@ func checkDIContainer() doctorCheck {
 	check := doctorCheck{name: "DI container"}
 
 	candidates := []string{
-		"internal/di",
 		filepath.Join("internal", "di"),
+		filepath.Join("internal", "ioc"),
 	}
 
 	for _, dir := range candidates {
@@ -234,10 +234,49 @@ func checkDIContainer() doctorCheck {
 		}
 	}
 
+	// No dedicated DI directory: DI may be wired manually in the entry point
+	// (goca init wires it in cmd/server/main.go). Treat that as informational
+	// rather than a warning.
+	if mainWiresDI() {
+		check.status = "✓"
+		check.message = "DI wired in main.go (no internal/di package)"
+		return check
+	}
+
 	check.status = "⚠"
 	check.message = "No DI container directory found"
 	check.suggestion = "Run: goca di  to generate the dependency injection container"
 	return check
+}
+
+// mainWiresDI reports whether an entry-point main.go appears to perform manual
+// dependency injection (constructing repositories/use cases/handlers).
+func mainWiresDI() bool {
+	mainCandidates := []string{"main.go", "cmd/main.go", "cmd/server/main.go"}
+	if entries, err := os.ReadDir("cmd"); err == nil {
+		for _, e := range entries {
+			if e.IsDir() {
+				mainCandidates = append(mainCandidates, filepath.Join("cmd", e.Name(), "main.go"))
+			}
+		}
+	}
+	for _, m := range mainCandidates {
+		content, err := os.ReadFile(m)
+		if err != nil {
+			continue
+		}
+		s := string(content)
+		// Heuristic: manual wiring references the DI container or constructs
+		// the layered dependencies directly in main.
+		if strings.Contains(s, "NewContainer") ||
+			strings.Contains(s, "/internal/di") ||
+			(strings.Contains(s, "Repository(") && strings.Contains(s, "UseCase(")) ||
+			(strings.Contains(s, "Repository(") && strings.Contains(s, "Handler(")) {
+
+			return true
+		}
+	}
+	return false
 }
 
 func printChecks(checks []doctorCheck) {
