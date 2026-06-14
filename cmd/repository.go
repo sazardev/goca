@@ -132,15 +132,19 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 		parsedFields = parseFields(fs)
 	}
 
-	// Generate interface:
-	// - Always generate interface UNLESS explicitly skipped
-	// - interfaceOnly=true: only interface
-	// - interfaceOnly=false, implementation=true: both
-	// - interfaceOnly=false, implementation=false: both (default)
-	if len(parsedFields) > 0 {
-		generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions, sm...)
-	} else {
-		generateRepositoryInterface(repoDir, entity, transactions, sm...)
+	// Generate interface unless the caller asked for the implementation only
+	// (--implementation), which assumes the interface already exists (e.g. from
+	// a prior --interface-only run). This mirrors --interface-only, which emits
+	// only the contract.
+	// - interfaceOnly=true:            only the interface
+	// - implementation=true:           only the implementation
+	// - neither (default):             both
+	if !implementation {
+		if len(parsedFields) > 0 {
+			generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions, sm...)
+		} else {
+			generateRepositoryInterface(repoDir, entity, transactions, sm...)
+		}
 	}
 
 	// Generate implementation if not interface-only and database is specified

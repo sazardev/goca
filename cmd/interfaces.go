@@ -199,11 +199,14 @@ func generateHandlerInterfaceFile(dir, entity string, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
 	filename := filepath.Join(dir, entityLower+"_handler.go")
 
+	moduleName := getModuleName()
+
 	var content strings.Builder
 	content.WriteString("package interfaces\n\n")
 	content.WriteString("import (\n")
-	content.WriteString("\t\"net/http\"\n")
 	content.WriteString("\t\"context\"\n")
+	content.WriteString("\t\"net/http\"\n\n")
+	content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", moduleName))
 	content.WriteString(")\n\n")
 
 	// HTTP Handler interface
@@ -259,7 +262,7 @@ func generateGRPCRequestResponseInterfaces(content *strings.Builder, entity stri
 
 	// Create Response interface
 	fmt.Fprintf(content, "type Create%sResponse interface {\n", entity)
-	fmt.Fprintf(content, "\tGet%s() *%s\n", entity, entity)
+	fmt.Fprintf(content, "\tGet%s() *domain.%s\n", entity, entity)
 	content.WriteString("\tGetMessage() string\n")
 	content.WriteString("}\n\n")
 
@@ -270,7 +273,7 @@ func generateGRPCRequestResponseInterfaces(content *strings.Builder, entity stri
 
 	// Get Response interface
 	fmt.Fprintf(content, "type %sResponse interface {\n", entity)
-	fmt.Fprintf(content, "\tGet%s() *%s\n", entity, entity)
+	fmt.Fprintf(content, "\tGet%s() *domain.%s\n", entity, entity)
 	content.WriteString("}\n\n")
 
 	// Update Request interface
@@ -302,7 +305,7 @@ func generateGRPCRequestResponseInterfaces(content *strings.Builder, entity stri
 
 	// List Response interface
 	fmt.Fprintf(content, "type List%ssResponse interface {\n", entity)
-	fmt.Fprintf(content, "\tGet%ss() []*%s\n", entity, entity)
+	fmt.Fprintf(content, "\tGet%ss() []*domain.%s\n", entity, entity)
 	content.WriteString("\tGetTotal() int32\n")
 	content.WriteString("}\n")
 }

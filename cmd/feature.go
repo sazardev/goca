@@ -110,20 +110,23 @@ including domain, use cases, repository and handlers in a single operation.`,
 			fileNamingConvention = configIntegration.GetNamingConvention("file")
 		}
 
-		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, cacheFlag, fileNamingConvention, safetyMgr)
-
-		// Generate middleware package if requested
+		// Generate the middleware package FIRST (when requested) so the HTTP
+		// routes generated below detect it and wire middleware.CORS/Logging from
+		// the package instead of emitting inline duplicates that leave the
+		// package orphaned.
 		if middlewareTypesStr != "" {
 			mwTypes := parseMiddlewareTypes(middlewareTypesStr)
 			if err := validateMiddlewareTypes(mwTypes); err != nil {
 				ui.Error(fmt.Sprintf("middleware-types: %v", err))
 				os.Exit(1)
 			}
-			ui.Step(9, "Generating middleware package...")
+			ui.Step(0, "Generating middleware package...")
 			if err := generateMiddlewarePackage(featureName, mwTypes, safetyMgr); err != nil {
 				ui.Warning(fmt.Sprintf("Could not generate middleware: %v", err))
 			}
 		}
+
+		generateCompleteFeature(featureName, fields, effectiveDatabase, effectiveHandlers, effectiveValidation, effectiveBusinessRules, cacheFlag, fileNamingConvention, safetyMgr)
 
 		// Show dry-run summary
 		if dryRun {
@@ -257,7 +260,9 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 3. Generate Repository
 	ui.Step(3, "Generating repository...")
-	generateRepository(featureName, database, false, true, cache, false, fields, safetyMgr)
+	// implementation=false so BOTH the interface and the implementation are
+	// generated (the DI container and use case depend on the interface type).
+	generateRepository(featureName, database, false, false, cache, false, fields, safetyMgr)
 
 	// 4. Generate Handlers
 	ui.Step(4, "Generating handlers...")

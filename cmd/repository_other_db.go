@@ -189,10 +189,14 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\tres, err := req.Do(context.Background(), e.client)\n")
 	content.WriteString("\tif err != nil {\n\t\treturn nil, err\n\t}\n")
 	content.WriteString("\tdefer res.Body.Close()\n")
-	content.WriteString(fmt.Sprintf("\tvar doc domain.%s\n", entity))
-	content.WriteString("\tif err := json.NewDecoder(res.Body).Decode(&doc); err != nil {\n")
+	// An Elasticsearch GET wraps the document under "_source"; decode that
+	// rather than the envelope so the returned entity is actually populated.
+	content.WriteString("\tvar envelope struct {\n")
+	content.WriteString(fmt.Sprintf("\t\tSource domain.%s `json:\"_source\"`\n", entity))
+	content.WriteString("\t}\n")
+	content.WriteString("\tif err := json.NewDecoder(res.Body).Decode(&envelope); err != nil {\n")
 	content.WriteString("\t\treturn nil, err\n\t}\n")
-	content.WriteString("\treturn &doc, nil\n")
+	content.WriteString("\treturn &envelope.Source, nil\n")
 	content.WriteString("}\n\n")
 
 	// FullTextSearch method
@@ -215,10 +219,18 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\tres, err := req.Do(context.Background(), e.client)\n")
 	content.WriteString("\tif err != nil {\n\t\treturn nil, err\n\t}\n")
 	content.WriteString("\tdefer res.Body.Close()\n")
-	content.WriteString(fmt.Sprintf("\tvar results []domain.%s\n", entity))
-	content.WriteString("\tvar sr map[string]interface{}\n")
+	// Parse the Elasticsearch search response and extract each hit's _source
+	// into the domain slice; previously the decoded body was discarded and an
+	// empty slice was returned.
+	content.WriteString("\tvar sr struct {\n")
+	content.WriteString("\t\tHits struct {\n")
+	content.WriteString(fmt.Sprintf("\t\t\tHits []struct {\n\t\t\t\tSource domain.%s `json:\"_source\"`\n\t\t\t} `json:\"hits\"`\n", entity))
+	content.WriteString("\t\t} `json:\"hits\"`\n")
+	content.WriteString("\t}\n")
 	content.WriteString("\tif err := json.NewDecoder(res.Body).Decode(&sr); err != nil {\n")
 	content.WriteString("\t\treturn nil, err\n\t}\n")
+	content.WriteString(fmt.Sprintf("\tresults := make([]domain.%s, 0, len(sr.Hits.Hits))\n", entity))
+	content.WriteString("\tfor _, h := range sr.Hits.Hits {\n\t\tresults = append(results, h.Source)\n\t}\n")
 	content.WriteString("\treturn results, nil\n")
 	content.WriteString("}\n\n")
 
@@ -239,7 +251,17 @@ func generateElasticsearchRepository(dir, entity string, cache, transactions boo
 	content.WriteString("\tres, err := req.Do(context.Background(), e.client)\n")
 	content.WriteString("\tif err != nil {\n\t\treturn nil, err\n\t}\n")
 	content.WriteString("\tdefer res.Body.Close()\n")
-	content.WriteString(fmt.Sprintf("\tvar results []domain.%s\n", entity))
+	// Extract each hit's _source into the domain slice; previously the response
+	// body was never read and an empty slice was returned.
+	content.WriteString("\tvar sr struct {\n")
+	content.WriteString("\t\tHits struct {\n")
+	content.WriteString(fmt.Sprintf("\t\t\tHits []struct {\n\t\t\t\tSource domain.%s `json:\"_source\"`\n\t\t\t} `json:\"hits\"`\n", entity))
+	content.WriteString("\t\t} `json:\"hits\"`\n")
+	content.WriteString("\t}\n")
+	content.WriteString("\tif err := json.NewDecoder(res.Body).Decode(&sr); err != nil {\n")
+	content.WriteString("\t\treturn nil, err\n\t}\n")
+	content.WriteString(fmt.Sprintf("\tresults := make([]domain.%s, 0, len(sr.Hits.Hits))\n", entity))
+	content.WriteString("\tfor _, h := range sr.Hits.Hits {\n\t\tresults = append(results, h.Source)\n\t}\n")
 	content.WriteString("\treturn results, nil\n")
 	content.WriteString("}\n\n")
 

@@ -562,6 +562,26 @@ func (cm *ConfigManager) SaveConfig(filePath string) error {
 	return nil
 }
 
+// defaultPortForDatabase returns the conventional default port for a database
+// type, so the generated .goca.yaml records a port that matches the chosen
+// database instead of always recording Postgres' 5432.
+func defaultPortForDatabase(database string) int {
+	switch database {
+	case "mysql":
+		return 3306
+	case "mongodb":
+		return 27017
+	case "sqlserver":
+		return 1433
+	case "sqlite", "dynamodb":
+		return 0
+	case "elasticsearch":
+		return 9200
+	default: // postgres, postgres-json and anything else
+		return 5432
+	}
+}
+
 // GenerateDefaultConfig generates a default .goca.yaml file.
 func (cm *ConfigManager) GenerateDefaultConfig(projectPath, projectName, module, database string) error {
 	// Create default config with provided parameters
@@ -574,6 +594,7 @@ func (cm *ConfigManager) GenerateDefaultConfig(projectPath, projectName, module,
 	}
 	if database != "" {
 		config.Database.Type = database
+		config.Database.Port = defaultPortForDatabase(database)
 	}
 
 	cm.config = config
