@@ -189,15 +189,16 @@ func updateMainGoWithAllFeatures(features []string, sm ...*SafetyManager) {
 	contentStr := string(content)
 	moduleName := getModuleName()
 
-	// Check if this needs complete rewrite
-	needsCompleteRewrite := !strings.Contains(contentStr, "di.NewContainer") ||
-		!strings.Contains(contentStr, "/internal/di")
+	// A complete rewrite is only needed when main.go is unrecognizable (no mux
+	// router to anchor injection). The standard init-generated main.go is
+	// extended in place, which preserves its correct DB driver wiring.
+	needsCompleteRewrite := !strings.Contains(contentStr, "mux.NewRouter()")
 
 	if needsCompleteRewrite {
 		ui.Dim("   Rewriting complete main.go...")
 		createCompleteMainGoWithFeatures(mainPath, features, moduleName, sm...)
 	} else {
-		ui.Dim("   Adding missing features...")
+		ui.Dim("   Wiring features into main.go...")
 		addMissingFeaturesToMain(mainPath, features, contentStr, moduleName, sm...)
 	}
 }
@@ -264,76 +265,76 @@ type HealthStatus struct {
 // addMissingFeaturesToMain adds missing feature routes to existing main.go.
 func addMissingFeaturesToMain(mainPath string, features []string, contentStr, moduleName string, sm ...*SafetyManager) {
 	newContent := contentStr
+	changed := false
 
-	// Add DI import if missing
-	if !strings.Contains(newContent, "/internal/di") {
-		importSection := fmt.Sprintf(`import (
-	"database/sql"
-	"log"
-	"net/http"
-
-	"github.com/gorilla/mux"
-	"%s/internal/di"
-	"%s/pkg/config"
-	"%s/pkg/logger"
-
-	_ "github.com/lib/pq"
-)`, moduleName, moduleName, moduleName)
-
-		if oldImport := extractImportSection(newContent); oldImport != "" {
-			newContent = strings.Replace(newContent, oldImport, importSection, 1)
+	// Add the DI import to the existing import block (before pkg/config) so the
+	// project's real driver/imports are preserved.
+	diImportPath := fmt.Sprintf("%s/internal/di", getImportPath(moduleName))
+	if !strings.Contains(newContent, diImportPath) {
+		cfgImport := fmt.Sprintf("\t\"%s/pkg/config\"", getImportPath(moduleName))
+		if strings.Contains(newContent, cfgImport) {
+			newContent = strings.Replace(newContent, cfgImport,
+				fmt.Sprintf("\t\"%s\"\n%s", diImportPath, cfgImport), 1)
+			changed = true
 		}
 	}
 
-	// Add DI container if missing
+	// Create the DI container right after the router is created.
 	if !strings.Contains(newContent, "di.NewContainer") {
-		diSetup := "\n\t// Setup DI container\n\t:="
 		routerPattern := "router := mux.NewRouter()"
-		newContent = strings.Replace(newContent, routerPattern, diSetup+"\n\t// Setup router\n\t"+routerPattern, 1)
+		if strings.Contains(newContent, routerPattern) {
+			newContent = strings.Replace(newContent, routerPattern,
+				routerPattern+"\n\n\t// Setup dependency injection container\n\tcontainer := di.NewContainer(db)", 1)
+			changed = true
+		}
 	}
 
-	// Add missing feature routes
+	// Insert feature route blocks before the HTTP server setup.
 	addedFeatures := 0
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
 
-		// Check if routes already exist
-		if !strings.Contains(newContent, fmt.Sprintf("/api/v1/%ss", featureLower)) {
-			routeBlock := fmt.Sprintf(`
-	// %s routes
+		if strings.Contains(newContent, fmt.Sprintf("/api/v1/%ss", featureLower)) {
+			continue
+		}
+
+		routeBlock := fmt.Sprintf(`	// %s routes
 	%sHandler := container.%sHandler()
 	router.HandleFunc("/api/v1/%ss", %sHandler.Create%s).Methods("POST")
 	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Get%s).Methods("GET")
 	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Update%s).Methods("PUT")
 	router.HandleFunc("/api/v1/%ss/{id}", %sHandler.Delete%s).Methods("DELETE")
 	router.HandleFunc("/api/v1/%ss", %sHandler.List%ss).Methods("GET")
+
 `, feature, featureLower, feature, featureLower, featureLower, feature, featureLower, featureLower, feature, featureLower, featureLower, feature, featureLower, featureLower, feature, featureLower, featureLower, feature)
 
-			// Insert before server start
-			serverStartPatterns := []string{
-				"log.Printf(\"Server starting",
-				"log.Fatal(http.ListenAndServe",
+		// Anchor: the HTTP server setup comment present in the generated main.go.
+		markers := []string{"// Setup HTTP server", "server := &http.Server{"}
+		inserted := false
+		for _, marker := range markers {
+			if idx := strings.Index(newContent, marker); idx != -1 {
+				newContent = newContent[:idx] + routeBlock + "\t" + newContent[idx:]
+				addedFeatures++
+				changed = true
+				inserted = true
+				break
 			}
-
-			for _, pattern := range serverStartPatterns {
-				if idx := strings.Index(newContent, pattern); idx != -1 {
-					newContent = newContent[:idx] + routeBlock + "\n\t" + newContent[idx:]
-					addedFeatures++
-					break
-				}
-			}
+		}
+		if !inserted {
+			ui.Warning(fmt.Sprintf("Could not find an insertion point for %s routes", feature))
 		}
 	}
 
-	if addedFeatures > 0 {
-		if err := writeFile(mainPath, newContent, sm...); err != nil {
-			ui.Warning(fmt.Sprintf("Could not update main.go: %v", err))
-		} else {
-			ui.Info(fmt.Sprintf("%d features added to main.go", addedFeatures))
-		}
-	} else {
+	if !changed {
 		ui.Dim("   All features are already integrated")
+		return
 	}
+
+	if err := writeGoFileMerged(mainPath, newContent, sm...); err != nil {
+		ui.Warning(fmt.Sprintf("Could not update main.go: %v", err))
+		return
+	}
+	ui.Info(fmt.Sprintf("%d feature(s) wired into main.go", addedFeatures))
 }
 
 // extractImportSection extracts the import section from Go code.
