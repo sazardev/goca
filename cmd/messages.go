@@ -109,6 +109,10 @@ func generateUseCaseMessages(entity string, sm ...*SafetyManager) {
 		// File exists, read it
 		if content, err := os.ReadFile(filename); err == nil {
 			existing := string(content)
+			// Idempotent: skip if this entity's messages already exist.
+			if strings.Contains(existing, fmt.Sprintf("%sCreated ", entity)) {
+				return
+			}
 			// Remove the closing parenthesis and const block end
 			if strings.Contains(existing, ")\n") {
 				existing = strings.ReplaceAll(existing, ")\n", "")
@@ -151,6 +155,10 @@ func generateResponseMessages(dir, entity string, sm ...*SafetyManager) {
 		// File exists, read it
 		if content, err := os.ReadFile(filename); err == nil {
 			existing := string(content)
+			// Idempotent: skip if this entity's response messages already exist.
+			if strings.Contains(existing, fmt.Sprintf("%sCreatedSuccessfully ", entity)) {
+				return
+			}
 			// Remove the closing parenthesis and const block end
 			if strings.Contains(existing, ")\n") {
 				existing = strings.ReplaceAll(existing, ")\n", "")

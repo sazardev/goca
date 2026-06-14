@@ -175,13 +175,10 @@ func generateSetupRepositories(content *strings.Builder, features []string, data
 		featureLower := strings.ToLower(feature)
 		var repoConstructor string
 		switch database {
-		case dbPostgres:
-			repoConstructor = fmt.Sprintf("repository.NewPostgres%sRepository(c.db)", feature)
-		case dbMySQL:
-			repoConstructor = fmt.Sprintf("repository.NewMySQL%sRepository(c.db)", feature)
 		case dbMongoDB:
 			repoConstructor = fmt.Sprintf("repository.NewMongo%sRepository(c.db)", feature)
 		default:
+			// All SQL databases use the shared GORM constructor.
 			repoConstructor = fmt.Sprintf("repository.NewPostgres%sRepository(c.db)", feature)
 		}
 
@@ -310,13 +307,10 @@ func writeRepositorySet(content *strings.Builder, features []string, database st
 	content.WriteString("\tRepositorySet = wire.NewSet(\n")
 	for _, feature := range features {
 		switch database {
-		case dbPostgres:
-			fmt.Fprintf(content, "\t\trepository.NewPostgres%sRepository,\n", feature)
-		case dbMySQL:
-			fmt.Fprintf(content, "\t\trepository.NewMySQL%sRepository,\n", feature)
 		case dbMongoDB:
 			fmt.Fprintf(content, "\t\trepository.NewMongo%sRepository,\n", feature)
 		default:
+			// All SQL databases use the shared GORM constructor.
 			fmt.Fprintf(content, "\t\trepository.NewPostgres%sRepository,\n", feature)
 		}
 	}

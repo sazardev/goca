@@ -348,8 +348,11 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 	// Constructor — return the canonical <Entity>UseCase interface so the
 	// service, handlers and DI container all agree on the type.
 	interfaceName := entity + "UseCase"
-	content.WriteString(fmt.Sprintf("func New%s(repo repository.%sRepository) %s {\n",
-		strings.ToUpper(string(serviceName[0]))+serviceName[1:], entity, interfaceName))
+	// The exported constructor uses the PascalCase entity name (New<Entity>Service)
+	// so it matches the DI container and works for multi-word entities; the
+	// unexported struct keeps its lowercased name.
+	content.WriteString(fmt.Sprintf("func New%sService(repo repository.%sRepository) %s {\n",
+		entity, entity, interfaceName))
 	content.WriteString(fmt.Sprintf("\treturn &%s{repo: repo}\n", serviceName))
 	content.WriteString("}\n\n")
 

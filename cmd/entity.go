@@ -506,10 +506,40 @@ func writeErrorsHeader(content *strings.Builder) {
 
 // writeEntityErrors writes all error definitions for the entity.
 func writeEntityErrors(content *strings.Builder, entityName string, fields []Field, existingErrors []string) {
-	writeGeneralError(content, entityName, existingErrors)
-	writeExistingErrors(content, existingErrors)
-	writeFieldErrors(content, entityName, fields, existingErrors)
+	var tmp strings.Builder
+	writeGeneralError(&tmp, entityName, existingErrors)
+	writeExistingErrors(&tmp, existingErrors)
+	writeFieldErrors(&tmp, entityName, fields, existingErrors)
+
+	// Deduplicate by error identifier. For example a field named "data" yields
+	// ErrInvalid<Entity>Data, which collides with the general
+	// ErrInvalid<Entity>Data constant and would otherwise be redeclared.
+	seen := make(map[string]bool)
+	for _, line := range strings.Split(tmp.String(), "\n") {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		if id := errorIdentifier(line); id != "" {
+			if seen[id] {
+				continue
+			}
+			seen[id] = true
+		}
+		content.WriteString(line + "\n")
+	}
 	content.WriteString(")\n")
+}
+
+// errorIdentifier extracts the Err… constant name from a declaration line.
+func errorIdentifier(line string) string {
+	t := strings.TrimSpace(line)
+	if !strings.HasPrefix(t, "Err") {
+		return ""
+	}
+	if i := strings.IndexAny(t, " ="); i > 0 {
+		return t[:i]
+	}
+	return ""
 }
 
 // writeGeneralError writes the general entity error.

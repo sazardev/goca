@@ -16,7 +16,7 @@ func TestGenerateSetupRepositories(t *testing.T) {
 		prefix   string
 	}{
 		{"postgres", "postgres", "NewPostgres"},
-		{"mysql", "mysql", "NewMySQL"},
+		{"mysql", "mysql", "NewPostgres"},
 		{"mongodb", "mongodb", "NewMongo"},
 		{"default", "other", "NewPostgres"},
 	}
@@ -111,7 +111,7 @@ func TestWriteRepositorySet(t *testing.T) {
 		expected string
 	}{
 		{"postgres", "postgres", "NewPostgresProductRepository"},
-		{"mysql", "mysql", "NewMySQLProductRepository"},
+		{"mysql", "mysql", "NewPostgresProductRepository"},
 		{"mongodb", "mongodb", "NewMongoProductRepository"},
 		{"default", "other", "NewPostgresProductRepository"},
 	}

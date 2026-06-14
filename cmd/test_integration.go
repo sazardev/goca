@@ -105,9 +105,11 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 		return fmt.Errorf("failed to create integration directory: %w", err)
 	}
 
+	importPath := getImportPath(getModuleName())
+
 	// Generate main integration test file
 	testFile := filepath.Join(integrationDir, strings.ToLower(entityName)+"_integration_test.go")
-	content := generateIntegrationTestContent(entityName, database, withContainer, fields)
+	content := fixGeneratedModulePath(generateIntegrationTestContent(entityName, database, withContainer, fields), importPath)
 	if err := writeFile(testFile, content, sm...); err != nil {
 		return fmt.Errorf("failed to write integration test file: %w", err)
 	}
@@ -120,7 +122,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 		}
 
 		fixtureFile := filepath.Join(fixturesDir, strings.ToLower(entityName)+"_fixtures.go")
-		fixtureContent := generateFixtureContent(entityName, fields)
+		fixtureContent := fixGeneratedModulePath(generateFixtureContent(entityName, fields), importPath)
 		if err := writeFile(fixtureFile, fixtureContent, sm...); err != nil {
 			return fmt.Errorf("failed to write fixture file: %w", err)
 		}
@@ -129,7 +131,7 @@ func generateIntegrationTests(entityName, database string, withFixtures, withCon
 	// Generate database helpers if they don't exist
 	helpersFile := filepath.Join(integrationDir, "helpers.go")
 	if _, err := os.Stat(helpersFile); os.IsNotExist(err) {
-		helpersContent := generateHelpersContent(database, withContainer, entityName)
+		helpersContent := fixGeneratedModulePath(generateHelpersContent(database, withContainer, entityName), importPath)
 		if err := writeFile(helpersFile, helpersContent, sm...); err != nil {
 			return fmt.Errorf("failed to write helpers file: %w", err)
 		}

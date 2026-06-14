@@ -116,7 +116,7 @@ func TestGenerateSetupRepositories_WithCacheMySQL(t *testing.T) {
 	generateSetupRepositories(&b, []string{"Order"}, "mysql", true)
 	output := b.String()
 
-	assert.Contains(t, output, "baseOrderRepo := repository.NewMySQLOrderRepository(c.db)")
+	assert.Contains(t, output, "baseOrderRepo := repository.NewPostgresOrderRepository(c.db)")
 	assert.Contains(t, output, "c.orderRepo = repository.NewCachedOrderRepository(baseOrderRepo, c.redisClient, 5*time.Minute)")
 }
 
