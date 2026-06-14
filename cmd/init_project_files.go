@@ -365,11 +365,17 @@ Generated with [Goca](https://github.com/sazardev/goca)
 }
 
 func createConfig(projectName, _, database string, sm ...*SafetyManager) {
+	dbURLBody := databaseURLBody(database)
+	// "fmt" is only needed when the DSN is built with fmt.Sprintf (every driver
+	// except SQLite, whose URL is a plain file path).
+	fmtImport := ""
+	if strings.Contains(dbURLBody, "fmt.") {
+		fmtImport = "\t\"fmt\"\n"
+	}
 	content := fmt.Sprintf(`package config
 
 import (
-	"fmt"
-	"log"
+%s	"log"
 	"os"
 	"strconv"
 	"time"
@@ -426,14 +432,7 @@ func Load() *Config {
 }
 
 func (c *Config) GetDatabaseURL() string {
-	return fmt.Sprintf("host=%%s port=%%s user=%%s password=%%s dbname=%%s sslmode=%%s",
-		c.Database.Host,
-		c.Database.Port,
-		c.Database.User,
-		c.Database.Password,
-		c.Database.Name,
-		c.Database.SSLMode,
-	)
+%s
 }
 
 func getEnv(key, defaultValue string) string {
@@ -463,11 +462,30 @@ func getEnvAsDuration(key string, defaultValue string) time.Duration {
 	duration, _ := time.ParseDuration(defaultValue)
 	return duration
 }
-`, projectName)
+`, fmtImport, projectName, dbURLBody)
 
 	if err := writeGoFile(filepath.Join(projectName, "pkg", "config", "config.go"), content, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Error writing config.go: %v", err))
 		return
+	}
+}
+
+// databaseURLBody returns the body of Config.GetDatabaseURL for the given
+// database driver, so the generated DSN matches the configured database
+// instead of always emitting a PostgreSQL connection string.
+func databaseURLBody(database string) string {
+	switch database {
+	case DBSQLite:
+		// GORM's sqlite driver expects a file path (or :memory:).
+		return "\tname := c.Database.Name\n\tif name == \"\" {\n\t\tname = \"app\"\n\t}\n\treturn name + \".db\""
+	case DBMySQL:
+		return "\treturn fmt.Sprintf(\"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local\",\n\t\tc.Database.User, c.Database.Password, c.Database.Host, c.Database.Port, c.Database.Name)"
+	case DBSQLServer:
+		return "\treturn fmt.Sprintf(\"sqlserver://%s:%s@%s:%s?database=%s\",\n\t\tc.Database.User, c.Database.Password, c.Database.Host, c.Database.Port, c.Database.Name)"
+	case DBMongoDB:
+		return "\tif c.Database.User != \"\" && c.Database.Password != \"\" {\n\t\treturn fmt.Sprintf(\"mongodb://%s:%s@%s:%s\", c.Database.User, c.Database.Password, c.Database.Host, c.Database.Port)\n\t}\n\treturn fmt.Sprintf(\"mongodb://%s:%s\", c.Database.Host, c.Database.Port)"
+	default: // postgres, postgres-json
+		return "\treturn fmt.Sprintf(\"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s\",\n\t\tc.Database.Host, c.Database.Port, c.Database.User, c.Database.Password, c.Database.Name, c.Database.SSLMode)"
 	}
 }
 
