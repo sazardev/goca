@@ -14,6 +14,64 @@ func generateGRPCHandler(entity, fileNamingConvention string, sm ...*SafetyManag
 
 	generateProtoFile(grpcDir, entity, fileNamingConvention, sm...)
 	generateGRPCServerFile(grpcDir, entity, fileNamingConvention, sm...)
+	generateGRPCStubPackage(grpcDir, entity, sm...)
+}
+
+// generateGRPCStubPackage writes a placeholder protobuf package so a freshly
+// generated project resolves (go mod tidy / go build / go vet) without a remote
+// module lookup for the not-yet-generated pb package. Like the server, it is
+// gated behind the "proto" build tag, so the default build ignores it; building
+// with -tags proto compiles the scaffold against these stubs. Once the real
+// *.pb.go files are produced with protoc, this file should be deleted.
+func generateGRPCStubPackage(grpcDir, entity string, sm ...*SafetyManager) {
+	entityLower := strings.ToLower(entity)
+	pkgDir := filepath.Join(grpcDir, entityLower)
+	_ = os.MkdirAll(pkgDir, 0o755)
+
+	fields := grpcEntityFields(entity)
+
+	var c strings.Builder
+	c.WriteString("//go:build proto\n")
+	c.WriteString("// +build proto\n\n")
+	fmt.Fprintf(&c, "// Package %s is a PLACEHOLDER for the protobuf-generated code for %s.\n//\n", entityLower, entity)
+	c.WriteString("// It exists so the gRPC server scaffold compiles (under -tags proto) and so\n")
+	c.WriteString("// `go mod tidy`/`go vet` resolve the import locally instead of attempting a\n")
+	c.WriteString("// remote module lookup. Generate the real code with protoc, e.g.:\n//\n")
+	fmt.Fprintf(&c, "//\tprotoc --go_out=. --go-grpc_out=. internal/handler/grpc/%s.proto\n//\n", entityLower)
+	c.WriteString("// then DELETE this placeholder file (its types would collide with the\n")
+	c.WriteString("// generated ones).\n")
+	fmt.Fprintf(&c, "package %s\n\n", entityLower)
+
+	fmt.Fprintf(&c, "type Unimplemented%sServiceServer struct{}\n\n", entity)
+
+	fmt.Fprintf(&c, "type %s struct {\n", entity)
+	c.WriteString("\tId int32\n")
+	for _, f := range fields {
+		fmt.Fprintf(&c, "\t%s %s\n", protoGoFieldName(f.Name), f.Type)
+	}
+	c.WriteString("}\n\n")
+
+	fmt.Fprintf(&c, "type Create%sRequest struct {\n", entity)
+	for _, f := range fields {
+		fmt.Fprintf(&c, "\t%s %s\n", protoGoFieldName(f.Name), f.Type)
+	}
+	c.WriteString("}\n\n")
+
+	fmt.Fprintf(&c, "type Create%sResponse struct {\n", entity)
+	fmt.Fprintf(&c, "\t%s *%s\n", entity, entity)
+	c.WriteString("\tMessage string\n")
+	c.WriteString("}\n\n")
+
+	fmt.Fprintf(&c, "type Get%sRequest struct {\n\tId int32\n}\n\n", entity)
+
+	fmt.Fprintf(&c, "type %sResponse struct {\n", entity)
+	fmt.Fprintf(&c, "\t%s *%s\n", entity, entity)
+	c.WriteString("}\n")
+
+	filename := filepath.Join(pkgDir, "placeholder.pb.go")
+	if err := writeGoFile(filename, c.String(), sm...); err != nil {
+		ui.Error(fmt.Sprintf("Error writing grpc stub package: %v", err))
+	}
 }
 
 func generateProtoFile(dir, entity, fileNamingConvention string, sm ...*SafetyManager) {

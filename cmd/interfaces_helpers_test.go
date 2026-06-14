@@ -31,9 +31,9 @@ func TestGenerateGRPCRequestResponseInterfaces(t *testing.T) {
 		assert.Contains(t, result, "GetName() string")
 		assert.Contains(t, result, "GetEmail() string")
 		assert.Contains(t, result, "GetId() int32")
-		assert.Contains(t, result, "GetProduct() *Product")
+		assert.Contains(t, result, "GetProduct() *domain.Product")
 		assert.Contains(t, result, "GetMessage() string")
-		assert.Contains(t, result, "GetProducts() []*Product")
+		assert.Contains(t, result, "GetProducts() []*domain.Product")
 		assert.Contains(t, result, "GetTotal() int32")
 	})
 
@@ -44,8 +44,8 @@ func TestGenerateGRPCRequestResponseInterfaces(t *testing.T) {
 		result := sb.String()
 
 		assert.Contains(t, result, "type CreateUserRequest interface")
-		assert.Contains(t, result, "GetUser() *User")
-		assert.Contains(t, result, "GetUsers() []*User")
+		assert.Contains(t, result, "GetUser() *domain.User")
+		assert.Contains(t, result, "GetUsers() []*domain.User")
 	})
 }
 
