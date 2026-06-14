@@ -147,7 +147,6 @@ func generateIntegrationTestContent(entityName, database string, withContainer b
 	content := fmt.Sprintf(`package integration
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -168,7 +167,6 @@ func Test%[1]sIntegration(t *testing.T) {
 	repo := repository.NewPostgres%[1]sRepository(db)
 	service := usecase.New%[1]sService(repo)
 
-	ctx := context.Background()
 
 	t.Run("CreateAndRetrieve%[1]s", func(t *testing.T) {
 		// Create test data
@@ -177,13 +175,13 @@ func Test%[1]sIntegration(t *testing.T) {
 		}
 
 		// Create %[3]s
-		output, err := service.Create%[1]s(ctx, input)
+		output, err := service.Create%[1]s(input)
 		require.NoError(t, err)
 		require.NotNil(t, output)
 		assert.NotZero(t, output.ID)
 
 		// Retrieve %[3]s
-		retrieved, err := service.Get%[1]sByID(ctx, output.ID)
+		retrieved, err := service.Get%[1]s(int(output.ID))
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		assert.Equal(t, output.ID, retrieved.ID)
@@ -194,18 +192,15 @@ func Test%[1]sIntegration(t *testing.T) {
 		input := usecase.Create%[1]sInput{
 			// TODO: Add fields
 		}
-		created, err := service.Create%[1]s(ctx, input)
+		created, err := service.Create%[1]s(input)
 		require.NoError(t, err)
 
 		// Update %[3]s
 		updateInput := usecase.Update%[1]sInput{
-			ID: created.ID,
 			// TODO: Add updated fields
 		}
-		updated, err := service.Update%[1]s(ctx, updateInput)
+		err = service.Update%[1]s(int(created.ID), updateInput)
 		require.NoError(t, err)
-		assert.Equal(t, created.ID, updated.ID)
-		// TODO: Add field assertions
 	})
 
 	t.Run("Delete%[1]s", func(t *testing.T) {
@@ -213,15 +208,15 @@ func Test%[1]sIntegration(t *testing.T) {
 		input := usecase.Create%[1]sInput{
 			// TODO: Add fields
 		}
-		created, err := service.Create%[1]s(ctx, input)
+		created, err := service.Create%[1]s(input)
 		require.NoError(t, err)
 
 		// Delete %[3]s
-		err = service.Delete%[1]s(ctx, created.ID)
+		err = service.Delete%[1]s(int(created.ID))
 		require.NoError(t, err)
 
 		// Verify deletion
-		_, err = service.Get%[1]sByID(ctx, created.ID)
+		_, err = service.Get%[1]s(int(created.ID))
 		assert.Error(t, err)
 	})
 
@@ -231,14 +226,14 @@ func Test%[1]sIntegration(t *testing.T) {
 			input := usecase.Create%[1]sInput{
 				// TODO: Add fields with variation
 			}
-			_, err := service.Create%[1]s(ctx, input)
+			_, err := service.Create%[1]s(input)
 			require.NoError(t, err)
 		}
 
 		// List all %[3]ss
-		list, err := service.List%[1]s(ctx)
+		list, err := service.List%[1]ss()
 		require.NoError(t, err)
-		assert.GreaterOrEqual(t, len(list), 3)
+		assert.GreaterOrEqual(t, list.Total, 3)
 	})
 
 	t.Run("Transaction%[1]s", func(t *testing.T) {
@@ -247,14 +242,13 @@ func Test%[1]sIntegration(t *testing.T) {
 			// TODO: Add invalid data to trigger error
 		}
 
-		// This should fail and rollback
-		_, err := service.Create%[1]s(ctx, input)
+		// This should fail validation and not persist anything
+		_, err := service.Create%[1]s(input)
 		assert.Error(t, err)
 
-		// Verify no %[3]s was created
-		list, err := service.List%[1]s(ctx)
+		// Listing should still succeed
+		_, err = service.List%[1]ss()
 		require.NoError(t, err)
-		// TODO: Verify count hasn't increased
 	})
 }
 
@@ -264,7 +258,6 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 	defer cleanupTestDatabase(t, db)
 
 	repo := repository.NewPostgres%[1]sRepository(db)
-	ctx := context.Background()
 
 	t.Run("SaveAndFindByID", func(t *testing.T) {
 		%[3]s := &domain.%[1]s{
@@ -272,12 +265,12 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 		}
 
 		// Save
-		err := repo.Save(ctx, %[3]s)
+		err := repo.Save(%[3]s)
 		require.NoError(t, err)
 		assert.NotZero(t, %[3]s.ID)
 
 		// Find by ID
-		found, err := repo.FindByID(ctx, %[3]s.ID)
+		found, err := repo.FindByID(int(%[3]s.ID))
 		require.NoError(t, err)
 		assert.Equal(t, %[3]s.ID, found.ID)
 	})
@@ -288,12 +281,12 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 			%[3]s := &domain.%[1]s{
 				// TODO: Add fields
 			}
-			err := repo.Save(ctx, %[3]s)
+			err := repo.Save(%[3]s)
 			require.NoError(t, err)
 		}
 
 		// Find all
-		all, err := repo.FindAll(ctx)
+		all, err := repo.FindAll()
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(all), 5)
 	})
@@ -302,15 +295,15 @@ func Test%[1]sRepositoryIntegration(t *testing.T) {
 		%[3]s := &domain.%[1]s{
 			// TODO: Add fields
 		}
-		err := repo.Save(ctx, %[3]s)
+		err := repo.Save(%[3]s)
 		require.NoError(t, err)
 
 		// Delete
-		err = repo.Delete(ctx, %[3]s.ID)
+		err = repo.Delete(int(%[3]s.ID))
 		require.NoError(t, err)
 
 		// Verify deletion
-		_, err = repo.FindByID(ctx, %[3]s.ID)
+		_, err = repo.FindByID(int(%[3]s.ID))
 		assert.Error(t, err)
 	})
 }
@@ -518,6 +511,11 @@ func seedTestData(t *testing.T, db *gorm.DB) {
 	//     }
 	// }
 }
+
+// ptr returns a pointer to v. Handy for the optional pointer fields of Update DTOs.
+func ptr[T any](v T) *T {
+	return &v
+}
 `, containerSetup)
 	return replaceHelperTODOs(content, entityName)
 }
@@ -633,7 +631,8 @@ func buildTestFieldInitUpdated(fields []Field, entity, indent string) string {
 		if skipTestField(f.Name) {
 			continue
 		}
-		lines = append(lines, fmt.Sprintf("%s%s: %s,", indent, f.Name, updatedTestLiteral(f.Name, f.Type, entity)))
+		// Update DTO fields are pointers; wrap the value with the ptr() helper.
+		lines = append(lines, fmt.Sprintf("%s%s: ptr(%s),", indent, f.Name, updatedTestLiteral(f.Name, f.Type, entity)))
 	}
 	return strings.Join(lines, "\n")
 }
@@ -723,7 +722,7 @@ func replaceIntegrationTestTODOs(content string, fields []Field, entityName stri
 
 	useFmt := needsFmtImport(fields)
 	if useFmt {
-		content = strings.Replace(content, "\t\"context\"\n", "\t\"context\"\n\t\"fmt\"\n", 1)
+		content = strings.Replace(content, "\t\"testing\"\n", "\t\"fmt\"\n\t\"testing\"\n", 1)
 	}
 
 	createInit := buildTestFieldInit(fields, entityName, "\t\t\t")

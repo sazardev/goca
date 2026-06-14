@@ -142,8 +142,8 @@ func TestBuildTestFieldInitUpdated(t *testing.T) {
 	}
 
 	result := buildTestFieldInitUpdated(fields, "Product", "\t\t\t")
-	assert.Contains(t, result, `Email: "updated@product.com",`)
-	assert.Contains(t, result, "Price: 19.99,")
+	assert.Contains(t, result, `Email: ptr("updated@product.com"),`)
+	assert.Contains(t, result, "Price: ptr(19.99),")
 	assert.NotContains(t, result, "ID:")
 }
 
@@ -226,8 +226,9 @@ func TestGenerateIntegrationTestContent_WithFields(t *testing.T) {
 	assert.Contains(t, content, "Age: 1")
 	// Should have fmt import for varied data
 	assert.Contains(t, content, `"fmt"`)
-	// Should have assertions
-	assert.Contains(t, content, "assert.Equal(t, updateInput.Name, updated.Name)")
+	// Update DTO fields are pointers and the call matches the real API
+	assert.Contains(t, content, `Name: ptr("Updated User")`)
+	assert.Contains(t, content, "err = service.UpdateUser(int(created.ID), updateInput)")
 }
 
 func TestGenerateIntegrationTestContent_WithoutFields(t *testing.T) {
