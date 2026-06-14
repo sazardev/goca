@@ -184,6 +184,43 @@ func generateGRPCServerFile(dir, entity, fileNamingConvention string, sm ...*Saf
 	}
 }
 
+// cliFlagFor returns the cobra flag accessor expression and declaration line
+// for a CLI command flag matching the given entity field. It reports ok=false
+// for types without a natural scalar flag (slices, maps, time, custom), which
+// are then omitted from the command.
+func cliFlagFor(field Field, entityLower string) (getExpr, flagDecl string, ok bool) {
+	flag := strings.ToLower(field.Name)
+	usage := fmt.Sprintf("%s of the %s", field.Name, entityLower)
+	switch field.Type {
+	case "string":
+		return fmt.Sprintf("cmd.Flags().GetString(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().String(%q, \"\", %q)\n", flag, usage), true
+	case "int":
+		return fmt.Sprintf("cmd.Flags().GetInt(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().Int(%q, 0, %q)\n", flag, usage), true
+	case "int64":
+		return fmt.Sprintf("cmd.Flags().GetInt64(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().Int64(%q, 0, %q)\n", flag, usage), true
+	case "uint":
+		return fmt.Sprintf("cmd.Flags().GetUint(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().Uint(%q, 0, %q)\n", flag, usage), true
+	case "uint64":
+		return fmt.Sprintf("cmd.Flags().GetUint64(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().Uint64(%q, 0, %q)\n", flag, usage), true
+	case "float64":
+		return fmt.Sprintf("cmd.Flags().GetFloat64(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().Float64(%q, 0, %q)\n", flag, usage), true
+	case "float32":
+		return fmt.Sprintf("cmd.Flags().GetFloat32(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().Float32(%q, 0, %q)\n", flag, usage), true
+	case "bool":
+		return fmt.Sprintf("cmd.Flags().GetBool(%q)", flag),
+			fmt.Sprintf("\tcmd.Flags().Bool(%q, false, %q)\n", flag, usage), true
+	default:
+		return "", "", false
+	}
+}
+
 func generateCLIHandler(entity, fileNamingConvention string, sm ...*SafetyManager) {
 	// Create CLI directory
 	cliDir := filepath.Join(DirInternal, DirHandler, DirCLI)
@@ -224,46 +261,59 @@ func generateCLIHandler(entity, fileNamingConvention string, sm ...*SafetyManage
 	content.WriteString(fmt.Sprintf("\treturn &%sCLI{usecase: uc}\n", entity))
 	content.WriteString("}\n\n")
 
-	// Create command
+	// Create command — flags and input are derived from the real entity fields.
+	var cliFields []Field
+	if fs := readEntityFieldsString(entity); fs != "" {
+		cliFields = parseFields(fs)
+	}
 	content.WriteString(fmt.Sprintf("func (c *%sCLI) Create%sCommand() *cobra.Command {\n", entity, entity))
 	content.WriteString("\tcmd := &cobra.Command{\n")
-	content.WriteString("\t\tUse:   \"crear\",\n")
-	content.WriteString(fmt.Sprintf("\t\tShort: \"Crear un nuevo %s\",\n", entityLower))
+	content.WriteString(fmt.Sprintf("\t\tUse:   \"create\",\n\t\tShort: \"Create a new %s\",\n", entityLower))
 	content.WriteString("\t\tRun: func(cmd *cobra.Command, args []string) {\n")
-	content.WriteString("\t\t\tname, _ := cmd.Flags().GetString(\"name\")\n")
-	content.WriteString("\t\t\temail, _ := cmd.Flags().GetString(\"email\")\n\n")
 
-	content.WriteString(fmt.Sprintf("\t\t\tinput := usecase.Create%sInput{\n", entity))
-	content.WriteString("\t\t\t\tName:  name,\n")
-	content.WriteString("\t\t\t\tEmail: email,\n")
+	var flagDecls strings.Builder
+	for _, f := range cliFields {
+		if isSystemField(f.Name) {
+			continue
+		}
+		getExpr, flagDecl, ok := cliFlagFor(f, entityLower)
+		if !ok {
+			continue
+		}
+		fmt.Fprintf(&content, "\t\t\t%s, _ := %s\n", strings.ToLower(f.Name), getExpr)
+		flagDecls.WriteString(flagDecl)
+	}
+	content.WriteString("\n")
+
+	fmt.Fprintf(&content, "\t\t\tinput := usecase.Create%sInput{\n", entity)
+	for _, f := range cliFields {
+		if isSystemField(f.Name) {
+			continue
+		}
+		if _, _, ok := cliFlagFor(f, entityLower); !ok {
+			continue
+		}
+		fmt.Fprintf(&content, "\t\t\t\t%s: %s,\n", f.Name, strings.ToLower(f.Name))
+	}
 	content.WriteString("\t\t\t}\n\n")
 
-	content.WriteString(fmt.Sprintf("\t\t\toutput, err := c.usecase.Create%s(input)\n", entity))
+	fmt.Fprintf(&content, "\t\t\toutput, err := c.usecase.Create%s(input)\n", entity)
 	content.WriteString("\t\t\tif err != nil {\n")
 	content.WriteString("\t\t\t\tfmt.Printf(\"Error: %v\\n\", err)\n")
 	content.WriteString("\t\t\t\treturn\n")
 	content.WriteString("\t\t\t}\n\n")
-
-	content.WriteString(fmt.Sprintf("\t\t\tfmt.Printf(\"%s created: %%+v\\n\", output.%s)\n", entity, entity))
+	fmt.Fprintf(&content, "\t\t\tfmt.Printf(\"%s created: %%+v\\n\", output)\n", entity)
 	content.WriteString("\t\t},\n")
 	content.WriteString("\t}\n\n")
-
-	content.WriteString("\tcmd.Flags().StringP(\"name\", \"n\", \"\", \"Name of the ")
-	content.WriteString(entityLower)
-	content.WriteString("\")\n")
-	content.WriteString("\tcmd.Flags().StringP(\"email\", \"e\", \"\", \"Email of the ")
-	content.WriteString(entityLower)
-	content.WriteString("\")\n")
-	content.WriteString("\tcmd.MarkFlagRequired(\"name\")\n")
-	content.WriteString("\tcmd.MarkFlagRequired(\"email\")\n\n")
+	content.WriteString(flagDecls.String())
 	content.WriteString("\treturn cmd\n")
 	content.WriteString("}\n\n")
 
 	// Get command
 	content.WriteString(fmt.Sprintf("func (c *%sCLI) Get%sCommand() *cobra.Command {\n", entity, entity))
 	content.WriteString("\treturn &cobra.Command{\n")
-	content.WriteString("\t\tUse:   \"obtener [id]\",\n")
-	content.WriteString(fmt.Sprintf("\t\tShort: \"Obtener %s por ID\",\n", entityLower))
+	content.WriteString("\t\tUse:   \"get [id]\",\n")
+	content.WriteString(fmt.Sprintf("\t\tShort: \"Get %s by ID\",\n", entityLower))
 	content.WriteString("\t\tArgs:  cobra.ExactArgs(1),\n")
 	content.WriteString("\t\tRun: func(cmd *cobra.Command, args []string) {\n")
 	content.WriteString("\t\t\tid, err := strconv.Atoi(args[0])\n")

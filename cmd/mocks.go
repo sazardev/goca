@@ -101,10 +101,12 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 		return err
 	}
 
+	importPath := getImportPath(getModuleName())
+
 	// Generate repository mock
 	if all || repository {
 		mockFile := filepath.Join(mocksDir, fmt.Sprintf("mock_%s_repository.go", strings.ToLower(entityName)))
-		content := generateRepositoryMock(entityName)
+		content := fixGeneratedModulePath(generateRepositoryMock(entityName), importPath)
 		if err := writeFile(mockFile, content, sm...); err != nil {
 			return err
 		}
@@ -113,7 +115,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 	// Generate use case mock
 	if all || usecase {
 		mockFile := filepath.Join(mocksDir, fmt.Sprintf("mock_%s_usecase.go", strings.ToLower(entityName)))
-		content := generateUseCaseMock(entityName)
+		content := fixGeneratedModulePath(generateUseCaseMock(entityName), importPath)
 		if err := writeFile(mockFile, content, sm...); err != nil {
 			return err
 		}
@@ -122,7 +124,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 	// Generate handler mock
 	if all || handler {
 		mockFile := filepath.Join(mocksDir, fmt.Sprintf("mock_%s_handler.go", strings.ToLower(entityName)))
-		content := generateHandlerMock(entityName)
+		content := fixGeneratedModulePath(generateHandlerMock(entityName), importPath)
 		if err := writeFile(mockFile, content, sm...); err != nil {
 			return err
 		}
@@ -136,7 +138,7 @@ func generateMocks(entityName string, all, repository, usecase, handler bool, sm
 		}
 
 		exampleFile := filepath.Join(examplesDir, fmt.Sprintf("%s_mock_examples_test.go", strings.ToLower(entityName)))
-		exampleContent := generateMockUsageExamples(entityName)
+		exampleContent := fixGeneratedModulePath(generateMockUsageExamples(entityName), importPath)
 		if err := writeFile(exampleFile, exampleContent, sm...); err != nil {
 			return err
 		}

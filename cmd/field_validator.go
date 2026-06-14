@@ -480,7 +480,7 @@ func (v *FieldValidator) ValidateReservedNames(name string) error {
 
 	for _, conflict := range conflictNames {
 		if strings.EqualFold(lowerName, conflict) {
-			return fmt.Errorf("'%s' puede causar conflicts. Usa un nombre diferente", name)
+			return fmt.Errorf("'%s' may cause naming conflicts; use a different name", name)
 		}
 	}
 

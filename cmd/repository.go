@@ -121,10 +121,15 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 	repoDir := "internal/repository"
 	_ = os.MkdirAll(repoDir, 0o755)
 
-	// Parse fields if provided
+	// Parse the provided fields, or recover them from the already-generated
+	// entity. Using the field-aware (GORM) generators keeps the repository
+	// consistent with the DI container and the feature command, which expect a
+	// New<DB><Entity>Repository(*gorm.DB) constructor.
 	var parsedFields []Field
 	if fields != "" {
 		parsedFields = parseFields(fields)
+	} else if fs := readEntityFieldsString(entity); fs != "" {
+		parsedFields = parseFields(fs)
 	}
 
 	// Generate interface:
@@ -132,7 +137,7 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 	// - interfaceOnly=true: only interface
 	// - interfaceOnly=false, implementation=true: both
 	// - interfaceOnly=false, implementation=false: both (default)
-	if fields != "" {
+	if len(parsedFields) > 0 {
 		generateRepositoryInterfaceWithFields(repoDir, entity, parsedFields, transactions, sm...)
 	} else {
 		generateRepositoryInterface(repoDir, entity, transactions, sm...)
@@ -140,7 +145,7 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 
 	// Generate implementation if not interface-only and database is specified
 	if !interfaceOnly && database != "" {
-		if fields != "" {
+		if len(parsedFields) > 0 {
 			generateRepositoryImplementationWithFields(repoDir, entity, database, parsedFields, cache, transactions, sm...)
 		} else {
 			generateRepositoryImplementation(repoDir, entity, database, cache, transactions, sm...)

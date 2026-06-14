@@ -193,6 +193,14 @@ func writeGoFileMerged(path, content string, sm ...*SafetyManager) error {
 	return nil
 }
 
+// fixGeneratedModulePath rewrites occurrences of Goca's own module path that
+// leaked into generator templates so generated code imports the user's project
+// packages instead of github.com/sazardev/goca/... (which are internal and
+// unimportable from another module).
+func fixGeneratedModulePath(content, importPath string) string {
+	return strings.ReplaceAll(content, "github.com/sazardev/goca/internal", importPath+"/internal")
+}
+
 // getImportPath determines whether to use the full module path or relative path for imports.
 func getImportPath(moduleName string) string {
 	// Check if we're in a test environment with a GitHub-style fake module

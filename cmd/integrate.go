@@ -78,10 +78,11 @@ func detectExistingFeatures() []string {
 				name := strings.TrimSuffix(entry.Name(), ".go")
 				// Skip common files, seed files and test files
 				if name != "errors" && name != "validations" && name != "common" && !strings.HasSuffix(name, "_seeds") && !strings.HasSuffix(name, "_test") {
-					// Capitalize first letter to match feature naming
+					// Reconstruct the PascalCase feature name from the snake_case
+					// file name (e.g. user_profile.go -> UserProfile) so multi-word
+					// entities are wired under their real type name.
 					if len(name) > 0 {
-						caser := cases.Title(language.English)
-						features = append(features, caser.String(name))
+						features = append(features, snakeToPascal(name))
 					}
 				}
 			}
@@ -94,8 +95,7 @@ func detectExistingFeatures() []string {
 		for _, entry := range entries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), "_handler.go") {
 				name := strings.TrimSuffix(entry.Name(), "_handler.go")
-				caser := cases.Title(language.English)
-				featureName := caser.String(name)
+				featureName := snakeToPascal(name)
 
 				// Only add if not already in the list
 				found := false
@@ -131,6 +131,17 @@ func integrateFeatures(features []string, sm ...*SafetyManager) {
 	// Step 3: Verify integration
 	ui.Step(3, "Verifying integration...")
 	verifyIntegration(features)
+}
+
+// snakeToPascal converts a snake_case identifier to PascalCase
+// (e.g. "user_profile" -> "UserProfile", "user" -> "User").
+func snakeToPascal(s string) string {
+	caser := cases.Title(language.English)
+	parts := strings.Split(s, "_")
+	for i, p := range parts {
+		parts[i] = caser.String(p)
+	}
+	return strings.Join(parts, "")
 }
 
 // createOrUpdateDIContainer creates or updates the DI container with all features.

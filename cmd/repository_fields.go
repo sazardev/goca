@@ -78,10 +78,19 @@ func generateRepositoryImplementationWithFields(dir, entity, database string, fi
 	}
 }
 
-// generatePostgresRepositoryWithFields generates PostgreSQL repository with dynamic methods.
+// generatePostgresRepositoryWithFields generates a PostgreSQL repository.
 func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
+	generateGormRepositoryWithFields(dir, entity, "Postgres", fields, cache, transactions, sm...)
+}
+
+// generateGormRepositoryWithFields generates a GORM-based repository for the
+// given driver (e.g. "Postgres", "MySQL"). The constructor and file name are
+// driver-prefixed so they match what the DI container references
+// (New<Driver><Entity>Repository).
+func generateGormRepositoryWithFields(dir, entity, driver string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	entityLower := strings.ToLower(entity)
-	filename := filepath.Join(dir, "postgres_"+entityLower+"_repository.go")
+	driverLower := strings.ToLower(driver)
+	filename := filepath.Join(dir, driverLower+"_"+entityLower+"_repository.go")
 
 	// Get the module name from go.mod
 	moduleName := getModuleName()
@@ -102,12 +111,12 @@ func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, ca
 	content.WriteString(")\n\n")
 
 	// Repository structure
-	repoName := fmt.Sprintf("postgres%sRepository", entity)
+	repoName := fmt.Sprintf("%s%sRepository", driverLower, entity)
 	content.WriteString(fmt.Sprintf("type %s struct {\n", repoName))
 	content.WriteString("\tdb *gorm.DB\n")
 	content.WriteString("}\n\n")
 
-	content.WriteString(fmt.Sprintf("func NewPostgres%sRepository(db *gorm.DB) %sRepository {\n", entity, entity))
+	content.WriteString(fmt.Sprintf("func New%s%sRepository(db *gorm.DB) %sRepository {\n", driver, entity, entity))
 	content.WriteString(fmt.Sprintf("\treturn &%s{\n", repoName))
 	content.WriteString("\t\tdb: db,\n")
 	content.WriteString("\t}\n")
@@ -127,7 +136,7 @@ func generatePostgresRepositoryWithFields(dir, entity string, fields []Field, ca
 	}
 
 	if err := writeGoFile(filename, content.String(), sm...); err != nil {
-		fmt.Printf("Error creating PostgreSQL repository with fields: %v\n", err)
+		fmt.Printf("Error creating %s repository with fields: %v\n", driver, err)
 	}
 }
 
@@ -201,8 +210,11 @@ func generateTransactionMethods(content *strings.Builder, entity, repoName strin
 
 // generateMySQLRepositoryWithFields generates MySQL repository with dynamic methods.
 func generateMySQLRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
-	// For MySQL we use the same logic as PostgreSQL since both use GORM
-	generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+	// All SQL databases share the same GORM repository (the concrete driver is
+	// chosen by the dialector in main.go), so they use a single
+	// NewPostgres<Entity>Repository(*gorm.DB) constructor that the DI container
+	// references uniformly.
+	generateGormRepositoryWithFields(dir, entity, "Postgres", fields, cache, transactions, sm...)
 }
 
 // generateMongoRepositoryWithFields generates MongoDB repository with dynamic methods.

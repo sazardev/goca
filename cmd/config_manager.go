@@ -374,7 +374,9 @@ func (cm *ConfigManager) validateArchitecture(arch *ArchitectureConfig) {
 
 // validateDatabase validates database configuration.
 func (cm *ConfigManager) validateDatabase(db *DatabaseConfig) {
-	validDBTypes := []string{"postgres", "mysql", "mongodb", "sqlite"}
+	// Must stay in sync with the database types init/feature accept; otherwise a
+	// generated config fails to load and the project falls back to defaults.
+	validDBTypes := []string{"postgres", "postgres-json", "mysql", "mongodb", "sqlite", "sqlserver", "dynamodb", "elasticsearch"}
 	if !cm.contains(validDBTypes, db.Type) {
 		cm.addError("database.type", "invalid database type", db.Type)
 	}
