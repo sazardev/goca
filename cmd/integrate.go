@@ -211,16 +211,17 @@ func snakeToPascal(s string) string {
 func createOrUpdateDIContainer(features []string, sm ...*SafetyManager) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
+	configIntegration := NewConfigIntegration()
+	_ = configIntegration.LoadConfigForProject()
+	database := configIntegration.GetDatabaseType("")
+
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		ui.Dim("   Creating DI container...")
-		configIntegration := NewConfigIntegration()
-		_ = configIntegration.LoadConfigForProject()
-		database := configIntegration.GetDatabaseType("")
 		generateDI(strings.Join(features, ","), database, false, false, sm...)
 	} else {
 		ui.Dim("   Updating existing DI container...")
 		for _, feature := range features {
-			addFeatureToDI(feature, false)
+			addFeatureToDI(feature, database, false)
 		}
 	}
 }

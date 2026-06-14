@@ -33,8 +33,8 @@ func generateTestWorkflow(data CITemplateData) string {
           --health-timeout 5s
           --health-retries 5`
 		envBlock = `
-      env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb?sslmode=disable`
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/testdb?sslmode=disable`
 	} else if data.Database == "mysql" {
 		svc = `
     services:
@@ -51,8 +51,8 @@ func generateTestWorkflow(data CITemplateData) string {
           --health-timeout 5s
           --health-retries 5`
 		envBlock = `
-      env:
-        DATABASE_URL: root:root@tcp(127.0.0.1:3306)/testdb`
+        env:
+          DATABASE_URL: root:root@tcp(127.0.0.1:3306)/testdb`
 	}
 
 	return fmt.Sprintf(`name: Test

@@ -144,7 +144,7 @@ including domain, use cases, repository and handlers in a single operation.`,
 
 		// 7. Auto-integrate with DI and main.go
 		ui.Step(7, "Integrating automatically...")
-		autoIntegrateFeature(featureName, handlers, cacheFlag, safetyMgr)
+		autoIntegrateFeature(featureName, handlers, effectiveDatabase, cacheFlag, safetyMgr)
 
 		// 8. Handle dependencies
 		ui.Step(8, "Managing dependencies...")
@@ -336,9 +336,9 @@ func printFeatureStructure(featureName, handlers string) {
 }
 
 // autoIntegrateFeature automatically integrates the feature with DI and main.go.
-func autoIntegrateFeature(featureName, handlers string, cache bool, sm ...*SafetyManager) {
+func autoIntegrateFeature(featureName, handlers, database string, cache bool, sm ...*SafetyManager) {
 	ui.Dim("   Updating DI container...")
-	updateDIContainer(featureName, cache, sm...)
+	updateDIContainer(featureName, database, cache, sm...)
 
 	ui.Dim("   Registering HTTP routes...")
 	if strings.Contains(handlers, "http") {
@@ -349,23 +349,23 @@ func autoIntegrateFeature(featureName, handlers string, cache bool, sm ...*Safet
 }
 
 // updateDIContainer updates or creates DI container with new feature.
-func updateDIContainer(featureName string, cache bool, sm ...*SafetyManager) {
+func updateDIContainer(featureName, database string, cache bool, sm ...*SafetyManager) {
 	// Check if DI container exists
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		// DI doesn't exist, create it with this feature
 		ui.Dim(fmt.Sprintf("   Creating DI container for %s...", featureName))
-		generateDI(featureName, "postgres", false, false, sm...)
+		generateDI(featureName, database, false, false, sm...)
 	} else {
 		// DI exists, update it to include new feature
 		ui.Dim("   Updating existing DI container...")
-		addFeatureToDI(featureName, cache, sm...)
+		addFeatureToDI(featureName, database, cache, sm...)
 	}
 }
 
 // addFeatureToDI adds a new feature to existing DI container.
-func addFeatureToDI(featureName string, cache bool, sm ...*SafetyManager) {
+func addFeatureToDI(featureName, database string, cache bool, sm ...*SafetyManager) {
 	diPath := filepath.Join("internal", "di", "container.go")
 
 	content, err := os.ReadFile(diPath)
@@ -386,7 +386,7 @@ func addFeatureToDI(featureName string, cache bool, sm ...*SafetyManager) {
 	ui.Dim(fmt.Sprintf("   Adding %s to DI container...", featureName))
 
 	updatedContent := addFieldsToDIContainer(contentStr, featureName, featureLower)
-	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower, cache)
+	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower, database, cache)
 	updatedContent = addGetterMethodsToDI(updatedContent, featureName, featureLower)
 
 	// This is an in-place merge of an existing container.go that we just read,
@@ -418,16 +418,24 @@ func addFieldsToDIContainer(content, featureName, featureLower string) string {
 }
 
 // addSetupMethodsToDI adds setup method calls for the feature.
-func addSetupMethodsToDI(content, featureName, featureLower string, cache bool) string {
+func addSetupMethodsToDI(content, featureName, featureLower, database string, cache bool) string {
 	fieldName := strings.ToLower(featureName[:1]) + featureName[1:] // camelCase
 
-	// Add repository setup
+	// Add repository setup. Reference the constructor the repository generator
+	// actually emits for this database so the container compiles on every
+	// backend, not just Postgres.
+	repoPrefix := repoConstructorPrefix(database)
+	// Only wire the Redis cache decorator when (a) a decorator was actually
+	// generated for this entity and (b) the existing container exposes a
+	// redisClient field. Otherwise emitting NewCached…/c.redisClient would
+	// reference symbols the container does not provide and break compilation.
+	wireCache := cache && hasCacheDecorator(featureName) && strings.Contains(content, "redisClient")
 	var repoSetup string
-	if cache {
-		repoSetup = fmt.Sprintf("\tbase%sRepo := repository.NewPostgres%sRepository(c.db)\n", featureName, featureName)
+	if wireCache {
+		repoSetup = fmt.Sprintf("\tbase%sRepo := repository.New%s%sRepository(c.db)\n", featureName, repoPrefix, featureName)
 		repoSetup += fmt.Sprintf("\tc.%sRepo = repository.NewCached%sRepository(base%sRepo, c.redisClient, 5*time.Minute)\n", featureLower, featureName, featureName)
 	} else {
-		repoSetup = fmt.Sprintf("\tc.%sRepo = repository.NewPostgres%sRepository(c.db)\n", featureLower, featureName)
+		repoSetup = fmt.Sprintf("\tc.%sRepo = repository.New%s%sRepository(c.db)\n", featureLower, repoPrefix, featureName)
 	}
 	setupRepoEnd := "}\n\nfunc (c *Container) setupUseCases() {"
 	content = strings.Replace(content, setupRepoEnd, repoSetup+setupRepoEnd, 1)
@@ -721,7 +729,16 @@ func ensureMainGoImport(content, importLine string) string {
 // ensureContainerScaffold injects (once) the DI container instantiation and an
 // /api/v1 subrouter together with the route marker into main.go.
 func ensureContainerScaffold(content string) string {
-	if strings.Contains(content, "container := di.NewContainer(db)") {
+	// MongoDB projects expose a *mongo.Client named mongoClient (and no `db`
+	// variable); the container's NewContainer takes a *mongo.Database, so the
+	// handle must be derived from the client. Every other backend exposes a
+	// *gorm.DB named db that the container accepts directly.
+	dbArg := "db"
+	if strings.Contains(content, "mongoClient") && !strings.Contains(content, "\tdb ") {
+		dbArg = "mongoClient.Database(cfg.Database.Name)"
+	}
+
+	if strings.Contains(content, fmt.Sprintf("container := di.NewContainer(%s)", dbArg)) {
 		return content
 	}
 
@@ -732,7 +749,7 @@ func ensureContainerScaffold(content string) string {
 
 	scaffold := anchor + "\n" +
 		"\t// Dependency injection container\n" +
-		"\tcontainer := di.NewContainer(db)\n" +
+		fmt.Sprintf("\tcontainer := di.NewContainer(%s)\n", dbArg) +
 		"\t_ = container\n\n" +
 		"\t// API v1 routes\n" +
 		"\tapiRouter := router.PathPrefix(\"/api/v1\").Subrouter()\n" +

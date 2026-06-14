@@ -80,7 +80,9 @@ func generateRepositoryImplementationWithFields(dir, entity, database string, fi
 	case DBSQLServer:
 		generateSQLServerRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	case DBSQLite:
-		generateSQLiteRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
+		// SQLite uses GORM (gorm.io/driver/sqlite) so the generated *gorm.DB
+		// container can inject it; see generateRepositoryImplementation.
+		generatePostgresRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	case DBElasticsearch:
 		generateElasticsearchRepositoryWithFields(dir, entity, fields, cache, transactions, sm...)
 	case DBDynamoDB:
@@ -105,11 +107,6 @@ func generateSQLServerRepositoryWithFields(dir, entity string, fields []Field, c
 	appendGormFinders(dir, "sqlserver_"+strings.ToLower(entity)+"_repository.go", fmt.Sprintf("sqlserver%sRepository", entity), entity, fields, sm...)
 }
 
-func generateSQLiteRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
-	generateSQLiteRepository(dir, entity, cache, transactions, sm...)
-	appendSQLiteFinders(dir, entity, fields, sm...)
-}
-
 func generateElasticsearchRepositoryWithFields(dir, entity string, fields []Field, cache, transactions bool, sm ...*SafetyManager) {
 	generateElasticsearchRepository(dir, entity, cache, transactions, sm...)
 	appendDelegatingFinders(dir, "elasticsearch_"+strings.ToLower(entity)+"_repository.go", fmt.Sprintf("elasticsearch%sRepository", entity), "e", entity, fields, sm...)
@@ -132,32 +129,6 @@ func appendGormFinders(dir, file, repoName, entity string, fields []Field, sm ..
 		b.WriteString(m.generateSearchMethodImplementation(strings.ToLower(string(repoName[0])), repoName, entity))
 	}
 	appendToRepoFile(filepath.Join(dir, file), b.String(), nil, sm...)
-}
-
-// appendSQLiteFinders appends raw-SQL per-field finders for the SQLite repo.
-func appendSQLiteFinders(dir, entity string, fields []Field, sm ...*SafetyManager) {
-	methods := generateSearchMethods(fields, entity)
-	if len(methods) == 0 {
-		return
-	}
-	entityLower := strings.ToLower(entity)
-	repoName := fmt.Sprintf("sqlite%sRepository", entity)
-	var b strings.Builder
-	for _, m := range methods {
-		paramName := strings.ToLower(m.FieldName)
-		fmt.Fprintf(&b, "func (s *%s) %s(%s %s) %s {\n", repoName, m.MethodName, paramName, m.FieldType, m.ReturnType)
-		b.WriteString("\tvar data []byte\n")
-		fmt.Fprintf(&b, "\tquery := \"SELECT data FROM %ss WHERE json_extract(data, '$.%s') = ? LIMIT 1\"\n", entityLower, m.FieldName)
-		fmt.Fprintf(&b, "\tif err := s.db.QueryRow(query, %s).Scan(&data); err != nil {\n", paramName)
-		fmt.Fprintf(&b, "\t\tif err == sql.ErrNoRows {\n\t\t\treturn nil, fmt.Errorf(\"%s not found\")\n\t\t}\n", entity)
-		b.WriteString("\t\treturn nil, fmt.Errorf(\"failed to query: %w\", err)\n\t}\n")
-		fmt.Fprintf(&b, "\tvar %s domain.%s\n", entityLower, entity)
-		fmt.Fprintf(&b, "\tif err := json.Unmarshal(data, &%s); err != nil {\n", entityLower)
-		b.WriteString("\t\treturn nil, fmt.Errorf(\"failed to unmarshal: %w\", err)\n\t}\n")
-		fmt.Fprintf(&b, "\treturn &%s, nil\n", entityLower)
-		b.WriteString("}\n\n")
-	}
-	appendToRepoFile(filepath.Join(dir, "sqlite_"+entityLower+"_repository.go"), b.String(), nil, sm...)
 }
 
 // appendDelegatingFinders appends per-field finders that reuse FindAll and filter

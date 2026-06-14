@@ -25,6 +25,32 @@ func dbHandleType(database string) (goType, importPath string) {
 	return "*gorm.DB", "gorm.io/gorm"
 }
 
+// repoConstructorPrefix returns the prefix used by the repository generator for
+// a given database, so that the DI container, feature wiring and integration
+// tests all reference the constructor that was actually generated
+// (New<prefix><Entity>Repository). postgres/mysql/sqlite share the GORM-based
+// "Postgres" implementation; postgres-json and sqlserver have their own
+// GORM-based constructors but still take a *gorm.DB, so they wire against the
+// same container handle.
+func repoConstructorPrefix(database string) string {
+	switch database {
+	case DBPostgresJSON:
+		return "PostgresJSON"
+	case DBSQLServer:
+		return "SQLServer"
+	case dbMongoDB:
+		return "Mongo"
+	case DBElasticsearch:
+		return "Elasticsearch"
+	case DBDynamoDB:
+		return "DynamoDB"
+	default:
+		// postgres, mysql, sqlite and any unknown SQL backend all use the
+		// shared GORM "Postgres" repository constructor.
+		return "Postgres"
+	}
+}
+
 var diCmd = &cobra.Command{
 	Use:   "di",
 	Short: "Generate dependency injection container",
@@ -190,14 +216,10 @@ func generateSetupRepositories(content *strings.Builder, features []string, data
 
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
-		var repoConstructor string
-		switch database {
-		case dbMongoDB:
-			repoConstructor = fmt.Sprintf("repository.NewMongo%sRepository(c.db)", feature)
-		default:
-			// All SQL databases use the shared GORM constructor.
-			repoConstructor = fmt.Sprintf("repository.NewPostgres%sRepository(c.db)", feature)
-		}
+		// Reference the constructor the repository generator actually emits
+		// for this database (New<prefix><Entity>Repository), so the container
+		// compiles for every backend, not just Postgres.
+		repoConstructor := fmt.Sprintf("repository.New%s%sRepository(c.db)", repoConstructorPrefix(database), feature)
 
 		// Only wrap with the Redis cache decorator when one was actually
 		// generated for this entity (goca repository --cache). Emitting
@@ -349,13 +371,7 @@ func writeWireSets(content *strings.Builder, features []string, database string)
 func writeRepositorySet(content *strings.Builder, features []string, database string) {
 	content.WriteString("\tRepositorySet = wire.NewSet(\n")
 	for _, feature := range features {
-		switch database {
-		case dbMongoDB:
-			fmt.Fprintf(content, "\t\trepository.NewMongo%sRepository,\n", feature)
-		default:
-			// All SQL databases use the shared GORM constructor.
-			fmt.Fprintf(content, "\t\trepository.NewPostgres%sRepository,\n", feature)
-		}
+		fmt.Fprintf(content, "\t\trepository.New%s%sRepository,\n", repoConstructorPrefix(database), feature)
 	}
 	content.WriteString("\t)\n\n")
 }
