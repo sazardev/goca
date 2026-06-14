@@ -128,6 +128,49 @@ func (sm *SafetyManager) WriteFile(filePath, content string) error {
 	return nil
 }
 
+// WriteMergedFile writes a file that the caller has intentionally rebuilt from
+// the existing content (shared files such as errors.go, dto.go, messages.go and
+// the layer interface files). Because the previous content is already merged
+// into content, it overwrites without requiring --force, while still honoring
+// dry-run and backup.
+func (sm *SafetyManager) WriteMergedFile(filePath, content string) error {
+	if sm.DryRun {
+		action := "create"
+		if _, statErr := os.Stat(filePath); statErr == nil {
+			action = "overwrite"
+		}
+		sm.pendingFiles = append(sm.pendingFiles, DryRunEntry{Path: filePath, Action: action, Size: len(content)})
+		sm.createdFiles = append(sm.createdFiles, filePath)
+		return nil
+	}
+
+	if sm.Backup {
+		if _, err := os.Stat(filePath); err == nil {
+			if err := sm.BackupFile(filePath); err != nil {
+				return fmt.Errorf("failed to backup file %s: %w", filePath, err)
+			}
+		}
+	}
+
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", dir, err)
+	}
+
+	//#nosec G703 // path is validated by callers
+	if err := os.WriteFile(filePath, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("failed to write file %s: %w", filePath, err)
+	}
+
+	sm.createdFiles = append(sm.createdFiles, filePath)
+	if ui != nil {
+		ui.FileCreated(filePath)
+	} else {
+		fmt.Printf("Created: %s\n", filePath)
+	}
+	return nil
+}
+
 // GetPendingFiles returns the dry-run entries (files that would be created/overwritten).
 func (sm *SafetyManager) GetPendingFiles() []DryRunEntry {
 	return sm.pendingFiles
@@ -236,11 +279,11 @@ func (ncd *NameConflictDetector) ScanExistingEntities() error {
 	}
 
 	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") && !strings.HasSuffix(entry.Name(), "_test.go") {
 			// Extract entity name from filename
 			name := strings.TrimSuffix(entry.Name(), ".go")
 			name = strings.TrimSuffix(name, "_seeds")
-			if name != "errors" {
+			if name != "errors" && name != "validations" && name != "common" {
 				ncd.entities[strings.ToLower(name)] = true
 				ncd.features[strings.ToLower(name)] = true
 			}

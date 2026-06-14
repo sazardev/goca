@@ -31,6 +31,11 @@ all layers of the system using Google Wire.`,
 			os.Exit(1)
 		}
 
+		// Honor the database configured in .goca.yaml when -d is not provided.
+		configIntegration := NewConfigIntegration()
+		_ = configIntegration.LoadConfigForProject()
+		database = configIntegration.GetDatabaseType(database)
+
 		ui.Header(fmt.Sprintf("Generating DI container for features: %s", features))
 		ui.KeyValue("Database", database)
 
@@ -417,7 +422,7 @@ func generateWireGenTemplate(dir string, features []string, sm ...*SafetyManager
 
 func init() {
 	diCmd.Flags().StringP("features", "f", "", "Project features (crud,auth,validation,etc)")
-	diCmd.Flags().StringP("database", "d", "postgres", "Database type (postgres, mysql, mongodb)")
+	diCmd.Flags().StringP("database", "d", "", "Database type (postgres, mysql, mongodb); defaults to the project configuration")
 	diCmd.Flags().BoolP("wire", "w", false, "Use Google Wire for dependency injection")
 	diCmd.Flags().BoolP("cache", "c", false, "Wire Redis cache decorators for repositories")
 	diCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")

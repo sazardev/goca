@@ -15,7 +15,7 @@ func TestParseOperations(t *testing.T) {
 		input    string
 		expected []string
 	}{
-		{"empty returns defaults", "", []string{"create", "read"}},
+		{"empty returns defaults", "", []string{"create", "read", "update", "delete", "list"}},
 		{"single op", "create", []string{"create"}},
 		{"multiple ops", "create,update,delete", []string{"create", "update", "delete"}},
 		{"with spaces", "create , update , delete", []string{"create", "update", "delete"}},
@@ -96,7 +96,7 @@ func TestGenerateCreateDTO(t *testing.T) {
 		output := b.String()
 		assert.Contains(t, output, "type CreateProductInput struct")
 		assert.Contains(t, output, "type CreateProductOutput struct")
-		assert.Contains(t, output, "json:\"nombre\"")
+		assert.Contains(t, output, "json:\"name\"")
 		assert.NotContains(t, output, "validate:")
 	})
 
@@ -119,7 +119,7 @@ func TestGenerateUpdateDTO(t *testing.T) {
 		generateUpdateDTO(&b, "Product", false)
 		output := b.String()
 		assert.Contains(t, output, "type UpdateProductInput struct")
-		assert.Contains(t, output, "json:\"nombre,omitempty\"")
+		assert.Contains(t, output, "json:\"name,omitempty\"")
 		assert.NotContains(t, output, "validate:")
 	})
 

@@ -117,7 +117,9 @@ without external dependencies and with complete business validations.`,
 			ui.DryRun("Previewing changes without creating files")
 		}
 
-		generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, tests, fileNamingConvention, sm)
+		if err := generateEntity(entityName, fields, effectiveValidation, effectiveBusinessRules, effectiveTimestamps, effectiveSoftDelete, tests, fileNamingConvention, sm); err != nil {
+			os.Exit(1)
+		}
 
 		if dryRun {
 			sm.PrintSummary()
@@ -142,7 +144,7 @@ without external dependencies and with complete business validations.`,
 	},
 }
 
-func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete, tests bool, fileNamingConvention string, sm ...*SafetyManager) {
+func generateEntity(entityName, fields string, validation, businessRules, timestamps, softDelete, tests bool, fileNamingConvention string, sm ...*SafetyManager) error {
 	// Create domain directory if it doesn't exist
 	domainDir := "internal/domain"
 	_ = os.MkdirAll(domainDir, 0o755)
@@ -162,8 +164,12 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 		fieldsList = append(fieldsList, Field{Name: "DeletedAt", Type: "gorm.DeletedAt", Tag: "`json:\"deleted_at,omitempty\" gorm:\"index\"`"})
 	}
 
-	// Generate entity file with real field-based content
-	generateEntityFile(domainDir, entityName, fieldsList, validation, businessRules, timestamps, softDelete, fileNamingConvention, sm...)
+	// Generate entity file with real field-based content. This is the primary
+	// artifact: if it cannot be written, abort without performing partial side
+	// effects (errors/seeds/tests) so the caller can fail cleanly.
+	if err := generateEntityFile(domainDir, entityName, fieldsList, validation, businessRules, timestamps, softDelete, fileNamingConvention, sm...); err != nil {
+		return err
+	}
 
 	// Generate errors file if validation is enabled - now with real field validations
 	if validation {
@@ -177,6 +183,8 @@ func generateEntity(entityName, fields string, validation, businessRules, timest
 	if tests {
 		generateEntityTests(domainDir, entityName, fieldsList, validation, businessRules, fileNamingConvention, sm...)
 	}
+
+	return nil
 }
 
 // Field represents a single field definition for an entity structure.
@@ -273,7 +281,7 @@ func hasStringBusinessRules(fields []Field) bool {
 	return false
 }
 
-func generateEntityFile(dir, entityName string, fields []Field, validation, businessRules, timestamps, softDelete bool, fileNamingConvention string, sm ...*SafetyManager) {
+func generateEntityFile(dir, entityName string, fields []Field, validation, businessRules, timestamps, softDelete bool, fileNamingConvention string, sm ...*SafetyManager) error {
 	// Apply naming convention to filename
 	var filename string
 	if fileNamingConvention == "snake_case" {
@@ -304,8 +312,9 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 
 	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing entity file: %v", err))
-		return
+		return err
 	}
+	return nil
 }
 
 // writeEntityHeader writes package declaration and imports.
@@ -322,7 +331,7 @@ func writeEntityHeader(content *strings.Builder, fields []Field, businessRules, 
 	}
 
 	needsTime := timestamps || softDelete || hasTimeField
-	needsStrings := businessRules && hasStringBusinessRules(fields)
+	needsStrings := (businessRules && hasStringBusinessRules(fields)) || hasEmailField(fields)
 	needsGorm := softDelete // Need gorm.io/gorm for gorm.DeletedAt
 
 	if needsTime || needsStrings || needsGorm {
@@ -373,11 +382,33 @@ func writeFieldValidation(content *strings.Builder, entityVar, entityName string
 		fmt.Fprintf(content, "\tif %s.%s == \"\" {\n", entityVar, field.Name)
 		fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
 		content.WriteString("\t}\n")
+		if isEmailFieldName(field.Name) {
+			// Minimal email-format validation (no external dependency).
+			fmt.Fprintf(content, "\tif !strings.Contains(%s.%s, \"@\") || !strings.Contains(%s.%s, \".\") {\n",
+				entityVar, field.Name, entityVar, field.Name)
+			fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
+			content.WriteString("\t}\n")
+		}
 	case "int", "int64", "float64":
 		fmt.Fprintf(content, "\tif %s.%s < 0 {\n", entityVar, field.Name)
 		fmt.Fprintf(content, "\t\treturn ErrInvalid%s%s\n", entityName, field.Name)
 		content.WriteString("\t}\n")
 	}
+}
+
+// isEmailFieldName reports whether a field name denotes an email field.
+func isEmailFieldName(name string) bool {
+	return strings.Contains(strings.ToLower(name), "email")
+}
+
+// hasEmailField reports whether any non-system field is an email field.
+func hasEmailField(fields []Field) bool {
+	for _, f := range fields {
+		if f.Type == FieldString && !isSystemField(f.Name) && isEmailFieldName(f.Name) {
+			return true
+		}
+	}
+	return false
 }
 
 // writeSoftDeleteMethods writes soft delete helper methods.
@@ -441,7 +472,7 @@ func generateErrorsFile(dir, entityName string, fields []Field, sm ...*SafetyMan
 	writeErrorsHeader(&content)
 	writeEntityErrors(&content, entityName, fields, existingErrors)
 
-	if err := writeGoFile(filename, content.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing errors file: %v", err))
 	}
 }
@@ -624,37 +655,34 @@ func contains(slice []string, item string) bool {
 func generateSeedData(dir, entityName string, fields []Field, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, strings.ToLower(entityName)+"_seeds.go")
 
+	// Build the body first so the import block reflects what is actually emitted.
+	var body strings.Builder
+	writeGoSeeds(&body, entityName, fields)
+	writeSQLSeeds(&body, entityName, fields)
+
 	var content strings.Builder
-	writeSeedFileHeader(&content, fields)
-	writeGoSeeds(&content, entityName, fields)
-	writeSQLSeeds(&content, entityName, fields)
+	writeSeedFileHeader(&content, body.String())
+	content.WriteString(body.String())
 
 	if err := writeGoFile(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error writing seed file: %v", err))
 	}
 }
 
-// writeSeedFileHeader writes the package declaration and imports for seed file.
-func writeSeedFileHeader(content *strings.Builder, fields []Field) {
+// writeSeedFileHeader writes the package declaration and imports for the seed
+// file. The "time" import is only added when the generated body actually
+// references the time package, to avoid an unused-import compile error.
+func writeSeedFileHeader(content *strings.Builder, body string) {
 	content.WriteString("package domain\n\n")
 
-	// Check if any field is time.Time
-	hasTimeField := false
-	for _, field := range fields {
-		if field.Type == "time.Time" {
-			hasTimeField = true
-			break
-		}
-	}
-
-	if hasTimeField {
+	if strings.Contains(body, "time.") {
 		content.WriteString("import \"time\"\n\n")
 	}
 }
 
 // writeGoSeeds writes the Go struct seed data function.
 func writeGoSeeds(content *strings.Builder, entityName string, fields []Field) {
-	fmt.Fprintf(content, "// Get%sSeeds retorna datos de ejemplo para %s\n", entityName, strings.ToLower(entityName))
+	fmt.Fprintf(content, "// Get%sSeeds returns sample data for %s\n", entityName, strings.ToLower(entityName))
 	fmt.Fprintf(content, "func Get%sSeeds() []%s {\n", entityName, entityName)
 	fmt.Fprintf(content, "\treturn []%s{\n", entityName)
 
@@ -675,7 +703,11 @@ func writeGoSeedRecord(content *strings.Builder, fields []Field, recordNum int) 
 			continue // Skip auto-managed fields
 		}
 
-		sampleValue := generateSampleValue(field, recordNum)
+		sampleValue, ok := generateSampleValue(field, recordNum)
+		if !ok {
+			// No reliable sample for this type; rely on the Go zero value.
+			continue
+		}
 		fmt.Fprintf(content, "\t\t\t%s: %s,\n", field.Name, sampleValue)
 	}
 	content.WriteString("\t\t},\n")
@@ -683,9 +715,9 @@ func writeGoSeedRecord(content *strings.Builder, fields []Field, recordNum int) 
 
 // writeSQLSeeds writes the SQL INSERT seed data function.
 func writeSQLSeeds(content *strings.Builder, entityName string, fields []Field) {
-	fmt.Fprintf(content, "// GetSQL%sSeeds retorna sentencias SQL INSERT para %s\n", entityName, strings.ToLower(entityName))
+	fmt.Fprintf(content, "// GetSQL%sSeeds returns SQL INSERT statements for %s\n", entityName, strings.ToLower(entityName))
 	fmt.Fprintf(content, "func GetSQL%sSeeds() string {\n", entityName)
-	fmt.Fprintf(content, "\treturn `-- Datos de ejemplo para tabla %s\n", strings.ToLower(entityName))
+	fmt.Fprintf(content, "\treturn `-- Sample data for table %s\n", strings.ToLower(entityName))
 
 	// Generate SQL INSERT statements
 	for i := 1; i <= 3; i++ {
@@ -708,7 +740,7 @@ func writeSQLInsertStatement(content *strings.Builder, entityName string, fields
 	// Field values
 	values := getSQLFieldValues(fields, recordNum)
 	content.WriteString(strings.Join(values, ", "))
-	content.WriteString(");\\n")
+	content.WriteString(");\n")
 }
 
 // getNonSystemFieldNames returns field names excluding system fields.
@@ -735,21 +767,24 @@ func getSQLFieldValues(fields []Field, recordNum int) []string {
 }
 
 // generateSampleValue creates realistic sample data based on field type and name.
-func generateSampleValue(field Field, index int) string {
+// The second return value reports whether a type-correct sample could be produced;
+// when false, callers should omit the field and rely on the Go zero value.
+func generateSampleValue(field Field, index int) (string, bool) {
 	switch field.Type {
 	case FieldString:
-		return generateStringSampleValue(field.Name, index)
-	case "int", "int64", "uint", "uint64":
-		return generateIntSampleValue(field.Name, index)
+		return generateStringSampleValue(field.Name, index), true
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "byte", "rune":
+		return generateIntSampleValue(field.Name, index), true
 	case "float64", "float32":
-		return generateFloatSampleValue(field.Name, index)
+		return generateFloatSampleValue(field.Name, index), true
 	case FieldBool:
-		return strconv.FormatBool(index%2 == 1)
+		return strconv.FormatBool(index%2 == 1), true
 	case "time.Time":
-		return "time.Now()"
-	default:
-		return generateDefaultSampleValue(field.Type, index)
+		return "time.Now()", true
+	case "[]byte":
+		return fmt.Sprintf("[]byte(\"sample%d\")", index), true
 	}
+	return generateDefaultSampleValue(field.Type, index)
 }
 
 // generateStringSampleValue generates string sample values based on field name.
@@ -776,7 +811,7 @@ func generateStringSampleValue(fieldName string, index int) string {
 		categories := []string{"technology", "education", "health"}
 		return fmt.Sprintf("\"%s\"", categories[(index-1)%len(categories)])
 	default:
-		return fmt.Sprintf("\"Ejemplo %s %d\"", fieldName, index)
+		return fmt.Sprintf("\"Sample %s %d\"", fieldName, index)
 	}
 }
 
@@ -815,20 +850,52 @@ func generateFloatSampleValue(fieldName string, index int) string {
 	}
 }
 
-// generateDefaultSampleValue generates default sample values for unknown types.
-func generateDefaultSampleValue(fieldType string, index int) string {
+// generateDefaultSampleValue generates default sample values for composite or
+// unknown types. The boolean reports whether a type-correct, compilable literal
+// could be produced; when false the field should be omitted from the seed record.
+func generateDefaultSampleValue(fieldType string, index int) (string, bool) {
 	switch {
+	case strings.HasPrefix(fieldType, "[]"):
+		// Slice of a scalar element type -> single-element literal.
+		elem := strings.TrimPrefix(fieldType, "[]")
+		if sample, ok := scalarSampleLiteral(elem, index); ok {
+			return fmt.Sprintf("%s{%s}", fieldType, sample), true
+		}
+		// Element type has no known literal; emit an empty slice (always valid).
+		return fmt.Sprintf("%s{}", fieldType), true
+	case strings.HasPrefix(fieldType, "map["):
+		// Empty map literal is always valid.
+		return fmt.Sprintf("%s{}", fieldType), true
+	case strings.HasPrefix(fieldType, "*"):
+		// Pointer types: nil is always valid.
+		return "nil", true
 	case strings.Contains(fieldType, FieldInt):
-		return strconv.Itoa(index * 10)
+		return strconv.Itoa(index * 10), true
 	case strings.Contains(fieldType, FieldString):
-		return fmt.Sprintf("\"Valor%d\"", index)
+		return fmt.Sprintf("\"Sample%d\"", index), true
 	case strings.Contains(fieldType, "float"):
-		return fmt.Sprintf("%.2f", float64(index)*10.5)
+		return fmt.Sprintf("%.2f", float64(index)*10.5), true
 	case strings.Contains(fieldType, FieldBool):
-		return strconv.FormatBool(index%2 == 1)
+		return strconv.FormatBool(index%2 == 1), true
 	default:
-		return "nil // Tipo personalizado"
+		// Unknown named/custom type: no reliable inline literal, omit the field.
+		return "", false
 	}
+}
+
+// scalarSampleLiteral returns a sample literal for a scalar element type.
+func scalarSampleLiteral(elem string, index int) (string, bool) {
+	switch elem {
+	case FieldString:
+		return fmt.Sprintf("\"Sample%d\"", index), true
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "byte", "rune":
+		return strconv.Itoa(index * 10), true
+	case "float64", "float32":
+		return fmt.Sprintf("%.2f", float64(index)*10.5), true
+	case FieldBool:
+		return strconv.FormatBool(index%2 == 1), true
+	}
+	return "", false
 }
 
 // generateSQLSampleValue creates SQL-compatible sample values.

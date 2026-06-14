@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -16,6 +17,7 @@ import (
 
 func runArchitectureChecks() []analyzeResult {
 	return []analyzeResult{
+		checkProjectCompiles(),
 		checkLayerDirsExist(),
 		checkDomainHasNoExternalImports(),
 		checkUsecaseDoesNotImportHandler(),
@@ -23,6 +25,46 @@ func runArchitectureChecks() []analyzeResult {
 		checkDIContainerExists(),
 		checkHandlerDoesNotImportRepository(),
 	}
+}
+
+// checkProjectCompiles runs `go build ./...` so the analysis fails loudly when
+// the generated project does not even compile, instead of reporting it healthy.
+func checkProjectCompiles() analyzeResult {
+	res := analyzeResult{category: "Architecture", rule: "project-compiles", file: "project"}
+
+	if _, err := os.Stat("go.mod"); err != nil {
+		res.status = "⚠"
+		res.message = "no go.mod found; compile check skipped"
+		res.suggestion = "run analyze from a Go module root"
+		return res
+	}
+
+	cmd := exec.Command("go", "build", "./...")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		res.status = "✗"
+		res.message = "project does not compile"
+		if first := firstNonEmptyLine(string(out)); first != "" {
+			res.message = "does not compile: " + first
+		}
+		res.suggestion = "run 'go build ./...' and fix the reported errors"
+		return res
+	}
+
+	res.status = "✓"
+	res.message = "project compiles (go build ./...)"
+	res.suggestion = "—"
+	return res
+}
+
+// firstNonEmptyLine returns the first non-blank line of s, trimmed.
+func firstNonEmptyLine(s string) string {
+	for _, line := range strings.Split(s, "\n") {
+		if trimmed := strings.TrimSpace(line); trimmed != "" {
+			return trimmed
+		}
+	}
+	return ""
 }
 
 // checkLayerDirsExist verifies the four CA layers are present.

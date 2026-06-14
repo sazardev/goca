@@ -247,7 +247,9 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 1. Generate Entity (Domain layer)
 	ui.Step(1, "Generating domain entity...")
-	generateEntity(featureName, fields, true, businessRules, false, false, true, fileNamingConvention, safetyMgr)
+	if err := generateEntity(featureName, fields, true, businessRules, false, false, true, fileNamingConvention, safetyMgr); err != nil {
+		os.Exit(1)
+	}
 
 	// 2. Generate Use Case
 	ui.Step(2, "Generating use cases...")
@@ -534,7 +536,9 @@ func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
 
 func init() {
 	featureCmd.Flags().StringP("fields", "f", "", "Entity fields \"field:type,field2:type\" (required)")
-	featureCmd.Flags().StringP("database", "d", DBPostgres, fmt.Sprintf("Database type (%s)", strings.Join(ValidDatabases, ", ")))
+	// Default is empty so the database configured in .goca.yaml is honored when
+	// the flag is not provided; an explicit -d still takes precedence.
+	featureCmd.Flags().StringP("database", "d", "", fmt.Sprintf("Database type (%s)", strings.Join(ValidDatabases, ", ")))
 	featureCmd.Flags().StringP("handlers", "", HandlerHTTP, fmt.Sprintf("Handler types (%s)", strings.Join(ValidHandlers, ", ")))
 	featureCmd.Flags().Bool("validation", false, "Include validations in all layers")
 	featureCmd.Flags().BoolP("business-rules", "b", false, "Include business rule methods")

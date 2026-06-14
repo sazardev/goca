@@ -135,7 +135,7 @@ func generateUseCaseMessages(entity string, sm ...*SafetyManager) {
 	existingContent.WriteString(fmt.Sprintf("\t%sInvalid = \"Invalid %s data\"\n", entity, entityLower))
 	existingContent.WriteString(")\n")
 
-	if err := writeGoFile(filename, existingContent.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, existingContent.String(), sm...); err != nil {
 		fmt.Printf("Error writing messages file: %v\n", err)
 		return
 	}
@@ -184,7 +184,7 @@ func generateResponseMessages(dir, entity string, sm ...*SafetyManager) {
 	// Close the const block
 	existingContent.WriteString(")\n")
 
-	if err := writeGoFile(filename, existingContent.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, existingContent.String(), sm...); err != nil {
 		fmt.Printf("Error creating response messages file: %v\n", err)
 	}
 }
@@ -233,7 +233,7 @@ func generateConstants(dir, entity string, sm ...*SafetyManager) {
 	content.WriteString(fmt.Sprintf("\t%sStatusDeleted  = \"deleted\"\n", entity))
 	content.WriteString(")\n")
 
-	if err := writeGoFile(filename, content.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error creating constants file: %v\n", err)
 	}
 }

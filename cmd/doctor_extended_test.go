@@ -278,7 +278,7 @@ func TestValidateConfiguration(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(t.TempDir())
 
-	validateConfiguration() // Should not panic in empty directory
+	_ = validateConfiguration() // Should not panic in empty directory
 }
 
 func TestShowTemplateOptions(t *testing.T) {

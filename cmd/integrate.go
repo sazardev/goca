@@ -76,8 +76,8 @@ func detectExistingFeatures() []string {
 		for _, entry := range entries {
 			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".go") {
 				name := strings.TrimSuffix(entry.Name(), ".go")
-				// Skip common files and seed files
-				if name != "errors" && name != "validations" && name != "common" && !strings.HasSuffix(name, "_seeds") {
+				// Skip common files, seed files and test files
+				if name != "errors" && name != "validations" && name != "common" && !strings.HasSuffix(name, "_seeds") && !strings.HasSuffix(name, "_test") {
 					// Capitalize first letter to match feature naming
 					if len(name) > 0 {
 						caser := cases.Title(language.English)
@@ -139,7 +139,10 @@ func createOrUpdateDIContainer(features []string, sm ...*SafetyManager) {
 
 	if _, err := os.Stat(diPath); os.IsNotExist(err) {
 		ui.Dim("   Creating DI container...")
-		generateDI(strings.Join(features, ","), DBPostgres, false, false, sm...)
+		configIntegration := NewConfigIntegration()
+		_ = configIntegration.LoadConfigForProject()
+		database := configIntegration.GetDatabaseType("")
+		generateDI(strings.Join(features, ","), database, false, false, sm...)
 	} else {
 		ui.Dim("   Updating existing DI container...")
 		for _, feature := range features {

@@ -295,7 +295,7 @@ func TestGenerateSampleValue(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			result := generateSampleValue(tc.field, tc.index)
+			result, _ := generateSampleValue(tc.field, tc.index)
 			tc.checkFunc(t, result)
 		})
 	}
@@ -309,12 +309,12 @@ func TestGenerateStringSampleValue(t *testing.T) {
 		contains string
 	}{
 		{"Name", 1, "John Smith"},
-		{"Email", 1, "Ejemplo"},
+		{"Email", 1, "Sample"},
 		{"Description", 1, "Detailed"},
 		{"Title", 1, "Main Title"},
 		{"Status", 1, "active"},
 		{"Category", 1, "technology"},
-		{"Custom", 1, "Ejemplo"},
+		{"Custom", 1, "Sample"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -342,11 +342,35 @@ func TestGenerateFloatSampleValue(t *testing.T) {
 
 func TestGenerateDefaultSampleValue(t *testing.T) {
 	t.Parallel()
-	assert.Contains(t, generateDefaultSampleValue("int", 1), "10")
-	assert.Contains(t, generateDefaultSampleValue("string", 1), "Valor")
-	assert.Contains(t, generateDefaultSampleValue("float", 1), "10.5")
-	assert.Contains(t, generateDefaultSampleValue("bool", 1), "true")
-	assert.Contains(t, generateDefaultSampleValue("custom", 1), "nil")
+
+	intVal, ok := generateDefaultSampleValue("int", 1)
+	assert.True(t, ok)
+	assert.Contains(t, intVal, "10")
+
+	strVal, ok := generateDefaultSampleValue("string", 1)
+	assert.True(t, ok)
+	assert.Contains(t, strVal, "Sample")
+
+	floatVal, ok := generateDefaultSampleValue("float", 1)
+	assert.True(t, ok)
+	assert.Contains(t, floatVal, "10.5")
+
+	boolVal, ok := generateDefaultSampleValue("bool", 1)
+	assert.True(t, ok)
+	assert.Contains(t, boolVal, "true")
+
+	// Slices and maps produce valid composite literals.
+	sliceVal, ok := generateDefaultSampleValue("[]string", 1)
+	assert.True(t, ok)
+	assert.Contains(t, sliceVal, "[]string{")
+
+	mapVal, ok := generateDefaultSampleValue("map[string]int", 1)
+	assert.True(t, ok)
+	assert.Contains(t, mapVal, "map[string]int{")
+
+	// Unknown named types are reported as unusable so callers can omit them.
+	_, ok = generateDefaultSampleValue("custom", 1)
+	assert.False(t, ok)
 }
 
 func TestGenerateSQLSampleValue(t *testing.T) {
@@ -396,18 +420,18 @@ func TestGetSQLFieldValues(t *testing.T) {
 func TestWriteSeedFileHeader(t *testing.T) {
 	t.Parallel()
 
-	t.Run("without time field", func(t *testing.T) {
+	t.Run("body without time usage", func(t *testing.T) {
 		t.Parallel()
 		var b strings.Builder
-		writeSeedFileHeader(&b, []Field{{Name: "Name", Type: "string"}})
+		writeSeedFileHeader(&b, "func GetXSeeds() []X { return []X{{Name: \"a\"}} }")
 		assert.Contains(t, b.String(), "package domain")
 		assert.NotContains(t, b.String(), "import \"time\"")
 	})
 
-	t.Run("with time field", func(t *testing.T) {
+	t.Run("body using time", func(t *testing.T) {
 		t.Parallel()
 		var b strings.Builder
-		writeSeedFileHeader(&b, []Field{{Name: "Start", Type: "time.Time"}})
+		writeSeedFileHeader(&b, "func GetXSeeds() []X { return []X{{Start: time.Now()}} }")
 		assert.Contains(t, b.String(), "import \"time\"")
 	})
 }

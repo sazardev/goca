@@ -59,7 +59,7 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 
 	content.WriteString("}\n\n")
 
-	if err := writeGoFile(filename, content.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error writing file %s: %v\n", filename, err)
 	}
 }

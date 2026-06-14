@@ -628,7 +628,7 @@ database:
   type: postgres
 `
 	os.WriteFile(".goca.yaml", []byte(yamlContent), 0o644)
-	validateConfiguration()
+	_ = validateConfiguration()
 }
 
 func TestValidateConfiguration_NoFile(t *testing.T) {
@@ -639,7 +639,7 @@ func TestValidateConfiguration_NoFile(t *testing.T) {
 	defer os.Chdir(origDir)
 	os.Chdir(t.TempDir())
 
-	validateConfiguration()
+	_ = validateConfiguration()
 }
 
 func TestValidateConfiguration_InvalidYAML(t *testing.T) {
@@ -653,7 +653,7 @@ func TestValidateConfiguration_InvalidYAML(t *testing.T) {
 	os.Chdir(dir)
 
 	os.WriteFile(".goca.yaml", []byte("invalid: [yaml\n"), 0o644)
-	validateConfiguration()
+	_ = validateConfiguration()
 }
 
 func TestInitializeConfig_Coverage(t *testing.T) {

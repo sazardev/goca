@@ -3,11 +3,56 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"go/ast"
 	"go/format"
+	"go/parser"
+	"go/token"
+	"go/types"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+// readEntityFieldsString reconstructs the "name:type,..." field specification of
+// an already-generated entity by parsing internal/domain/<entity>.go. System
+// fields (ID, CreatedAt, ...) are skipped. It returns an empty string when the
+// file cannot be read or parsed, so callers can fall back to their defaults.
+func readEntityFieldsString(entity string) string {
+	filename := filepath.Join("internal", "domain", strings.ToLower(entity)+".go")
+	src, err := os.ReadFile(filename)
+	if err != nil {
+		return ""
+	}
+
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, filename, src, 0)
+	if err != nil {
+		return ""
+	}
+
+	var parts []string
+	ast.Inspect(file, func(n ast.Node) bool {
+		ts, ok := n.(*ast.TypeSpec)
+		if !ok || ts.Name.Name != entity {
+			return true
+		}
+		st, ok := ts.Type.(*ast.StructType)
+		if !ok {
+			return true
+		}
+		for _, f := range st.Fields.List {
+			for _, nm := range f.Names {
+				if isSystemField(nm.Name) {
+					continue
+				}
+				name := strings.ToLower(nm.Name[:1]) + nm.Name[1:]
+				parts = append(parts, name+":"+types.ExprString(f.Type))
+			}
+		}
+		return false
+	})
+	return strings.Join(parts, ",")
+}
 
 // getModuleName reads the module name from go.mod file.
 func getModuleName() string {
@@ -116,6 +161,35 @@ func writeGoFile(path, content string, sm ...*SafetyManager) error {
 		return fmt.Errorf("error writing file %s: %w", path, err)
 	}
 
+	return nil
+}
+
+// writeGoFileMerged writes a Go file whose content was rebuilt from the existing
+// file (shared, merge-aware files like errors.go, dto.go, messages.go and the
+// layer interface files). It overwrites without requiring --force so that a
+// second feature can extend these shared files. Falls back to a plain overwrite
+// when no SafetyManager is provided.
+func writeGoFileMerged(path, content string, sm ...*SafetyManager) error {
+	if strings.HasSuffix(path, ".go") {
+		if formatted, err := format.Source([]byte(content)); err == nil {
+			content = string(formatted)
+		} else if ui != nil {
+			ui.Warning(fmt.Sprintf("Could not format Go code for %s: %v", path, err))
+		}
+	}
+
+	if len(sm) > 0 && sm[0] != nil {
+		return sm[0].WriteMergedFile(path, content)
+	}
+
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("error creating directory %s: %w", dir, err)
+	}
+	//#nosec G703 // path derived from validated entity/project names
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("error writing file %s: %w", path, err)
+	}
 	return nil
 }
 
