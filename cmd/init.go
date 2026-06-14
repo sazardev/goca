@@ -71,6 +71,32 @@ Use --template to initialize with predefined configurations:
 			}
 		}
 
+		// Validate --database and --api against the allowed sets (INIT-B3).
+		if err := validateDatabaseFlag(database); err != nil {
+			ui.Error(err.Error())
+			os.Exit(1)
+		}
+		if err := validateAPIFlag(api); err != nil {
+			ui.Error(err.Error())
+			os.Exit(1)
+		}
+
+		// Refuse to scaffold into a non-empty directory unless --force (INIT-B16).
+		force, _ := cmd.Flags().GetBool("force")
+		dryRun, _ := cmd.Flags().GetBool("dry-run")
+		if !dryRun && !force {
+			if nonEmpty, err := directoryHasFiles(projectName); err == nil && nonEmpty {
+				ui.Error(fmt.Sprintf("directory '%s' already exists and is not empty; use --force to scaffold into it anyway", projectName))
+				os.Exit(1)
+			}
+		}
+
+		// gRPC/GraphQL scaffolding is not yet implemented; the choice is still
+		// recorded in .goca.yaml, but warn so it is not silently ignored (INIT-B1).
+		if api == APITypeGRPC || api == APITypeGraphQL {
+			ui.Warning(fmt.Sprintf("API type '%s' is recorded in .goca.yaml but only REST handlers are scaffolded; gRPC/GraphQL scaffolding is not yet implemented", api))
+		}
+
 		// Validate template if provided
 		if template != "" {
 			if !ValidateTemplateName(template) {
@@ -110,8 +136,6 @@ Use --template to initialize with predefined configurations:
 
 		stop := ui.Spinner(fmt.Sprintf("Creating project '%s'", projectName))
 		// Initialize safety manager
-		dryRun, _ := cmd.Flags().GetBool("dry-run")
-		force, _ := cmd.Flags().GetBool("force")
 		backup, _ := cmd.Flags().GetBool("backup")
 		sm := NewSafetyManager(dryRun, force, backup)
 
@@ -147,6 +171,79 @@ Use --template to initialize with predefined configurations:
 		}
 		ui.NextSteps(nextSteps)
 	},
+}
+
+// validDatabases / validAPIs are the allowed values for the corresponding flags.
+var (
+	validDatabases = []string{DBPostgres, DBPostgresJSON, DBMySQL, DBMongoDB, DBSQLite, DBSQLServer, DBDynamoDB, DBElasticsearch}
+	validAPIs      = []string{APITypeRest, APITypeGRPC, APITypeGraphQL}
+)
+
+// validateDatabaseFlag rejects database values outside the supported set (INIT-B3).
+func validateDatabaseFlag(database string) error {
+	for _, d := range validDatabases {
+		if database == d {
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid --database '%s'; valid values: %s", database, strings.Join(validDatabases, ", "))
+}
+
+// validateAPIFlag rejects api values outside the supported set (INIT-B3).
+func validateAPIFlag(api string) error {
+	for _, a := range validAPIs {
+		if api == a {
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid --api '%s'; valid values: %s", api, strings.Join(validAPIs, ", "))
+}
+
+// directoryHasFiles reports whether dir exists and contains at least one entry.
+func directoryHasFiles(dir string) (bool, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return len(entries) > 0, nil
+}
+
+// persistInitChoices records the --api and --auth selections into the generated
+// .goca.yaml. The config generator rebuilds the file from defaults and ignores
+// these flags, so we patch the rendered YAML directly (INIT-B1, INIT-B14).
+func persistInitChoices(configPath, api string, auth bool) error {
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return err
+	}
+	content := string(data)
+
+	// Flip features.auth.enabled when --auth was requested. Match the auth block
+	// specifically so we do not touch other "enabled: false" keys. Be tolerant of
+	// the marshaler's indentation by locating the "auth:" line and rewriting the
+	// first "enabled: false" that follows it.
+	if auth {
+		if idx := strings.Index(content, "auth:"); idx >= 0 {
+			rest := content[idx:]
+			if rel := strings.Index(rest, "enabled: false"); rel >= 0 {
+				abs := idx + rel
+				content = content[:abs] + "enabled: true" + content[abs+len("enabled: false"):]
+			}
+		}
+	}
+
+	// Record the API type at the top level if not already present.
+	if !strings.Contains(content, "\napi:") {
+		if !strings.HasSuffix(content, "\n") {
+			content += "\n"
+		}
+		content += fmt.Sprintf("api:\n  type: %s\n", api)
+	}
+
+	return os.WriteFile(configPath, []byte(content), 0o600)
 }
 
 func createProjectStructure(projectName, module, database string, auth bool, api string, configIntegration *ConfigIntegration, generateConfig bool, template string, sm ...*SafetyManager) {
@@ -187,7 +284,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	createGitignore(projectName, sm...)
 
 	// Create README.md
-	createReadme(projectName, module, sm...)
+	createReadme(projectName, module, database, sm...)
 
 	// Create config
 	createConfig(projectName, module, database, sm...)
@@ -233,6 +330,12 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 			if err := configIntegration.GenerateConfigFile(projectName, projectName, module, database); err != nil {
 				ui.Warning(fmt.Sprintf("Failed to generate config file: %v", err))
 			} else {
+				// GenerateConfigFile rebuilds the config from scratch, dropping the
+				// merged --auth/--api flags, so persist them into the written file
+				// (INIT-B1, INIT-B14).
+				if err := persistInitChoices(configPath, api, auth); err != nil {
+					ui.Warning(fmt.Sprintf("Failed to record api/auth in config file: %v", err))
+				}
 				ui.FileCreated(fmt.Sprintf("Generated configuration file: %s", configPath))
 			}
 		}

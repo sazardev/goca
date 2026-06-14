@@ -51,6 +51,23 @@ Examples:
 			return
 		}
 
+		// Guard: the generated tests reference domain.<Entity>, repository
+		// constructors and usecase services for the entity. Generating them for an
+		// entity that doesn't exist produces non-compiling code, so refuse early.
+		entityFile := filepath.Join("internal", "domain", strings.ToLower(entityName)+".go")
+		if _, err := os.Stat(entityFile); os.IsNotExist(err) {
+			validator.errorHandler.HandleError(fmt.Errorf("entity %q not found (%s does not exist). Generate it first with 'goca entity %s ...'", entityName, entityFile, entityName), "test-integration")
+			return
+		}
+
+		// Validate the requested database is supported for generation.
+		switch integrationTestDatabase {
+		case "postgres", "mysql", "sqlite":
+		default:
+			validator.errorHandler.HandleError(fmt.Errorf("unsupported --database %q (supported: postgres, mysql, sqlite)", integrationTestDatabase), "test-integration")
+			return
+		}
+
 		// Initialize safety manager
 		dryRun, _ := cmd.Flags().GetBool("dry-run")
 		force, _ := cmd.Flags().GetBool("force")
@@ -362,60 +379,145 @@ func New%[1]sFixtureList(count int) []*domain.%[1]s {
 
 // generateHelpersContent generates database helpers for integration tests.
 func generateHelpersContent(database string, withContainer bool, entityName string) string {
-	containerSetup := ""
+	imports := `	"fmt"
+	"os"
+	"testing"
+
+	_ "github.com/go-sql-driver/mysql" // MySQL driver
+	_ "github.com/lib/pq"              // PostgreSQL driver
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"`
+
+	// Postgres / MySQL setup branches. When --container is enabled, the DSN is
+	// produced by a real testcontainers-go container; otherwise it falls back to
+	// a conventional local DSN (overridable through env vars).
+	postgresSetup := `		dsn := getenv("TEST_POSTGRES_DSN", "host=localhost user=test password=test dbname=goca_test port=5432 sslmode=disable")
+		dialector = postgres.Open(dsn)`
+	mysqlSetup := `		dsn := getenv("TEST_MYSQL_DSN", "test:test@tcp(localhost:3306)/goca_test?charset=utf8mb4&parseTime=True&loc=Local")
+		dialector = mysql.Open(dsn)`
+
 	if withContainer {
-		containerSetup = `
-	// Using test containers
-	// TODO: Implement test container setup
-	// Example with testcontainers-go:
-	// ctx := context.Background()
-	// req := testcontainers.ContainerRequest{
-	//     Image:        "postgres:15",
-	//     ExposedPorts: []string{"5432/tcp"},
-	//     Env: map[string]string{
-	//         "POSTGRES_USER":     "test",
-	//         "POSTGRES_PASSWORD": "test",
-	//         "POSTGRES_DB":       "testdb",
-	//     },
-	//     WaitingFor: wait.ForLog("database system is ready to accept connections"),
-	// }
-	// container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-	//     ContainerRequest: req,
-	//     Started:          true,
-	// })
-	// if err != nil {
-	//     t.Fatalf("failed to start container: %v", err)
-	// }`
+		imports = `	"context"
+	"fmt"
+	"os"
+	"testing"
+
+	_ "github.com/go-sql-driver/mysql" // MySQL driver
+	_ "github.com/lib/pq"              // PostgreSQL driver
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"`
+
+		postgresSetup = `		dsn := startPostgresContainer(t)
+		dialector = postgres.Open(dsn)`
+		mysqlSetup = `		dsn := startMySQLContainer(t)
+		dialector = mysql.Open(dsn)`
+	}
+
+	containerHelpers := ""
+	if withContainer {
+		containerHelpers = `
+// startPostgresContainer starts a throwaway PostgreSQL container and returns its DSN.
+func startPostgresContainer(t *testing.T) string {
+	t.Helper()
+	ctx := context.Background()
+	req := testcontainers.ContainerRequest{
+		Image:        "postgres:15-alpine",
+		ExposedPorts: []string{"5432/tcp"},
+		Env: map[string]string{
+			"POSTGRES_USER":     "test",
+			"POSTGRES_PASSWORD": "test",
+			"POSTGRES_DB":       "goca_test",
+		},
+		WaitingFor: wait.ForListeningPort("5432/tcp"),
+	}
+	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		t.Fatalf("failed to start postgres container: %v", err)
+	}
+	t.Cleanup(func() { _ = container.Terminate(ctx) })
+
+	host, err := container.Host(ctx)
+	if err != nil {
+		t.Fatalf("failed to get container host: %v", err)
+	}
+	port, err := container.MappedPort(ctx, "5432/tcp")
+	if err != nil {
+		t.Fatalf("failed to get mapped port: %v", err)
+	}
+	return fmt.Sprintf("host=%s user=test password=test dbname=goca_test port=%s sslmode=disable", host, port.Port())
+}
+
+// startMySQLContainer starts a throwaway MySQL container and returns its DSN.
+func startMySQLContainer(t *testing.T) string {
+	t.Helper()
+	ctx := context.Background()
+	req := testcontainers.ContainerRequest{
+		Image:        "mysql:8",
+		ExposedPorts: []string{"3306/tcp"},
+		Env: map[string]string{
+			"MYSQL_ROOT_PASSWORD": "test",
+			"MYSQL_USER":          "test",
+			"MYSQL_PASSWORD":      "test",
+			"MYSQL_DATABASE":      "goca_test",
+		},
+		WaitingFor: wait.ForListeningPort("3306/tcp"),
+	}
+	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		t.Fatalf("failed to start mysql container: %v", err)
+	}
+	t.Cleanup(func() { _ = container.Terminate(ctx) })
+
+	host, err := container.Host(ctx)
+	if err != nil {
+		t.Fatalf("failed to get container host: %v", err)
+	}
+	port, err := container.MappedPort(ctx, "3306/tcp")
+	if err != nil {
+		t.Fatalf("failed to get mapped port: %v", err)
+	}
+	return fmt.Sprintf("test:test@tcp(%s:%s)/goca_test?charset=utf8mb4&parseTime=True&loc=Local", host, port.Port())
+}
+`
 	}
 
 	content := fmt.Sprintf(`package integration
 
 import (
-	"fmt"
-	"testing"
-
-	_ "github.com/lib/pq" // PostgreSQL driver
-	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+%[1]s
 )
+
+// getenv returns the value of the environment variable key, or def if unset.
+func getenv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}
 
 // setupTestDatabase initializes a test database connection
 func setupTestDatabase(t *testing.T, dbType string) *gorm.DB {
 	t.Helper()
 
-	var dsn string
 	var dialector gorm.Dialector
 
 	switch dbType {
 	case "postgres":
-		%[1]s
-		// Using in-memory or test database
-		dsn = "host=localhost user=test password=test dbname=goca_test port=5432 sslmode=disable"
-		dialector = postgres.Open(dsn)
+%[2]s
 	case "mysql":
-		// TODO: Add MySQL setup
-		t.Skip("MySQL integration tests not implemented yet")
+%[3]s
 	case "sqlite":
 		// SQLite is perfect for fast integration tests — no external server needed
 		dialector = sqlite.Open(":memory:")
@@ -434,6 +536,7 @@ func setupTestDatabase(t *testing.T, dbType string) *gorm.DB {
 
 	return db
 }
+%[4]s
 
 // cleanupTestDatabase cleans up the test database
 func cleanupTestDatabase(t *testing.T, db *gorm.DB) {
@@ -516,7 +619,7 @@ func seedTestData(t *testing.T, db *gorm.DB) {
 func ptr[T any](v T) *T {
 	return &v
 }
-`, containerSetup)
+`, imports, postgresSetup, mysqlSetup, containerHelpers)
 	return replaceHelperTODOs(content, entityName)
 }
 
@@ -780,12 +883,6 @@ func replaceFixtureTODOs(content string, fields []Field, entityName string) stri
 
 // replaceHelperTODOs replaces TODO placeholders with entity-specific guidance in helper content.
 func replaceHelperTODOs(content, entityName string) string {
-	content = strings.Replace(content,
-		"// TODO: Implement test container setup",
-		"// Implement test container setup with testcontainers-go:", 1)
-	content = strings.Replace(content,
-		"// TODO: Add MySQL setup",
-		"// Add MySQL setup (e.g. dsn = \"user:pass@tcp(localhost:3306)/goca_test?parseTime=true\"):", 1)
 	content = strings.Replace(content,
 		"// TODO: Add auto-migration for test entities",
 		"// Auto-migrate entity (requires domain import): db.AutoMigrate(&domain."+entityName+"{})", 1)

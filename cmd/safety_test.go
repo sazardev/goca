@@ -80,8 +80,8 @@ func TestSafetyManager_CheckFileConflict_DryRun(t *testing.T) {
 
 	sm := NewSafetyManager(true, false, false)
 	err := sm.CheckFileConflict(filePath)
-	require.Error(t, err)
-	assert.Contains(t, err.Error(), "dry-run")
+	// Dry-run must not error on existing files; it records the conflict only.
+	require.NoError(t, err)
 	assert.Contains(t, sm.GetConflicts(), filePath)
 }
 

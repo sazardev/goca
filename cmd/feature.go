@@ -274,11 +274,13 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 6. Register entity for auto-migration
 	ui.Step(6, "Registering entity for auto-migration...")
-	if err := addEntityToAutoMigration(featureName, safetyMgr); err != nil {
+	if registered, err := registerEntityForAutoMigration(featureName); err != nil {
 		ui.Warning(fmt.Sprintf("Could not register entity for auto-migration: %v", err))
 		ui.Dim("   Tip: Entity was created correctly, but you'll need to configure migration manually")
-	} else {
+	} else if registered {
 		ui.Success(fmt.Sprintf("Entity %s registered for GORM auto-migration", featureName))
+	} else {
+		ui.Dim(fmt.Sprintf("   Entity %s already registered for auto-migration", featureName))
 	}
 
 	ui.Success("All layers generated successfully!")
@@ -387,7 +389,9 @@ func addFeatureToDI(featureName string, cache bool, sm ...*SafetyManager) {
 	updatedContent = addSetupMethodsToDI(updatedContent, featureName, featureLower, cache)
 	updatedContent = addGetterMethodsToDI(updatedContent, featureName, featureLower)
 
-	if err := writeFile(diPath, updatedContent, sm...); err != nil {
+	// This is an in-place merge of an existing container.go that we just read,
+	// so honor dry-run/backup but bypass the "file already exists" guard.
+	if err := writeMergedFileSafe(diPath, updatedContent, sm...); err != nil {
 		ui.Warning(fmt.Sprintf("Could not update DI container: %v", err))
 		return
 	}
@@ -525,9 +529,10 @@ func isFeatureAlreadyRegistered(content, featureName string) bool {
 
 // setupMainGoWithFeature sets up the main.go file with the new feature.
 func setupMainGoWithFeature(mainPath, featureName, moduleName, content string) {
-	// Always use complete GORM setup for consistency
-	ui.Dim("   Setting up complete main.go with DI...")
-	if !updateMainGoWithCompleteSetup(mainPath, featureName, moduleName) {
+	// Wire the feature into main.go: DI container + /api/v1 routes.
+	ui.Dim("   Wiring feature into main.go (DI container + routes)...")
+	if err := wireFeatureIntoMainGo(mainPath, featureName, moduleName, content); err != nil {
+		ui.Warning(fmt.Sprintf("Could not wire routes into main.go: %v", err))
 		printManualIntegrationInstructions(featureName)
 		return
 	}
@@ -563,13 +568,177 @@ func init() {
 	_ = featureCmd.MarkFlagRequired("fields")
 }
 
-// updateMainGoWithCompleteSetup replaces the basic main.go with a complete DI-integrated version.
-func updateMainGoWithCompleteSetup(mainPath, featureName, moduleName string) bool {
-	// Simplified to avoid format errors
-	ui.Dim(fmt.Sprintf("   Updating main.go for feature %s", featureName))
+// writeMergedFileSafe writes content that the caller has rebuilt from an
+// existing file's current content (an in-place merge). When a SafetyManager is
+// supplied it routes through WriteMergedFile (honoring dry-run/backup while
+// allowing overwrite of an existing file); otherwise it writes directly.
+func writeMergedFileSafe(path, content string, sm ...*SafetyManager) error {
+	if len(sm) > 0 && sm[0] != nil {
+		return sm[0].WriteMergedFile(path, content)
+	}
+	//#nosec G306 // generated Go source, standard 0644 perms
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("failed to write %s: %w", path, err)
+	}
+	return nil
+}
 
-	// For now just mark it as processed
-	return true
+// writeMainGoInPlace overwrites an existing generated file (such as
+// cmd/server/main.go) that we have intentionally rebuilt from its current
+// content. It deliberately does NOT go through the SafetyManager "file already
+// exists" guard, because these are in-place edits of files we just read.
+func writeMainGoInPlace(path, content string) error {
+	//#nosec G306 // generated Go source, standard 0644 perms
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		return fmt.Errorf("failed to write %s: %w", path, err)
+	}
+	return nil
+}
+
+// isEntityAlreadyMigrated reports whether entityReference (e.g. "&domain.User{}")
+// already appears on a non-comment line of main.go. This avoids the brace-counting
+// pitfalls of scanning the entities slice (entity literals themselves contain "{}").
+func isEntityAlreadyMigrated(content, entityReference string) bool {
+	for _, line := range strings.Split(content, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "//") {
+			continue
+		}
+		if strings.Contains(line, entityReference) {
+			return true
+		}
+	}
+	return false
+}
+
+// registerEntityForAutoMigration inserts &domain.<Entity>{} into the
+// runAutoMigrations entities slice in cmd/server/main.go. It is idempotent and
+// adds the domain import if missing. Returns (true, nil) when it actually added
+// the entity, (false, nil) when it was already present.
+func registerEntityForAutoMigration(featureName string) (bool, error) {
+	mainPath, err := findMainGoFile()
+	if err != nil {
+		return false, err
+	}
+
+	raw, err := os.ReadFile(mainPath)
+	if err != nil {
+		return false, fmt.Errorf("failed to read main.go: %w", err)
+	}
+	content := string(raw)
+
+	entityReference := fmt.Sprintf("&domain.%s{}", featureName)
+	if isEntityAlreadyMigrated(content, entityReference) {
+		return false, nil
+	}
+
+	moduleName := getModuleName()
+	if moduleName == "" {
+		return false, fmt.Errorf("could not determine module name from go.mod") //nolint:err113
+	}
+
+	// Use the robust import inserter so the import block stays well-formed.
+	updated := ensureMainGoImport(content, fmt.Sprintf("%s/internal/domain", moduleName))
+
+	updated, err = addEntityToMigrationSlice(updated, entityReference)
+	if err != nil {
+		return false, err
+	}
+
+	if err := writeMainGoInPlace(mainPath, updated); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// wireFeatureIntoMainGo edits cmd/server/main.go in-place so the generated app
+// genuinely serves the feature: it instantiates the DI container (once) and
+// registers the feature's routes under an /api/v1 subrouter. It is idempotent.
+func wireFeatureIntoMainGo(mainPath, featureName, moduleName, content string) error {
+	featureLower := strings.ToLower(featureName)
+
+	updated := content
+
+	// 1. Ensure required imports (di + handler http packages).
+	updated = ensureMainGoImport(updated, fmt.Sprintf("%s/internal/di", moduleName))
+	updated = ensureMainGoImport(updated, fmt.Sprintf("apphttp \"%s/internal/handler/http\"", moduleName))
+
+	// 2. Ensure the DI container + /api/v1 subrouter scaffold exist (once).
+	updated = ensureContainerScaffold(updated)
+
+	// 3. Register this feature's routes (idempotent).
+	routeCall := fmt.Sprintf("apphttp.Setup%sRoutes(apiRouter, container.%sUseCase())", featureName, featureName)
+	if !strings.Contains(updated, routeCall) {
+		marker := wiringRoutesMarker
+		insertion := fmt.Sprintf("\t%s // %s routes\n%s", routeCall, featureLower, marker)
+		updated = strings.Replace(updated, marker, insertion, 1)
+	}
+
+	if err := writeMainGoInPlace(mainPath, updated); err != nil {
+		return err
+	}
+	return nil
+}
+
+// wiringRoutesMarker is the anchor comment after which feature route
+// registrations are inserted.
+const wiringRoutesMarker = "// goca:routes -- feature routes are registered above this line"
+
+// ensureMainGoImport adds an import line to the import block of main.go if it
+// is not already present. importLine may be a plain path ("mod/pkg") or an
+// aliased form ("alias \"mod/pkg\"").
+func ensureMainGoImport(content, importLine string) string {
+	// Build the bare path for the presence check (strip alias + quotes).
+	bare := importLine
+	if idx := strings.Index(bare, "\""); idx != -1 {
+		bare = bare[idx:]
+	}
+	bare = strings.Trim(bare, "\"")
+	if strings.Contains(content, "\""+bare+"\"") {
+		return content
+	}
+
+	// Normalize to a quoted (optionally aliased) import spec.
+	var spec string
+	if strings.Contains(importLine, "\"") {
+		spec = importLine
+	} else {
+		spec = "\"" + importLine + "\""
+	}
+
+	importStart := strings.Index(content, "import (")
+	if importStart == -1 {
+		return content
+	}
+	closeIdx := strings.Index(content[importStart:], "\n)")
+	if closeIdx == -1 {
+		return content
+	}
+	closeIdx += importStart
+	return content[:closeIdx] + "\n\t" + spec + content[closeIdx:]
+}
+
+// ensureContainerScaffold injects (once) the DI container instantiation and an
+// /api/v1 subrouter together with the route marker into main.go.
+func ensureContainerScaffold(content string) string {
+	if strings.Contains(content, "container := di.NewContainer(db)") {
+		return content
+	}
+
+	anchor := "\trouter := mux.NewRouter()\n"
+	if !strings.Contains(content, anchor) {
+		return content
+	}
+
+	scaffold := anchor + "\n" +
+		"\t// Dependency injection container\n" +
+		"\tcontainer := di.NewContainer(db)\n" +
+		"\t_ = container\n\n" +
+		"\t// API v1 routes\n" +
+		"\tapiRouter := router.PathPrefix(\"/api/v1\").Subrouter()\n" +
+		"\t" + wiringRoutesMarker + "\n"
+
+	return strings.Replace(content, anchor, scaffold, 1)
 }
 
 // printManualIntegrationInstructions prints instructions for manual integration.

@@ -267,3 +267,36 @@ func TestUIRenderer_KeyValueFromConfig(t *testing.T) {
 	assert.Contains(t, output, "postgres")
 	assert.Contains(t, output, "from config")
 }
+
+func TestFileCreated_QuietSuppressed(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	NewUIRenderer(&buf, true, 0).FileCreated("internal/domain/x.go")
+	assert.Empty(t, buf.String(), "FileCreated must be suppressed under quiet")
+
+	var buf2 bytes.Buffer
+	NewUIRenderer(&buf2, true, 1).FileCreated("internal/domain/x.go")
+	assert.Contains(t, buf2.String(), "Created")
+}
+
+func TestTable_QuietSuppressed(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	NewUIRenderer(&buf, true, 0).Table([]string{"A"}, [][]string{{"1"}})
+	assert.Empty(t, buf.String(), "Table must be suppressed under quiet")
+
+	var buf2 bytes.Buffer
+	NewUIRenderer(&buf2, true, 1).Table([]string{"A"}, [][]string{{"1"}})
+	assert.NotEmpty(t, buf2.String())
+}
+
+func TestSuccessError_VisibleUnderQuiet(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	r := NewUIRenderer(&buf, true, 0)
+	r.Success("done")
+	r.Error("boom")
+	out := buf.String()
+	assert.Contains(t, out, "done")
+	assert.Contains(t, out, "boom")
+}

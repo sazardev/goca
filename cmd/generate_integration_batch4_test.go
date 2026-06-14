@@ -126,7 +126,7 @@ func TestCreateReadme_DryRun(t *testing.T) {
 
 	dir := t.TempDir()
 	sm := NewSafetyManager(true, false, false)
-	createReadme(dir, "github.com/test/proj", sm)
+	createReadme(dir, "github.com/test/proj", DBPostgres, sm)
 	assert.Len(t, sm.GetPendingFiles(), 1)
 	assert.Contains(t, sm.GetPendingFiles()[0].Path, "README.md")
 }
@@ -257,7 +257,7 @@ func TestGenerateUseCaseServiceWithFields_DryRun(t *testing.T) {
 	os.Chdir(dir)
 
 	sm := NewSafetyManager(true, false, false)
-	generateUseCaseServiceWithFields(dir, "Product", "Product", []string{"create", "get", "list", "update", "delete"}, false, "Name:string,Price:float64", sm)
+	generateUseCaseServiceWithFields(dir, "Product", "Product", []string{"create", "get", "list", "update", "delete"}, false, false, "Name:string,Price:float64", sm)
 	assert.NotEmpty(t, sm.GetPendingFiles())
 }
 
@@ -273,7 +273,7 @@ func TestGenerateUseCaseServiceWithFields_Async_DryRun(t *testing.T) {
 	os.Chdir(dir)
 
 	sm := NewSafetyManager(true, false, false)
-	generateUseCaseServiceWithFields(dir, "Order", "Order", []string{"create", "get"}, true, "Total:float64,Status:string", sm)
+	generateUseCaseServiceWithFields(dir, "Order", "Order", []string{"create", "get"}, true, true, "Total:float64,Status:string", sm)
 	assert.NotEmpty(t, sm.GetPendingFiles())
 }
 
@@ -412,7 +412,10 @@ func TestGetDatabasePort_Extended(t *testing.T) {
 		{"postgres", "5432"},
 		{"mysql", "3306"},
 		{"mongodb", "27017"},
-		{"sqlite", "5432"}, // falls through to default
+		{"sqlserver", "1433"},
+		{"dynamodb", "8000"},
+		{"elasticsearch", "9200"},
+		{"sqlite", ""}, // file-based, no network port
 		{"unknown", "5432"},
 	}
 	for _, tc := range tests {
@@ -432,7 +435,10 @@ func TestGetDatabaseUser_Extended(t *testing.T) {
 		{"postgres", "postgres"},
 		{"mysql", "root"},
 		{"mongodb", "admin"},
-		{"sqlite", "postgres"}, // falls through to default
+		{"sqlserver", "sa"},
+		{"elasticsearch", "elastic"},
+		{"dynamodb", "local"},
+		{"sqlite", ""}, // file-based, no user
 		{"unknown", "postgres"},
 	}
 	for _, tc := range tests {

@@ -77,6 +77,17 @@ func init() {
 
 //nolint:cyclop,funlen // runAnalyze orchestrates 6+ analysis categories
 func runAnalyze(_ *cobra.Command, _ []string) error {
+	jsonMode := analyzeOpts.output == "json"
+
+	// In JSON mode, only valid JSON may go to stdout. Route all human/progress
+	// output (headers, steps, summary) to stderr so the JSON on stdout stays
+	// machine-parseable. The writer is restored before returning.
+	if jsonMode && ui != nil {
+		prevWriter := ui.writer
+		ui.writer = os.Stderr
+		defer func() { ui.writer = prevWriter }()
+	}
+
 	ui.Header("Goca Analyze — Deep Project Self-Analysis")
 	ui.Blank()
 
@@ -116,7 +127,7 @@ func runAnalyze(_ *cobra.Command, _ []string) error {
 
 	ui.Blank()
 
-	if analyzeOpts.output == "json" {
+	if jsonMode {
 		printAnalyzeJSON(results)
 	} else {
 		printAnalyzeReport(results)
@@ -134,7 +145,11 @@ func runAnalyze(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("analyze: %d rule(s) failed", failed) //nolint:err113 // dynamic count is intentional
 	}
 	if analyzeOpts.failOnWarn && warned > 0 {
-		return fmt.Errorf("analyze: %d warning(s) (--fail-on-warn)", warned) //nolint:err113 // dynamic count is intentional
+		// Warnings-only with --fail-on-warn must exit with code 2, distinct from
+		// the failure exit code 1. Returning an error here would map to exit 1
+		// via Execute(), so exit directly with the documented code.
+		ui.Warning(fmt.Sprintf("analyze: %d warning(s) (--fail-on-warn)", warned))
+		os.Exit(2)
 	}
 	return nil
 }

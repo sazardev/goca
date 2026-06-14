@@ -43,8 +43,10 @@ func (sm *SafetyManager) CheckFileConflict(filePath string) error {
 	if _, err := os.Stat(filePath); err == nil {
 		// File exists
 		if sm.DryRun {
+			// In dry-run mode an existing file is not an error: it is simply
+			// recorded as a conflict and previewed as a "would overwrite".
 			sm.conflicts = append(sm.conflicts, filePath)
-			return fmt.Errorf("file already exists (dry-run): %s", filePath)
+			return nil
 		}
 
 		if !sm.Force {

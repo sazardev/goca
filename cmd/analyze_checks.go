@@ -454,7 +454,9 @@ func checkExportedFunctionsHaveDocs() analyzeResult {
 }
 
 func checkMainGoExists() analyzeResult {
-	candidates := []string{"main.go", "cmd/main.go"}
+	// Fixed entry points checked first, then any cmd/<name>/main.go (goca init
+	// generates cmd/server/main.go, so a fixed "cmd/main.go" check is not enough).
+	candidates := []string{"main.go", "cmd/main.go", "cmd/server/main.go"}
 	for _, c := range candidates {
 		if fileExists(c) {
 			return analyzeResult{
@@ -465,11 +467,28 @@ func checkMainGoExists() analyzeResult {
 			}
 		}
 	}
+	// Accept any cmd/<name>/main.go layout.
+	if entries, err := os.ReadDir("cmd"); err == nil {
+		for _, e := range entries {
+			if !e.IsDir() {
+				continue
+			}
+			c := filepath.Join("cmd", e.Name(), "main.go")
+			if fileExists(c) {
+				return analyzeResult{
+					category: "Quality",
+					rule:     "main-go",
+					status:   "✓",
+					message:  fmt.Sprintf("Entry point found at %s", c),
+				}
+			}
+		}
+	}
 	return analyzeResult{
 		category:   "Quality",
 		rule:       "main-go",
 		status:     "⚠",
-		message:    "No main.go found at root or cmd/",
+		message:    "No main.go found at root, cmd/, or cmd/<name>/",
 		suggestion: "Run: goca init <project-name> to generate project entry point",
 	}
 }
@@ -492,6 +511,8 @@ func checkNoHardcodedSecrets() analyzeResult {
 	patterns := []string{
 		"password = \"", "secret = \"", "token = \"",
 		"apikey = \"", "api_key = \"", "passwd = \"",
+		"password := \"", "secret := \"", "token := \"",
+		"apikey := \"", "api_key := \"", "passwd := \"",
 		`password:"`, `secret:"`, `token:"`,
 	}
 	files, _ := analyzeGoFiles("internal", false)
@@ -595,23 +616,23 @@ func checkNoInsecureHTTPClient() analyzeResult {
 }
 
 func checkEnvVarsForSensitiveConfig() analyzeResult {
-	// Verify sensitive config is read from environment, not config files or constants
-	files, _ := analyzeGoFiles("internal", true)
+	// Verify sensitive config is read from environment, not config files or constants.
+	// goca init generates pkg/config/config.go (which uses os.Getenv), so pkg/ must
+	// be scanned in addition to internal/ to avoid false warnings.
 	usesEnv := false
-	for _, f := range files {
-		if strings.Contains(analyzeReadFile(f), "os.Getenv") {
-			usesEnv = true
-			break
+	for _, dir := range []string{"internal", "pkg"} {
+		if !dirExists(dir) {
+			continue
 		}
-	}
-	// Check cache package separately
-	if !usesEnv && dirExists("internal/cache") {
-		cacheFiles, _ := analyzeGoFiles("internal/cache", true)
-		for _, f := range cacheFiles {
+		files, _ := analyzeGoFiles(dir, true)
+		for _, f := range files {
 			if strings.Contains(analyzeReadFile(f), "os.Getenv") {
 				usesEnv = true
 				break
 			}
+		}
+		if usesEnv {
+			break
 		}
 	}
 	if usesEnv {

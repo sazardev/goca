@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"text/template"
 
@@ -296,12 +297,52 @@ func main() {
 	setupMainGoWithFeature("main.go", "Product", "github.com/test/proj", mainContent)
 }
 
-func TestUpdateMainGoWithCompleteSetup_Coverage(t *testing.T) {
+func TestWireFeatureIntoMainGo_Coverage(t *testing.T) {
 	cleanup := ensureTestUI(t)
 	defer cleanup()
 
-	result := updateMainGoWithCompleteSetup("main.go", "Product", "github.com/test/proj")
-	assert.True(t, result)
+	origDir, _ := os.Getwd()
+	defer os.Chdir(origDir)
+
+	dir := t.TempDir()
+	os.Chdir(dir)
+
+	os.WriteFile("go.mod", []byte("module github.com/test/proj\n\ngo 1.21\n"), 0o644)
+
+	mainContent := `package main
+
+import (
+	"net/http"
+
+	"github.com/gorilla/mux"
+)
+
+func main() {
+	router := mux.NewRouter()
+	_ = http.StatusOK
+	_ = router
+}
+`
+	os.WriteFile("main.go", []byte(mainContent), 0o644)
+
+	// First wiring run adds the container scaffold + Product routes.
+	err := wireFeatureIntoMainGo("main.go", "Product", "github.com/test/proj", mainContent)
+	assert.NoError(t, err)
+
+	out, _ := os.ReadFile("main.go")
+	got := string(out)
+	assert.Contains(t, got, "container := di.NewContainer(db)")
+	assert.Contains(t, got, "apiRouter := router.PathPrefix(\"/api/v1\").Subrouter()")
+	assert.Contains(t, got, "apphttp.SetupProductRoutes(apiRouter, container.ProductUseCase())")
+	assert.Contains(t, got, "\"github.com/test/proj/internal/di\"")
+
+	// Idempotency: re-running must not duplicate the container or routes.
+	err = wireFeatureIntoMainGo("main.go", "Product", "github.com/test/proj", got)
+	assert.NoError(t, err)
+	out2, _ := os.ReadFile("main.go")
+	got2 := string(out2)
+	assert.Equal(t, 1, strings.Count(got2, "container := di.NewContainer(db)"))
+	assert.Equal(t, 1, strings.Count(got2, "SetupProductRoutes(apiRouter"))
 }
 
 func TestDetectExistingFeatures_Coverage(t *testing.T) {
@@ -319,15 +360,27 @@ func TestDetectExistingFeatures_Coverage(t *testing.T) {
 	os.WriteFile(filepath.Join(domainDir, "errors.go"), []byte("package domain"), 0o644)        // filtered
 	os.WriteFile(filepath.Join(domainDir, "product_seeds.go"), []byte("package domain"), 0o644) // filtered
 
-	// Create handler dir
+	usecaseDir := filepath.Join("internal", "usecase")
+	repoDir := filepath.Join("internal", "repository")
 	httpDir := filepath.Join("internal", "handler", "http")
+	os.MkdirAll(usecaseDir, 0o755)
+	os.MkdirAll(repoDir, 0o755)
 	os.MkdirAll(httpDir, 0o755)
+
+	// Product is a COMPLETE feature: domain + usecase + repository + handler.
+	os.WriteFile(filepath.Join(usecaseDir, "product_service.go"), []byte("package usecase"), 0o644)
+	os.WriteFile(filepath.Join(repoDir, "postgres_product_repository.go"), []byte("package repository"), 0o644)
+	os.WriteFile(filepath.Join(httpDir, "product_handler.go"), []byte("package http"), 0o644)
+
+	// User is an orphan domain entity (no usecase/repository/handler) and must
+	// be skipped so the DI container never references missing constructors.
+	// Order has only a handler (no domain entity) and must also be skipped.
 	os.WriteFile(filepath.Join(httpDir, "order_handler.go"), []byte("package http"), 0o644)
 
 	features := detectExistingFeatures()
 	assert.Contains(t, features, "Product")
-	assert.Contains(t, features, "User")
-	assert.Contains(t, features, "Order")
+	assert.NotContains(t, features, "User")
+	assert.NotContains(t, features, "Order")
 	assert.NotContains(t, features, "Errors")
 }
 

@@ -55,6 +55,39 @@ func TestValidateMiddlewareTypes_Invalid(t *testing.T) {
 	assert.Contains(t, err.Error(), "banana")
 }
 
+// ─── validateMiddlewareName (HANDLER-6) ──────────────────────────────────────
+
+func TestValidateMiddlewareName_AllowsLowercase(t *testing.T) {
+	assert.NoError(t, validateMiddlewareName("api"))
+	assert.NoError(t, validateMiddlewareName("Api"))
+	assert.NoError(t, validateMiddlewareName("my-mw_1"))
+}
+
+func TestValidateMiddlewareName_Rejects(t *testing.T) {
+	assert.Error(t, validateMiddlewareName(""))
+	assert.Error(t, validateMiddlewareName("1api"))
+	assert.Error(t, validateMiddlewareName("bad name"))
+}
+
+// ─── HANDLER-2: contextKey lives in the always-generated base file ────────────
+
+func TestChainMiddleware_DefinesContextKey(t *testing.T) {
+	out := generateChainMiddleware("github.com/test/proj")
+	assert.Contains(t, out, "type contextKey string")
+}
+
+func TestRequestIDMiddleware_NoDuplicateContextKey(t *testing.T) {
+	// request_id.go uses contextKey but must NOT redefine it.
+	out := generateRequestIDMiddleware()
+	assert.Contains(t, out, "contextKey")
+	assert.NotContains(t, out, "type contextKey string")
+}
+
+func TestAuthMiddleware_NoDuplicateContextKey(t *testing.T) {
+	out := generateAuthMiddleware()
+	assert.NotContains(t, out, "type contextKey string")
+}
+
 // ─── Template generators ─────────────────────────────────────────────────────
 
 func TestGenerateChainMiddleware(t *testing.T) {

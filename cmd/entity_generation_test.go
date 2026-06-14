@@ -394,7 +394,13 @@ func TestGenerateSQLSampleValue(t *testing.T) {
 		{"float other", Field{Name: "Rate", Type: "float64"}, 1, "10.50"},
 		{"bool", Field{Name: "Active", Type: "bool"}, 1, "true"},
 		{"time", Field{Name: "Start", Type: "time.Time"}, 1, "NOW()"},
-		{"unknown", Field{Name: "X", Type: "complex"}, 1, "NULL"},
+		// ENTITY-7: composite/custom types emit a non-NULL value consistent with
+		// the Go seeds and valid for NOT NULL columns.
+		{"slice string", Field{Name: "Tags", Type: "[]string"}, 1, "'sample1,sample2'"},
+		{"slice int", Field{Name: "Codes", Type: "[]int"}, 1, "'10,11'"},
+		{"pointer", Field{Name: "LastLogin", Type: "*time.Time"}, 1, "NOW()"},
+		{"custom type", Field{Name: "Status", Type: "UserStatus"}, 1, "'sample1'"},
+		{"unknown", Field{Name: "X", Type: "complex"}, 1, "'sample1'"},
 	}
 
 	for _, tc := range cases {

@@ -17,6 +17,9 @@ func TestGenerateCreateMethod_Pure(t *testing.T) {
 	assert.Contains(t, result, "func (p *productService) CreateProduct")
 	assert.Contains(t, result, "CreateProductInput")
 	assert.Contains(t, result, "CreateProductOutput")
+	// Generated comments/identifiers must be English, not the old Spanish ones.
+	assert.NotContains(t, result, "Nombre")
+	assert.NotContains(t, result, "Edad")
 }
 
 func TestGenerateGetMethod_Pure(t *testing.T) {
@@ -61,8 +64,29 @@ func TestGenerateUpdateMethodWithFields_Pure(t *testing.T) {
 func TestGenerateCreateMethodWithFields_Pure(t *testing.T) {
 	t.Parallel()
 	var sb strings.Builder
-	generateCreateMethodWithFields(&sb, "productService", "Product", "Name:string,Price:float64")
+	generateCreateMethodWithFields(&sb, "productService", "Product", "Name:string,Price:float64", true)
 	result := sb.String()
 	assert.Contains(t, result, "func (p *productService) CreateProduct")
 	assert.Contains(t, result, "Name")
+	// When DTO validation is enabled, the create method must call input.Validate().
+	assert.Contains(t, result, "input.Validate()")
+}
+
+func TestGenerateCreateMethodWithFields_NoDTOValidate(t *testing.T) {
+	t.Parallel()
+	var sb strings.Builder
+	generateCreateMethodWithFields(&sb, "productService", "Product", "Name:string,Price:float64", false)
+	result := sb.String()
+	assert.Contains(t, result, "func (p *productService) CreateProduct")
+	assert.NotContains(t, result, "input.Validate()")
+}
+
+func TestGenerateAsyncCreateMethod(t *testing.T) {
+	t.Parallel()
+	var sb strings.Builder
+	generateAsyncCreateMethod(&sb, "productService", "Product")
+	result := sb.String()
+	assert.Contains(t, result, "func (p *productService) CreateProductAsync(input CreateProductInput)")
+	assert.Contains(t, result, "p.asyncChannel <- func() {")
+	assert.Contains(t, result, "p.CreateProduct(input)")
 }

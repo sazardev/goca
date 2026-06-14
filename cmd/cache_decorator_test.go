@@ -116,8 +116,9 @@ func TestGenerateCacheDecorator_NoFields(t *testing.T) {
 	require.NoError(t, err)
 	src := string(content)
 
-	// Default FindByEmail delegate when no fields
-	assert.Contains(t, src, "func (r *CachedItemRepository) FindByEmail")
+	// With no fields the interface declares no finders, so the decorator must NOT
+	// emit a FindByEmail delegate (the inner repo has no such method).
+	assert.NotContains(t, src, "FindByEmail")
 }
 
 func TestGenerateCacheDecorator_DryRun(t *testing.T) {
