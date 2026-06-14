@@ -100,7 +100,7 @@ func testUseCaseWithDefaultOperations(tc *framework.TestContext, t *testing.T) {
 	// Verificar contenido del archivo de caso de uso - debe tener operaciones CRUD
 	usecasePath := filepath.Join(basePath, "user_usecase.go")
 	expectedContents := []string{
-		"type UserManagement interface",
+		"type UserUseCase interface",
 		"CreateUser",
 		"GetUser",
 	}

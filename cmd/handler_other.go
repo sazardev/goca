@@ -116,6 +116,16 @@ func generateGRPCServerFile(dir, entity, fileNamingConvention string, sm ...*Saf
 	}
 
 	var content strings.Builder
+	// This server depends on protobuf-generated code that must be produced with
+	// protoc before it can compile. Guard it with the "proto" build tag so a
+	// freshly generated project still builds; the developer removes the tag (or
+	// builds with -tags proto) once the *.pb.go files exist.
+	content.WriteString("//go:build proto\n")
+	content.WriteString("// +build proto\n\n")
+	content.WriteString(fmt.Sprintf("// Package grpc contains the gRPC server scaffold for %s.\n//\n", entity))
+	content.WriteString("// Generate the protobuf code before enabling this file, e.g.:\n//\n")
+	content.WriteString(fmt.Sprintf("//\tprotoc --go_out=. --go-grpc_out=. internal/handler/grpc/%s.proto\n//\n", entityLower))
+	content.WriteString("// Then remove the build tag above (or build with `-tags proto`).\n")
 	content.WriteString("package grpc\n\n")
 	content.WriteString("import (\n")
 	content.WriteString("\t\"context\"\n\n")

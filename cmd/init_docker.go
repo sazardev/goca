@@ -7,11 +7,17 @@ import (
 )
 
 func createMigrations(projectName string, sm ...*SafetyManager) {
+	// In dry-run mode do not touch the filesystem; file writes below are routed
+	// through the SafetyManager which records them instead.
+	dryRun := len(sm) > 0 && sm[0] != nil && sm[0].DryRun
+
 	// Create migrations directory
 	migrationDir := filepath.Join(projectName, "migrations")
-	if err := os.MkdirAll(migrationDir, 0o755); err != nil {
-		ui.Warning(fmt.Sprintf("Error creating migrations directory: %v", err))
-		return
+	if !dryRun {
+		if err := os.MkdirAll(migrationDir, 0o755); err != nil {
+			ui.Warning(fmt.Sprintf("Error creating migrations directory: %v", err))
+			return
+		}
 	}
 
 	// Create initial migration

@@ -222,7 +222,7 @@ func (v *FieldValidator) validateComplexType(fieldType string) error {
 		return nil // Custom types are valid
 	}
 
-	return fmt.Errorf("%s: %s. Tipos válidos incluyen: %s, slices, pointers, maps, channels, functions, interfaces y tipos personalizados",
+	return fmt.Errorf("%s: %s. Valid types include: %s, slices, pointers, maps, channels, functions, interfaces and custom types",
 		ErrInvalidFieldType, fieldType, strings.Join(ValidFieldTypes, ", "))
 }
 
@@ -474,7 +474,7 @@ func (v *FieldValidator) ValidateReservedNames(name string) error {
 
 	for _, reserved := range goReserved {
 		if lowerName == reserved {
-			return fmt.Errorf("'%s' es una palabra reservada de Go", name)
+			return fmt.Errorf("'%s' is a reserved Go keyword", name)
 		}
 	}
 

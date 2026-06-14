@@ -169,9 +169,6 @@ func generateRepositoryInterfaceFileWithFields(dir, entity, fields string, sm ..
 				}
 			}
 		}
-	} else {
-		// Fallback to basic query method if no fields specified
-		content.WriteString(fmt.Sprintf("\tFindByEmail(email string) (*domain.%s, error)\n", entity))
 	}
 
 	content.WriteString(fmt.Sprintf("\tUpdate(%s *domain.%s) error\n", entityLower, entity))

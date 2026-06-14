@@ -194,7 +194,6 @@ func generateRepositoryInterface(dir, entity string, transactions bool, sm ...*S
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
 	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", strings.ToLower(entity), entity))
 	content.WriteString(fmt.Sprintf("\tFindByID(id int) (*domain.%s, error)\n", entity))
-	content.WriteString(fmt.Sprintf("\tFindByEmail(email string) (*domain.%s, error)\n", entity))
 	content.WriteString(fmt.Sprintf("\tUpdate(%s *domain.%s) error\n", strings.ToLower(entity), entity))
 	content.WriteString("\tDelete(id int) error\n")
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
@@ -207,7 +206,7 @@ func generateRepositoryInterface(dir, entity string, transactions bool, sm ...*S
 
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, content.String(), sm...); err != nil {
 		fmt.Printf("Error writing file %s: %v\n", filename, err)
 	}
 }

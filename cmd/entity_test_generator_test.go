@@ -28,7 +28,7 @@ func TestGetValidFieldValue(t *testing.T) {
 		{"float64 other", Field{Name: "Rate", Type: "float64"}, "10.5"},
 		{"bool", Field{Name: "Active", Type: "bool"}, "true"},
 		{"time.Time", Field{Name: "Birthday", Type: "time.Time"}, "time.Now()"},
-		{"unknown type", Field{Name: "Data", Type: "[]byte"}, "\"\""},
+		{"byte slice", Field{Name: "Data", Type: "[]byte"}, "[]byte{10}"},
 	}
 
 	for _, tc := range cases {
@@ -52,7 +52,7 @@ func TestGetInvalidFieldValue(t *testing.T) {
 		{"int64", Field{Name: "ID", Type: "int64"}, "-1"},
 		{"float64", Field{Name: "Price", Type: "float64"}, "-1.0"},
 		{"bool", Field{Name: "Active", Type: "bool"}, "false"},
-		{"unknown", Field{Name: "Data", Type: "[]byte"}, "\"\""},
+		{"byte slice", Field{Name: "Data", Type: "[]byte"}, "[]byte{10}"},
 	}
 
 	for _, tc := range cases {

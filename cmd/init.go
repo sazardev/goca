@@ -165,8 +165,16 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 		dirs = append(dirs, filepath.Join(projectName, "pkg", "auth"))
 	}
 
-	for _, dir := range dirs {
-		_ = os.MkdirAll(dir, 0o755)
+	// In dry-run mode nothing is written to disk: file generators record their
+	// intent via the SafetyManager instead, and the side effects below
+	// (directory creation, config file, dependency download, git init) are
+	// skipped entirely.
+	dryRun := len(sm) > 0 && sm[0] != nil && sm[0].DryRun
+
+	if !dryRun {
+		for _, dir := range dirs {
+			_ = os.MkdirAll(dir, 0o755)
+		}
 	}
 
 	// Create go.mod
@@ -202,7 +210,7 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 	}
 
 	// Generate .goca.yaml configuration file if requested or template is used
-	if generateConfig && configIntegration != nil {
+	if generateConfig && configIntegration != nil && !dryRun {
 		configPath := filepath.Join(projectName, ".goca.yaml")
 
 		// Use template configuration if specified
@@ -228,6 +236,11 @@ func createProjectStructure(projectName, module, database string, auth bool, api
 				ui.FileCreated(fmt.Sprintf("Generated configuration file: %s", configPath))
 			}
 		}
+	}
+
+	// The remaining steps mutate the filesystem/VCS, so skip them in dry-run.
+	if dryRun {
+		return
 	}
 
 	// Download dependencies after creating go.mod

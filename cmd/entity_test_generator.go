@@ -82,9 +82,15 @@ func generateValidationTests(content *strings.Builder, entityName string, fields
 	content.WriteString("\t\t\twantErr: false,\n")
 	content.WriteString("\t\t},\n")
 
-	// Invalid cases for each field
+	// Invalid cases for each field that actually has a validation rule. The
+	// generated Validate() only rejects empty strings and negative numbers, so
+	// asserting an error for types without a rule (slices, maps, bool, ...)
+	// would fail.
 	for _, field := range fields {
 		if field.Name == "ID" || field.Name == "CreatedAt" || field.Name == "UpdatedAt" || field.Name == "DeletedAt" {
+			continue
+		}
+		if !fieldHasValidationRule(field) {
 			continue
 		}
 
@@ -108,6 +114,17 @@ func generateValidationTests(content *strings.Builder, entityName string, fields
 	content.WriteString("\t\t})\n")
 	content.WriteString("\t}\n")
 	content.WriteString("}\n\n")
+}
+
+// fieldHasValidationRule reports whether the generated Validate() emits a rule
+// for this field type (non-empty for strings, non-negative for numbers).
+func fieldHasValidationRule(field Field) bool {
+	switch field.Type {
+	case "string", "int", "int64", "float64":
+		return true
+	default:
+		return false
+	}
 }
 
 // generateInvalidTestCase creates test cases for invalid field values.
@@ -195,14 +212,15 @@ func generateFieldTests(content *strings.Builder, entityName string, fields []Fi
 			content.WriteString("\t\twantErr bool\n")
 			content.WriteString("\t}{\n")
 
-			// Valid cases
-			content.WriteString("\t\t{name: \"valid value\", value: \"Valid Name\", wantErr: false},\n")
+			// Valid/invalid cases. Email fields are validated for format, so the
+			// generic "Valid Name" value would not be a valid email — use email
+			// specific cases instead.
 			content.WriteString("\t\t{name: \"empty string\", value: \"\", wantErr: true},\n")
-
-			// Email-specific tests
 			if strings.Contains(strings.ToLower(field.Name), "email") {
 				content.WriteString("\t\t{name: \"valid email\", value: \"test@example.com\", wantErr: false},\n")
 				content.WriteString("\t\t{name: \"invalid email format\", value: \"notanemail\", wantErr: true},\n")
+			} else {
+				content.WriteString("\t\t{name: \"valid value\", value: \"Valid Name\", wantErr: false},\n")
 			}
 
 			content.WriteString("\t}\n\n")
@@ -329,7 +347,7 @@ func getValidFieldValue(field Field) string {
 	case "time.Time":
 		return "time.Now()"
 	default:
-		return "\"\""
+		return compositeOrZeroLiteral(field.Type)
 	}
 }
 
@@ -344,8 +362,19 @@ func getInvalidFieldValue(field Field) string {
 	case "bool":
 		return "false"
 	default:
-		return "\"\""
+		return compositeOrZeroLiteral(field.Type)
 	}
+}
+
+// compositeOrZeroLiteral returns a compilable literal for composite or custom
+// field types (slices, maps, pointers, []byte, named structs) so generated
+// tests build regardless of the field type.
+func compositeOrZeroLiteral(fieldType string) string {
+	if v, ok := generateDefaultSampleValue(fieldType, 1); ok {
+		return v
+	}
+	// Unknown named type: an empty composite literal is valid for structs.
+	return fieldType + "{}"
 }
 
 func getInvalidDescription(field Field) string {

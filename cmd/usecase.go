@@ -91,7 +91,17 @@ clear interfaces and encapsulated business logic.`,
 			ui.DryRun("Previewing changes without creating files")
 		}
 
-		generateUseCase(usecaseName, entity, operations, effectiveDtoValidation, async, sm)
+		// Derive the field set from the existing entity so the generated DTOs and
+		// service match the real struct instead of placeholder fields. Falls back
+		// to the generic templates when the entity cannot be read.
+		entityFields := readEntityFieldsString(entity)
+		generateUseCaseWithFields(usecaseName, entity, operations, effectiveDtoValidation, async, entityFields, sm)
+
+		// The generated use case service imports and references the messages
+		// package (e.g. messages.<Entity>CreatedSuccessfully), so ensure that
+		// package exists. The feature command generates messages on its own and
+		// does not go through this command, so there is no double generation.
+		generateMessages(entity, true, true, true, sm)
 
 		if dryRun {
 			sm.PrintSummary()
@@ -123,7 +133,7 @@ func generateUseCaseWithFields(usecaseName, entity, operations string, dtoValida
 
 func parseOperations(operations string) []string {
 	if operations == "" {
-		return []string{"create", "read"}
+		return []string{"create", "read", "update", "delete", "list"}
 	}
 
 	ops := strings.Split(operations, ",")
@@ -140,6 +150,35 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
+	// Build the DTO body first so the import block reflects what is actually
+	// used. Standard (field-less) DTOs only emit struct tags and do not use the
+	// errors/strings packages, so importing them unconditionally would produce
+	// an unused-import compile error.
+	var bodyB strings.Builder
+	for _, op := range operations {
+		switch op {
+		case OpCreate:
+			if fields != "" {
+				generateCreateDTOWithFields(&bodyB, entity, validation, fields)
+			} else {
+				generateCreateDTO(&bodyB, entity, validation)
+			}
+		case OpUpdate:
+			if fields != "" {
+				generateUpdateDTOWithFields(&bodyB, entity, validation, fields)
+			} else {
+				generateUpdateDTO(&bodyB, entity, validation)
+			}
+		case OpRead, OperationGet:
+			// Read operations typically don't need input DTOs, just output
+		case OpList:
+			generateListDTO(&bodyB, entity)
+		}
+	}
+	body := bodyB.String()
+	usesErrors := strings.Contains(body, "errors.")
+	usesStrings := strings.Contains(body, "strings.")
+
 	var content strings.Builder
 
 	// Check if dto.go already exists
@@ -155,9 +194,11 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 				return
 			}
 
-			// If validation is enabled, ensure errors and strings are imported
-			if validation {
+			// Ensure errors/strings are imported only if the new DTOs use them.
+			if usesErrors {
 				existingStr = ensureImportInDTOFile(existingStr, "errors", moduleName)
+			}
+			if usesStrings {
 				existingStr = ensureImportInDTOFile(existingStr, "strings", moduleName)
 			}
 
@@ -169,37 +210,22 @@ func generateDTOFileWithFields(dir, entity string, operations []string, validati
 		// File doesn't exist, create header
 		content.WriteString("package usecase\n\n")
 		content.WriteString("import (\n")
-		if validation {
+		if usesErrors {
 			content.WriteString("\t\"errors\"\n")
-			content.WriteString("\t\"strings\"\n\n")
+		}
+		if usesStrings {
+			content.WriteString("\t\"strings\"\n")
+		}
+		if usesErrors || usesStrings {
+			content.WriteString("\n")
 		}
 		content.WriteString(fmt.Sprintf("\t\"%s/internal/domain\"\n", getImportPath(moduleName)))
 		content.WriteString(")\n\n")
 	}
 
-	// Generate DTOs for each operation
-	for _, op := range operations {
-		switch op {
-		case OpCreate:
-			if fields != "" {
-				generateCreateDTOWithFields(&content, entity, validation, fields)
-			} else {
-				generateCreateDTO(&content, entity, validation)
-			}
-		case OpUpdate:
-			if fields != "" {
-				generateUpdateDTOWithFields(&content, entity, validation, fields)
-			} else {
-				generateUpdateDTO(&content, entity, validation)
-			}
-		case OpRead, OperationGet:
-			// Read operations typically don't need input DTOs, just output
-		case OpList:
-			generateListDTO(&content, entity)
-		}
-	}
+	content.WriteString(body)
 
-	if err := writeGoFile(filename, content.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error creating DTO file: %v", err))
 	}
 }
@@ -208,8 +234,8 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 	entityLower := strings.ToLower(entity)
 
 	fmt.Fprintf(content, "type Create%sInput struct {\n", entity)
-	// Campos estándar cuando no se especifican fields personalizados
-	content.WriteString("\tNombre      string `json:\"nombre\"")
+	// Standard fields used when no custom fields are specified.
+	content.WriteString("\tName        string `json:\"name\"")
 	if validation {
 		content.WriteString(" validate:\"required,min=2\"")
 	}
@@ -230,8 +256,8 @@ func generateCreateDTO(content *strings.Builder, entity string, validation bool)
 func generateUpdateDTO(content *strings.Builder, entity string, validation bool) {
 	fmt.Fprintf(content, "type Update%sInput struct {\n", entity)
 
-	// Generar campos estándar en español para cuando no se especifican fields personalizados
-	content.WriteString("\tNombre      *string `json:\"nombre,omitempty\"")
+	// Standard fields used when no custom fields are specified.
+	content.WriteString("\tName        *string `json:\"name,omitempty\"")
 	if validation {
 		content.WriteString(" validate:\"omitempty,min=2\"")
 	}
@@ -264,7 +290,10 @@ func generateUseCaseInterface(dir, usecaseName, entity string, operations []stri
 	content.WriteString("package usecase\n\n")
 	content.WriteString(fmt.Sprintf("import \"%s/internal/domain\"\n\n", getImportPath(moduleName)))
 
-	content.WriteString(fmt.Sprintf("type %s interface {\n", usecaseName))
+	// The use-case interface is always named <Entity>UseCase so that handlers,
+	// the DI container and the feature command all refer to the same type
+	// regardless of the use-case name passed on the command line.
+	content.WriteString(fmt.Sprintf("type %sUseCase interface {\n", entity))
 
 	for _, op := range operations {
 		switch op {
@@ -316,8 +345,9 @@ func generateUseCaseServiceWithFields(dir, usecaseName, entity string, operation
 	}
 	content.WriteString("}\n\n")
 
-	// Constructor
-	interfaceName := strings.Replace(usecaseName, "Service", "UseCase", 1)
+	// Constructor — return the canonical <Entity>UseCase interface so the
+	// service, handlers and DI container all agree on the type.
+	interfaceName := entity + "UseCase"
 	content.WriteString(fmt.Sprintf("func New%s(repo repository.%sRepository) %s {\n",
 		strings.ToUpper(string(serviceName[0]))+serviceName[1:], entity, interfaceName))
 	content.WriteString(fmt.Sprintf("\treturn &%s{repo: repo}\n", serviceName))
@@ -480,7 +510,7 @@ func generateUpdateMethod(content *strings.Builder, serviceName, entity string) 
 	content.WriteString("\tif input.Email != \"\" {\n")
 	fmt.Fprintf(content, "\t\t%s.Email = input.Email\n", entityVar)
 	content.WriteString("\t}\n")
-	content.WriteString("\t// Agregar más campos según necesites\n\n")
+	content.WriteString("\t// Add more fields as needed\n\n")
 
 	fmt.Fprintf(content, "\treturn %s.repo.Update(%s)\n", serviceVar, entityVar)
 	content.WriteString("}\n\n")
@@ -528,13 +558,12 @@ func generateUseCaseInterfaces(dir, entity string, sm ...*SafetyManager) {
 	content.WriteString(fmt.Sprintf("type %sRepository interface {\n", entity))
 	content.WriteString(fmt.Sprintf("\tSave(%s *domain.%s) error\n", entityLower, entity))
 	content.WriteString(fmt.Sprintf("\tFindByID(id int) (*domain.%s, error)\n", entity))
-	content.WriteString(fmt.Sprintf("\tFindByEmail(email string) (*domain.%s, error)\n", entity))
 	content.WriteString(fmt.Sprintf("\tUpdate(%s *domain.%s) error\n", entityLower, entity))
 	content.WriteString("\tDelete(id int) error\n")
 	content.WriteString(fmt.Sprintf("\tFindAll() ([]domain.%s, error)\n", entity))
 	content.WriteString("}\n")
 
-	if err := writeGoFile(filename, content.String(), sm...); err != nil {
+	if err := writeGoFileMerged(filename, content.String(), sm...); err != nil {
 		ui.Error(fmt.Sprintf("Error creating interfaces file: %v", err))
 	}
 }
@@ -717,7 +746,7 @@ func ensureImportInDTOFile(content, importPkg, moduleName string) string {
 
 func init() {
 	usecaseCmd.Flags().StringP("entity", "e", "", "Associated entity for the use case (required)")
-	usecaseCmd.Flags().StringP("operations", "o", "create,read", "CRUD operations \"create,read,update,delete,list\"")
+	usecaseCmd.Flags().StringP("operations", "o", "create,read,update,delete,list", "CRUD operations \"create,read,update,delete,list\"")
 	usecaseCmd.Flags().BoolP("dto-validation", "d", false, "DTOs with specific validations")
 	usecaseCmd.Flags().BoolP("async", "a", false, "Include asynchronous operations")
 	usecaseCmd.Flags().Bool("dry-run", false, "Preview changes without creating files")
