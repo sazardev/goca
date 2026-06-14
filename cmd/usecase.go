@@ -584,7 +584,7 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 		jsonTag := fmt.Sprintf("json:\"%s\"", strings.ToLower(field.Name))
 
 		if validation {
-			validateTag := getValidationTag(field.Type)
+			validateTag := dtoValidationTag(field)
 			fmt.Fprintf(content, "\t%s %s `%s validate:\"%s\"`\n",
 				field.Name, field.Type, jsonTag, validateTag)
 		} else {
@@ -682,7 +682,7 @@ func generateUpdateDTOWithFields(content *strings.Builder, entity string, valida
 		jsonTag := fmt.Sprintf("json:\"%s,omitempty\"", strings.ToLower(field.Name))
 
 		if validation {
-			validateTag := "omitempty," + getValidationTag(field.Type)
+			validateTag := dtoUpdateValidationTag(field)
 			fmt.Fprintf(content, "\t%s %s `%s validate:\"%s\"`\n",
 				field.Name, fieldType, jsonTag, validateTag)
 		} else {
@@ -709,6 +709,31 @@ func getValidationTag(fieldType string) string {
 	default:
 		return "required"
 	}
+}
+
+// dtoValidationTag returns the `validate` struct tag for a Create DTO field. It
+// is name-aware so email fields are validated for format at the HTTP layer
+// (returning 422), instead of only being caught by the domain Validate()
+// (which would surface as a 500).
+func dtoValidationTag(field Field) string {
+	if field.Type == "string" && strings.Contains(strings.ToLower(field.Name), "email") {
+		return "required,email"
+	}
+	return getValidationTag(field.Type)
+}
+
+// dtoUpdateValidationTag returns the `validate` tag for an optional Update DTO
+// field (pointer), keeping format checks but not requiring presence.
+func dtoUpdateValidationTag(field Field) string {
+	base := dtoValidationTag(field)
+	base = strings.TrimPrefix(base, "required,")
+	if base == "required" {
+		base = ""
+	}
+	if base == "" {
+		return "omitempty"
+	}
+	return "omitempty," + base
 }
 
 // ensureImportInDTOFile ensures a specific import exists in the DTO file content.
