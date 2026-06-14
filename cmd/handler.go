@@ -387,7 +387,8 @@ func generateGetHandlerMethod(content *strings.Builder, entity, handlerName stri
 	entityLower := strings.ToLower(entity)
 
 	if swagger {
-		writeSwaggerAnnotations(content, entity, fmt.Sprintf("Get %s by ID", entityLower), "get", "/"+entityLower+"s/{id}", "200", fmt.Sprintf("usecase.Get%sOutput", entity), "")
+		// Get returns the domain entity (there is no Get<Entity>Output DTO).
+		writeSwaggerAnnotations(content, entity, fmt.Sprintf("Get %s by ID", entityLower), "get", "/"+entityLower+"s/{id}", "200", fmt.Sprintf("domain.%s", entity), "")
 	}
 
 	fmt.Fprintf(content, "func (%s *%s) Get%s(w http.ResponseWriter, r *http.Request) {\n",
@@ -480,7 +481,8 @@ func generateListHandlerMethod(content *strings.Builder, entity, handlerName str
 	entityLower := strings.ToLower(entity)
 
 	if swagger {
-		writeSwaggerAnnotations(content, entity, fmt.Sprintf("List %ss", entityLower), "get", "/"+entityLower+"s", "200", fmt.Sprintf("usecase.List%ssOutput", entity), "")
+		// The use case returns usecase.List<Entity>Output (singular entity name).
+		writeSwaggerAnnotations(content, entity, fmt.Sprintf("List %ss", entityLower), "get", "/"+entityLower+"s", "200", fmt.Sprintf("usecase.List%sOutput", entity), "")
 	}
 
 	fmt.Fprintf(content, "func (%s *%s) List%ss(w http.ResponseWriter, r *http.Request) {\n",
