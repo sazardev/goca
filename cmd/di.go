@@ -376,8 +376,10 @@ func generateWireGenTemplate(dir string, features []string, sm ...*SafetyManager
 	content.WriteString("package di\n\n")
 	content.WriteString("import (\n")
 	content.WriteString(fmt.Sprintf("\t\"%s/internal/handler/http\"\n", importPath))
-	content.WriteString(")\n\n") // Wire container struct
-	content.WriteString("type Container struct {\n")
+	content.WriteString(")\n\n")
+	// Wire container struct. Named WireContainer to avoid colliding with the
+	// regular Container generated in container.go (same package).
+	content.WriteString("type WireContainer struct {\n")
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
 		content.WriteString(fmt.Sprintf("\t%sHandler *http.%sHandler\n", featureLower, feature))
@@ -390,8 +392,8 @@ func generateWireGenTemplate(dir string, features []string, sm ...*SafetyManager
 		featureLower := strings.ToLower(feature)
 		content.WriteString(fmt.Sprintf("\t%sHandler *http.%sHandler,\n", featureLower, feature))
 	}
-	content.WriteString(") *Container {\n")
-	content.WriteString("\treturn &Container{\n")
+	content.WriteString(") *WireContainer {\n")
+	content.WriteString("\treturn &WireContainer{\n")
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
 		content.WriteString(fmt.Sprintf("\t\t%sHandler: %sHandler,\n", featureLower, featureLower))
@@ -402,7 +404,7 @@ func generateWireGenTemplate(dir string, features []string, sm ...*SafetyManager
 	// Getters
 	for _, feature := range features {
 		featureLower := strings.ToLower(feature)
-		content.WriteString(fmt.Sprintf("func (c *Container) %sHandler() *http.%sHandler {\n",
+		content.WriteString(fmt.Sprintf("func (c *WireContainer) %sHandler() *http.%sHandler {\n",
 			feature, feature))
 		content.WriteString(fmt.Sprintf("\treturn c.%sHandler\n", featureLower))
 		content.WriteString("}\n\n")

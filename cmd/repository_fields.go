@@ -20,12 +20,14 @@ func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, t
 		existingContent, err := os.ReadFile(filename)
 		if err == nil {
 			existingStr := string(existingContent)
-			// Remove the final package declaration to avoid duplication
-			if !strings.Contains(existingStr, fmt.Sprintf("type %sRepository interface", entity)) {
-				// Add the existing content without the final newline
-				content.WriteString(strings.TrimSuffix(existingStr, "\n"))
-				content.WriteString("\n\n")
+			// If this entity's interface already exists, leave the file as-is
+			// (rewriting it would drop the package/imports header).
+			if strings.Contains(existingStr, fmt.Sprintf("type %sRepository interface", entity)) {
+				return
 			}
+			// Otherwise append to the existing content (without the trailing newline).
+			content.WriteString(strings.TrimSuffix(existingStr, "\n"))
+			content.WriteString("\n\n")
 		}
 	} else {
 		// File doesn't exist, create header
