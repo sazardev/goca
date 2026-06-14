@@ -230,7 +230,6 @@ func generateMongoRepositoryWithFields(dir, entity string, fields []Field, cache
 	}
 	content.WriteString("\n\t\"go.mongodb.org/mongo-driver/mongo\"\n")
 	content.WriteString("\t\"go.mongodb.org/mongo-driver/bson\"\n")
-	content.WriteString("\t\"go.mongodb.org/mongo-driver/bson/primitive\"\n")
 	content.WriteString(")\n\n")
 
 	// MongoDB repository structure
@@ -283,8 +282,37 @@ func generateBasicMongoCRUDMethods(content *strings.Builder, entity, repoName st
 	fmt.Fprintf(content, "\treturn %s, nil\n", entityLower)
 	content.WriteString("}\n\n")
 
-	// Add other basic methods (Update, Delete, FindAll) - simplified
-	content.WriteString("// Other basic CRUD methods for MongoDB...\n\n")
+	// Update method
+	fmt.Fprintf(content, "func (m *%s) Update(%s *domain.%s) error {\n", repoName, entityLower, entity)
+	content.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n")
+	content.WriteString("\tdefer cancel()\n")
+	fmt.Fprintf(content, "\t_, err := m.collection.ReplaceOne(ctx, bson.M{\"id\": %s.ID}, %s)\n", entityLower, entityLower)
+	content.WriteString("\treturn err\n")
+	content.WriteString("}\n\n")
+
+	// Delete method
+	fmt.Fprintf(content, "func (m *%s) Delete(id int) error {\n", repoName)
+	content.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n")
+	content.WriteString("\tdefer cancel()\n")
+	content.WriteString("\t_, err := m.collection.DeleteOne(ctx, bson.M{\"id\": id})\n")
+	content.WriteString("\treturn err\n")
+	content.WriteString("}\n\n")
+
+	// FindAll method
+	fmt.Fprintf(content, "func (m *%s) FindAll() ([]domain.%s, error) {\n", repoName, entity)
+	content.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n")
+	content.WriteString("\tdefer cancel()\n")
+	content.WriteString("\tcursor, err := m.collection.Find(ctx, bson.M{})\n")
+	content.WriteString("\tif err != nil {\n")
+	content.WriteString("\t\treturn nil, err\n")
+	content.WriteString("\t}\n")
+	content.WriteString("\tdefer cursor.Close(ctx)\n")
+	fmt.Fprintf(content, "\tvar %ss []domain.%s\n", entityLower, entity)
+	fmt.Fprintf(content, "\tif err := cursor.All(ctx, &%ss); err != nil {\n", entityLower)
+	content.WriteString("\t\treturn nil, err\n")
+	content.WriteString("\t}\n")
+	fmt.Fprintf(content, "\treturn %ss, nil\n", entityLower)
+	content.WriteString("}\n\n")
 }
 
 // generateMongoSearchMethodImplementation generates search method implementation for MongoDB.

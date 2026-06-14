@@ -267,6 +267,16 @@ func addMissingFeaturesToMain(mainPath string, features []string, contentStr, mo
 	newContent := contentStr
 	changed := false
 
+	// The generated DI container is GORM-based and takes a *gorm.DB. NoSQL
+	// main.go files (e.g. MongoDB, which expose a mongoClient instead of db)
+	// are not auto-wired here; doing so would reference an undefined `db` and
+	// break compilation. Leave such projects untouched.
+	if !strings.Contains(newContent, "*gorm.DB") {
+		ui.Warning("main.go is not GORM-based; skipping automatic DI/route wiring")
+		ui.Dim("   Wire the container and routes manually for this database.")
+		return
+	}
+
 	// Add the DI import to the existing import block (before pkg/config) so the
 	// project's real driver/imports are preserved.
 	diImportPath := fmt.Sprintf("%s/internal/di", getImportPath(moduleName))
@@ -287,6 +297,30 @@ func addMissingFeaturesToMain(mainPath string, features []string, contentStr, mo
 				routerPattern+"\n\n\t// Setup dependency injection container\n\tcontainer := di.NewContainer(db)", 1)
 			changed = true
 		}
+	}
+
+	// Register the domain entities with GORM auto-migration so the tables exist.
+	// (Only for the GORM-based main.go, which contains the entities placeholder.)
+	migratePlaceholder := "// Add domain entities here as they are created\n\t\t// Example: &domain.User{}, &domain.Product{}"
+	if strings.Contains(newContent, migratePlaceholder) {
+		var entitiesSB strings.Builder
+		for i, feature := range features {
+			if i > 0 {
+				entitiesSB.WriteString("\n\t\t")
+			}
+			entitiesSB.WriteString(fmt.Sprintf("&domain.%s{},", feature))
+		}
+		newContent = strings.Replace(newContent, migratePlaceholder, entitiesSB.String(), 1)
+
+		// Ensure the domain package is imported (Replace is a no-op if the
+		// anchor import is absent).
+		domainImportPath := fmt.Sprintf("%s/internal/domain", getImportPath(moduleName))
+		if !strings.Contains(newContent, domainImportPath) {
+			cfgImport := fmt.Sprintf("\t\"%s/pkg/config\"", getImportPath(moduleName))
+			newContent = strings.Replace(newContent, cfgImport,
+				fmt.Sprintf("\t\"%s\"\n%s", domainImportPath, cfgImport), 1)
+		}
+		changed = true
 	}
 
 	// Insert feature route blocks before the HTTP server setup.
