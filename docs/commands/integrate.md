@@ -38,7 +38,7 @@ goca integrate --all
 Integrate a specific feature.
 
 ```bash
-goca integrate --feature User
+goca integrate --features User
 ```
 
 ### `--dry-run`
@@ -76,7 +76,7 @@ goca integrate --all
 ### Integrate Specific Feature
 
 ```bash
-goca integrate --feature Product
+goca integrate --features Product
 ```
 
 ### Dry Run
@@ -111,7 +111,7 @@ If you created features manually:
 
 ```bash
 # You manually created files for Order feature
-goca integrate --feature Order
+goca integrate --features Order
 ```
 
 ### Project Repair

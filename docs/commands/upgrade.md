@@ -37,7 +37,10 @@ source code for a specific feature.
 ### `--update`
 
 Write the current Goca binary version into `.goca.yaml` under
-`project.metadata.goca_version`.
+`project.metadata.goca_version`. Note this rewrites the entire `.goca.yaml`
+file (re-serializing it with 2-space indentation), not just that one field —
+all existing values are preserved, but if you rely on the file's original
+4-space indentation or formatting, expect it to change.
 
 ```bash
 goca upgrade --update

@@ -21,17 +21,17 @@ Creates a dependency injection container that automatically wires all features, 
 
 ## Flags
 
-### `--features`
+### `--features` / `-f`
 
-Comma-separated list of features to wire.
+**Required.** Comma-separated list of features to wire.
 
 ```bash
 goca di --features "User,Product,Order"
 ```
 
-### `--database`
+### `--database` / `-d`
 
-Database type. Default: `postgres`
+Database type (`postgres`, `mysql`, `mongodb`). Defaults to the project's configured database (`.goca.yaml`), falling back to `postgres` if there is no config.
 
 ```bash
 goca di --features "User,Product" --database postgres
@@ -51,6 +51,18 @@ The generated container accepts a `*redis.Client` in addition to `*gorm.DB`:
 container := di.NewContainer(db, redisClient)
 ```
 
+### `--wire` / `-w`
+
+Generate a [Google Wire](https://github.com/google/wire)-based container (`internal/di/wire.go` + `wire_container.go`) instead of the default manual-wiring container. This only emits the `wire.Build(...)` provider-set annotations Wire's own code generator consumes — it does not require the `wire` binary to be installed to run `goca di --wire` itself, only to later run `wire` against the generated file.
+
+```bash
+goca di --features "User,Product" --wire
+```
+
+### `--dry-run`, `--force`, `--backup`
+
+Standard safety flags: preview without writing, overwrite without asking, and back up an existing `container.go` before overwriting, respectively.
+
 ## Examples
 
 ### Wire All Features
@@ -66,6 +78,10 @@ goca di --features "User,Auth" --database postgres
 ```
 
 ## Generated Code
+
+::: warning Illustrative only
+The exact type/method names below have drifted from current output (e.g. the real use case type is `usecase.UserUseCase`/`NewUserService`, the container holds a `*gorm.DB` not `*sql.DB`, and there are also `Get<Entity>UseCase()`-style getters). The overall shape — repositories, use cases and handlers wired together in one `Container` — is accurate; generate a container yourself with `goca di` to see the current exact code.
+:::
 
 ```go
 // internal/di/container.go

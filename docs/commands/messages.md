@@ -37,12 +37,20 @@ Generate response messages.
 goca messages Product --responses
 ```
 
-### `--constants`
+### `--constants` / `-c`
 
 Generate feature constants.
 
 ```bash
 goca messages Order --constants
+```
+
+### `--all` / `-a`
+
+Generate errors, responses and constants together.
+
+```bash
+goca messages Order --all
 ```
 
 ## Examples
@@ -53,7 +61,7 @@ goca messages Order --constants
 goca messages User --errors
 ```
 
-**Generates:** `internal/messages/user_errors.go`
+**Generates/appends to:** `internal/messages/messages.go` — shared across every entity in the project (not a per-entity file); running this for multiple entities keeps adding to the same file rather than creating `user_errors.go`, `product_errors.go`, etc.
 
 ```go
 package messages
@@ -74,7 +82,7 @@ var (
 goca messages Product --responses
 ```
 
-**Generates:** `internal/messages/product_responses.go`
+**Generates/appends to:** `internal/messages/responses.go` (shared across every entity)
 
 ```go
 package messages
@@ -93,7 +101,7 @@ const (
 goca messages Order --constants
 ```
 
-**Generates:** `internal/messages/order_constants.go`
+**Generates/appends to:** `internal/constants/constants.go` (note: a separate `internal/constants` package, not `internal/messages`; shared across every entity)
 
 ```go
 package messages

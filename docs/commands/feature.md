@@ -124,17 +124,19 @@ goca feature User --fields "name:string,email:string,age:int"
 internal/
 ├── domain/
 │   ├── user.go              # Entity with business rules
-│   └── user_errors.go       # Domain-specific errors
+│   └── errors.go            # Domain errors (shared across entities)
 ├── usecase/
-│   ├── user_dto.go          # Input/Output DTOs
-│   ├── user_interfaces.go   # Use case contracts
-│   └── user_service.go      # Business logic implementation
+│   ├── dto.go                # Input/Output DTOs (shared across entities)
+│   ├── user_usecase.go       # Use case interface
+│   ├── user_service.go       # Business logic implementation
+│   └── interfaces.go         # Layer contracts (shared)
 ├── repository/
-│   ├── user_repository.go   # Repository interface
-│   └── postgres_user_repository.go  # PostgreSQL implementation
+│   ├── interfaces.go                 # Repository interfaces (shared)
+│   └── postgres_user_repository.go   # GORM implementation (postgres/mysql/sqlite share this)
 └── handler/
     └── http/
-        └── user_handler.go  # HTTP REST endpoints
+        ├── user_handler.go   # HTTP REST endpoints
+        └── routes.go          # Route registration (shared)
 ```
 
 ### Feature with Validation
@@ -219,44 +221,46 @@ var (
 
 ### 2. Use Case Layer (`internal/usecase/`)
 
-**DTOs:** `<feature>_dto.go`
+**DTOs:** shared `dto.go` (all entities in the project append to this one file)
 ```go
-type CreateUserRequest struct {
+type CreateUserInput struct {
     Name  string `json:"name" validate:"required"`
     Email string `json:"email" validate:"required,email"`
-    Age   int    `json:"age" validate:"min=0,max=150"`
+    Age   int    `json:"age" validate:"required,gte=0"`
 }
 
-type UserResponse struct {
-    ID    uint   `json:"id"`
-    Name  string `json:"name"`
-    Email string `json:"email"`
-    Age   int    `json:"age"`
+type CreateUserOutput struct {
+    ID      uint   `json:"id"`
+    Name    string `json:"name"`
+    Email   string `json:"email"`
+    Age     int    `json:"age"`
+    Message string `json:"message"`
 }
 ```
 
-**Service:** `<feature>_service.go`
+**Interface:** `<feature>_usecase.go` — **Service:** `<feature>_service.go`
 ```go
-type UserService interface {
-    Create(ctx context.Context, req CreateUserRequest) (*UserResponse, error)
-    GetByID(ctx context.Context, id uint) (*UserResponse, error)
-    Update(ctx context.Context, id uint, req UpdateUserRequest) error
-    Delete(ctx context.Context, id uint) error
-    List(ctx context.Context) ([]*UserResponse, error)
+type UserUseCase interface {
+    CreateUser(input CreateUserInput) (CreateUserOutput, error)
+    GetUser(id int) (*domain.User, error)
+    UpdateUser(id int, input UpdateUserInput) error
+    DeleteUser(id int) error
+    ListUsers() (ListUserOutput, error)
 }
 ```
+
+Note: no `context.Context` parameter — the generated use case methods are synchronous by default.
 
 ### 3. Repository Layer (`internal/repository/`)
 
-**Interface:** Repository contract in domain
-**Implementation:** `postgres_<feature>_repository.go`
+**Interface:** shared `interfaces.go`. **Implementation:** `postgres_<feature>_repository.go` — used for `postgres`, `mysql` **and** `sqlite` alike, since all three run on GORM and share one implementation (only the dialector passed to `gorm.Open` in `main.go` differs); `mongodb`/`sqlserver`/`elasticsearch`/`dynamodb` each get their own differently-named file.
 ```go
 type postgresUserRepository struct {
-    db *sql.DB
+    db *gorm.DB
 }
 
-func (r *postgresUserRepository) Save(ctx context.Context, user *domain.User) error {
-    // Implementation
+func (r *postgresUserRepository) Save(user *domain.User) error {
+    return r.db.Create(user).Error
 }
 ```
 
@@ -265,10 +269,10 @@ func (r *postgresUserRepository) Save(ctx context.Context, user *domain.User) er
 **Handler:** `<feature>_handler.go`
 ```go
 type UserHandler struct {
-    service usecase.UserService
+    usecase usecase.UserUseCase
 }
 
-func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
     // HTTP handling
 }
 ```
@@ -407,7 +411,7 @@ rm -rf internal/usecase/user*
 
 **Solution:** Run integration command:
 ```bash
-goca integrate --feature User
+goca integrate --features User
 ```
 
 ## See Also

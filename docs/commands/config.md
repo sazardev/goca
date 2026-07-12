@@ -50,6 +50,10 @@ goca config init [flags]
 | `--database` | string | `""` | Database type (`postgres`, `mysql`, `sqlite`) |
 | `--handlers` | strings | `[]` | Handler types (`http`, `grpc`, `cli`) |
 
+::: warning `.goca.yaml` schema differs from `goca init`'s
+`goca config init` and `goca init --config` write two different `.goca.yaml` shapes — `goca config init`'s output is missing the `templates`, `testing`, `features` and `deploy` sections that `goca init`'s does include. In particular, this means `goca template init` (which reads `templates.directory` from the config) silently does nothing useful against a `goca config init`-generated file — it reports success but creates no templates. If you plan to use `goca template`, generate your `.goca.yaml` via `goca init --config` instead of `goca config init`.
+:::
+
 ### `validate`
 
 Validate the current `.goca.yaml` configuration file for errors and warnings.
@@ -79,6 +83,8 @@ goca config init
 ```bash
 goca config init --template api --database postgres
 ```
+
+The `project.module` value written is read from your `go.mod`'s `module` declaration (falling back to a placeholder only if there's no `go.mod` yet).
 
 ### Validate existing config
 

@@ -24,9 +24,14 @@ Creates the base structure of a Go project following Clean Architecture principl
 | Flag         | Type     | Required  | Default Value | Description                                                                                                         |
 | ------------ | -------- | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `--module`   | `string` | ✅ **Yes** | -             | Go module name (e.g: `github.com/user/project`)                                                                     |
-| `--database` | `string` | ❌ No      | `postgres`    | Database type (`postgres`, `postgres-json`, `mysql`, `mongodb`, `sqlite`, `sqlserver`, `elasticsearch`, `dynamodb`) |
+| `--database` | `string` | ❌ No      | `sqlite`      | Database type (`postgres`, `postgres-json`, `mysql`, `mongodb`, `sqlite`, `sqlserver`, `elasticsearch`, `dynamodb`) |
 | `--auth`     | `bool`   | ❌ No      | `false`       | Include JWT authentication system                                                                                   |
 | `--api`      | `string` | ❌ No      | `rest`        | API type (`rest`, `graphql`, `grpc`)                                                                                |
+| `--config`   | `bool`   | ❌ No      | `false`       | Also generate a `.goca.yaml` configuration file                                                                    |
+| `--template` | `string` | ❌ No      | `""`          | Apply a predefined project template (see `--list-templates`)                                                       |
+| `--dry-run`  | `bool`   | ❌ No      | `false`       | Preview changes without creating files                                                                              |
+| `--force`    | `bool`   | ❌ No      | `false`       | Overwrite existing files without asking                                                                             |
+| `--backup`   | `bool`   | ❌ No      | `false`       | Back up existing files before overwriting                                                                           |
 
 ## 📖 Usage Examples
 

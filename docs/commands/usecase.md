@@ -47,6 +47,14 @@ Include DTO validation tags.
 goca usecase OrderService --entity Order --dto-validation
 ```
 
+### `--async` / `-a`
+
+Generate an additional `Create<Entity>Async` method that queues the create operation onto an internal channel for asynchronous processing, instead of (or alongside) the synchronous `Create<Entity>` method.
+
+```bash
+goca usecase OrderService --entity Order --async
+```
+
 ## Examples
 
 ### Basic Use Case

@@ -12,6 +12,7 @@ goca template <subcommand> [flags]
 
 | Subcommand | Description |
 |-----------|-------------|
+| `init` | Initialize the `.goca/templates` directory with the built-in defaults |
 | `list` | List all available templates |
 | `show <name>` | Display the content of a template |
 | `reset` | Reset all templates to built-in defaults |
@@ -22,8 +23,8 @@ goca template <subcommand> [flags]
 # List all templates
 goca template list
 
-# Show the entity template
-goca template show entity
+# Show the entity template (name is the path relative to the templates dir, without extension)
+goca template show domain/entity
 
 # Reset templates to defaults
 goca template reset

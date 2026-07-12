@@ -524,6 +524,10 @@ func getCurrentProjectName() string {
 }
 
 func getCurrentModuleName() string {
-	projectName := getCurrentProjectName()
-	return fmt.Sprintf("github.com/usuario/%s", projectName)
+	if module := getModuleName(); module != "myproject" {
+		return module
+	}
+	// No go.mod (or no module declaration) yet — fall back to a placeholder
+	// derived from the directory name rather than a fixed, misleading one.
+	return fmt.Sprintf("github.com/example/%s", getCurrentProjectName())
 }

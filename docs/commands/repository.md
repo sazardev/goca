@@ -28,9 +28,9 @@ Database type. Default: `postgres`
 **Options:** 
 - `postgres` - PostgreSQL (GORM)
 - `postgres-json` - PostgreSQL with JSONB support
-- `mysql` - MySQL (GORM)
+- `mysql` - MySQL — shares the `postgres` GORM implementation (`postgres_<entity>_repository.go`); only the dialector in `main.go` differs
 - `mongodb` - MongoDB (native driver)
-- `sqlite` - SQLite (embedded, database/sql)
+- `sqlite` - SQLite (embedded) — also shares the `postgres` GORM implementation, same as `mysql`
 - `sqlserver` - SQL Server (GORM)
 - `elasticsearch` - Elasticsearch (v8 client)
 - `dynamodb` - DynamoDB (AWS SDK v2)
@@ -155,117 +155,64 @@ internal/repository/
 // interfaces.go
 package repository
 
-import (
-    "context"
-    "myproject/internal/domain"
-)
+import "myproject/internal/domain"
 
 type UserRepository interface {
-    Save(ctx context.Context, user *domain.User) error
-    FindByID(ctx context.Context, id uint) (*domain.User, error)
-    FindAll(ctx context.Context) ([]*domain.User, error)
-    Update(ctx context.Context, user *domain.User) error
-    Delete(ctx context.Context, id uint) error
+    Save(user *domain.User) error
+    FindByID(id int) (*domain.User, error)
+    Update(user *domain.User) error
+    Delete(id int) error
+    FindAll() ([]domain.User, error)
 }
 
-// postgres_user_repository.go
+// postgres_user_repository.go — used for postgres, mysql AND sqlite alike;
+// all three run on GORM and share this one implementation (only the
+// dialector passed to gorm.Open in main.go differs between them).
 package repository
 
 import (
-    "context"
-    "database/sql"
     "myproject/internal/domain"
+    "gorm.io/gorm"
 )
 
 type postgresUserRepository struct {
-    db *sql.DB
+    db *gorm.DB
 }
 
-func NewPostgresUserRepository(db *sql.DB) UserRepository {
+func NewPostgresUserRepository(db *gorm.DB) UserRepository {
     return &postgresUserRepository{db: db}
 }
 
-func (r *postgresUserRepository) Save(ctx context.Context, user *domain.User) error {
-    query := `
-        INSERT INTO users (name, email, age, created_at, updated_at)
-        VALUES ($1, $2, $3, NOW(), NOW())
-        RETURNING id, created_at, updated_at
-    `
-    
-    return r.db.QueryRowContext(
-        ctx, query,
-        user.Name, user.Email, user.Age,
-    ).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
+func (r *postgresUserRepository) Save(user *domain.User) error {
+    return r.db.Create(user).Error
 }
 
-func (r *postgresUserRepository) FindByID(ctx context.Context, id uint) (*domain.User, error) {
-    query := `
-        SELECT id, name, email, age, created_at, updated_at
-        FROM users
-        WHERE id = $1
-    `
-    
-    user := &domain.User{}
-    err := r.db.QueryRowContext(ctx, query, id).Scan(
-        &user.ID, &user.Name, &user.Email, &user.Age,
-        &user.CreatedAt, &user.UpdatedAt,
-    )
-    
-    if err == sql.ErrNoRows {
-        return nil, domain.ErrUserNotFound
-    }
-    
-    return user, err
-}
-
-func (r *postgresUserRepository) FindAll(ctx context.Context) ([]*domain.User, error) {
-    query := `
-        SELECT id, name, email, age, created_at, updated_at
-        FROM users
-        ORDER BY created_at DESC
-    `
-    
-    rows, err := r.db.QueryContext(ctx, query)
-    if err != nil {
+func (r *postgresUserRepository) FindByID(id int) (*domain.User, error) {
+    var user domain.User
+    if err := r.db.First(&user, id).Error; err != nil {
         return nil, err
     }
-    defer rows.Close()
-    
-    var users []*domain.User
-    for rows.Next() {
-        user := &domain.User{}
-        if err := rows.Scan(
-            &user.ID, &user.Name, &user.Email, &user.Age,
-            &user.CreatedAt, &user.UpdatedAt,
-        ); err != nil {
-            return nil, err
-        }
-        users = append(users, user)
+    return &user, nil
+}
+
+func (r *postgresUserRepository) Update(user *domain.User) error {
+    return r.db.Save(user).Error
+}
+
+func (r *postgresUserRepository) Delete(id int) error {
+    return r.db.Delete(&domain.User{}, id).Error
+}
+
+func (r *postgresUserRepository) FindAll() ([]domain.User, error) {
+    var users []domain.User
+    if err := r.db.Find(&users).Error; err != nil {
+        return nil, err
     }
-    
-    return users, rows.Err()
-}
-
-func (r *postgresUserRepository) Update(ctx context.Context, user *domain.User) error {
-    query := `
-        UPDATE users
-        SET name = $1, email = $2, age = $3, updated_at = NOW()
-        WHERE id = $4
-    `
-    
-    _, err := r.db.ExecContext(ctx, query,
-        user.Name, user.Email, user.Age, user.ID,
-    )
-    
-    return err
-}
-
-func (r *postgresUserRepository) Delete(ctx context.Context, id uint) error {
-    query := `DELETE FROM users WHERE id = $1`
-    _, err := r.db.ExecContext(ctx, query, id)
-    return err
+    return users, nil
 }
 ```
+
+There is no `context.Context` parameter on any of these methods — the generated repository is synchronous.
 
 ## Database-Specific Features
 

@@ -23,6 +23,23 @@ Mocks are written to `internal/mocks/` and follow the naming convention `mock_<e
 
 ## Flags
 
+### `--all`
+
+Generate all three mocks (repository, use case, handler) for the entity. Equivalent to passing `--repository --usecase --handler` together.
+
+```bash
+goca mocks Order --all
+```
+
+### `--repository`, `--usecase`, `--handler`
+
+Generate only the mock(s) for that specific layer. These can be combined (e.g. `--usecase --repository`). If none of `--all`/`--repository`/`--usecase`/`--handler` is passed, `goca mocks` generates all of them by default (same effect as `--all`).
+
+```bash
+goca mocks Product --repository
+goca mocks Customer --usecase --repository
+```
+
 ### `--dry-run`
 
 Preview the files that would be created without writing anything to disk.

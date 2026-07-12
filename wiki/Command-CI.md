@@ -22,7 +22,7 @@ Creates CI/CD pipeline configuration files:
 
 | Flag             | Type     | Required | Default Value | Description                               |
 | ---------------- | -------- | -------- | ------------- | ----------------------------------------- |
-| `--provider`     | `string` | ❌ No     | `github`      | CI provider (`github`)                    |
+| `--provider`     | `string` | ❌ No     | `github-actions` | CI provider (only `github-actions` is currently supported) |
 | `--with-docker`  | `bool`   | ❌ No     | `false`       | Include Docker build/push steps           |
 | `--with-deploy`  | `bool`   | ❌ No     | `false`       | Include deploy workflow for tagged releases |
 | `--go-version`   | `string` | ❌ No     | auto-detected | Go version (default: read from `go.mod`) |

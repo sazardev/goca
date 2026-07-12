@@ -47,8 +47,9 @@ Runs on every push to `main` and on pull requests:
 - Checks out code
 - Sets up Go
 - Builds the binary (`go build -o bin/app ./...`)
-- Uploads `bin/` as a build artifact
 - Optionally builds a Docker image (when `--with-docker` is used)
+
+(Only `deploy.yml`, below, uploads a build artifact — `build.yml` itself does not.)
 
 ### deploy.yml (optional)
 
@@ -182,8 +183,8 @@ services:
   postgres:
     image: postgres:16
     env:
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: testdb
     ports:
       - 5432:5432
@@ -212,7 +213,7 @@ services:
       --health-retries 5
 ```
 
-Environment variables `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` are set automatically for the test job.
+A single `DATABASE_URL` environment variable is set automatically for the test job — not separate `DB_HOST`/`DB_PORT`/`DB_USER`/`DB_PASSWORD`/`DB_NAME` variables.
 
 ## Integration with Other Commands
 

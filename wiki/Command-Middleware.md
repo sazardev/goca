@@ -24,7 +24,7 @@ Creates middleware components for HTTP request processing:
 
 | Flag       | Type     | Required  | Default Value | Description                                           |
 | ---------- | -------- | --------- | ------------- | ----------------------------------------------------- |
-| `--types`  | `string` | ❌ No      | `all`         | Comma-separated middleware types to generate           |
+| `--types`  | `string` | ❌ No      | `cors,logging,recovery` | Comma-separated middleware types to generate |
 | `--dry-run`| `bool`   | ❌ No      | `false`       | Preview files without writing                         |
 | `--force`  | `bool`   | ❌ No      | `false`       | Overwrite existing files                              |
 | `--backup` | `bool`   | ❌ No      | `false`       | Backup existing files before overwriting              |
@@ -35,11 +35,14 @@ Creates middleware components for HTTP request processing:
 
 ## 📖 Usage Examples
 
-### Generate All Middleware
+### Generate Default Middleware
 ```bash
 goca middleware myapp
 ```
-Generates all 7 middleware types plus a `chain.go` for composing them.
+With no `--types`, generates the default set (`cors,logging,recovery`) plus a `middleware.go` composer file. Pass `--types` with all 7 comma-separated to generate everything:
+```bash
+goca middleware myapp --types "cors,logging,auth,rate-limit,recovery,request-id,timeout"
+```
 
 ### Generate Specific Types
 ```bash
@@ -61,7 +64,7 @@ goca middleware myapp --types "cors,logging" --dry-run
 ```
 internal/
 └── middleware/
-    ├── chain.go        # Always generated — Middleware type + Chain()
+    ├── middleware.go   # Always generated — Middleware type + Chain()
     ├── cors.go         # CORS middleware
     ├── logging.go      # Logging middleware
     ├── auth.go         # Auth middleware
@@ -71,7 +74,7 @@ internal/
     └── timeout.go      # Timeout middleware
 ```
 
-### chain.go
+### middleware.go
 
 Defines the `Middleware` type alias and `Chain()` function:
 

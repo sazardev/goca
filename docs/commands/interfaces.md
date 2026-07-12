@@ -53,21 +53,27 @@ goca interfaces Order --all
 goca interfaces Product --usecase
 ```
 
-**Generates:** `internal/usecase/product_interfaces.go`
+**Generates:** `internal/interfaces/product_usecase.go` (note: a separate `internal/interfaces` package — not `internal/usecase`)
 
 ```go
-package usecase
+package interfaces
 
-import "context"
+import "myproject/internal/domain"
 
-type ProductService interface {
-    CreateProduct(ctx context.Context, input CreateProductInput) (*ProductResponse, error)
-    GetProduct(ctx context.Context, id uint) (*ProductResponse, error)
-    UpdateProduct(ctx context.Context, id uint, input UpdateProductInput) error
-    DeleteProduct(ctx context.Context, id uint) error
-    ListProducts(ctx context.Context) ([]*ProductResponse, error)
+// Product UseCase DTOs
+type CreateProductInput interface {
+    GetName() string
+    Validate() error
 }
+
+type CreateProductOutput interface {
+    GetProduct() domain.Product
+    GetMessage() string
+}
+// ...similar Update/Delete/List DTO interfaces
 ```
+
+No `context.Context` parameters — generated methods are synchronous.
 
 ### Repository Interfaces
 
@@ -75,22 +81,29 @@ type ProductService interface {
 goca interfaces User --repository
 ```
 
-**Generates:** `internal/repository/user_interfaces.go`
+**Generates:** `internal/interfaces/user_repository.go` (also under `internal/interfaces`, not `internal/repository`)
 
 ```go
-package repository
+package interfaces
 
 import (
-    "context"
     "myproject/internal/domain"
+    "gorm.io/gorm"
 )
 
 type UserRepository interface {
-    Save(ctx context.Context, user *domain.User) error
-    FindByID(ctx context.Context, id uint) (*domain.User, error)
-    FindAll(ctx context.Context) ([]*domain.User, error)
-    Update(ctx context.Context, user *domain.User) error
-    Delete(ctx context.Context, id uint) error
+    Save(user *domain.User) error
+    FindByID(id int) (*domain.User, error)
+    Update(user *domain.User) error
+    Delete(id int) error
+    FindAll() ([]domain.User, error)
+    Count() (int, error)
+    Exists(id int) (bool, error)
+    SaveBatch(users []domain.User) error
+    DeleteBatch(ids []int) error
+    SaveWithTx(tx *gorm.DB, user *domain.User) error
+    UpdateWithTx(tx *gorm.DB, user *domain.User) error
+    DeleteWithTx(tx *gorm.DB, id int) error
 }
 ```
 

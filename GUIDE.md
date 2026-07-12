@@ -124,7 +124,7 @@ goca init <project-name> [flags]
 
 **Flags**:
 - `--module string` (requerido): Nombre del módulo Go
-- `--database string` (opcional): Tipo de base de datos (postgres, mysql, sqlite, mongodb, sqlserver, dynamodb, elasticsearch) (default: "sqlite")
+- `--database string` (opcional): Tipo de base de datos (postgres, postgres-json, mysql, sqlite, mongodb, sqlserver, dynamodb, elasticsearch) (default: "sqlite")
 - `--auth` (opcional): Incluir boilerplate de autenticación
 - `--api string` (opcional): Tipo de API (rest, grpc, graphql) (default: "rest")
 

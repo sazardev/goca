@@ -25,17 +25,19 @@ Shows detailed version information about your Goca installation.
 Goca v2.0.0
 Build: 2025-10-11T10:00:00Z
 Go Version: go1.24.5
-OS/Arch: linux/amd64
-Commit: abc123def
+Git Commit: abc123def
 ```
+
+There is no separate `OS/Arch` line, and the commit field is labeled `Git Commit`, not `Commit`.
+
+`Build` and `Git Commit` are only populated when the binary is built with the release `-ldflags` (as the official release binaries are). A binary built via a plain `go install`/`go build` — no ldflags — shows `Build: unknown` and `Git Commit: unknown`; that's expected, not a bug.
 
 ## Information Displayed
 
 - **Version**: Current Goca version
-- **Build**: Build timestamp
+- **Build**: Build timestamp (`unknown` without release ldflags)
 - **Go Version**: Go compiler version used
-- **OS/Arch**: Operating system and architecture
-- **Commit**: Git commit hash (if available)
+- **Git Commit**: Git commit hash (`unknown` without release ldflags)
 
 ## Usage
 
@@ -43,6 +45,12 @@ Check your current version:
 
 ```bash
 goca version
+```
+
+Print just the bare version number (useful in scripts):
+
+```bash
+goca version --short   # or: goca version -s
 ```
 
 Verify you have the latest version:

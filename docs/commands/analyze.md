@@ -77,7 +77,7 @@ goca analyze --fail-on-warn
 
 ## Check Categories
 
-### Architecture (6 rules)
+### Architecture (7 rules)
 
 | Rule | Description |
 | ---- | ----------- |
@@ -87,6 +87,7 @@ goca analyze --fail-on-warn
 | `repo-impl-coverage` | Each domain entity should have a repository implementation |
 | `di-container` | A DI container must exist in `internal/di` |
 | `handler-no-repo` | Handlers must not import repositories directly (must go through use cases) |
+| `project-compiles` | Runs `go build ./...` — a build failure fails this check (and the overall exit status), so a broken build always surfaces here even though it isn't a "rule" in the usual static-analysis sense |
 
 ### Quality (5 rules)
 
@@ -161,7 +162,7 @@ Security
  ✗  no-sql-injection       internal/repository/user.go
                                    SQL query built with fmt.Sprintf              Use parameterised queries
 
-Analyzed 29 rules — 28 passed, 0 warnings, 1 failed
+Analyzed 30 rules — 29 passed, 0 warnings, 1 failed
 ```
 
 ## MCP Integration
