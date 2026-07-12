@@ -47,7 +47,7 @@ goca init microservice --module github.com/company/microservice --api grpc --dat
 
 ### Complete Project
 ```bash
-goca init platform --module github.com/company/platform --auth --database mysql --api both
+goca init platform --module github.com/company/platform --auth --database mysql --api rest
 ```
 
 ## 📂 Generated Structure
@@ -304,8 +304,10 @@ Generates gRPC configuration:
 - gRPC server configuration
 - Logging and authentication interceptors
 
-### Both (--api both)
-Configures both REST and gRPC in the same project.
+### GraphQL API (--api graphql)
+Generates a GraphQL schema and resolver scaffold.
+
+> Note: `--api` accepts a single value (`rest`, `grpc`, or `graphql`) — there is no `both` option. To expose more than one protocol, run `goca handler` again for the additional handler type after `init`.
 
 ## 💾 Supported Databases
 

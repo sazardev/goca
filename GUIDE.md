@@ -124,9 +124,9 @@ goca init <project-name> [flags]
 
 **Flags**:
 - `--module string` (requerido): Nombre del módulo Go
-- `--database string` (opcional): Tipo de base de datos (postgres, mysql, mongodb) (default: "postgres")
+- `--database string` (opcional): Tipo de base de datos (postgres, mysql, sqlite, mongodb, sqlserver, dynamodb, elasticsearch) (default: "sqlite")
 - `--auth` (opcional): Incluir boilerplate de autenticación
-- `--api string` (opcional): Tipo de API (rest, grpc, both) (default: "rest")
+- `--api string` (opcional): Tipo de API (rest, grpc, graphql) (default: "rest")
 
 **Ejemplos**:
 ```bash
@@ -136,8 +136,8 @@ goca init ecommerce --module github.com/mycompany/ecommerce
 # Proyecto con autenticación y MongoDB
 goca init blog --module github.com/myblog/api --database mongodb --auth
 
-# Proyecto con REST y gRPC
-goca init microservice --module github.com/company/ms --api both
+# Proyecto con gRPC
+goca init microservice --module github.com/company/ms --api grpc
 ```
 
 **Estructura generada**:

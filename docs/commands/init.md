@@ -59,7 +59,7 @@ Use your repository URL as the module name:
 
 ### `--database`
 
-Database system to use. Default: `postgres`
+Database system to use. Default: `sqlite`
 
 **Options:**
 - `postgres` - PostgreSQL (GORM)
@@ -97,7 +97,7 @@ Generates:
 
 API type to generate. Default: `rest`
 
-**Options:** `rest` | `grpc` | `graphql` | `both`
+**Options:** `rest` | `grpc` | `graphql`
 
 ```bash
 goca init myproject --module github.com/user/myproject --api grpc
@@ -138,7 +138,7 @@ goca init platform \
   --module github.com/startup/platform \
   --database postgres \
   --auth \
-  --api both
+  --api rest
 ```
 
 ## Project Templates

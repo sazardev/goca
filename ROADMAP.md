@@ -14,10 +14,10 @@ Goca aims to be the leading Go Clean Architecture code generator, providing deve
 
 ## Current Status
 
-**Version**: 1.19.0  
+**Version**: 1.22.0 (see [CHANGELOG.md](CHANGELOG.md) for the authoritative, up-to-date release history)  
 **Go**: 1.25.1+  
 **Status**: Production Ready  
-**Focus**: Cache, CI, middleware generation, MCP integration, and developer experience
+**Focus**: Deep project self-analysis (`goca analyze`), Redis caching, CI pipeline generation, middleware generation, and MCP (AI assistant) integration
 
 ## Release Versioning
 
@@ -28,9 +28,7 @@ Goca follows [Semantic Versioning](https://semver.org/):
 
 ## Planned Releases
 
-### Version 1.19.0
-
-**Focus**: Cache, CI & Middleware
+### Next Minor Release
 
 **Planned Features:**
 - Plugin system for custom generators
@@ -107,15 +105,17 @@ Goca follows [Semantic Versioning](https://semver.org/):
 
 ## Completed Milestones
 
-### Version 1.19.0 (March 2026)
+### Version 1.22.0 (March 2026)
+- **Deep Project Self-Analysis** — `goca analyze` audits generated projects across 6 categories (architecture, quality, security, standards, tests, dependencies), 30 rules total
 - **Redis Cache Layer** — `--cache` flag on `feature`, `repository`, `di` generates `Cached<Entity>Repository` decorator with Redis caching (FindByID, FindAll cached; writes invalidate)
 - **CI Pipeline Generation** — `goca ci` generates GitHub Actions workflows (test, build, deploy) with auto-detected Go version and database service containers
 - **Middleware Generation** — `goca middleware <name>` generates 7 composable middleware types (CORS, logging, auth, rate-limit, recovery, request-id, timeout)
+- **MCP Server** — `goca mcp-server` exposes 13 tools + 2 resources for AI assistants (GitHub Copilot, Claude Desktop, Cursor, Zed)
 - Handler auto-detection of middleware package for import-based usage
 - `--middleware-types` flag on `goca feature` for combined scaffold
 - DI container cache wiring: `NewContainer(db, redisClient)` with decorator pattern
-- 51 new tests across 4 test files
-- MCP tools for CI and middleware commands
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete, version-by-version history — this roadmap only summarizes major milestones and can lag behind.
 
 ### Version 1.18.x (March 2026)
 - **MCP Server** — `goca mcp-server` exposes 13 tools + 2 resources for AI assistants (GitHub Copilot, Claude Desktop, Cursor, Zed)

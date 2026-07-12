@@ -103,7 +103,9 @@ Also generates `internal/cache/redis.go` with a Redis client factory using envir
 
 Generate multiple handler types.
 
-**Options:** `http` | `grpc` | `cli` | `worker` | `soap`
+**Options:** `http` | `grpc` | `cli` | `worker`
+
+(`goca handler --type soap` supports SOAP as a standalone handler generator, but `goca feature --handlers` does not.)
 
 ```bash
 goca feature Payment --fields "amount:float64" --handlers "http,grpc"

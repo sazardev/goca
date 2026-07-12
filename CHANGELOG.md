@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Makefile**: removed the duplicate `release` target (previously defined twice; only the second, VERSION-requiring definition took effect). `make release` now runs `scripts/release.sh auto` when `VERSION` is unset, or `scripts/release.sh $(VERSION)` when set — no behavior lost, no silent shadowing.
 
+### Docs
+- Fixed `--api both` in `GUIDE.md`, `docs/commands/init.md` and `wiki/Command-Init.md` — `--api` only ever accepted `rest`, `grpc` or `graphql`; running any of those examples verbatim failed.
+- Fixed the documented default for `goca init --database` (`GUIDE.md`, `docs/commands/init.md`): it's `sqlite`, not `postgres` (the `postgres` default is correct for `goca feature`/`goca di`, which really do default there — left unchanged).
+- Fixed `docs/commands/feature.md` listing `soap` as a valid `goca feature --handlers` value; `soap` is only supported by the standalone `goca handler --type soap`.
+- `ROADMAP.md` was three releases stale — it listed "Version 1.19.0" as both upcoming and already shipped, while the actual latest release per this changelog is 1.22.0. Corrected the current-version line, renamed the open-ended planned section (no version number pinned to work not yet released), and re-labeled the completed-milestones entry to 1.22.0 to match CHANGELOG.md, which it now points to as the source of truth.
+
 ## [1.22.0] - 2026-03-27
 
 ### Added
