@@ -323,7 +323,7 @@ func testEntityWithDifferentFieldTypes(tc *framework.TestContext, t *testing.T) 
 
 	// Verificar todos los tipos de campos
 	expectedContents := []string{
-		"Complexid",
+		"ComplexID", // toGoFieldName idiomatically capitalizes the "id" suffix
 		"string",
 		"Count",
 		"int",
