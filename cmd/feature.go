@@ -535,9 +535,14 @@ func handleMainGoNotFound(featureName string) {
 }
 
 // isFeatureAlreadyRegistered checks if feature routes are already present.
+// Matches the exact call wireFeatureIntoMainGo writes (Setup<Entity>Routes(),
+// consistent with its own idempotency check) rather than a loose "/<entity>s"
+// substring: the latter produces false positives whenever the project's
+// module name happens to start with the pluralized entity name (e.g. module
+// "bookstore" contains "/bookstore" which itself contains "/books", so a
+// "Book" feature would be wrongly seen as already wired and never added).
 func isFeatureAlreadyRegistered(content, featureName string) bool {
-	featureLower := strings.ToLower(featureName)
-	return strings.Contains(content, fmt.Sprintf("/%ss", featureLower))
+	return strings.Contains(content, fmt.Sprintf("Setup%sRoutes(", featureName))
 }
 
 // setupMainGoWithFeature sets up the main.go file with the new feature.

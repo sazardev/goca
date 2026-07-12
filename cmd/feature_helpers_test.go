@@ -11,14 +11,26 @@ func TestIsFeatureAlreadyRegistered(t *testing.T) {
 
 	t.Run("feature registered", func(t *testing.T) {
 		t.Parallel()
-		content := `r.HandleFunc("/api/v1/products", handler.List)`
+		content := `apphttp.SetupProductRoutes(apiRouter, container.ProductUseCase()) // product routes`
 		assert.True(t, isFeatureAlreadyRegistered(content, "Product"))
 	})
 
 	t.Run("feature not registered", func(t *testing.T) {
 		t.Parallel()
-		content := `r.HandleFunc("/api/v1/users", handler.List)`
+		content := `apphttp.SetupUserRoutes(apiRouter, container.UserUseCase()) // user routes`
 		assert.False(t, isFeatureAlreadyRegistered(content, "Product"))
+	})
+
+	// Regression test (FEATURE-ROUTES-COLLISION): a loose "/<entity>s"
+	// substring check false-positives whenever the module name happens to
+	// start with the pluralized entity name, e.g. module "bookstore"
+	// produces an import path containing "/bookstore", which itself
+	// contains "/books" — wrongly matching a "Book" feature that was never
+	// actually registered.
+	t.Run("module name collision does not false-positive", func(t *testing.T) {
+		t.Parallel()
+		content := `import "github.com/demo/bookstore/internal/domain"`
+		assert.False(t, isFeatureAlreadyRegistered(content, "Book"))
 	})
 }
 
