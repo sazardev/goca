@@ -278,6 +278,13 @@ func generateHTTPHandlerFile(dir, entity string, validation, swagger bool, fileN
 		filename = filepath.Join(dir, strings.ToLower(entity)+"_handler.go")
 	}
 
+	if custom, ok := renderCustomTemplate("handler/http/handler", buildHandlerTemplateData(entity)); ok {
+		if err := writeGoFile(filename, custom, sm...); err != nil {
+			ui.Error(fmt.Sprintf("Error writing handler file: %v", err))
+		}
+		return
+	}
+
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 	importPath := getImportPath(moduleName)

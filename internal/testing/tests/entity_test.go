@@ -288,7 +288,7 @@ func testEntityWithAllOptions(tc *framework.TestContext, t *testing.T) {
 		"Number",
 		"Amount",
 		"Paid",
-		"Client_id",
+		"ClientID", // toGoFieldName idiomatically capitalizes the "id" suffix
 		"CreatedAt",
 		"UpdatedAt",
 		"DeletedAt",

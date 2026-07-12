@@ -344,8 +344,12 @@ database:
 		t.Fatalf("Failed to run goca repository: %v", err)
 	}
 
-	// Read generated repository file
-	repoPath := filepath.Join(tempDir, "internal", "repository", "mysql_product_repository.go")
+	// MySQL and PostgreSQL share the same GORM-based implementation (see
+	// cmd/repository_impl.go:generateMySQLRepository) — the concrete SQL
+	// driver is selected by the dialector in main.go, not by a separate
+	// repository file, so MySQL reuses postgres_<entity>_repository.go and
+	// the postgres<Entity>Repository struct name.
+	repoPath := filepath.Join(tempDir, "internal", "repository", "postgres_product_repository.go")
 	repoContent, err := os.ReadFile(repoPath)
 	if err != nil {
 		t.Fatalf("Failed to read generated repository: %v", err)
@@ -353,9 +357,9 @@ database:
 
 	repoStr := string(repoContent)
 
-	// Verify mysql-specific naming
-	if !strings.Contains(repoStr, "mysqlProductRepository") && !strings.Contains(repoStr, "MysqlProductRepository") {
-		t.Error("Expected mysql-specific repository name")
+	// Verify the shared GORM-based repository name
+	if !strings.Contains(repoStr, "postgresProductRepository") && !strings.Contains(repoStr, "PostgresProductRepository") {
+		t.Error("Expected postgres-based repository name (shared with MySQL)")
 	}
 
 	// Verify gorm.DB usage

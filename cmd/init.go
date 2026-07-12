@@ -243,7 +243,13 @@ func persistInitChoices(configPath, api string, auth bool) error {
 		content += fmt.Sprintf("api:\n  type: %s\n", api)
 	}
 
-	return os.WriteFile(configPath, []byte(content), 0o600)
+	if err := validateWritePath(configPath); err != nil {
+		return err
+	}
+	//#nosec G703 // configPath is validated by validateWritePath above (rejects
+	// any path that would escape the project directory); gosec's taint
+	// tracker doesn't recognize sanitization across a wrapper-function call.
+	return os.WriteFile(filepath.Clean(configPath), []byte(content), 0o600)
 }
 
 func createProjectStructure(projectName, module, database string, auth bool, api string, configIntegration *ConfigIntegration, generateConfig bool, template string, sm ...*SafetyManager) {

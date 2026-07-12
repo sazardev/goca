@@ -80,6 +80,33 @@ func getModuleName() string {
 	return "myproject" // fallback
 }
 
+// validateWritePath rejects path if, once cleaned, it would resolve outside
+// the current working directory (e.g. a crafted project/module name like
+// "../../etc/cron.d/x" attempting to traverse out of the target project).
+// Callers writing to a path derived from CLI input should call this and then
+// pass filepath.Clean(path) (inlined at the call site) to os.WriteFile, since
+// gosec's G703 taint tracking only recognizes an inline filepath.Clean as a
+// sanitizer, not a wrapper function.
+func validateWritePath(path string) error {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to resolve working directory: %w", err)
+	}
+
+	abs := path
+	if !filepath.IsAbs(abs) {
+		abs = filepath.Join(cwd, path)
+	}
+	cleaned := filepath.Clean(abs)
+
+	rel, err := filepath.Rel(cwd, cleaned)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("refusing to write outside the project directory: %s", path)
+	}
+
+	return nil
+}
+
 // writeFile creates a file with the given content, creating directories if needed.
 // An optional SafetyManager can be passed to enable dry-run, force, and backup support.
 func writeFile(path, content string, sm ...*SafetyManager) error {

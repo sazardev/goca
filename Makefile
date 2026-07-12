@@ -94,8 +94,6 @@ release-auto: ## Auto-detect release type from commits
 	@echo "Auto-detecting release type..."
 	./scripts/release.sh auto
 
-release: release-auto ## Alias for release-auto
-
 # CLI Testing
 test-cli-comprehensive: ## Run CLI comprehensive tests
 	@echo "Running comprehensive CLI tests..."
@@ -144,13 +142,14 @@ install: ## Install CLI to GOPATH/bin
 	@echo "Goca CLI installed successfully!"
 
 # Release
-release: ## Create a new release (usage: make release VERSION=1.0.1)
-ifndef VERSION
-	@echo "Error: VERSION is required. Usage: make release VERSION=1.0.1"
-	@exit 1
-endif
+release: ## Create a release: VERSION=1.0.1 for an explicit version, or auto-detect from commits when unset
+ifdef VERSION
 	@echo "Creating release $(VERSION)..."
 	./scripts/release.sh $(VERSION)
+else
+	@echo "Auto-detecting release type..."
+	./scripts/release.sh auto
+endif
 
 # Maintenance
 clean: ## Clean build artifacts

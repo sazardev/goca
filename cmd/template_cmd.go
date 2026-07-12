@@ -49,7 +49,9 @@ Creates .goca/templates/ with customizable templates for all layers.`,
 			fmt.Sprintf("Edit templates in: %s", configIntegration.GetTemplateConfig().Directory),
 			"Use functions like {{pascal .EntityName}}, {{snake .EntityName}}",
 			"Generate features: goca feature Product --fields \"name:string\"",
-			"Your custom templates will be used automatically!",
+			"domain/entity, usecase/dto, handler/http/handler and repository/repo are used automatically by goca entity/feature/handler/repository",
+			"usecase/dto and repository/repo only apply to the first entity in a project (later entities keep the built-in merge-aware generator)",
+			"DI (goca di) is not template-driven: it wires every feature in the project together and has no single-entity template to hook into",
 		})
 	},
 }

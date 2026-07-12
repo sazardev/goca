@@ -168,6 +168,21 @@ func generateRepository(entity, database string, interfaceOnly, implementation, 
 func generateRepositoryInterface(dir, entity string, transactions bool, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "interfaces.go")
 
+	// A custom template only covers the base CRUD interface (no transaction
+	// methods) and, like the DTO file, cannot safely merge into an existing
+	// multi-entity interfaces.go. Only use it for a fresh file without
+	// --transactions.
+	if !transactions {
+		if _, err := os.Stat(filename); err != nil {
+			if custom, ok := renderCustomTemplate("repository/repo", buildRepositoryTemplateData(entity)); ok {
+				if err := writeGoFileMerged(filename, custom, sm...); err != nil {
+					fmt.Printf("Error writing file %s: %v\n", filename, err)
+				}
+				return
+			}
+		}
+	}
+
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 

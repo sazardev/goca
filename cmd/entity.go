@@ -428,6 +428,14 @@ func generateEntityFile(dir, entityName string, fields []Field, validation, busi
 		filename = filepath.Join(dir, strings.ToLower(entityName)+".go")
 	}
 
+	if custom, ok := renderCustomTemplate("domain/entity", buildEntityTemplateData(entityName, fields, validation, businessRules, timestamps, softDelete)); ok {
+		if err := writeGoFile(filename, custom, sm...); err != nil {
+			ui.Error(fmt.Sprintf("Error writing entity file: %v", err))
+			return err
+		}
+		return nil
+	}
+
 	var content strings.Builder
 
 	writeEntityHeader(&content, fields, businessRules, timestamps, softDelete)

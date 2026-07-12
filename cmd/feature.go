@@ -589,8 +589,14 @@ func writeMergedFileSafe(path, content string, sm ...*SafetyManager) error {
 	if len(sm) > 0 && sm[0] != nil {
 		return sm[0].WriteMergedFile(path, content)
 	}
-	//#nosec G306 // generated Go source, standard 0644 perms
-	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+	if err := validateWritePath(path); err != nil {
+		return err
+	}
+	//#nosec G306,G703 // generated Go source, standard 0644 perms; path is
+	// validated by validateWritePath above (rejects any path that would
+	// escape the project directory) — gosec's taint tracker doesn't
+	// recognize sanitization across a wrapper-function call.
+	if err := os.WriteFile(filepath.Clean(path), []byte(content), 0o644); err != nil {
 		return fmt.Errorf("failed to write %s: %w", path, err)
 	}
 	return nil
@@ -601,8 +607,14 @@ func writeMergedFileSafe(path, content string, sm ...*SafetyManager) error {
 // content. It deliberately does NOT go through the SafetyManager "file already
 // exists" guard, because these are in-place edits of files we just read.
 func writeMainGoInPlace(path, content string) error {
-	//#nosec G306 // generated Go source, standard 0644 perms
-	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+	if err := validateWritePath(path); err != nil {
+		return err
+	}
+	//#nosec G306,G703 // generated Go source, standard 0644 perms; path is
+	// validated by validateWritePath above (rejects any path that would
+	// escape the project directory) — gosec's taint tracker doesn't
+	// recognize sanitization across a wrapper-function call.
+	if err := os.WriteFile(filepath.Clean(path), []byte(content), 0o644); err != nil {
 		return fmt.Errorf("failed to write %s: %w", path, err)
 	}
 	return nil

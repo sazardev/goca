@@ -381,7 +381,9 @@ func (cm *ConfigManager) validateDatabase(db *DatabaseConfig) {
 		cm.addError("database.type", "invalid database type", db.Type)
 	}
 
-	if db.Port <= 0 || db.Port > 65535 {
+	// sqlite is file-based and has no TCP port; GenerateConfigFile correctly
+	// writes port: 0 for it, so only enforce a valid port for networked DBs.
+	if db.Type != "sqlite" && (db.Port <= 0 || db.Port > 65535) {
 		cm.addError("database.port", "invalid port number", strconv.Itoa(db.Port))
 	}
 

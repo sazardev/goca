@@ -10,6 +10,22 @@ import (
 func generateRepositoryInterfaceWithFields(dir, entity string, fields []Field, transactions bool, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "interfaces.go")
 
+	// A custom template only covers the base CRUD interface (no transaction
+	// methods or per-field search methods) and cannot safely merge into an
+	// existing multi-entity interfaces.go. Only use it for a fresh file
+	// without --transactions; a custom-templated repository trades the
+	// dynamic FindBy<Field> methods for a simpler, user-controlled contract.
+	if !transactions {
+		if _, err := os.Stat(filename); err != nil {
+			if custom, ok := renderCustomTemplate("repository/repo", buildRepositoryTemplateData(entity)); ok {
+				if err := writeGoFileMerged(filename, custom, sm...); err != nil {
+					fmt.Printf("Error writing file %s: %v\n", filename, err)
+				}
+				return
+			}
+		}
+	}
+
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 

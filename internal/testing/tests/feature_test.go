@@ -214,13 +214,13 @@ func testFeatureWithComplexFields(tc *framework.TestContext, t *testing.T) {
 	entityPath := filepath.Join("internal", "domain", "article.go")
 	tc.AssertFileExists(entityPath)
 
-	// Verificar todos los tipos de campos (using actual generated field names)
+	// Verificar todos los tipos de campos (using actual generated field names;
+	// toGoFieldName idiomatically capitalizes name/id). Field/type checked
+	// separately since gofmt column-aligns the struct, so the whitespace
+	// between them varies with the longest type name in the struct.
 	expectedContents := []string{
-		"Title      string",
-		"Content    string",
-		"Author_id  int",
-		"Created_at time.Time",
-		"Metadata   interface{}",
+		"Title", "Content", "AuthorID", "CreatedAt", "Metadata",
+		"string", "int", "time.Time", "interface{}",
 	}
 
 	for _, content := range expectedContents {

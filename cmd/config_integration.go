@@ -476,8 +476,8 @@ func (ci *ConfigIntegration) InitializeTemplateSystem() error {
 	// Create template manager
 	ci.templateManager = NewTemplateManager(&ci.config.Templates, ci.projectPath)
 
-	// This will create default templates if directory doesn't exist
-	if err := ci.templateManager.LoadTemplates(); err != nil {
+	// Explicitly create default templates if the directory doesn't exist yet.
+	if err := ci.templateManager.InitializeTemplates(); err != nil {
 		return fmt.Errorf("failed to initialize templates: %w", err)
 	}
 

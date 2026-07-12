@@ -67,11 +67,16 @@ func NewTemplateManager(config *TemplateConfig, projectPath string) *TemplateMan
 	return tm
 }
 
-// LoadTemplates loads all templates from the templates directory.
+// LoadTemplates loads all templates from the templates directory, if one
+// exists. It never creates the directory: ConfigIntegration.LoadConfigForProject
+// calls this on every generate command (just to check for customizations), so
+// auto-creating it here would silently start writing default template files
+// into every project on its first command — making "custom" templates active
+// by default for everyone instead of only for projects that explicitly ran
+// `goca template init` (see InitializeTemplates).
 func (tm *TemplateManager) LoadTemplates() error {
 	if _, err := os.Stat(tm.baseDir); os.IsNotExist(err) {
-		// Templates directory doesn't exist, create it with defaults
-		return tm.createDefaultTemplates()
+		return nil
 	}
 
 	// Walk through templates directory
@@ -91,6 +96,19 @@ func (tm *TemplateManager) LoadTemplates() error {
 
 		return tm.loadTemplate(path)
 	})
+}
+
+// InitializeTemplates creates the templates directory with the built-in
+// defaults (if it doesn't already exist) and loads them. This is the explicit,
+// opt-in entry point used by `goca template init` — unlike LoadTemplates, it
+// is allowed to create files.
+func (tm *TemplateManager) InitializeTemplates() error {
+	if _, err := os.Stat(tm.baseDir); os.IsNotExist(err) {
+		if err := tm.createDefaultTemplates(); err != nil {
+			return err
+		}
+	}
+	return tm.LoadTemplates()
 }
 
 // loadTemplate loads a single template file.
@@ -157,9 +175,14 @@ func (tm *TemplateManager) createBuiltinTemplates() error {
 		"domain/entity.tmpl": `package domain
 
 import (
+{{- if .Features.Timestamps }}
 	"time"
+{{- end }}
 {{- if .ValidationEnabled }}
 	"github.com/go-playground/validator/v10"
+{{- end }}
+{{- if .Features.SoftDelete }}
+	"gorm.io/gorm"
 {{- end }}
 )
 
@@ -183,7 +206,7 @@ type {{.EntityName}} struct {
 }
 
 // TableName returns the table name for {{.EntityName}}
-func ({{lower (slice .EntityName 0 1)}}) TableName() string {
+func ({{lower (slice .EntityName 0 1)}} *{{.EntityName}}) TableName() string {
 	return "{{snake .EntityName}}"
 }
 
@@ -207,51 +230,55 @@ func ({{lower (slice .EntityName 0 1)}} *{{.EntityName}}) IsValid() bool {
 }
 {{- end }}`,
 
+		"repository/repo.tmpl": `package repository
+
+import (
+	"{{.Module}}/internal/domain"
+)
+
+// {{.EntityName}}Repository defines persistence operations for {{.EntityName}}.
+type {{.EntityName}}Repository interface {
+	Save({{lower .EntityName}} *domain.{{.EntityName}}) error
+	FindByID(id int) (*domain.{{.EntityName}}, error)
+	Update({{lower .EntityName}} *domain.{{.EntityName}}) error
+	Delete(id int) error
+	FindAll() ([]domain.{{.EntityName}}, error)
+}`,
+
 		"usecase/dto.tmpl": `package usecase
 
 import (
-{{- if .Features.Timestamps }}
-	"time"
-{{- end }}
+	"{{.Module}}/internal/domain"
 )
 
-// Create{{.EntityName}}Request represents request to create {{.EntityName}}
-type Create{{.EntityName}}Request struct {
-{{- range .Fields }}
+// Create{{.EntityName}}Input is the DTO for creating a new {{lower .EntityName}}.
+type Create{{.EntityName}}Input struct {
+{{- range .CreateFields }}
 	{{.Name}} {{.Type}} ` + "`json:\"{{.JSONName}}\"{{if .Validations}} validate:\"{{join .Validations \",\"}}\"{{end}}`" + `
 {{- end }}
 }
 
-// Update{{.EntityName}}Request represents request to update {{.EntityName}}
-type Update{{.EntityName}}Request struct {
-{{- range .Fields }}
-	{{.Name}} *{{.Type}} ` + "`json:\"{{.JSONName}},omitempty\"`" + `
-{{- end }}
-}
-
-// {{.EntityName}}Response represents {{.EntityName}} response
-type {{.EntityName}}Response struct {
-{{- if .Features.UUID }}
-	ID   string ` + "`json:\"id\"`" + `
-{{- else }}
-	ID   uint ` + "`json:\"id\"`" + `
-{{- end }}
-{{- range .Fields }}
+// Create{{.EntityName}}Output is the DTO for the creation response.
+type Create{{.EntityName}}Output struct {
+	ID uint ` + "`json:\"id\"`" + `
+{{- range .CreateFields }}
 	{{.Name}} {{.Type}} ` + "`json:\"{{.JSONName}}\"`" + `
 {{- end }}
-{{- if .Features.Timestamps }}
-	CreatedAt time.Time ` + "`json:\"created_at\"`" + `
-	UpdatedAt time.Time ` + "`json:\"updated_at\"`" + `
+	Message string ` + "`json:\"message\"`" + `
+}
+
+// Update{{.EntityName}}Input is the DTO for updating an existing {{lower .EntityName}} (fields are optional).
+type Update{{.EntityName}}Input struct {
+{{- range .UpdateFields }}
+	{{.Name}} *{{.Type}} ` + "`json:\"{{.JSONName}},omitempty\"{{if .Validations}} validate:\"{{join .Validations \",\"}}\"{{end}}`" + `
 {{- end }}
 }
 
-// List{{.EntityName}}Response represents paginated list response
-type List{{.EntityName}}Response struct {
-	Data       []{{.EntityName}}Response ` + "`json:\"data\"`" + `
-	Total      int64                      ` + "`json:\"total\"`" + `
-	Page       int                        ` + "`json:\"page\"`" + `
-	PerPage    int                        ` + "`json:\"per_page\"`" + `
-	TotalPages int                        ` + "`json:\"total_pages\"`" + `
+// List{{.EntityName}}Output is the DTO for a list of {{lower .EntityName}}s.
+type List{{.EntityName}}Output struct {
+	{{.EntityName}}s []domain.{{.EntityName}} ` + "`json:\"{{lower .EntityName}}s\"`" + `
+	Total   int    ` + "`json:\"total\"`" + `
+	Message string ` + "`json:\"message\"`" + `
 }`,
 
 		"handler/http/handler.tmpl": `package http
@@ -261,10 +288,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"{{.Module}}/internal/usecase"
-	"{{.Module}}/internal/messages"
-	
 	"github.com/gorilla/mux"
+
+	"{{.Module}}/internal/usecase"
 )
 
 // {{.EntityName}}Handler handles HTTP requests for {{.EntityName}}
@@ -274,112 +300,97 @@ type {{.EntityName}}Handler struct {
 
 // New{{.EntityName}}Handler creates a new {{.EntityName}} handler
 func New{{.EntityName}}Handler(uc usecase.{{.EntityName}}UseCase) *{{.EntityName}}Handler {
-	return &{{.EntityName}}Handler{
-		usecase: uc,
-	}
+	return &{{.EntityName}}Handler{usecase: uc}
 }
 
-// Create handles POST /{{kebab (plural .EntityName)}}
-func (h *{{.EntityName}}Handler) Create(w http.ResponseWriter, r *http.Request) {
-	var req usecase.Create{{.EntityName}}Request
-	
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, messages.ErrInvalidJSON, http.StatusBadRequest)
+// Create{{.EntityName}} handles POST /{{lower .EntityName}}s
+func (h *{{.EntityName}}Handler) Create{{.EntityName}}(w http.ResponseWriter, r *http.Request) {
+	var input usecase.Create{{.EntityName}}Input
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	
-	result, err := h.usecase.Create(r.Context(), req)
+
+	output, err := h.usecase.Create{{.EntityName}}(input)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(result)
+	json.NewEncoder(w).Encode(output)
 }
 
-// GetByID handles GET /{{kebab (plural .EntityName)}}/:id
-func (h *{{.EntityName}}Handler) GetByID(w http.ResponseWriter, r *http.Request) {
+// Get{{.EntityName}} handles GET /{{lower .EntityName}}s/{id}
+func (h *{{.EntityName}}Handler) Get{{.EntityName}}(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.ParseUint(vars["id"], 10, 32)
+	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		http.Error(w, messages.ErrInvalidID, http.StatusBadRequest)
+		http.Error(w, "Invalid {{lower .EntityName}} ID", http.StatusBadRequest)
 		return
 	}
-	
-	result, err := h.usecase.GetByID(r.Context(), uint(id))
+
+	result, err := h.usecase.Get{{.EntityName}}(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
 
-// Update handles PUT /{{kebab (plural .EntityName)}}/:id
-func (h *{{.EntityName}}Handler) Update(w http.ResponseWriter, r *http.Request) {
+// Update{{.EntityName}} handles PUT /{{lower .EntityName}}s/{id}
+func (h *{{.EntityName}}Handler) Update{{.EntityName}}(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id, err := strconv.ParseUint(vars["id"], 10, 32)
+	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		http.Error(w, messages.ErrInvalidID, http.StatusBadRequest)
+		http.Error(w, "Invalid {{lower .EntityName}} ID", http.StatusBadRequest)
 		return
 	}
-	
-	var req usecase.Update{{.EntityName}}Request
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, messages.ErrInvalidJSON, http.StatusBadRequest)
-		return
-	}
-	
-	result, err := h.usecase.Update(r.Context(), uint(id), req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
-}
 
-// Delete handles DELETE /{{kebab (plural .EntityName)}}/:id
-func (h *{{.EntityName}}Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, err := strconv.ParseUint(vars["id"], 10, 32)
-	if err != nil {
-		http.Error(w, messages.ErrInvalidID, http.StatusBadRequest)
+	var input usecase.Update{{.EntityName}}Input
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	
-	if err := h.usecase.Delete(r.Context(), uint(id)); err != nil {
+
+	if err := h.usecase.Update{{.EntityName}}(id, input); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// List handles GET /{{kebab (plural .EntityName)}}
-func (h *{{.EntityName}}Handler) List(w http.ResponseWriter, r *http.Request) {
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	if page < 1 {
-		page = 1
+// Delete{{.EntityName}} handles DELETE /{{lower .EntityName}}s/{id}
+func (h *{{.EntityName}}Handler) Delete{{.EntityName}}(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Invalid {{lower .EntityName}} ID", http.StatusBadRequest)
+		return
 	}
-	
-	perPage, _ := strconv.Atoi(r.URL.Query().Get("per_page"))
-	if perPage < 1 || perPage > 100 {
-		perPage = 10
+
+	if err := h.usecase.Delete{{.EntityName}}(id); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	
-	result, err := h.usecase.List(r.Context(), page, perPage)
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// List{{.EntityName}}s handles GET /{{lower .EntityName}}s
+func (h *{{.EntityName}}Handler) List{{.EntityName}}s(w http.ResponseWriter, r *http.Request) {
+	output, err := h.usecase.List{{.EntityName}}s()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	json.NewEncoder(w).Encode(output)
 }`,
 
 		"docs/README.tmpl": `# {{.ProjectName}}
@@ -423,19 +434,24 @@ Templates can be customized in {{.TemplateDirectory}}:
 ` + "```" + `
 {{.TemplateDirectory}}/
 ├── domain/
-│   ├── entity.tmpl      # Template for entities
-│   └── validations.tmpl # Template for validations
+│   └── entity.tmpl              # Used by: goca entity / goca feature
 ├── usecase/
-│   ├── dto.tmpl         # Template for DTOs
-│   └── service.tmpl     # Template for services
+│   └── dto.tmpl                 # Used by: goca feature (first entity in the project only)
 ├── repository/
-│   └── repo.tmpl        # Template for repositories
+│   └── repo.tmpl                # Used by: goca repository / goca feature (first entity only)
 ├── handler/
 │   └── http/
-│       └── handler.tmpl # Template for HTTP handlers
+│       └── handler.tmpl         # Used by: goca handler / goca feature
 └── docs/
-    └── README.tmpl      # This template
+    └── README.tmpl               # This template
 ` + "```" + `
+
+**Note:** ` + "`goca di`" + ` wires every feature in the project together in one
+file, so it has no per-entity template to hook into and always uses the
+built-in generator. ` + "`usecase/dto.tmpl`" + ` and ` + "`repository/repo.tmpl`" + `
+only take effect for the first entity in a project — once ` + "`dto.go`" + `/
+` + "`interfaces.go`" + ` exist, later entities are appended with the
+built-in merge-aware generator so earlier entities aren't clobbered.
 
 ## Available Template Functions
 

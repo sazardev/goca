@@ -7,10 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **templates**: custom templates (`goca template init`) are now actually wired into code generation instead of being inert. `domain/entity`, `usecase/dto`, `handler/http/handler` and `repository/repo` are used automatically by `goca entity`/`goca feature`/`goca handler`/`goca repository` when present, falling back to the built-in generator otherwise. `usecase/dto` and `repository/repo` only take effect for the first entity in a project (subsequent entities keep using the built-in merge-aware generator so earlier entities aren't clobbered). `goca di` is not template-driven — it wires every feature in the project together in one file and has no per-entity template to hook into.
+- **release**: added `scripts/release.sh`, implementing `patch`/`minor`/`major`/`auto`/explicit-version bumps, a dated CHANGELOG.md entry, and tag+push — the script the `make release*` targets already called but which didn't exist.
+
 ### Fixed
+- **init**: `initializeGitRepository` now resolves the project path to an absolute path once and refuses to run `git init`/`add`/`commit` against a directory that already contains a `.git` (closes a race where a relative path could, under concurrent `os.Chdir` in parallel tests, resolve against the wrong process cwd and corrupt an unrelated repository).
+- **config**: `.goca.yaml` generated for `--database sqlite` no longer fails its own validation — `database.port: 0` is valid for a file-based database and is no longer required to be in the 1–65535 range.
+- **templates**: fixed the shipped `domain/entity` template emitting `gorm.DeletedAt` without importing `gorm.io/gorm` when soft-delete is enabled without validation, importing `"time"` unconditionally (unused-import compile error when timestamps/soft-delete are both off), and a malformed `TableName()` receiver missing its type (`func (w) TableName()`, invalid Go).
+- **templates**: the shipped `usecase/dto` and `handler/http/handler` templates used a fictional API (`...Request`/`...Response` DTO names, `Create(ctx, req)`-style handler methods) that never matched what the real generators produce (`Create<Entity>Input/Output`, `Create<Entity>(input)`), so a project using the default custom templates would fail to compile. Both were rewritten to match the real generator's naming and signatures.
+- **templates**: loading `.goca.yaml` (which every generate command already does) was silently auto-creating `.goca/templates/` with the unmodified default templates as a side effect the first time any command ran — which the new template wiring would then treat as deliberate customization, activating custom-template generation for every project by default instead of only ones that explicitly ran `goca template init`. Split `TemplateManager.LoadTemplates` (read-only) from the new `InitializeTemplates` (explicit, opt-in) to fix it.
+- **security**: added `validateWritePath`, rejecting any computed output path that would resolve outside the current project directory (defense in depth against a crafted project/module name attempting path traversal), applied at the three `os.WriteFile` call sites gosec's taint analysis flags (`cmd/init.go`, `cmd/feature.go`).
 - **entity**: removed duplicate `generateSeedData` call in cobra Run — seed file was being generated twice when `--fields` was provided (once by `generateEntity` internally, once again by the Run block)
 - **field_validator**: `ParseFieldsWithValidation` now uses `smartSplitFields` instead of `strings.Split`, correctly handling complex Go types with commas inside brackets/parentheses (e.g. `map[string]string`, `func(string,int) error`)
 - **feature**: renumbered cobra Run UI steps (7–11) to avoid collision with `generateCompleteFeature` internal steps (1–6)
+
+### Changed
+- **Makefile**: removed the duplicate `release` target (previously defined twice; only the second, VERSION-requiring definition took effect). `make release` now runs `scripts/release.sh auto` when `VERSION` is unset, or `scripts/release.sh $(VERSION)` when set — no behavior lost, no silent shadowing.
 
 ## [1.22.0] - 2026-03-27
 

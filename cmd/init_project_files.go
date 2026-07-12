@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -150,7 +151,24 @@ func initializeGitRepository(projectName string) error {
 		return errors.New("git is not installed or not in PATH")
 	}
 
-	projectPath := filepath.Join(".", projectName)
+	// Resolve to an absolute path once, up front. A bare relative Dir would
+	// otherwise be resolved by the OS against the process's current working
+	// directory at the exact moment each exec.Command forks — which under
+	// concurrent os.Chdir calls (parallel tests) can transiently point
+	// somewhere unexpected (INIT-GIT-RACE).
+	projectPath, err := filepath.Abs(filepath.Join(".", projectName))
+	if err != nil {
+		return fmt.Errorf("failed to resolve project path: %w", err)
+	}
+
+	// Refuse to touch a directory that is already a Git repository. This is
+	// the actual backstop against INIT-GIT-RACE: a freshly generated project
+	// never has a pre-existing .git, so if projectPath ever resolves to an
+	// existing repository (e.g. this tool's own source tree) we abort instead
+	// of running git add/commit against it.
+	if _, err := os.Stat(filepath.Join(projectPath, ".git")); err == nil {
+		return fmt.Errorf("refusing to initialize git in %s: it already contains a .git directory", projectPath)
+	}
 
 	// Initialize git repository
 	cmdInit := exec.Command("git", "init")

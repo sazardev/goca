@@ -170,6 +170,24 @@ func parseOperations(operations string) []string {
 func generateDTOFileWithFields(dir, entity string, operations []string, validation bool, fields string, sm ...*SafetyManager) {
 	filename := filepath.Join(dir, "dto.go")
 
+	// A custom template can only safely replace the *entire* file, since it
+	// has no concept of the merge-with-existing-entities format below. Only
+	// use it when dto.go doesn't exist yet (first entity in the project);
+	// once other entities' DTOs are already present, fall back to the
+	// built-in generator so their content isn't clobbered. It also requires
+	// explicit --fields: the field-less DTO shape (generateCreateDTO et al.)
+	// has no field list to feed the template, and parseFields("") errors out.
+	if fields != "" {
+		if _, err := os.Stat(filename); err != nil {
+			if custom, ok := renderCustomTemplate("usecase/dto", buildDTOTemplateData(entity, fields, validation)); ok {
+				if err := writeGoFileMerged(filename, custom, sm...); err != nil {
+					ui.Error(fmt.Sprintf("Error creating DTO file: %v", err))
+				}
+				return
+			}
+		}
+	}
+
 	// Get the module name from go.mod
 	moduleName := getModuleName()
 
