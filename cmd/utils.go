@@ -241,6 +241,20 @@ func getImportPath(moduleName string) string {
 	return moduleName
 }
 
+// qualifyDomainFieldType returns fieldType with any custom domain-stub type
+// (see customTypeBase) qualified as domain.<Type> — preserving []/* wrapping
+// — for use in generated files outside the domain package (usecase DTOs,
+// repository interfaces/implementations, mocks, cache decorators). Builtin
+// types are returned unchanged.
+func qualifyDomainFieldType(fieldType string) string {
+	base := customTypeBase(fieldType)
+	if base == "" {
+		return fieldType
+	}
+	prefix := strings.TrimSuffix(fieldType, base)
+	return prefix + "domain." + base
+}
+
 // generateSearchMethods generates search methods based on entity fields.
 func generateSearchMethods(fields []Field, entity string) []SearchMethod {
 	var methods []SearchMethod
@@ -255,7 +269,7 @@ func generateSearchMethods(fields []Field, entity string) []SearchMethod {
 			method := SearchMethod{
 				MethodName: fmt.Sprintf("FindBy%s", field.Name),
 				FieldName:  field.Name,
-				FieldType:  field.Type,
+				FieldType:  qualifyDomainFieldType(field.Type),
 				ReturnType: fmt.Sprintf("(*domain.%s, error)", entity),
 				IsUnique:   isUniqueField(field.Name),
 			}

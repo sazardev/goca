@@ -109,6 +109,11 @@ func buildDTOTemplateData(entity, fields string, validation bool) map[string]int
 		}
 		cf := fieldToTemplateData(f)
 		uf := fieldToTemplateData(f)
+		// dto.tmpl lives in the usecase package, so a custom domain-stub
+		// type must be qualified as domain.<Type> here (unlike entity.tmpl,
+		// which stays inside the domain package itself).
+		cf.Type = qualifyDomainFieldType(cf.Type)
+		uf.Type = qualifyDomainFieldType(uf.Type)
 		if validation {
 			cf.Validations = []string{dtoValidationTag(f)}
 			if tag := dtoUpdateValidationTag(f); tag != "" {

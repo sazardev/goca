@@ -682,10 +682,10 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 		if validation {
 			validateTag := dtoValidationTag(field)
 			fmt.Fprintf(content, "\t%s %s `%s validate:\"%s\"`\n",
-				field.Name, field.Type, jsonTag, validateTag)
+				field.Name, qualifyDomainFieldType(field.Type), jsonTag, validateTag)
 		} else {
 			fmt.Fprintf(content, "\t%s %s `%s`\n",
-				field.Name, field.Type, jsonTag)
+				field.Name, qualifyDomainFieldType(field.Type), jsonTag)
 		}
 	}
 
@@ -741,7 +741,7 @@ func generateCreateDTOWithFields(content *strings.Builder, entity string, valida
 			continue
 		}
 		jsonTag := fmt.Sprintf("json:\"%s\"", strings.ToLower(field.Name))
-		fmt.Fprintf(content, "\t%s %s `%s`\n", field.Name, field.Type, jsonTag)
+		fmt.Fprintf(content, "\t%s %s `%s`\n", field.Name, qualifyDomainFieldType(field.Type), jsonTag)
 	}
 
 	content.WriteString("\tMessage string `json:\"message\"`\n")
@@ -772,7 +772,7 @@ func generateUpdateDTOWithFields(content *strings.Builder, entity string, valida
 		case "float64":
 			fieldType = "*float64"
 		default:
-			fieldType = "*" + field.Type
+			fieldType = "*" + qualifyDomainFieldType(field.Type)
 		}
 
 		jsonTag := fmt.Sprintf("json:\"%s,omitempty\"", strings.ToLower(field.Name))

@@ -383,6 +383,15 @@ func isPointerType(fieldType string) bool {
 }
 
 func getGormTag(fieldName, fieldType string) string {
+	// A pointer field is explicitly optional (that's the whole reason to use
+	// one); forcing "not null" — what the unmatched default case below would
+	// otherwise emit for e.g. *string/*time.Time — contradicts that intent
+	// and makes the column reject the very NULLs the pointer exists to
+	// represent.
+	if isPointerType(fieldType) {
+		return ""
+	}
+
 	switch fieldType {
 	case FieldString:
 		if fieldName == FieldEmailType {

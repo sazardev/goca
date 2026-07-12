@@ -511,7 +511,12 @@ func (v *FieldValidator) ParseFieldsWithValidation(fields string) ([]Field, erro
 
 		// Generate GORM tag based on field type
 		gormTag := getGormTag(field.Name, field.Type)
-		tag := fmt.Sprintf("`json:\"%s\" gorm:\"%s\"`", strings.ToLower(field.Name), gormTag)
+		var tag string
+		if gormTag == "" {
+			tag = fmt.Sprintf("`json:\"%s\"`", strings.ToLower(field.Name))
+		} else {
+			tag = fmt.Sprintf("`json:\"%s\" gorm:\"%s\"`", strings.ToLower(field.Name), gormTag)
+		}
 
 		fieldsList = append(fieldsList, Field{
 			Name: field.Name,
@@ -524,11 +529,17 @@ func (v *FieldValidator) ParseFieldsWithValidation(fields string) ([]Field, erro
 }
 
 // capitalizeFirst capitalizes the first letter of a string.
+// capitalizeFirst uppercases only the first character, preserving the rest of
+// the string as-is. Its result is always re-normalized by toGoFieldName
+// (parseFieldsWithValidation), which re-segments on camelCase/snake_case
+// boundaries — lowercasing the tail here would destroy those boundaries
+// first (e.g. "createdAt" -> "Createdat", which toGoFieldName can no longer
+// split back into "CreatedAt").
 func capitalizeFirst(s string) string {
 	if s == "" {
 		return s
 	}
-	return strings.ToUpper(string(s[0])) + strings.ToLower(s[1:])
+	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
 // GenerateQueryMethodsForFields generates appropriate query methods based on field types.

@@ -68,6 +68,18 @@ func TestGetGormTag(t *testing.T) {
 	}
 }
 
+// Regression test: a pointer field is explicitly optional, so getGormTag must
+// not emit "not null" for it (previously fell through to the unmatched
+// default case, which always returned "not null").
+func TestGetGormTag_PointerFieldsNeverNotNull(t *testing.T) {
+	t.Parallel()
+
+	for _, fieldType := range []string{"*string", "*int", "*time.Time", "*float64"} {
+		tag := getGormTag("Nickname", fieldType)
+		assert.NotContains(t, tag, "not null", "pointer field type %s must not be forced not-null", fieldType)
+	}
+}
+
 func TestIsSystemField(t *testing.T) {
 	t.Parallel()
 

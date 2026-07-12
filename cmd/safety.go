@@ -49,7 +49,10 @@ func (sm *SafetyManager) CheckFileConflict(filePath string) error {
 			return nil
 		}
 
-		if !sm.Force {
+		// --backup is itself permission to overwrite (after backing up), not
+		// just a modifier of --force: the error message below says exactly
+		// that, so requiring --force too would contradict it (GOCA-CI-1).
+		if !sm.Force && !sm.Backup {
 			return fmt.Errorf("file already exists: %s (use --force to overwrite or --backup to backup first)", filePath)
 		}
 

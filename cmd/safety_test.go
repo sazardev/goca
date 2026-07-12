@@ -72,6 +72,28 @@ func TestSafetyManager_CheckFileConflict_ExistingFile_NoForce(t *testing.T) {
 	assert.Contains(t, err.Error(), "already exists")
 }
 
+// Regression test (GOCA-CI-1): --backup alone must be sufficient to overwrite
+// an existing file (backing it up first), matching the error message's own
+// wording ("use --force to overwrite or --backup to backup first") — it
+// previously required --force in addition to --backup, so --backup alone was
+// silently a no-op.
+func TestSafetyManager_CheckFileConflict_BackupAloneOverwrites(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	filePath := filepath.Join(dir, "existing.go")
+	require.NoError(t, os.WriteFile(filePath, []byte("old"), 0o644))
+
+	sm := NewSafetyManager(false, false, true)
+	sm.BackupDir = filepath.Join(dir, ".backup")
+	err := sm.CheckFileConflict(filePath)
+	require.NoError(t, err)
+
+	backup := filepath.Join(dir, ".backup", "existing.go.backup")
+	content, readErr := os.ReadFile(backup)
+	require.NoError(t, readErr)
+	assert.Equal(t, "old", string(content))
+}
+
 func TestSafetyManager_CheckFileConflict_DryRun(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()

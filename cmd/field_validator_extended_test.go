@@ -234,6 +234,10 @@ func TestCapitalizeFirst(t *testing.T) {
 		{"", ""},
 		{"Name", "Name"},
 		{"a", "A"},
+		// Regression: must not lowercase the tail — that destroys the
+		// camelCase boundary toGoFieldName relies on downstream to
+		// re-segment "createdAt" as "CreatedAt" rather than "Createdat".
+		{"createdAt", "CreatedAt"},
 	}
 
 	for _, tc := range cases {
@@ -242,4 +246,22 @@ func TestCapitalizeFirst(t *testing.T) {
 			assert.Equal(t, tc.expected, capitalizeFirst(tc.input))
 		})
 	}
+}
+
+// Regression test: camelCase field names must round-trip through
+// parseFieldsWithValidation with their word boundaries intact, matching how
+// snake_case already behaves. Previously capitalizeFirst lowercased the tail
+// of the name before toGoFieldName ran, destroying the camelCase boundary
+// (e.g. "createdAt" -> "Createdat" instead of "CreatedAt").
+func TestParseFieldsWithValidation_CamelCaseFieldNames(t *testing.T) {
+	t.Parallel()
+
+	fields := parseFieldsWithValidation("lastLoginAt:time.Time,userID:int", false)
+
+	names := make([]string, 0, len(fields))
+	for _, f := range fields {
+		names = append(names, f.Name)
+	}
+	assert.Contains(t, names, "LastLoginAt")
+	assert.Contains(t, names, "UserID")
 }

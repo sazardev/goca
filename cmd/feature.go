@@ -279,7 +279,7 @@ func generateCompleteFeature(featureName, fields, database, handlers string, val
 
 	// 6. Register entity for auto-migration
 	ui.Step(6, "Registering entity for auto-migration...")
-	if registered, err := registerEntityForAutoMigration(featureName); err != nil {
+	if registered, err := registerEntityForAutoMigration(featureName, safetyMgr); err != nil {
 		ui.Warning(fmt.Sprintf("Could not register entity for auto-migration: %v", err))
 		ui.Dim("   Tip: Entity was created correctly, but you'll need to configure migration manually")
 	} else if registered {
@@ -610,8 +610,14 @@ func writeMergedFileSafe(path, content string, sm ...*SafetyManager) error {
 // writeMainGoInPlace overwrites an existing generated file (such as
 // cmd/server/main.go) that we have intentionally rebuilt from its current
 // content. It deliberately does NOT go through the SafetyManager "file already
-// exists" guard, because these are in-place edits of files we just read.
-func writeMainGoInPlace(path, content string) error {
+// exists" guard, because these are in-place edits of files we just read. An
+// optional SafetyManager routes through WriteMergedFile so --dry-run is
+// honored (skipping the actual write) instead of always writing for real.
+func writeMainGoInPlace(path, content string, sm ...*SafetyManager) error {
+	if len(sm) > 0 && sm[0] != nil {
+		return sm[0].WriteMergedFile(path, content)
+	}
+
 	if err := validateWritePath(path); err != nil {
 		return err
 	}
@@ -645,7 +651,7 @@ func isEntityAlreadyMigrated(content, entityReference string) bool {
 // runAutoMigrations entities slice in cmd/server/main.go. It is idempotent and
 // adds the domain import if missing. Returns (true, nil) when it actually added
 // the entity, (false, nil) when it was already present.
-func registerEntityForAutoMigration(featureName string) (bool, error) {
+func registerEntityForAutoMigration(featureName string, sm ...*SafetyManager) (bool, error) {
 	mainPath, err := findMainGoFile()
 	if err != nil {
 		return false, err
@@ -675,7 +681,7 @@ func registerEntityForAutoMigration(featureName string) (bool, error) {
 		return false, err
 	}
 
-	if err := writeMainGoInPlace(mainPath, updated); err != nil {
+	if err := writeMainGoInPlace(mainPath, updated, sm...); err != nil {
 		return false, err
 	}
 	return true, nil
