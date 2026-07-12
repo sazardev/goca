@@ -112,23 +112,51 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Update CHANGELOG and release blog
+      id: changelog
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        NEW_VERSION="${{ needs.check-changes.outputs.new_version }}"
+        DATE="$(date -u +%Y-%m-%d)"
+
+        node docs/scripts/log-release.mjs "${NEW_VERSION#v}" "$DATE"
+
+        if git diff --quiet -- CHANGELOG.md docs/blog/releases/latest.md; then
+          echo "No CHANGELOG/blog changes to commit."
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        else
+          git add CHANGELOG.md docs/blog/releases/latest.md
+          git commit -m "docs: log $NEW_VERSION in CHANGELOG and release blog [skip ci]"
+          git push origin HEAD:master
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Create and push tag
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
+
         NEW_VERSION="${{ needs.check-changes.outputs.new_version }}"
         RELEASE_TYPE="${{ needs.check-changes.outputs.release_type }}"
-        
+
         echo "Creating $RELEASE_TYPE release: $NEW_VERSION"
-        
-        # Create simple tag message
+
+        # Create simple tag message. Tag HEAD (which now includes the
+        # CHANGELOG/blog commit above, if any) rather than the commit
+        # originally checked out.
         git tag -a "$NEW_VERSION" -m "Auto Release $NEW_VERSION ($RELEASE_TYPE) - Automated release generated from commit analysis"
         git push origin "$NEW_VERSION"
-        
+
         echo "✅ Tag $NEW_VERSION created and pushed successfully"
-    
+
     - name: Trigger release workflow
       env:
         GH_TOKEN: ${{ github.token }}
@@ -143,3 +171,16 @@ jobs:
 
         echo "🎉 Tag $NEW_VERSION created and release.yml dispatched!"
         echo "🔗 Check progress at: https://github.com/sazardev/goca/actions"
+
+    - name: Dispatch docs deploy
+      if: steps.changelog.outputs.changed == 'true'
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        # Same anti-recursion limit as above: the CHANGELOG/blog commit was
+        # pushed with GITHUB_TOKEN, so Deploy Docs' `push: paths: docs/**`
+        # trigger never fires on its own. Dispatch it explicitly so the new
+        # release blog entry publishes without waiting for an unrelated
+        # docs-touching push.
+        gh workflow run deploy-docs.yml --ref master
+        echo "📚 Deploy Docs dispatched for the updated release blog"

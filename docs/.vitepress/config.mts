@@ -17,6 +17,7 @@ const releaseMetaMap: Record<string, { version: string; date: string }> = {
     'blog/releases/v1-18-7.md': { version: '1.18.7', date: '2026-03-24' },
     'blog/releases/v1-19-0.md': { version: '1.19.0', date: '2026-03-26' },
     'blog/releases/v1-22-0.md': { version: '1.22.0', date: '2026-03-27' },
+    'blog/releases/v1-25-15.md': { version: '1.25.15', date: '2026-07-12' },
 }
 
 // Load OG images mapping
@@ -347,12 +348,13 @@ export default defineConfig({
                 {
                     text: 'Latest Release',
                     items: [
-                        { text: 'v1.22.0', link: '/blog/releases/v1-22-0' },
+                        { text: 'v1.22.1 — v1.25.15', link: '/blog/releases/v1-25-15' },
                     ]
                 },
                 {
                     text: 'Previous Releases',
                     items: [
+                        { text: 'v1.22.0', link: '/blog/releases/v1-22-0' },
                         { text: 'v1.19.0 — v1.21.0', link: '/blog/releases/v1-19-0' },
                     ]
                 },

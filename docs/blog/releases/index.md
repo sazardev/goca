@@ -88,13 +88,37 @@ Track the evolution of Goca through detailed release notes. Each release include
 <div class="release-item">
   <div class="release-header">
     <h2 class="release-version">
-      <a href="/goca/blog/releases/v1-22-0">v1.22.0</a>
+      <a href="/goca/blog/releases/v1-25-15">v1.22.1 — v1.25.15</a>
       <span class="badge badge-latest">Latest</span>
+    </h2>
+    <span class="release-date">March 27 – July 12, 2026</span>
+  </div>
+  <p class="release-description">
+    Stabilization — Five audit passes that generated real projects across every flag/database combination and fixed whatever failed to compile, vet, or run. Custom templates are now actually wired into generation, the release pipeline is fixed (auto-created tags weren't publishing releases for ~4 months), and a large documentation coherence pass corrected stale examples across the site and wiki.
+  </p>
+  <div class="release-highlights">
+    <strong>Key Changes:</strong>
+    <ul>
+      <li>Custom templates (<code>goca template init</code>) are now used by generation instead of being inert</li>
+      <li>Fixed a silent CI bug: auto-release tags never triggered a real release, since v1.22.1</li>
+      <li>Every generator now produces compiling code across all 8 supported databases</li>
+      <li><code>goca integrate</code>, <code>goca di --wire</code>, and multi-feature projects wire correctly into <code>main.go</code></li>
+      <li>DTO-layer validation now returns 422 for bad input instead of a 500 from the domain layer</li>
+      <li>Custom field types, pointer (optional) fields, and camelCase field names all generate correctly</li>
+      <li>Large documentation coherence pass across <code>docs/commands/*.md</code> and the wiki</li>
+    </ul>
+  </div>
+</div>
+
+<div class="release-item">
+  <div class="release-header">
+    <h2 class="release-version">
+      <a href="/goca/blog/releases/v1-22-0">v1.22.0</a>
     </h2>
     <span class="release-date">March 27, 2026</span>
   </div>
   <p class="release-description">
-    Analyze, Cache, CI &amp; Middleware — Largest release to date: <code>goca analyze</code> with 30 rules across 6 categories (AST-based static analysis), Redis cache decorator pattern, GitHub Actions CI generation, 7 composable middleware types, and MCP server for AI assistant integration.
+    Analyze, Cache, CI &amp; Middleware — Largest feature release to date: <code>goca analyze</code> with 30 rules across 6 categories (AST-based static analysis), Redis cache decorator pattern, GitHub Actions CI generation, 7 composable middleware types, and MCP server for AI assistant integration.
   </p>
   <div class="release-highlights">
     <strong>Key Changes:</strong>

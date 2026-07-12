@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.15] - 2026-07-12
+
 ### Fixed
 - **ci**: `auto-release.yml` pushed release tags using the default `GITHUB_TOKEN`, which GitHub's anti-recursion protection silently prevents from triggering `release.yml`'s `push: tags: v*` — every auto-created tag since v1.22.1 (17 tags) never built or published a release. Now explicitly dispatches `release.yml` via `workflow_dispatch` after tagging, which isn't subject to that restriction. Also fixed `release.yml` pinning Go 1.21 while `go.mod` requires 1.25.1+ (now uses `go-version-file: "go.mod"`, matching `test.yml`).
 - **feature**: `isFeatureAlreadyRegistered` checked for a loose `/<entity>s` substring in `main.go` to decide whether a feature's routes were already wired — false-positiving whenever the project's module name happens to start with the pluralized entity name (e.g. module `bookstore` produces an import path containing `/bookstore`, which itself contains `/books`, so a `Book` feature was silently never registered in `main.go` — a very plausible real-world collision, since naming a project after its main entity is common). Now matches the exact `Setup<Entity>Routes(` call the generator writes.
