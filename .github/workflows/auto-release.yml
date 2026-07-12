@@ -107,6 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
     steps:
     - uses: actions/checkout@v4
       with:
@@ -129,7 +130,16 @@ jobs:
         echo "✅ Tag $NEW_VERSION created and pushed successfully"
     
     - name: Trigger release workflow
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
-        echo "🎉 Tag created successfully!"
-        echo "📦 Release workflow will be triggered automatically"
+        NEW_VERSION="${{ needs.check-changes.outputs.new_version }}"
+
+        # release.yml listens on `push: tags: v*`, but a tag pushed with the
+        # default GITHUB_TOKEN never fires that trigger — GitHub's anti-recursion
+        # protection silently drops it (AUTO-RELEASE-1). Dispatch it explicitly
+        # instead; workflow_dispatch via the API is not subject to that limit.
+        gh workflow run release.yml --ref master -f version="$NEW_VERSION"
+
+        echo "🎉 Tag $NEW_VERSION created and release.yml dispatched!"
         echo "🔗 Check progress at: https://github.com/sazardev/goca/actions"
