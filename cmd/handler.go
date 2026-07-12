@@ -353,8 +353,23 @@ func writeSwaggerAnnotations(content *strings.Builder, entity, summary, method, 
 	fmt.Fprintf(content, "// @Router %s [%s]\n", route, method)
 }
 
+// handlerReceiverVar derives the receiver variable name for a generated
+// handler method from the handler's first letter, e.g. "WidgetHandler" ->
+// "w". Every generated method signature is fixed as
+// "(w http.ResponseWriter, r *http.Request)", so an entity name starting
+// with "W" or "R" (Widget, Wallet, Report, ...) would otherwise collide the
+// receiver with one of those two parameters ("w redeclared in this block").
+// Falls back to "h" (handler) for those two letters.
+func handlerReceiverVar(handlerName string) string {
+	v := strings.ToLower(string(handlerName[0]))
+	if v == "w" || v == "r" {
+		return "h"
+	}
+	return v
+}
+
 func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName string, validation, swagger bool) {
-	handlerVar := strings.ToLower(string(handlerName[0]))
+	handlerVar := handlerReceiverVar(handlerName)
 	entityLower := strings.ToLower(entity)
 
 	if swagger {
@@ -390,7 +405,7 @@ func generateCreateHandlerMethod(content *strings.Builder, entity, handlerName s
 }
 
 func generateGetHandlerMethod(content *strings.Builder, entity, handlerName string, swagger bool) {
-	handlerVar := strings.ToLower(string(handlerName[0]))
+	handlerVar := handlerReceiverVar(handlerName)
 	entityLower := strings.ToLower(entity)
 
 	if swagger {
@@ -419,7 +434,7 @@ func generateGetHandlerMethod(content *strings.Builder, entity, handlerName stri
 }
 
 func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName string, validation, swagger bool) {
-	handlerVar := strings.ToLower(string(handlerName[0]))
+	handlerVar := handlerReceiverVar(handlerName)
 	entityLower := strings.ToLower(entity)
 
 	if swagger {
@@ -458,7 +473,7 @@ func generateUpdateHandlerMethod(content *strings.Builder, entity, handlerName s
 }
 
 func generateDeleteHandlerMethod(content *strings.Builder, entity, handlerName string, swagger bool) {
-	handlerVar := strings.ToLower(string(handlerName[0]))
+	handlerVar := handlerReceiverVar(handlerName)
 	entityLower := strings.ToLower(entity)
 
 	if swagger {
@@ -484,7 +499,7 @@ func generateDeleteHandlerMethod(content *strings.Builder, entity, handlerName s
 }
 
 func generateListHandlerMethod(content *strings.Builder, entity, handlerName string, swagger bool) {
-	handlerVar := strings.ToLower(string(handlerName[0]))
+	handlerVar := handlerReceiverVar(handlerName)
 	entityLower := strings.ToLower(entity)
 
 	if swagger {

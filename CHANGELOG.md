@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **handler**: an entity name starting with "W" or "R" (Widget, Wallet, Report, ...) broke every generated HTTP handler method — the receiver variable, derived from the entity's first letter, collided with the fixed `w http.ResponseWriter`/`r *http.Request` parameter names ("w redeclared in this block"). Added `handlerReceiverVar`, which falls back to `h` for those two letters.
+
 ## [1.25.15] - 2026-07-12
 
 ### Fixed

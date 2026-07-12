@@ -32,6 +32,23 @@ func TestGenerateCreateHandlerMethod(t *testing.T) {
 	})
 }
 
+// Regression test: an entity name starting with "W" or "R" (Widget, Wallet,
+// Report, ...) must not collide the receiver variable with the fixed
+// "w http.ResponseWriter"/"r *http.Request" parameter names.
+func TestHandlerReceiverVar_AvoidsParamCollisions(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, "h", handlerReceiverVar("WidgetHandler"))
+	assert.Equal(t, "h", handlerReceiverVar("ReportHandler"))
+	assert.Equal(t, "p", handlerReceiverVar("ProductHandler"))
+
+	var b strings.Builder
+	generateCreateHandlerMethod(&b, "Widget", "WidgetHandler", false, false)
+	output := b.String()
+	assert.Contains(t, output, "func (h *WidgetHandler) CreateWidget(w http.ResponseWriter, r *http.Request)")
+	assert.NotContains(t, output, "func (w *WidgetHandler)")
+}
+
 func TestGenerateGetHandlerMethod(t *testing.T) {
 	t.Parallel()
 	var b strings.Builder
