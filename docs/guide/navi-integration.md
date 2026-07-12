@@ -13,7 +13,7 @@ description: Use goca with Navi CLI cheat sheets for fast command lookup and int
 
 ## What You Get
 
-The `goca.cheat` file provides **133 snippets** across 19 sections:
+The `goca.cheat` file provides **164 snippets** across 23 sections:
 
 | Section | Examples |
 |---|---|

@@ -123,6 +123,46 @@ func TestGetRequiredDependenciesForFeature(t *testing.T) {
 	})
 }
 
+// Regression test: goca init bakes the driver dependency into go.mod for a
+// project's initial database, but a standalone `goca feature`/`goca
+// repository --database X` targeting a *different* database (most visibly
+// dynamodb/elasticsearch, whose packages are never a transitive dependency
+// of anything else already present) previously added nothing at all.
+func TestGetRequiredDependenciesForDatabase(t *testing.T) {
+	t.Parallel()
+	dm := NewDependencyManager(t.TempDir(), false)
+
+	cases := []struct {
+		database    string
+		wantModules []string
+	}{
+		{DBPostgres, []string{"gorm.io/gorm", "gorm.io/driver/postgres"}},
+		{DBPostgresJSON, []string{"gorm.io/gorm", "gorm.io/driver/postgres"}},
+		{DBMySQL, []string{"gorm.io/gorm", "gorm.io/driver/mysql"}},
+		{DBSQLite, []string{"gorm.io/gorm", "gorm.io/driver/sqlite"}},
+		{DBSQLServer, []string{"gorm.io/gorm", "gorm.io/driver/sqlserver"}},
+		{DBMongoDB, []string{"go.mongodb.org/mongo-driver"}},
+		{DBDynamoDB, []string{"github.com/aws/aws-sdk-go-v2", "github.com/aws/aws-sdk-go-v2/service/dynamodb", "github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"}},
+		{DBElasticsearch, []string{"github.com/elastic/go-elasticsearch/v8"}},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.database, func(t *testing.T) {
+			t.Parallel()
+			deps := dm.GetRequiredDependenciesForDatabase(tc.database)
+			require.Len(t, deps, len(tc.wantModules))
+			for i, module := range tc.wantModules {
+				assert.Equal(t, module, deps[i].Module)
+			}
+		})
+	}
+
+	t.Run("unknown database", func(t *testing.T) {
+		t.Parallel()
+		assert.Empty(t, dm.GetRequiredDependenciesForDatabase("unknown"))
+	})
+}
+
 func TestIsVersionCompatible(t *testing.T) {
 	t.Parallel()
 	dm := NewDependencyManager(t.TempDir(), false)

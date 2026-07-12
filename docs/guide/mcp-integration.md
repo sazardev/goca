@@ -162,6 +162,9 @@ The AI calls `goca_mocks` with no name parameter, targeting every interface.
 | `goca_init` | Scaffold a new project |
 | `goca_doctor` | Diagnose architecture issues |
 | `goca_upgrade` | Check for / install updates |
+| `goca_analyze` | Deep static self-analysis (30 rules, 6 categories) |
+| `goca_ci` | Generate CI/CD pipeline configuration |
+| `goca_middleware` | Generate a composable HTTP middleware package |
 
 Full parameter documentation → [goca mcp-server command reference](/commands/mcp-server)
 

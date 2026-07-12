@@ -36,11 +36,13 @@ goca version
 **Expected output:**
 
 ```
-Goca v1.18.2
-Build: 2025-10-11T10:00:00Z
-Go Version: go1.24.5
-OS/Arch: linux/amd64
+Goca v1.25.15
+Build: unknown
+Go Version: go1.25.1
+Git Commit: unknown
 ```
+
+`Build` and `Git Commit` are only populated on the official release binaries (built with `-ldflags`); a `go install`-built binary always shows `unknown` for both — that's expected. There's no separate `OS/Arch` line. Run `goca version --short` (or `-s`) to print just the bare version number.
 
 ::: details Troubleshooting: Command Not Found
 If you get `command not found`, ensure `$GOPATH/bin` is in your PATH:
@@ -184,25 +186,46 @@ goca --help
 You should see the help menu with all available commands:
 
 ```
-Goca - Go Clean Architecture Code Generator
+Goca is a powerful CLI code generator for Go that helps you create
+Clean Architecture projects following best practices.
+
+It generates clean, well-structured layered code, allowing you to
+focus on business logic instead of repetitive configuration tasks.
 
 Usage:
   goca [command]
 
 Available Commands:
-  init        Initialize a new Clean Architecture project
-  feature     Generate a complete feature with all layers
-  entity      Generate a domain entity
-  usecase     Generate use cases
-  repository  Generate repositories
-  handler     Generate handlers
-  di          Generate dependency injection
-  integrate   Integrate existing features
-  version     Show version information
+  analyze          Deep self-analysis of the generated project for quality and correctness
+  ci               Generate CI/CD pipeline configuration
+  completion       Generate the autocompletion script for the specified shell
+  config           Manage GOCA configuration
+  di               Generate dependency injection container
+  doctor           Check project health and Clean Architecture structure
+  entity           Generate pure domain entity
+  feature          Generate complete feature with Clean Architecture
+  handler          Generate handlers for different protocols
+  help             Help about any command
+  init             Initialize Clean Architecture project
+  integrate        Integrate existing features with DI and main.go
+  interfaces       Generate interfaces only for TDD
+  mcp-server       Start the Goca MCP server for AI assistant integration
+  messages         Generate messages and constants
+  middleware       Generate middleware package for HTTP handlers
+  mocks            Generate mock implementations for interfaces
+  repository       Generate repositories with interfaces
+  template         Manage custom templates
+  test-integration Generate integration tests for a feature
+  upgrade          Upgrade project configuration to the current Goca version
+  usecase          Generate use cases with DTOs
+  version          Display Goca CLI version
 
 Flags:
-  -h, --help      help for goca
-  -v, --version   version for goca
+  -h, --help             help for goca
+      --no-color         Disable colored output
+      --no-interactive   Disable interactive prompts
+  -q, --quiet            Suppress all output except errors and success messages
+  -v, --verbose          Enable verbose output with debug details
 
 Use "goca [command] --help" for more information about a command.
 ```

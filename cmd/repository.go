@@ -112,6 +112,23 @@ well-defined interfaces and database-specific implementations.`,
 			return
 		}
 
+		// The generated implementation needs its database driver in go.mod —
+		// `goca init` only adds the driver for the project's *initial*
+		// database, so a standalone `goca repository --database X` targeting
+		// a different one (most visibly dynamodb/elasticsearch, which are
+		// never a transitive dependency of anything else already present)
+		// would otherwise leave the project failing to build until the user
+		// ran `go get` manually.
+		if effectiveDatabase != "" && !interfaceOnly {
+			projectRoot, _ := os.Getwd()
+			depMgr := NewDependencyManager(projectRoot, false)
+			for _, dep := range depMgr.GetRequiredDependenciesForDatabase(effectiveDatabase) {
+				if err := depMgr.AddDependency(dep); err != nil {
+					ui.Warning(fmt.Sprintf("Could not add dependency %s: %v", dep.Module, err))
+				}
+			}
+		}
+
 		ui.Success(fmt.Sprintf("Repository for '%s' generated successfully!", entity))
 	},
 }

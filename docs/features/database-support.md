@@ -63,7 +63,7 @@ goca feature Product --fields "name:string,price:float64" --database mysql
 - Strong compatibility
 - Replication support
 
-**Generated File:** `internal/repository/mysql_product_repository.go`
+**Generated File:** `internal/repository/postgres_product_repository.go` (MySQL reuses the same GORM-based implementation as PostgreSQL — there's no separate `mysql_*` file)
 
 ---
 
@@ -89,7 +89,7 @@ goca feature Employee --fields "name:string,salary:float64" --database sqlserver
 
 #### SQLite
 **Type:** SQL (Embedded)  
-**Driver:** database/sql + SQLite driver  
+**Driver:** GORM + sqlite driver  
 **Best For:** Development, testing, embedded applications, single-file databases
 
 ```bash
@@ -100,10 +100,9 @@ goca feature Setting --fields "key:string,value:string" --database sqlite
 - Single file storage (`.db`)
 - No server required
 - ACID compliance
-- JSON marshaling for flexibility
 - Perfect for prototyping
 
-**Generated File:** `internal/repository/sqlite_setting_repository.go`
+**Generated File:** `internal/repository/postgres_setting_repository.go` (SQLite reuses the same GORM-based implementation as PostgreSQL — there's no separate `sqlite_*` file)
 
 ---
 
@@ -124,7 +123,7 @@ goca feature Article --fields "title:string,content:string,tags:string" --databa
 - Horizontal scalability
 - Document transactions
 
-**Generated File:** `internal/repository/mongodb_article_repository.go`
+**Generated File:** `internal/repository/mongo_article_repository.go`
 
 ---
 

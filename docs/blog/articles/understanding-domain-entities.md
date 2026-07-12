@@ -214,8 +214,8 @@ This generates methods that implement domain logic:
 
 ```go
 func (o *Order) Validate() error {
-    if o.Customer_id < 0 {
-        return ErrInvalidOrderCustomer_id
+    if o.CustomerID < 0 {
+        return ErrInvalidOrderCustomerID
     }
     if o.Total < 0 {
         return ErrInvalidOrderTotal
@@ -226,6 +226,8 @@ func (o *Order) Validate() error {
     return nil
 }
 ```
+
+Notice that the `customer_id:int` field is normalized to the idiomatic Go field name `CustomerID`, not a literal `Customer_id`. Goca's field-name normalization converts snake_case and camelCase input into proper Go naming conventions (including common initialisms like `ID`), and the same normalized name is used consistently for both the struct field and the generated error variable (`ErrInvalidOrderCustomerID`).
 
 You can extend these with additional business methods:
 
@@ -263,13 +265,26 @@ This generates:
 
 ```go
 type Product struct {
-    ID          uint           `json:"id" gorm:"primaryKey"`
-    Name        string         `json:"name" gorm:"type:varchar(255);not null"`
-    Price       float64        `json:"price" gorm:"type:decimal(10,2);not null;default:0"`
-    Stock       int            `json:"stock" gorm:"type:integer;not null;default:0"`
-    CreatedAt   time.Time      `json:"created_at" gorm:"autoCreateTime"`
-    UpdatedAt   time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
-    DeletedAt   gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+    ID        uint           `json:"id" gorm:"primaryKey;autoIncrement"`
+    Name      string         `json:"name" gorm:"type:varchar(255);not null" validate:"required"`
+    Price     float64        `json:"price" gorm:"type:decimal(10,2);not null;default:0" validate:"required,gte=0"`
+    Stock     int            `json:"stock" gorm:"type:integer;not null;default:0" validate:"required,gte=0"`
+    CreatedAt time.Time      `json:"created_at" gorm:"autoCreateTime"`
+    UpdatedAt time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
+    DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
+}
+
+func (p *Product) Validate() error {
+    if p.Name == "" {
+        return ErrInvalidProductName
+    }
+    if p.Price < 0 {
+        return ErrInvalidProductPrice
+    }
+    if p.Stock < 0 {
+        return ErrInvalidProductStock
+    }
+    return nil
 }
 
 func (p *Product) SoftDelete() {
@@ -281,7 +296,7 @@ func (p *Product) IsDeleted() bool {
 }
 ```
 
-Soft deletes preserve data while marking it as inactive. The `DeletedAt` field enables this pattern without permanently removing records.
+The `Validate()` method and `validate` struct tags appear here even though `--validation` was not passed on the command line: a project's `.goca.yaml` (created by `goca init`) enables validation, timestamps, and soft-delete by default, and any flag left unset on the command falls back to that config. Passing `--validation=false` explicitly overrides the config default. Soft deletes preserve data while marking it as inactive. The `DeletedAt` field enables this pattern without permanently removing records.
 
 ## Complete Entity Example
 
@@ -309,7 +324,7 @@ import (
 type Product struct {
     ID          uint           `json:"id" gorm:"primaryKey;autoIncrement"`
     Name        string         `json:"name" gorm:"type:varchar(255);not null" validate:"required"`
-    Description string         `json:"description" gorm:"type:text"`
+    Description string         `json:"description" gorm:"type:text" validate:"required"`
     Price       float64        `json:"price" gorm:"type:decimal(10,2);not null;default:0" validate:"required,gte=0"`
     Stock       int            `json:"stock" gorm:"type:integer;not null;default:0" validate:"required,gte=0"`
     IsActive    bool           `json:"is_active" gorm:"type:boolean;not null;default:false"`
@@ -322,6 +337,9 @@ func (p *Product) Validate() error {
     if p.Name == "" {
         return ErrInvalidProductName
     }
+    if p.Description == "" {
+        return ErrInvalidProductDescription
+    }
     if p.Price < 0 {
         return ErrInvalidProductPrice
     }
@@ -329,6 +347,10 @@ func (p *Product) Validate() error {
         return ErrInvalidProductStock
     }
     return nil
+}
+
+func (p *Product) IsExpensive() bool {
+    return p.Price > 1000.0
 }
 
 func (p *Product) SoftDelete() {
@@ -340,7 +362,7 @@ func (p *Product) IsDeleted() bool {
 }
 ```
 
-You can extend this with additional business methods:
+With `--business-rules` enabled, Goca also infers a small business method automatically from recognized field names — here, an `IsExpensive()` helper derived from the `price` field. You can extend this with additional business methods:
 
 ```go
 func (p *Product) IsAvailable() bool {

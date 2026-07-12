@@ -2,50 +2,13 @@
 
 ## Overview
 
-GOCA supports centralized project configuration through the `.goca.yaml` file. This powerful feature allows you to define project-wide settings, conventions, and preferences that will be applied automatically to all code generation commands.
+GOCA supports centralized project configuration through the `.goca.yaml` file. This allows you to define project-wide settings, conventions, and preferences that are applied automatically to code generation commands.
 
 ### Benefits
 
 - **Consistency**: Maintain uniform settings across your entire project
 - **Productivity**: Avoid repeating the same CLI flags for every command
-- *### 2. Start Simple
-
-Begin### 3. Document Your Choices
-
-### 4. Version Control
-
-Always commit `.goca.yaml` to version control so team members can use the same configuration:
-
-```bash
-git add .goca.yaml
-git commit -m "Add GOCA configuration"
-```
-
-### 5. Team Standardsts to explain configuration decisions, especially if you've customized a template:
-
-```yaml
-# Using PostgreSQL for advanced features
-database:
-  type: postgres
-  
-  # Enable soft deletes for audit trail
-  features:
-    soft_delete: true
-    timestamps: true
-```
-
-### 4. Version Controlnfiguration and add settings as needed. If using a template, you already have a good starting point:
-
-```yaml
-project:
-  name: my-project
-  module: github.com/user/my-project
-
-database:
-  type: postgres
-```
-
-### 3. Document Your Choicesation**: Share standardized configurations across your team
+- **Standardization**: Share a configuration across your team
 - **Flexibility**: Override configuration with CLI flags when needed
 - **Documentation**: Configuration files serve as self-documenting project preferences
 
@@ -54,30 +17,27 @@ database:
 Use `.goca.yaml` when:
 - Working on projects with consistent patterns and conventions
 - Managing multiple features with the same database type
-- Enforcing team-wide coding standards
-- Automating CI/CD workflows
+- Enforcing team-wide naming conventions
 - Customizing code generation templates
 
-### Quick Start with Templates
+### Quick Start
 
-The fastest way to get started with configuration is using project templates. Templates automatically generate optimized `.goca.yaml` files for specific use cases:
+The `.goca.yaml` file is generated automatically when you scaffold a project:
 
 ```bash
-# List available templates
-goca init --list-templates
-
-# Initialize with a template
-goca init my-api --module github.com/user/my-api --template rest-api
+goca init my-api --module github.com/user/my-api
 ```
 
-**Available templates:**
-- `minimal`: Lightweight starter with essentials
-- `rest-api`: Production REST API with PostgreSQL, validation, testing
-- `microservice`: Distributed systems with events and comprehensive testing
-- `monolith`: Full-featured web application with auth and caching
-- `enterprise`: Complete enterprise setup with security and monitoring
+`goca init` writes `.goca.yaml` unless you pass `--config=false`. You can also regenerate it later, or inspect/validate an existing one:
 
-See the [init command documentation](/commands/init#project-templates) for detailed information about templates.
+```bash
+goca config show      # print the current .goca.yaml
+goca config validate  # validate it (usable as a CI gate)
+```
+
+::: warning `goca config init` writes a different, incompatible file
+`goca config init` is a separate, older command that writes its own hand-authored template with sections (`quality`, `infrastructure`, `defaults`) that **do not match** the schema described below and are silently ignored by every other Goca command. Prefer `goca init --config` (the default) to generate `.goca.yaml` — this guide documents that schema. Treat `goca config init` as legacy/experimental until this duplication is resolved.
+:::
 
 ## Configuration File Location
 
@@ -105,9 +65,9 @@ This allows you to define common settings in your configuration file while still
 
 ## Core Configuration Sections
 
-### Project Configuration
+The sections below reflect the real `.goca.yaml` schema (the `GocaConfig` struct). Not every field influences code generation yet — each section notes what is actually wired in versus parsed-and-reserved for future use.
 
-Define basic project metadata and information:
+### Project Configuration
 
 ```yaml
 project:
@@ -119,17 +79,9 @@ project:
   license: MIT
 ```
 
-**Fields:**
-- `name`: Project name
-- `module`: Go module path
-- `description`: Project description
-- `version`: Project version
-- `author`: Author or team name
-- `license`: License type
+`name` and `module` are used as generation inputs; the rest is descriptive metadata.
 
 ### Database Configuration
-
-Configure database settings and features:
 
 ```yaml
 database:
@@ -147,25 +99,25 @@ database:
     audit: false
 ```
 
-**Supported database types:**
+**Supported database types (`database.type`):**
 - `postgres`: PostgreSQL
+- `postgres-json`: PostgreSQL with JSONB fields
 - `mysql`: MySQL/MariaDB
+- `sqlite`: SQLite (no server required — good default for local development)
+- `sqlserver`: Microsoft SQL Server
 - `mongodb`: MongoDB
+- `dynamodb`: AWS DynamoDB
+- `elasticsearch`: Elasticsearch
 
-**Migration settings:**
-- `enabled`: Enable/disable migrations
-- `auto_generate`: Auto-generate migration files
-- `directory`: Migration files directory
+`mysql` and `sqlite` reuse the same GORM-based repository implementation as `postgres` — there is one generated file per database "family", not one per driver.
 
-**Database features:**
-- `soft_delete`: Add soft delete functionality to entities
-- `timestamps`: Add created_at/updated_at fields
-- `uuid`: Use UUID for primary keys
-- `audit`: Enable audit logging
+**Actually applied to generation:**
+- `type` drives which repository/DI implementation is generated
+- `features.soft_delete` and `features.timestamps` drive entity field generation
+
+**Parsed but not yet consumed by generators:** `migrations`, `connection`, and the remaining `features` flags (`uuid`, `audit`, `versioning`, `partitioning`, `indexes`, `constraints`).
 
 ### Architecture Configuration
-
-Define Clean Architecture layers and naming conventions:
 
 ```yaml
 architecture:
@@ -182,34 +134,30 @@ architecture:
     handler:
       enabled: true
       directory: internal/handler
-  
-  patterns:
-    - repository
-    - service
-    - dto
-  
+
   naming:
-    files: lowercase
     entities: PascalCase
+    fields: camelCase
+    files: lowercase
+    packages: lowercase
+    constants: SCREAMING_SNAKE
     variables: camelCase
     functions: PascalCase
-    constants: SCREAMING_SNAKE
 ```
 
 **Layer configuration:**
-- `enabled`: Enable/disable layer generation
-- `directory`: Custom directory for layer
+- `enabled`: enable/disable that layer (only `layers.handler.enabled` is actually read — it controls whether HTTP handler code is generated)
+- `directory`: custom directory for the layer (the key is `directory`, not `path`)
 
-**Naming conventions:**
-- `lowercase`: user_service.go
-- `snake_case`: user_service.go
-- `PascalCase`: UserService
-- `camelCase`: userService
-- `SCREAMING_SNAKE`: MAX_RETRIES
+**Naming conventions** (all actively applied via `GetNamingConvention()`):
+- `lowercase` / `snake_case`: `user_service.go`
+- `PascalCase`: `UserService`
+- `camelCase`: `userService`
+- `SCREAMING_SNAKE`: `MAX_RETRIES`
+
+There is also an `architecture.di` block (`type: manual|wire|fx|dig`, `auto_wire`, `providers`, `modules`) — the type is validated but not yet wired into the dependency-injection generator, which always emits manual wiring.
 
 ### Generation Configuration
-
-Control code generation preferences:
 
 ```yaml
 generation:
@@ -217,38 +165,17 @@ generation:
     enabled: true
     library: builtin
     sanitize: true
-  
+
   business_rules:
     enabled: true
-    patterns:
-      - validation
-      - authorization
     events: true
-  
-  documentation:
-    swagger:
-      enabled: true
-      version: "2.0"
-      output: docs/swagger.yaml
-    comments:
-      enabled: true
-      language: english
-      style: godoc
 ```
 
-**Validation options:**
-- `enabled`: Enable field validation
-- `library`: Validation library (builtin, validator, ozzo-validation)
-- `sanitize`: Enable input sanitization
+**Actually applied:** `validation.enabled` and `business_rules.enabled` control whether `goca feature` generates validation code and a business-rules layer. `validation.library` accepts `builtin`, `validator`, or `ozzo-validation`.
 
-**Business rules:**
-- `enabled`: Generate business rules layer
-- `patterns`: Patterns to apply
-- `events`: Enable domain events
+The section also supports `documentation` (swagger/postman/markdown/comment settings) and `style`/`imports` (formatting preferences) — these are parsed and validated but not yet consumed by any generator.
 
 ### Testing Configuration
-
-Configure testing generation preferences:
 
 ```yaml
 testing:
@@ -265,17 +192,9 @@ testing:
   benchmarks: true
 ```
 
-**Testing options:**
-- `enabled`: Enable test generation
-- `framework`: Testing framework (testify, ginkgo, builtin)
-- `coverage`: Code coverage settings
-- `mocks`: Mock generation settings
-- `integration`: Generate integration tests
-- `benchmarks`: Generate benchmark tests
+`framework` accepts `testify`, `ginkgo`, or `builtin`; `coverage.threshold` must be 0-100. Note: this section is currently only read by `goca upgrade`'s diagnostics — no generator branches on it yet (test scaffolding commands like `goca feature --testing` are driven by CLI flags, not this config block).
 
 ### Template Configuration
-
-Customize code generation templates:
 
 ```yaml
 templates:
@@ -284,22 +203,41 @@ templates:
     author: "Development Team"
     copyright: "2024 MyCompany Inc"
     license: "MIT"
-  custom:
-    entity:
-      path: .goca/templates/entity.tmpl
-      type: go-template
 ```
 
-**Template settings:**
-- `directory`: Custom templates directory
-- `variables`: Template variables
-- `custom`: Custom template definitions
+This section is genuinely functional: `directory` points Goca at your `.goca/templates` folder, and any `.tmpl` file placed there (e.g. `entity.tmpl`, `usecase.tmpl`) overrides the corresponding built-in template. See [Template Customization](#template-customization) below.
+
+### Features Configuration
+
+```yaml
+features:
+  auth:
+    enabled: true
+    type: jwt
+  cache:
+    enabled: true
+    type: redis
+```
+
+`auth.type` accepts `jwt`, `oauth2`, `session`, or `basic`; `cache.type` accepts `redis`, `memcached`, or `inmemory`. Beyond validation, this section is currently only exposed as data to custom templates and to `goca upgrade` diagnostics — enabling `features.auth` does not by itself generate authentication middleware (use `goca middleware` for that).
+
+### Deploy Configuration
+
+```yaml
+deploy:
+  docker:
+    enabled: true
+  kubernetes:
+    enabled: false
+  ci:
+    provider: github-actions
+```
+
+Parsed and validated, but not yet applied to generation — Dockerfile/Kubernetes/CI file generation is currently driven by CLI flags and `--database`, not by this block. Treat it as reserved for a future release.
 
 ## Configuration Examples
 
 ### Minimal Configuration
-
-Simple configuration for small projects:
 
 ```yaml
 project:
@@ -308,8 +246,6 @@ project:
 ```
 
 ### Web Application
-
-Configuration for a web application with HTTP handlers:
 
 ```yaml
 project:
@@ -323,8 +259,6 @@ generation:
 
 ### Microservice
 
-Configuration for a microservice with database and testing:
-
 ```yaml
 project:
   name: user-service
@@ -335,11 +269,6 @@ database:
   migrations:
     enabled: true
 
-architecture:
-  patterns:
-    - repository
-    - service
-
 testing:
   enabled: true
   framework: testify
@@ -347,9 +276,7 @@ testing:
     enabled: true
 ```
 
-### Enterprise Application
-
-Comprehensive configuration for enterprise applications:
+### Full Configuration
 
 ```yaml
 project:
@@ -359,8 +286,6 @@ project:
 
 database:
   type: postgres
-  migrations:
-    enabled: true
   features:
     soft_delete: true
     timestamps: true
@@ -392,9 +317,7 @@ architecture:
 
 ## Using Configuration with Commands
 
-### Initialize Project with Configuration
-
-When you have a `.goca.yaml` file, GOCA will automatically use it:
+### Generation Commands Load It Automatically
 
 ```bash
 # Configuration will be loaded automatically
@@ -403,19 +326,16 @@ goca feature Product --fields "name:string,price:float64,stock:int"
 
 ### Override Configuration
 
-You can override configuration settings using CLI flags:
-
 ```bash
 # Override database type from config
 goca feature Order --database mysql
 ```
 
-### View Effective Configuration
-
-Check what configuration is being used:
+### View and Validate Configuration
 
 ```bash
-goca config show
+goca config show      # print the current .goca.yaml
+goca config validate  # validate types, naming, thresholds, etc.
 ```
 
 ## Template Customization
@@ -428,20 +348,18 @@ goca config show
 mkdir -p .goca/templates
 ```
 
-2. Configure template directory:
+2. Configure the template directory:
 
 ```yaml
 templates:
   directory: .goca/templates
 ```
 
-3. Create custom templates in the directory following GOCA's template structure
+3. Add a template file named after the generator it should override, e.g. `.goca/templates/entity.tmpl`, `.goca/templates/usecase.tmpl`, `.goca/templates/handler.tmpl`, or `.goca/templates/repo.tmpl`, written as a Go `text/template`.
 
-4. GOCA will use your custom templates instead of built-in ones
+4. Goca uses your custom template instead of the built-in one for any generator whose `.tmpl` file is present; generators without a matching file fall back to the built-in template.
 
 ### Template Variables
-
-Define custom variables for templates:
 
 ```yaml
 templates:
@@ -462,19 +380,13 @@ Access variables in templates:
 
 ## Best Practices
 
-### 1. Use Templates for Quick Start
+### 1. Generate Configuration with `goca init`
 
-Start with a predefined template that matches your use case:
+Let `goca init` create your first `.goca.yaml` rather than hand-writing one — it fills in valid defaults for every section:
 
 ```bash
-# List available templates
-goca init --list-templates
-
-# Initialize with appropriate template
-goca init my-api --module github.com/user/my-api --template rest-api
+goca init my-api --module github.com/user/my-api
 ```
-
-Templates provide optimized configurations that you can customize later. See the [init command documentation](/commands/init#project-templates) for details.
 
 ### 2. Start Simple
 
@@ -489,33 +401,33 @@ database:
   type: postgres
 ```
 
-### 2. Document Your Choices
+### 3. Document Your Choices
 
-Add comments to explain configuration decisions:
+Add comments to explain configuration decisions, especially if you've customized a template:
 
 ```yaml
 # Using PostgreSQL for advanced features
 database:
   type: postgres
-  
+
   # Enable soft deletes for audit trail
   features:
     soft_delete: true
     timestamps: true
 ```
 
-### 3. Version Control
+### 4. Version Control
 
-Always commit `.goca.yaml` to version control:
+Always commit `.goca.yaml` to version control so team members can use the same configuration:
 
 ```bash
 git add .goca.yaml
 git commit -m "Add GOCA configuration"
 ```
 
-### 4. Team Standards
+### 5. Team Standards
 
-Use configuration to enforce team-wide standards:
+Use configuration to enforce team-wide naming standards:
 
 ```yaml
 architecture:
@@ -529,31 +441,15 @@ testing:
   framework: testify      # Standard testing framework
 ```
 
-### 5. Environment Separation
-
-For environment-specific settings, use separate configuration files:
-
-```
-.goca.yaml           # Base configuration
-.goca.dev.yaml       # Development overrides
-.goca.prod.yaml      # Production overrides
-```
-
-### 6. Validate Configuration
-
-Test your configuration before committing:
+### 6. Validate Before Committing
 
 ```bash
-# Generate a test feature to verify settings
-goca feature TestEntity --fields "name:string"
-
-# Review generated code
-# If correct, delete test entity and commit config
+goca config validate
 ```
 
 ## Configuration Validation
 
-GOCA validates your configuration file when loading. Common validation errors:
+`goca config validate` checks your configuration file when loading. Common validation errors:
 
 ### Invalid YAML Syntax
 
@@ -561,25 +457,6 @@ GOCA validates your configuration file when loading. Common validation errors:
 # ERROR: Invalid indentation
 project:
 name: my-project  # Should be indented
-```
-
-### Required Fields Missing
-
-```yaml
-# ERROR: Project section required
-database:
-  type: postgres
-```
-
-**Fix:** Add required project information:
-
-```yaml
-project:
-  name: my-project
-  module: github.com/user/my-project
-
-database:
-  type: postgres
 ```
 
 ### Invalid Values
@@ -590,11 +467,11 @@ database:
   type: oracle  # Not supported
 ```
 
-**Fix:** Use supported values:
+**Fix:** Use one of the supported values:
 
 ```yaml
 database:
-  type: postgres  # postgres, mysql, mongodb
+  type: postgres  # postgres, postgres-json, mysql, sqlite, sqlserver, mongodb, dynamodb, elasticsearch
 ```
 
 ## Troubleshooting
@@ -604,113 +481,28 @@ database:
 **Problem:** GOCA doesn't seem to use your configuration file.
 
 **Solution:**
-1. Verify file name is exactly `.goca.yaml`
-2. Check file is in project root (where go.mod is)
-3. Verify YAML syntax is valid
-4. Check for validation errors in output
+1. Verify the file name is exactly `.goca.yaml`
+2. Check the file is in the project root (where `go.mod` is)
+3. Run `goca config validate` to check for syntax/value errors
+4. Make sure you didn't generate it with `goca config init` instead of `goca init --config` (see the warning above — the two produce incompatible schemas)
 
 ### CLI Flags Not Overriding
 
 **Problem:** CLI flags don't override configuration settings.
 
 **Solution:**
-- CLI flags have highest precedence and should always override
+- CLI flags have the highest precedence and should always override
 - Verify you're using the correct flag name
-- Check command output for applied settings
+- Check command output for the effective settings actually applied
 
 ### Template Customization Not Working
 
 **Problem:** Custom templates are not being used.
 
 **Solution:**
-1. Verify template directory path in configuration
-2. Check template files follow GOCA's naming conventions
-3. Ensure template syntax is valid Go templates
-
-## Advanced Configuration
-
-### Conditional Generation
-
-Control what gets generated based on project type:
-
-```yaml
-# API-only project
-architecture:
-  layers:
-    domain:
-      enabled: true
-    usecase:
-      enabled: true
-    repository:
-      enabled: true
-    handler:
-      enabled: true  # Enable HTTP handlers
-```
-
-### Custom Directory Structure
-
-Override default directory layout:
-
-```yaml
-architecture:
-  layers:
-    domain:
-      enabled: true
-      directory: pkg/domain      # Custom path
-    repository:
-      enabled: true
-      directory: pkg/persistence # Custom path
-```
-
-### Multiple Pattern Support
-
-Apply multiple architectural patterns:
-
-```yaml
-architecture:
-  patterns:
-    - repository    # Repository pattern
-    - service       # Service layer
-    - dto           # Data Transfer Objects
-    - specification # Specification pattern
-```
-
-## Migration Guide
-
-### From CLI-Only to Configuration
-
-If you're currently using only CLI flags, migrate to configuration:
-
-1. **Identify repeated flags:**
-
-```bash
-# You run this often:
-goca feature User --database postgres --validation
-goca feature Order --database postgres --validation
-```
-
-2. **Create configuration:**
-
-```yaml
-project:
-  name: my-project
-  module: github.com/user/my-project
-
-database:
-  type: postgres
-
-generation:
-  validation:
-    enabled: true
-```
-
-3. **Simplify commands:**
-
-```bash
-# Now you can run:
-goca feature User
-goca feature Order
-```
+1. Verify `templates.directory` in the configuration
+2. Check the template file name matches the generator (`entity.tmpl`, `usecase.tmpl`, `handler.tmpl`, `repo.tmpl`)
+3. Ensure the template is valid Go `text/template` syntax
 
 ## Next Steps
 

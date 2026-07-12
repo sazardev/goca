@@ -157,6 +157,10 @@ including domain, use cases, repository and handlers in a single operation.`,
 			effectiveHandlers,
 			map[string]bool{"validation": effectiveValidation},
 		)
+		// The repository this feature generated may need a driver `goca init`
+		// never added — e.g. a project initialized with postgres but this
+		// feature generated with --database dynamodb/elasticsearch.
+		requiredDeps = append(requiredDeps, depMgr.GetRequiredDependenciesForDatabase(effectiveDatabase)...)
 
 		for _, dep := range requiredDeps {
 			if err := depMgr.AddDependency(dep); err != nil {

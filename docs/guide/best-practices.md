@@ -78,18 +78,31 @@ func (s *userService) GetUser(ctx context.Context, id uint) (*UserResponse, erro
 
 ### Handle Errors at HTTP Layer
 
+Goca-generated handlers use the standard library `net/http` together with
+[gorilla/mux](https://github.com/gorilla/mux) — not Gin, Chi, or Echo. Path
+parameters come from `mux.Vars(r)`, not `c.Param(...)`:
+
 ```go
-func (h *UserHandler) GetUser(c *gin.Context) {
-    user, err := h.service.GetUser(c.Request.Context(), id)
+func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+    id, err := strconv.Atoi(vars["id"])
+    if err != nil {
+        http.Error(w, "Invalid user ID", http.StatusBadRequest)
+        return
+    }
+
+    user, err := h.usecase.GetUser(id)
     if errors.Is(err, domain.ErrUserNotFound) {
-        c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+        http.Error(w, "User not found", http.StatusNotFound)
         return
     }
     if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal error"})
+        http.Error(w, "Internal error", http.StatusInternalServerError)
         return
     }
-    c.JSON(http.StatusOK, user)
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(user)
 }
 ```
 
@@ -186,8 +199,8 @@ Don't expose domain entities directly:
 ```go
 //  Use DTOs
 type CreateUserInput struct {
-    Name  string `json:"name" binding:"required"`
-    Email string `json:"email" binding:"required,email"`
+    Name  string `json:"name"`
+    Email string `json:"email"`
 }
 
 type UserResponse struct {
@@ -215,11 +228,29 @@ type ErrorResponse struct {
 
 ### Validate Input
 
+Goca doesn't rely on framework-level binding tags (there is no Gin/`binding`
+struct tag support). Validation is explicit, in the domain layer, via a
+`Validate()` method that the generated `validations.go` / entity file calls
+before persisting:
+
 ```go
-type CreateUserInput struct {
-    Name     string `json:"name" binding:"required,min=2,max=100"`
-    Email    string `json:"email" binding:"required,email"`
-    Password string `json:"password" binding:"required,min=8"`
+type User struct {
+    Name     string `json:"name" validate:"required"`
+    Email    string `json:"email" validate:"required,email"`
+    Password string `json:"password" validate:"required,min=8"`
+}
+
+func (u *User) Validate() error {
+    if u.Name == "" {
+        return ErrInvalidUserName
+    }
+    if len(u.Name) < 2 || len(u.Name) > 100 {
+        return ErrInvalidUserNameLength
+    }
+    if u.Email == "" || !strings.Contains(u.Email, "@") {
+        return ErrInvalidUserEmail
+    }
+    return nil
 }
 ```
 
@@ -238,15 +269,24 @@ log.Printf("Creating user: name=%s, email=%s", input.Name, input.Email)
 ### Use Pagination
 
 ```go
-type ListUsersInput struct {
-    Page     int `form:"page" binding:"min=1"`
-    PageSize int `form:"page_size" binding:"min=1,max=100"`
+// Read pagination params from the query string (no gin "form" binding tags —
+// mux handlers parse r.URL.Query() directly).
+func (h *UserHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+    page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+    pageSize, _ := strconv.Atoi(r.URL.Query().Get("page_size"))
+    if page < 1 {
+        page = 1
+    }
+    if pageSize < 1 || pageSize > 100 {
+        pageSize = 20
+    }
+    // ...call usecase with page, pageSize...
 }
 
-func (r *PostgresUserRepository) FindAll(ctx context.Context, page, pageSize int) ([]*domain.User, error) {
-    var users []*domain.User
+func (r *postgresUserRepository) FindAll(page, pageSize int) ([]domain.User, error) {
+    var users []domain.User
     offset := (page - 1) * pageSize
-    err := r.db.WithContext(ctx).
+    err := r.db.
         Offset(offset).
         Limit(pageSize).
         Find(&users).Error

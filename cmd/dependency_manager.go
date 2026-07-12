@@ -291,6 +291,56 @@ func (dm *DependencyManager) VerifyDependencyVersions() error {
 	return nil
 }
 
+// GetRequiredDependenciesForDatabase returns the driver dependency (or
+// dependencies) a repository/feature generated for the given database needs.
+// `goca init` bakes these directly into the generated go.mod (see
+// createGoMod in init_project_files.go) for the project's initial database,
+// but `goca feature`/`goca repository` can target a *different* database via
+// --database, and neither previously added anything for it — the driver
+// package was simply missing from go.mod until the user ran `go get`
+// manually (most visible for dynamodb/elasticsearch, whose packages are
+// never a transitive dependency of anything else already in go.mod).
+func (dm *DependencyManager) GetRequiredDependenciesForDatabase(database string) []Dependency {
+	switch database {
+	case DBPostgres, DBPostgresJSON:
+		return []Dependency{
+			{Module: "gorm.io/gorm", Version: "v1.25.5", Type: "required", Reason: "ORM for database access"},
+			{Module: "gorm.io/driver/postgres", Version: "v1.5.4", Type: "required", Reason: "PostgreSQL driver"},
+		}
+	case DBMySQL:
+		return []Dependency{
+			{Module: "gorm.io/gorm", Version: "v1.25.5", Type: "required", Reason: "ORM for database access"},
+			{Module: "gorm.io/driver/mysql", Version: "v1.5.2", Type: "required", Reason: "MySQL driver"},
+		}
+	case DBSQLite:
+		return []Dependency{
+			{Module: "gorm.io/gorm", Version: "v1.25.5", Type: "required", Reason: "ORM for database access"},
+			{Module: "gorm.io/driver/sqlite", Version: "v1.5.4", Type: "required", Reason: "SQLite driver"},
+		}
+	case DBSQLServer:
+		return []Dependency{
+			{Module: "gorm.io/gorm", Version: "v1.25.5", Type: "required", Reason: "ORM for database access"},
+			{Module: "gorm.io/driver/sqlserver", Version: "v1.5.2", Type: "required", Reason: "SQL Server driver"},
+		}
+	case DBMongoDB:
+		return []Dependency{
+			{Module: "go.mongodb.org/mongo-driver", Version: "v1.12.1", Type: "required", Reason: "MongoDB driver"},
+		}
+	case DBDynamoDB:
+		return []Dependency{
+			{Module: "github.com/aws/aws-sdk-go-v2", Version: "v1.21.0", Type: "required", Reason: "AWS SDK core"},
+			{Module: "github.com/aws/aws-sdk-go-v2/service/dynamodb", Version: "v1.21.5", Type: "required", Reason: "DynamoDB client"},
+			{Module: "github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue", Version: "v1.10.39", Type: "required", Reason: "DynamoDB attribute marshaling"},
+		}
+	case DBElasticsearch:
+		return []Dependency{
+			{Module: "github.com/elastic/go-elasticsearch/v8", Version: "v8.10.1", Type: "required", Reason: "Elasticsearch client"},
+		}
+	default:
+		return nil
+	}
+}
+
 // GetRequiredDependenciesForFeature returns required dependencies for a feature type.
 func (dm *DependencyManager) GetRequiredDependenciesForFeature(featureType string, options map[string]bool) []Dependency {
 	required := make([]Dependency, 0)

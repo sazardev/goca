@@ -10,7 +10,7 @@ hero:
   actions:
     - theme: brand
       text: Latest Release
-      link: /blog/releases/v1-22-0
+      link: /blog/releases/v1-25-15
     - theme: alt
       text: All Articles
       link: /blog/articles/
@@ -44,12 +44,12 @@ features:
 
 ## Latest Release
 
-### [v1.22.0 — Analyze, Cache, CI & Middleware](/blog/releases/v1-22-0)
-*March 27, 2026*
+### [v1.22.1 — v1.25.15 — Stabilization](/blog/releases/v1-25-15)
+*March 27 – July 12, 2026*
 
-Largest release to date: `goca analyze` with 30 rules across 6 categories, Redis cache decorator, GitHub Actions CI generation, 7 composable middleware types, and MCP server for AI assistant integration.
+Five stabilization passes that made every command's generated code actually compile, vet, and run — plus real custom-template wiring, a fixed release pipeline, and a large documentation coherence pass. See also the [rolling log of changes](/blog/releases/latest) since this release.
 
-[Read full release notes](/blog/releases/v1-22-0)
+[Read full release notes](/blog/releases/v1-25-15)
 
 ---
 

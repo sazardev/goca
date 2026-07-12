@@ -841,7 +841,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
     
     // 3. Return HTTP response
     w.Header().Set("Content-Type", "application/json")
-    w.WriteStatus(http.StatusCreated)
+    w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(output)
 }
 ```
