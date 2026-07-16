@@ -59,7 +59,7 @@ Use your repository URL as the module name:
 
 ### `--database`
 
-Database system to use. Default: `postgres`
+Database system to use. Default: `sqlite`
 
 **Options:**
 - `postgres` - PostgreSQL (GORM)
@@ -97,7 +97,9 @@ Generates:
 
 API type to generate. Default: `rest`
 
-**Options:** `rest` | `grpc` | `graphql` | `both`
+**Options:** `rest` | `grpc` | `graphql`
+
+> **Note:** `grpc` and `graphql` options are recorded in `.goca.yaml` but only REST handlers are scaffolded. gRPC/GraphQL scaffolding is not yet implemented.
 
 ```bash
 goca init myproject --module github.com/user/myproject --api grpc
@@ -138,7 +140,7 @@ goca init platform \
   --module github.com/startup/platform \
   --database postgres \
   --auth \
-  --api both
+  --api rest
 ```
 
 ## Project Templates
@@ -368,7 +370,7 @@ myproject/
 │       ├── http/
 │       │   ├── routes.go
 │       │   └── middleware.go
-│       └── grpc/                # (if --api grpc)
+│       └── grpc/                # (recorded in config but not yet scaffolded)
 ├── pkg/
 │   ├── config/
 │   │   ├── config.go            # App configuration

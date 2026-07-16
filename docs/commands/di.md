@@ -51,6 +51,30 @@ The generated container accepts a `*redis.Client` in addition to `*gorm.DB`:
 container := di.NewContainer(db, redisClient)
 ```
 
+### `--dry-run`
+
+Preview files without writing anything.
+
+```bash
+goca di EntityName --dry-run
+```
+
+### `--force`
+
+Overwrite existing files.
+
+```bash
+goca di EntityName --force
+```
+
+### `--backup`
+
+Back up existing files before overwriting.
+
+```bash
+goca di EntityName --backup
+```
+
 ## Examples
 
 ### Wire All Features

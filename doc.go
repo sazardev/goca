@@ -16,7 +16,7 @@
 //
 // # Installation
 //
-//	go install github.com/jorgefuertes/goca@latest
+//	go install github.com/sazardev/goca@latest
 //
 // # Quick Start
 //

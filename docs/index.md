@@ -30,7 +30,7 @@ features:
   - icon:
       src: /icons/target.svg
     title: Best Practices Enforced
-    details: Prevents common anti-patterns like fat controllers, god objects, and anemic domain models. Your code stays clean and maintainable.
+    details: Generated code avoids common anti-patterns like fat controllers, god objects, and anemic domain models. Your code stays clean and maintainable.
   
   - icon:
       src: /icons/refresh.svg
@@ -40,7 +40,7 @@ features:
   - icon:
       src: /icons/package.svg
     title: Multi-Protocol Support
-    details: Generate handlers for HTTP REST, gRPC, CLI, Workers, and SOAP. All following the same clean architecture pattern.
+    details: 'HTTP REST, CLI, and Workers: fully generated and ready. gRPC: scaffolding generated (requires manual protoc setup). All following clean architecture.'
   
   - icon:
       src: /icons/flask.svg
@@ -60,7 +60,7 @@ features:
   - icon:
       src: /icons/rocket.svg
     title: Production Ready
-    details: Used in production systems. Battle-tested patterns and code generation that scales from MVP to enterprise.
+    details: Designed for production use. Patterns and code generation that scale from MVP to enterprise.
 ---
 
 ## Quick Example
@@ -88,21 +88,6 @@ Clean Architecture ensures your codebase remains:
 - **Testable**: Business logic is independent of frameworks and databases
 - **Flexible**: Easy to swap implementations without touching core logic
 - **Scalable**: Clear boundaries make it easy to add new features
-
-## What Developers Say
-
-> "Goca transformed how we build Go services. What used to take hours now takes minutes, and the code quality is consistently high."
->
-> — Production User
-
-> "Finally, a code generator that doesn't just dump code but teaches you proper architecture."
->
-> — Go Developer
-
-> "The automatic integration of new features saved us so much time. No more manual wiring!"
->
-> — Go Team Lead
-
 ## Ready to Build?
 
 <p style="text-align: center; margin: 2rem 0;">

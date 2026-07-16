@@ -41,6 +41,22 @@ goca repository Config --database postgres-json
 goca repository Article --database elasticsearch
 ```
 
+### `--transactions`
+
+Generate repository methods with transaction support.
+
+```bash
+goca repository Order --transactions
+```
+
+### `--fields`
+
+Define entity fields for field-aware repository generation.
+
+```bash
+goca repository Order --fields "name:string,email:string"
+```
+
 ### `--cache`
 
 Generate a Redis cache decorator for the repository. Creates a `Cached<Entity>Repository` that wraps the database implementation with Redis caching.
@@ -72,6 +88,30 @@ Generate only the implementation.
 
 ```bash
 goca repository User --implementation --database mysql
+```
+
+### `--dry-run`
+
+Preview files without writing anything.
+
+```bash
+goca repository EntityName --dry-run
+```
+
+### `--force`
+
+Overwrite existing files.
+
+```bash
+goca repository EntityName --force
+```
+
+### `--backup`
+
+Back up existing files before overwriting.
+
+```bash
+goca repository EntityName --backup
 ```
 
 ## Examples

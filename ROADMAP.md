@@ -123,7 +123,7 @@ Goca follows [Semantic Versioning](https://semver.org/):
 - `goca doctor` command for project health checks
 - `goca upgrade` command for config/metadata upgrades
 - `goca template` command for template management
-- Multi-handler support: HTTP, gRPC, CLI, Worker, SOAP
+- Multi-handler support: HTTP, gRPC, CLI, Worker
 - DynamoDB repository generation
 - Elasticsearch repository generation
 - PostgreSQL JSON/JSONB repository generation

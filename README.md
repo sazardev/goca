@@ -464,8 +464,6 @@ employee/
 │   │   └── commands.go     # CLI commands
 │   ├── worker/
 │   │   └── worker.go       # Workers/Jobs
-│   └── soap/
-│       └── soap_client.go  # SOAP client
 ├── messages/
 │   ├── errors.go           # Error messages
 │   └── responses.go        # Response messages

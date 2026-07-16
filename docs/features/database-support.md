@@ -176,15 +176,15 @@ results, _ := repo.FullTextSearch("golang elasticsearch tutorial")
 
 ## Database Comparison
 
-| Feature             | PostgreSQL  | MySQL       | MongoDB     | SQLite     | SQL Server | Elasticsearch | DynamoDB    |
-| ------------------- | ----------- | ----------- | ----------- | ---------- | ---------- | ------------- | ----------- |
-| **Type**            | SQL         | SQL         | Document    | SQL        | SQL        | Search        | Key-Value   |
-| **ACID**            | ✅           | ✅           | ✅           | ✅          | ✅          | ❌             | Limited     |
-| **Scalability**     | Vertical    | Horizontal  | Horizontal  | None       | Vertical   | Horizontal    | Unlimited   |
-| **JSON Support**    | JSONB       | JSON        | Native      | Marshaling | Native     | Native        | Native      |
-| **Transactions**    | ✅ Full      | ✅ InnoDB    | ✅ Multi-doc | ✅          | ✅          | ❌             | Limited     |
-| **Server Required** | ✅           | ✅           | ✅           | ❌          | ✅          | ✅             | N/A (Cloud) |
-| **Cost**            | Self-hosted | Self-hosted | Self-hosted | Free       | Enterprise | Self-hosted   | Pay-per-use |
+| Feature             | PostgreSQL  | PostgreSQL JSON | MySQL       | MongoDB     | SQLite     | SQL Server | Elasticsearch | DynamoDB    |
+| ------------------- | ----------- | --------------- | ----------- | ----------- | ---------- | ---------- | ------------- | ----------- |
+| **Type**            | SQL         | SQL (JSONB)     | SQL         | Document    | SQL        | SQL        | Search        | Key-Value   |
+| **ACID**            | ✅           | ✅               | ✅           | ✅           | ✅          | ✅          | ❌             | Limited     |
+| **Scalability**     | Vertical    | Vertical        | Horizontal  | Horizontal  | None       | Vertical   | Horizontal    | Unlimited   |
+| **JSON Support**    | JSONB       | JSONB (native)  | JSON        | Native      | Marshaling | Native     | Native        | Native      |
+| **Transactions**    | ✅ Full      | ✅ Full          | ✅ InnoDB    | ✅ Multi-doc | ✅          | ✅          | ❌             | Limited     |
+| **Server Required** | ✅           | ✅               | ✅           | ✅           | ❌          | ✅          | ✅             | N/A (Cloud) |
+| **Cost**            | Self-hosted | Self-hosted     | Self-hosted | Self-hosted | Free       | Enterprise | Self-hosted   | Pay-per-use |
 
 ---
 

@@ -19,10 +19,9 @@ myproject/
 │   ├── di/                # Dependency injection
 │   └── messages/          # Errors and constants
 ├── pkg/                    # Public libraries
-├── config/                 # Configuration files
+│   ├── config/            # Configuration loading
+│   └── logger/            # Structured logging
 ├── migrations/             # Database migrations
-├── scripts/                # Build and deployment scripts
-└── docs/                   # Documentation
 ```
 
 ## Layer Responsibilities
@@ -65,8 +64,8 @@ Business logic and application rules.
 package usecase
 
 type UserService interface {
-    CreateUser(ctx context.Context, input CreateUserInput) (*UserResponse, error)
-    GetUser(ctx context.Context, id uint) (*UserResponse, error)
+    Create(input CreateUserInput) (*CreateUserOutput, error)
+    GetByID(id uint) (*UserOutput, error)
 }
 ```
 
@@ -87,7 +86,7 @@ type PostgresUserRepository struct {
     db *gorm.DB
 }
 
-func (r *PostgresUserRepository) Save(ctx context.Context, user *domain.User) error {
+func (r *PostgresUserRepository) Save(user *domain.User) error {
     return r.db.WithContext(ctx).Create(user).Error
 }
 ```
@@ -110,7 +109,7 @@ type UserHandler struct {
     service usecase.UserService
 }
 
-func (h *UserHandler) CreateUser(c *gin.Context) {
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
     // Handle HTTP request
 }
 ```

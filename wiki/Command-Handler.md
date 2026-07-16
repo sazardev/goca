@@ -1,6 +1,6 @@
 # goca handler Command
 
-The `goca handler` command creates delivery adapters that handle different protocols (HTTP, gRPC, CLI, Worker, SOAP) while maintaining layer separation and following Clean Architecture.
+The `goca handler` command creates delivery adapters that handle different protocols (HTTP, gRPC, CLI, Worker) while maintaining layer separation and following Clean Architecture.
 
 ## 📋 Syntax
 
@@ -16,14 +16,13 @@ Creates handlers (input adapters) for different protocols:
 - 🔷 **gRPC** with Protocol Buffers and servers
 - 💻 **CLI** for command-line tools
 - ⚙️ **Worker** for background tasks
-- 🌐 **SOAP** for legacy web services
 - 🛡️ **Middleware** and protocol-specific validations
 
 ## 🚩 Available Flags
 
 | Flag           | Type     | Required | Default Value | Description                                            |
 | -------------- | -------- | -------- | ------------- | ------------------------------------------------------ |
-| `--type`       | `string` | ❌ No     | `http`        | Handler type (`http`, `grpc`, `cli`, `worker`, `soap`) |
+| `--type`       | `string` | ❌ No     | `http`        | Handler type (`http`, `grpc`, `cli`, `worker`) |
 | `--swagger`    | `bool`   | ❌ No     | `false`       | Generate Swagger documentation (HTTP only)             |
 | `--middleware` | `bool`   | ❌ No     | `false`       | Include middleware setup                               |
 | `--validation` | `bool`   | ❌ No     | `false`       | Input validation in handler                            |
@@ -48,11 +47,6 @@ goca handler Order --type cli
 ### Worker Handler
 ```bash
 goca handler Notification --type worker
-```
-
-### SOAP Handler
-```bash
-goca handler Payment --type soap
 ```
 
 ## 📂 Generated Files by Type
@@ -83,12 +77,6 @@ internal/handler/cli/
 ```
 internal/handler/worker/
 └── user_worker.go      # Worker for background tasks
-```
-
-### SOAP (`--type soap`)
-```
-internal/handler/soap/
-└── user_client.go      # SOAP client
 ```
 
 ## 🔍 Generated Code in Detail
@@ -824,207 +812,6 @@ func (w *UserWorker) StartWorker(ctx context.Context) error {
             }
         }
     }
-}
-```
-
-### SOAP Client: `internal/handler/soap/user_client.go`
-
-```go
-package soap
-
-import (
-    "bytes"
-    "context"
-    "encoding/xml"
-    "fmt"
-    "io"
-    "net/http"
-    "time"
-    
-    "github.com/usuario/proyecto/internal/usecase"
-    "github.com/usuario/proyecto/internal/usecase/dto"
-)
-
-// UserSOAPClient cliente SOAP para usuarios
-type UserSOAPClient struct {
-    endpoint    string
-    httpClient  *http.Client
-    userUseCase usecase.UserUseCase
-}
-
-// NewUserSOAPClient crea un nuevo cliente SOAP
-func NewUserSOAPClient(endpoint string, userUseCase usecase.UserUseCase) *UserSOAPClient {
-    return &UserSOAPClient{
-        endpoint: endpoint,
-        httpClient: &http.Client{
-            Timeout: 30 * time.Second,
-        },
-        userUseCase: userUseCase,
-    }
-}
-
-// SOAPEnvelope estructura del sobre SOAP
-type SOAPEnvelope struct {
-    XMLName xml.Name    `xml:"soap:Envelope"`
-    XMLNS   string      `xml:"xmlns:soap,attr"`
-    Body    interface{} `xml:"soap:Body"`
-}
-
-// SOAPFault estructura de errores SOAP
-type SOAPFault struct {
-    XMLName xml.Name `xml:"soap:Fault"`
-    Code    string   `xml:"faultcode"`
-    String  string   `xml:"faultstring"`
-    Detail  string   `xml:"detail,omitempty"`
-}
-
-// CreateUserRequest request SOAP para crear usuario
-type CreateUserRequest struct {
-    XMLName xml.Name `xml:"CreateUserRequest"`
-    Name    string   `xml:"name"`
-    Email   string   `xml:"email"`
-}
-
-// CreateUserResponse response SOAP para crear usuario
-type CreateUserResponse struct {
-    XMLName   xml.Name `xml:"CreateUserResponse"`
-    ID        uint     `xml:"id"`
-    Name      string   `xml:"name"`
-    Email     string   `xml:"email"`
-    CreatedAt string   `xml:"createdAt"`
-}
-
-// GetUserRequest request SOAP para obtener usuario
-type GetUserRequest struct {
-    XMLName xml.Name `xml:"GetUserRequest"`
-    ID      uint     `xml:"id"`
-}
-
-// GetUserResponse response SOAP para obtener usuario
-type GetUserResponse struct {
-    XMLName   xml.Name `xml:"GetUserResponse"`
-    ID        uint     `xml:"id"`
-    Name      string   `xml:"name"`
-    Email     string   `xml:"email"`
-    CreatedAt string   `xml:"createdAt"`
-    UpdatedAt string   `xml:"updatedAt"`
-}
-
-// CreateUser crea un usuario via SOAP
-func (c *UserSOAPClient) CreateUser(ctx context.Context, name, email string) (*CreateUserResponse, error) {
-    // Crear caso de uso request
-    req := dto.CreateUserRequest{
-        Name:  name,
-        Email: email,
-    }
-    
-    // Procesar con caso de uso
-    userResponse, err := c.userUseCase.Create(ctx, req)
-    if err != nil {
-        return nil, fmt.Errorf("failed to create user: %w", err)
-    }
-    
-    // Convertir a response SOAP
-    soapResponse := &CreateUserResponse{
-        ID:        userResponse.ID,
-        Name:      userResponse.Name,
-        Email:     userResponse.Email,
-        CreatedAt: userResponse.CreatedAt.Format(time.RFC3339),
-    }
-    
-    return soapResponse, nil
-}
-
-// GetUser obtiene un usuario via SOAP
-func (c *UserSOAPClient) GetUser(ctx context.Context, id uint) (*GetUserResponse, error) {
-    // Procesar con caso de uso
-    userResponse, err := c.userUseCase.GetByID(ctx, id)
-    if err != nil {
-        return nil, fmt.Errorf("failed to get user: %w", err)
-    }
-    
-    // Convertir a response SOAP
-    soapResponse := &GetUserResponse{
-        ID:        userResponse.ID,
-        Name:      userResponse.Name,
-        Email:     userResponse.Email,
-        CreatedAt: userResponse.CreatedAt.Format(time.RFC3339),
-        UpdatedAt: userResponse.UpdatedAt.Format(time.RFC3339),
-    }
-    
-    return soapResponse, nil
-}
-
-// sendSOAPRequest envía una petición SOAP
-func (c *UserSOAPClient) sendSOAPRequest(ctx context.Context, action string, body interface{}) ([]byte, error) {
-    envelope := SOAPEnvelope{
-        XMLNS: "http://schemas.xmlsoap.org/soap/envelope/",
-        Body:  body,
-    }
-    
-    xmlData, err := xml.Marshal(envelope)
-    if err != nil {
-        return nil, fmt.Errorf("failed to marshal SOAP request: %w", err)
-    }
-    
-    req, err := http.NewRequestWithContext(ctx, "POST", c.endpoint, bytes.NewBuffer(xmlData))
-    if err != nil {
-        return nil, fmt.Errorf("failed to create HTTP request: %w", err)
-    }
-    
-    req.Header.Set("Content-Type", "text/xml; charset=utf-8")
-    req.Header.Set("SOAPAction", action)
-    
-    resp, err := c.httpClient.Do(req)
-    if err != nil {
-        return nil, fmt.Errorf("failed to send SOAP request: %w", err)
-    }
-    defer resp.Body.Close()
-    
-    respBody, err := io.ReadAll(resp.Body)
-    if err != nil {
-        return nil, fmt.Errorf("failed to read SOAP response: %w", err)
-    }
-    
-    if resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("SOAP request failed with status %d: %s", resp.StatusCode, string(respBody))
-    }
-    
-    return respBody, nil
-}
-
-// HandleSOAPRequest maneja peticiones SOAP entrantes
-func (c *UserSOAPClient) HandleSOAPRequest(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
-    
-    body, err := io.ReadAll(r.Body)
-    if err != nil {
-        http.Error(w, "Failed to read request body", http.StatusBadRequest)
-        return
-    }
-    
-    var envelope SOAPEnvelope
-    if err := xml.Unmarshal(body, &envelope); err != nil {
-        http.Error(w, "Invalid SOAP envelope", http.StatusBadRequest)
-        return
-    }
-    
-    // Process according to request type
-    // Here you would determine which operation to perform based on the body content
-    
-    w.Header().Set("Content-Type", "text/xml; charset=utf-8")
-    w.WriteHeader(http.StatusOK)
-    
-    // Return appropriate SOAP response
-    response := SOAPEnvelope{
-        XMLNS: "http://schemas.xmlsoap.org/soap/envelope/",
-        Body:  "<!-- Response body would go here -->",
-    }
-    
-    xml.NewEncoder(w).Encode(response)
 }
 ```
 

@@ -53,7 +53,7 @@ goca messages Order --constants
 goca messages User --errors
 ```
 
-**Generates:** `internal/messages/user_errors.go`
+**Generates (or appends to):** `internal/messages/messages.go`
 
 ```go
 package messages
@@ -66,6 +66,10 @@ var (
     ErrInvalidUserData   = errors.New("invalid user data")
     ErrUserUnauthorized  = errors.New("user unauthorized")
 )
+
+// Appended when run for a different entity:
+// ErrProductNotFound      = errors.New("product not found")
+// ErrProductOutOfStock   = errors.New("product out of stock")
 ```
 
 ### Response Messages
@@ -74,7 +78,7 @@ var (
 goca messages Product --responses
 ```
 
-**Generates:** `internal/messages/product_responses.go`
+**Generates (or appends to):** `internal/messages/responses.go`
 
 ```go
 package messages
@@ -93,10 +97,10 @@ const (
 goca messages Order --constants
 ```
 
-**Generates:** `internal/messages/order_constants.go`
+**Generates (or appends to):** `internal/constants/constants.go`
 
 ```go
-package messages
+package constants
 
 const (
     OrderStatusPending    = "pending"

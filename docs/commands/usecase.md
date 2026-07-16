@@ -39,12 +39,44 @@ CRUD operations to generate.
 goca usecase UserService --entity User --operations "create,read,update,delete,list"
 ```
 
+### `--async`
+
+Generate asynchronous use case methods.
+
+```bash
+goca usecase Order --entity order --async
+```
+
 ### `--dto-validation`
 
 Include DTO validation tags.
 
 ```bash
 goca usecase OrderService --entity Order --dto-validation
+```
+
+### `--dry-run`
+
+Preview files without writing anything.
+
+```bash
+goca usecase EntityName --dry-run
+```
+
+### `--force`
+
+Overwrite existing files.
+
+```bash
+goca usecase EntityName --force
+```
+
+### `--backup`
+
+Back up existing files before overwriting.
+
+```bash
+goca usecase EntityName --backup
 ```
 
 ## Examples

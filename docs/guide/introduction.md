@@ -135,8 +135,6 @@ goca handler Product --type cli
 # Background Workers
 goca handler Product --type worker
 
-# SOAP Client
-goca handler Product --type soap
 ```
 
 All following the same clean architecture pattern!

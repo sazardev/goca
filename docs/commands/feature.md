@@ -405,7 +405,7 @@ rm -rf internal/usecase/user*
 
 **Solution:** Run integration command:
 ```bash
-goca integrate --feature User
+goca integrate --features User
 ```
 
 ## See Also

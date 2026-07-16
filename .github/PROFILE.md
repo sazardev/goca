@@ -59,7 +59,7 @@ Goca is a professional CLI tool that generates production-ready Go applications 
 - **Safety Features**: Dry-run mode, file conflict detection, automatic backups
 - **Dependency Management**: Automatic go.mod updates and version verification
 - **Project Templates**: Predefined configurations for common architectures
-- **Production Ready**: Battle-tested code generation with comprehensive testing
+- **Production Ready**: Designed for production with comprehensive testing
 
 ## Getting Started
 

@@ -130,6 +130,30 @@ goca entity User --fields "name:string,email:string" --tests=false
 Generated tests use [testify/assert](https://github.com/stretchr/testify) for readable assertions and follow table-driven test patterns recommended by the Go community.
 :::
 
+### `--dry-run`
+
+Preview files without writing anything.
+
+```bash
+goca entity EntityName --dry-run
+```
+
+### `--force`
+
+Overwrite existing files.
+
+```bash
+goca entity EntityName --force
+```
+
+### `--backup`
+
+Back up existing files before overwriting.
+
+```bash
+goca entity EntityName --backup
+```
+
 ## Examples
 
 ### Basic Entity

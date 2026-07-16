@@ -49,7 +49,7 @@ HTTP Handler → UseCase Interface → Repository Interface → Domain Entity
 | `goca feature <name>` | Exactly 1 | `--fields "field:type"` | **Generate ALL layers at once** (entity + usecase + handler + repository + messages + DI). Fastest path to a working feature. |
 | `goca entity <name>` | Exactly 1 | `--fields "field:type"` | **Generate only the domain entity** with validation, business rules, seeds, tests. Use when you already have other layers or want fine-grained control. |
 | `goca usecase <name>` | Exactly 1 | `--entity <name>` | **Generate business logic** (DTOs + service + interface). Requires existing entity. |
-| `goca handler <entity>` | Exactly 1 | (none) | **Generate protocol adapter** (HTTP, gRPC, CLI, Worker, SOAP). Requires existing usecase. |
+| `goca handler <entity>` | Exactly 1 | (none) | **Generate protocol adapter** (HTTP, gRPC, CLI, Worker). Requires existing usecase. |
 | `goca repository <entity>` | Exactly 1 | (none) | **Generate persistence layer** (interface + DB-specific impl). Choose from 8 databases. |
 | `goca messages <entity>` | Exactly 1 | (none) | **Generate error + response constants** per feature. |
 | `goca di` | None | `--features` | **Generate or update DI container** (manual or Google Wire). |

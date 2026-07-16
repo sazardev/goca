@@ -47,6 +47,38 @@ Add request validation.
 goca handler Order --type http --validation
 ```
 
+### `--swagger`
+
+Generate Swagger/OpenAPI documentation for HTTP handlers.
+
+```bash
+goca handler User --swagger
+```
+
+### `--dry-run`
+
+Preview files without writing anything.
+
+```bash
+goca handler EntityName --dry-run
+```
+
+### `--force`
+
+Overwrite existing files.
+
+```bash
+goca handler EntityName --force
+```
+
+### `--backup`
+
+Back up existing files before overwriting.
+
+```bash
+goca handler EntityName --backup
+```
+
 ## Examples
 
 ### HTTP REST Handler
@@ -161,7 +193,6 @@ goca handler Email --type worker
 | **grpc**   | Microservices, High performance | gRPC server + proto files  |
 | **cli**    | Command-line tools              | Cobra commands             |
 | **worker** | Background jobs, Async tasks    | Job handlers               |
-| **soap**   | Legacy systems integration      | SOAP client wrappers       |
 
 ## Best Practices
 

@@ -45,6 +45,38 @@ Generate all interfaces.
 goca interfaces Order --all
 ```
 
+### `--handler`
+
+Generate handler interfaces.
+
+```bash
+goca interfaces Product --handler
+```
+
+### `--dry-run`
+
+Preview files without writing anything.
+
+```bash
+goca interfaces EntityName --dry-run
+```
+
+### `--force`
+
+Overwrite existing files.
+
+```bash
+goca interfaces EntityName --force
+```
+
+### `--backup`
+
+Back up existing files before overwriting.
+
+```bash
+goca interfaces EntityName --backup
+```
+
 ## Examples
 
 ### Use Case Interfaces
@@ -53,19 +85,19 @@ goca interfaces Order --all
 goca interfaces Product --usecase
 ```
 
-**Generates:** `internal/usecase/product_interfaces.go`
+**Generates:** `internal/interfaces/product_usecase.go`
 
 ```go
-package usecase
+package interfaces
 
 import "context"
 
-type ProductService interface {
-    CreateProduct(ctx context.Context, input CreateProductInput) (*ProductResponse, error)
-    GetProduct(ctx context.Context, id uint) (*ProductResponse, error)
-    UpdateProduct(ctx context.Context, id uint, input UpdateProductInput) error
-    DeleteProduct(ctx context.Context, id uint) error
-    ListProducts(ctx context.Context) ([]*ProductResponse, error)
+type ProductUseCase interface {
+    Create(ctx context.Context, input CreateProductInput) (*ProductResponse, error)
+    GetByID(ctx context.Context, id uint) (*ProductResponse, error)
+    Update(ctx context.Context, id uint, input UpdateProductInput) error
+    Delete(ctx context.Context, id uint) error
+    List(ctx context.Context) ([]*ProductResponse, error)
 }
 ```
 
@@ -75,10 +107,10 @@ type ProductService interface {
 goca interfaces User --repository
 ```
 
-**Generates:** `internal/repository/user_interfaces.go`
+**Generates:** `internal/interfaces/user_repository.go`
 
 ```go
-package repository
+package interfaces
 
 import (
     "context"

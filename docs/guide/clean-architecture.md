@@ -52,7 +52,6 @@ The innermost layer containing **enterprise-wide business rules**.
 - Define business entities
 - Implement core business rules
 - Define domain errors
-- Declare repository interfaces
 - Domain-specific validations
 
 #### Example: User Entity
@@ -137,72 +136,76 @@ Contains **application-specific business rules**.
 package usecase
 
 import (
-    "context"
     "myproject/internal/domain"
+    "myproject/internal/repository"
 )
 
 // UserUseCase defines user-related operations
 type UserUseCase interface {
-    CreateUser(ctx context.Context, req CreateUserRequest) (*UserResponse, error)
-    GetUser(ctx context.Context, id uint) (*UserResponse, error)
-    UpdateUser(ctx context.Context, id uint, req UpdateUserRequest) error
-    DeleteUser(ctx context.Context, id uint) error
-    ListUsers(ctx context.Context) ([]*UserResponse, error)
+    Create(input CreateUserInput) (*CreateUserOutput, error)
+    GetByID(id uint) (*domain.User, error)
+    Update(id uint, input UpdateUserInput) (*domain.User, error)
+    Delete(id uint) error
+    List() (*ListUserOutput, error)
 }
 
-// CreateUserRequest - Input DTO
-type CreateUserRequest struct {
+// CreateUserInput - Input DTO
+type CreateUserInput struct {
     Name  string `json:"name" validate:"required,min=2"`
     Email string `json:"email" validate:"required,email"`
-    Role  string `json:"role" validate:"required,oneof=admin user"`
+    Age   int    `json:"age" validate:"required,min=1"`
 }
 
-// UserResponse - Output DTO
-type UserResponse struct {
-    ID    uint   `json:"id"`
-    Name  string `json:"name"`
-    Email string `json:"email"`
-    Role  string `json:"role"`
+// CreateUserOutput - Output DTO
+type CreateUserOutput struct {
+    User    domain.User `json:"user"`
+    Message string      `json:"message"`
 }
 
-// userUseCase implements UserUseCase
-type userUseCase struct {
-    userRepo domain.UserRepository // Depends on interface!
+// UpdateUserInput - Input DTO
+type UpdateUserInput struct {
+    Name  *string `json:"name,omitempty" validate:"omitempty,min=2"`
+    Email *string `json:"email,omitempty" validate:"omitempty,email"`
+    Age   *int    `json:"age,omitempty" validate:"omitempty,min=1"`
 }
 
-func NewUserUseCase(userRepo domain.UserRepository) UserUseCase {
-    return &userUseCase{userRepo: userRepo}
+// ListUserOutput - Output DTO
+type ListUserOutput struct {
+    Users   []domain.User `json:"users"`
+    Total   int           `json:"total"`
+    Message string        `json:"message"`
 }
 
-func (uc *userUseCase) CreateUser(ctx context.Context, req CreateUserRequest) (*UserResponse, error) {
-    // 1. Validate input
-    if err := req.Validate(); err != nil {
-        return nil, err
-    }
-    
-    // 2. Create domain entity
+// userService implements UserUseCase
+type userService struct {
+    repo repository.UserRepository // Depends on interface!
+}
+
+func NewUserService(repo repository.UserRepository) UserUseCase {
+    return &userService{repo: repo}
+}
+
+func (s *userService) Create(input CreateUserInput) (*CreateUserOutput, error) {
+    // 1. Create domain entity
     user := &domain.User{
-        Name:  req.Name,
-        Email: req.Email,
-        Role:  req.Role,
+        Name:  input.Name,
+        Email: input.Email,
     }
     
-    // 3. Validate business rules
+    // 2. Validate business rules
     if err := user.Validate(); err != nil {
         return nil, err
     }
     
-    // 4. Persist through repository
-    if err := uc.userRepo.Save(ctx, user); err != nil {
+    // 3. Persist through repository
+    if err := s.repo.Save(user); err != nil {
         return nil, err
     }
     
-    // 5. Return DTO
-    return &UserResponse{
-        ID:    user.ID,
-        Name:  user.Name,
-        Email: user.Email,
-        Role:  user.Role,
+    // 4. Return DTO
+    return &CreateUserOutput{
+        User:    *user,
+        Message: "User created successfully",
     }, nil
 }
 ```
@@ -220,82 +223,78 @@ Implements **data access and external communication**.
 
 #### Responsibilities
 
-- Implement repository interfaces from domain
+- Define repository interfaces
+- Implement repository interfaces
 - Handle database operations
 - Manage database connections
 - Transform between DB models and domain entities
 
-#### Example: PostgreSQL Repository
+#### Example: GORM Repository
 
 ```go
 package repository
 
 import (
-    "context"
-    "database/sql"
     "myproject/internal/domain"
+
+    "gorm.io/gorm"
 )
 
+// UserRepository defines data access interface
+type UserRepository interface {
+    Save(user *domain.User) error
+    FindByID(id int) (*domain.User, error)
+    FindByEmail(email string) (*domain.User, error)
+    Update(user *domain.User) error
+    Delete(id int) error
+    FindAll() ([]domain.User, error)
+}
+
 type postgresUserRepository struct {
-    db *sql.DB
+    db *gorm.DB
 }
 
 // NewPostgresUserRepository creates a new repository
-func NewPostgresUserRepository(db *sql.DB) domain.UserRepository {
+func NewPostgresUserRepository(db *gorm.DB) UserRepository {
     return &postgresUserRepository{db: db}
 }
 
-func (r *postgresUserRepository) Save(ctx context.Context, user *domain.User) error {
-    query := `
-        INSERT INTO users (name, email, role, created_at, updated_at)
-        VALUES ($1, $2, $3, NOW(), NOW())
-        RETURNING id, created_at, updated_at
-    `
-    
-    err := r.db.QueryRowContext(
-        ctx, query,
-        user.Name, user.Email, user.Role,
-    ).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
-    
-    return err
+func (r *postgresUserRepository) Save(user *domain.User) error {
+    result := r.db.Create(user)
+    return result.Error
 }
 
-func (r *postgresUserRepository) FindByID(ctx context.Context, id uint) (*domain.User, error) {
-    query := `
-        SELECT id, name, email, role, created_at, updated_at
-        FROM users WHERE id = $1
-    `
-    
+func (r *postgresUserRepository) FindByID(id int) (*domain.User, error) {
     user := &domain.User{}
-    err := r.db.QueryRowContext(ctx, query, id).Scan(
-        &user.ID, &user.Name, &user.Email, &user.Role,
-        &user.CreatedAt, &user.UpdatedAt,
-    )
-    
-    if err == sql.ErrNoRows {
-        return nil, domain.ErrUserNotFound
+    result := r.db.First(user, id)
+    if result.Error != nil {
+        return nil, result.Error
     }
-    
-    return user, err
+    return user, nil
 }
 
-func (r *postgresUserRepository) Update(ctx context.Context, user *domain.User) error {
-    query := `
-        UPDATE users 
-        SET name = $1, email = $2, role = $3, updated_at = NOW()
-        WHERE id = $4
-    `
-    
-    _, err := r.db.ExecContext(ctx, query,
-        user.Name, user.Email, user.Role, user.ID,
-    )
-    
-    return err
+func (r *postgresUserRepository) Update(user *domain.User) error {
+    result := r.db.Save(user)
+    return result.Error
+}
+
+func (r *postgresUserRepository) Delete(id int) error {
+    result := r.db.Delete(&domain.User{}, id)
+    return result.Error
+}
+
+func (r *postgresUserRepository) FindAll() ([]domain.User, error) {
+    var users []domain.User
+    result := r.db.Find(&users)
+    if result.Error != nil {
+        return nil, result.Error
+    }
+    return users, nil
 }
 ```
 
 ::: tip Repository Layer Rules
- **Do**: Implement domain interfaces, handle persistence  
+ **Do**: Define and implement repository interfaces, handle persistence  
  **Don't**: Business logic, validation rules
 :::
 
@@ -337,21 +336,21 @@ func NewUserHandler(userUseCase usecase.UserUseCase) *UserHandler {
 // CreateUser handles POST /users
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
     // 1. Parse HTTP request
-    var req usecase.CreateUserRequest
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+    var input usecase.CreateUserInput
+    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
         respondError(w, http.StatusBadRequest, "Invalid request body")
         return
     }
     
     // 2. Call use case
-    user, err := h.userUseCase.CreateUser(r.Context(), req)
+    output, err := h.userUseCase.Create(input)
     if err != nil {
         respondError(w, http.StatusInternalServerError, err.Error())
         return
     }
     
     // 3. Send HTTP response
-    respondJSON(w, http.StatusCreated, user)
+    respondJSON(w, http.StatusCreated, output)
 }
 
 // GetUser handles GET /users/{id}
@@ -364,7 +363,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
         return
     }
     
-    user, err := h.userUseCase.GetUser(r.Context(), uint(id))
+    user, err := h.userUseCase.GetByID(uint(id))
     if err != nil {
         respondError(w, http.StatusNotFound, "User not found")
         return
@@ -376,7 +375,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // Helper functions
 func respondJSON(w http.ResponseWriter, status int, payload interface{}) {
     w.Header().Set("Content-Type", "application/json")
-    w.WriteStatus(status)
+    w.WriteHeader(status)
     json.NewEncoder(w).Encode(payload)
 }
 
@@ -397,7 +396,7 @@ Here's how a request flows through all layers:
 ```
 1. HTTP Request
    ↓
-2. Handler parses request → CreateUserRequest DTO
+2. Handler parses request → CreateUserInput DTO
    ↓
 3. UseCase validates and applies business rules
    ↓
@@ -411,7 +410,7 @@ Here's how a request flows through all layers:
    ↓
 8. Repository returns Domain Entity
    ↓
-9. UseCase transforms to UserResponse DTO
+9. UseCase transforms to CreateUserOutput DTO
    ↓
 10. Handler formats HTTP Response
 ```
@@ -426,17 +425,18 @@ Test each layer in isolation:
 // Test use case without HTTP or database
 func TestCreateUser(t *testing.T) {
     mockRepo := &MockUserRepository{}
-    useCase := usecase.NewUserUseCase(mockRepo)
+    useCase := usecase.NewUserService(mockRepo)
     
-    req := usecase.CreateUserRequest{
+    input := usecase.CreateUserInput{
         Name:  "John Doe",
         Email: "john@example.com",
-        Role:  "user",
+        Age:   30,
     }
     
-    user, err := useCase.CreateUser(context.Background(), req)
+    output, err := useCase.Create(input)
     assert.NoError(t, err)
-    assert.Equal(t, "John Doe", user.Name)
+    assert.Equal(t, "John Doe", output.User.Name)
+    assert.Equal(t, "User created successfully", output.Message)
 }
 ```
 
@@ -448,7 +448,7 @@ Swap implementations without touching business logic:
 // Switch from PostgreSQL to MongoDB
 // Old: postgresRepo := repository.NewPostgresUserRepository(db)
 // New: mongoRepo := repository.NewMongoUserRepository(client)
-userUseCase := usecase.NewUserUseCase(mongoRepo) // Same interface!
+userService := usecase.NewUserService(postgresRepo) // Same interface!
 ```
 
 ### 3. Maintainability

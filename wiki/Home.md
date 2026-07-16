@@ -112,7 +112,7 @@ Goca doesn't just generate code, it **teaches** and **enforces** Clean Architect
 
 ## 🌟 Featured Characteristics
 
-- **Multi-protocol**: HTTP REST, gRPC, CLI, Workers, SOAP
+- **Multi-protocol**: HTTP REST, gRPC, CLI, Workers
 - **Multi-database**: PostgreSQL, MySQL, MongoDB
 - **Dependency injection**: Manual and with Wire.dev
 - **Validations**: In domain and DTOs

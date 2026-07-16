@@ -260,19 +260,7 @@ goca feature Product --fields "name:string,price:float64" --force --backup
 
 ### .goca.yaml Support
 
-```yaml
-# Enable safety features by default
-safety:
-  dry_run_default: false
-  backup_enabled: true
-  conflict_detection: true
-
-# Dependency management
-dependencies:
-  auto_update: true
-  suggest_optional: true
-  verify_versions: true
-```
+Safety and dependency features are configured via CLI flags (`--dry-run`, `--force`, `--backup`) on each command. Dedicated `safety:` and `dependencies:` config sections in `.goca.yaml` are not yet implemented.
 
 ## Examples
 
@@ -405,7 +393,7 @@ goca feature User --fields "name:string"
 
 ## Future Enhancements
 
-Planned for v1.12.0:
+Planned for a future release:
 - Interactive conflict resolution
 - Merge tool for conflicting files
 - Undo/rollback command

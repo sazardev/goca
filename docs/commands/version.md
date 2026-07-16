@@ -25,8 +25,7 @@ Shows detailed version information about your Goca installation.
 Goca v2.0.0
 Build: 2025-10-11T10:00:00Z
 Go Version: go1.24.5
-OS/Arch: linux/amd64
-Commit: abc123def
+Git Commit: abc123def
 ```
 
 ## Information Displayed
@@ -34,8 +33,7 @@ Commit: abc123def
 - **Version**: Current Goca version
 - **Build**: Build timestamp
 - **Go Version**: Go compiler version used
-- **OS/Arch**: Operating system and architecture
-- **Commit**: Git commit hash (if available)
+- **Git Commit**: Git commit hash (if available)
 
 ## Usage
 

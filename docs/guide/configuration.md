@@ -8,20 +8,8 @@ GOCA supports centralized project configuration through the `.goca.yaml` file. T
 
 - **Consistency**: Maintain uniform settings across your entire project
 - **Productivity**: Avoid repeating the same CLI flags for every command
-- *### 2. Start Simple
-
-Begin### 3. Document Your Choices
-
-### 4. Version Control
-
-Always commit `.goca.yaml` to version control so team members can use the same configuration:
-
-```bash
-git add .goca.yaml
-git commit -m "Add GOCA configuration"
-```
-
-### 5. Team Standardsts to explain configuration decisions, especially if you've customized a template:
+- **Standardization**: Share standardized configurations across your team
+- **Documentation**: Configuration files serve as self-documenting project preferences
 
 ```yaml
 # Using PostgreSQL for advanced features
@@ -34,7 +22,7 @@ database:
     timestamps: true
 ```
 
-### 4. Version Controlnfiguration and add settings as needed. If using a template, you already have a good starting point:
+You can also manually configure and add settings as needed. If using a template, you already have a good starting point:
 
 ```yaml
 project:
@@ -45,7 +33,9 @@ database:
   type: postgres
 ```
 
-### 3. Document Your Choicesation**: Share standardized configurations across your team
+### 3. Document Your Choices
+
+Share standardized configurations across your team
 - **Flexibility**: Override configuration with CLI flags when needed
 - **Documentation**: Configuration files serve as self-documenting project preferences
 
@@ -148,9 +138,14 @@ database:
 ```
 
 **Supported database types:**
-- `postgres`: PostgreSQL
-- `mysql`: MySQL/MariaDB
-- `mongodb`: MongoDB
+- `postgres`: PostgreSQL (GORM)
+- `postgres-json`: PostgreSQL with JSONB
+- `mysql`: MySQL/MariaDB (GORM)
+- `mongodb`: MongoDB (native driver)
+- `sqlite`: SQLite (embedded)
+- `sqlserver`: SQL Server (GORM)
+- `elasticsearch`: Elasticsearch (v8)
+- `dynamodb`: DynamoDB (AWS SDK v2)
 
 **Migration settings:**
 - `enabled`: Enable/disable migrations
@@ -594,7 +589,7 @@ database:
 
 ```yaml
 database:
-  type: postgres  # postgres, mysql, mongodb
+  type: postgres  # postgres, postgres-json, mysql, sqlite, mongodb, sqlserver, elasticsearch, dynamodb
 ```
 
 ## Troubleshooting

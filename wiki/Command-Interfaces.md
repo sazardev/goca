@@ -339,23 +339,6 @@ type UserWorkerHandler interface {
     GetWorkerStatus() WorkerStatus
 }
 
-// UserSOAPHandler defines contracts for SOAP services
-type UserSOAPHandler interface {
-    // SOAP operations
-    CreateUser(ctx context.Context, req *SOAPCreateUserRequest) (*SOAPUserResponse, error)
-    GetUser(ctx context.Context, req *SOAPGetUserRequest) (*SOAPUserResponse, error)
-    UpdateUser(ctx context.Context, req *SOAPUpdateUserRequest) (*SOAPUserResponse, error)
-    DeleteUser(ctx context.Context, req *SOAPDeleteUserRequest) (*SOAPDeleteUserResponse, error)
-    ListUsers(ctx context.Context, req *SOAPListUsersRequest) (*SOAPListUsersResponse, error)
-    
-    // SOAP validation operations
-    ValidateUserData(ctx context.Context, req *SOAPValidateUserRequest) (*SOAPValidationResponse, error)
-    
-    // SOAP request handling
-    HandleSOAPRequest(w http.ResponseWriter, r *http.Request)
-    ProcessSOAPEnvelope(envelope *SOAPEnvelope) (*SOAPEnvelope, error)
-}
-
 // CLICommand defines the structure of a CLI command
 type CLICommand interface {
     GetName() string

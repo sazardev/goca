@@ -33,12 +33,12 @@ Integrate all detected features.
 goca integrate --all
 ```
 
-### `--feature`
+### `--features`
 
 Integrate a specific feature.
 
 ```bash
-goca integrate --feature User
+goca integrate --features User
 ```
 
 ### `--dry-run`
@@ -47,6 +47,22 @@ Show what would be integrated without making changes.
 
 ```bash
 goca integrate --all --dry-run
+```
+
+### `--force`
+
+Overwrite existing files.
+
+```bash
+goca integrate EntityName --force
+```
+
+### `--backup`
+
+Back up existing files before overwriting.
+
+```bash
+goca integrate EntityName --backup
 ```
 
 ## Examples
@@ -76,7 +92,7 @@ goca integrate --all
 ### Integrate Specific Feature
 
 ```bash
-goca integrate --feature Product
+goca integrate --features Product
 ```
 
 ### Dry Run
@@ -111,7 +127,7 @@ If you created features manually:
 
 ```bash
 # You manually created files for Order feature
-goca integrate --feature Order
+goca integrate --features Order
 ```
 
 ### Project Repair

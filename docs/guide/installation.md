@@ -6,7 +6,7 @@ This guide will walk you through installing Goca on your system using various me
 
 Before installing Goca, ensure you have:
 
-- **Go 1.21 or higher** - [Download Go](https://golang.org/dl/)
+- **Go 1.21 or higher (Goca itself requires Go 1.25.1 to build)** - [Download Go](https://golang.org/dl/)
 - **Git** - For version control and cloning repositories
 - **Terminal or Command Prompt** - To run installation commands
 
@@ -14,7 +14,7 @@ Before installing Goca, ensure you have:
 ```bash
 go version
 ```
-You should see `go version go1.21` or higher.
+You should see `go version go1.21` or higher (Goca itself requires Go 1.25.1 to build).
 :::
 
 ## Installation Methods
@@ -198,6 +198,16 @@ Available Commands:
   handler     Generate handlers
   di          Generate dependency injection
   integrate   Integrate existing features
+  interfaces  Generate interfaces
+  messages    Generate messages
+  template    Manage templates
+  middleware  Generate middleware
+  analyze     Analyze project structure
+  config      Manage configuration
+  ci          Generate CI/CD configuration
+  doctor      Diagnose project issues
+  upgrade     Upgrade project structure
+  mcp-server  Start MCP server
   version     Show version information
 
 Flags:

@@ -12,12 +12,12 @@ Generate `testify/mock` mocks for all interfaces of a named entity. Mocks let yo
 ## Syntax
 
 ```bash
-goca mocks [EntityName] [flags]
+goca mocks <EntityName> [flags]
 ```
 
 ## Description
 
-`goca mocks` scans the interfaces for the given entity (repository, use case, handler) and generates mock implementations using `github.com/stretchr/testify/mock`. When no entity name is provided it generates mocks for all entities found under `internal/`.
+`goca mocks` scans the interfaces for the given entity (repository, use case, handler) and generates mock implementations using `github.com/stretchr/testify/mock`.
 
 Mocks are written to `internal/mocks/` and follow the naming convention `mock_<entity>_<layer>.go`.
 
@@ -53,12 +53,6 @@ goca mocks Product --backup
 
 ```bash
 goca mocks Product
-```
-
-### Generate mocks for all entities
-
-```bash
-goca mocks
 ```
 
 ### Regenerate with backup
