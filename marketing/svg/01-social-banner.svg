@@ -1,0 +1,58 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="30%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="90%" cy="90%" r="45%">
+      <stop offset="0%" stop-color="#00D9FF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#00D9FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wordmark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00ADD8"/>
+      <stop offset="100%" stop-color="#00D9FF"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- Logo mark: layered circle -->
+  <circle cx="170" cy="150" r="72" fill="#00ADD8" fill-opacity="0.08"/>
+  <circle cx="170" cy="150" r="56" fill="#00ADD8"/>
+  <rect x="138" y="126" width="64" height="7" rx="2" fill="#ffffff" fill-opacity="0.9"/>
+  <rect x="138" y="139" width="64" height="7" rx="2" fill="#ffffff" fill-opacity="0.7"/>
+  <rect x="138" y="152" width="64" height="7" rx="2" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="138" y="165" width="64" height="7" rx="2" fill="#ffffff" fill-opacity="0.3"/>
+
+  <!-- Wordmark -->
+  <text x="70" y="330" font-family="Liberation Sans, Arial, sans-serif" font-size="104" font-weight="bold" fill="url(#wordmark)">Goca</text>
+
+  <!-- Tagline -->
+  <text x="72" y="378" font-family="Liberation Sans, Arial, sans-serif" font-size="34" font-weight="600" fill="#00D9FF">Go Clean Architecture, generated in seconds</text>
+
+  <!-- Description -->
+  <text x="72" y="430" font-family="Liberation Sans, Arial, sans-serif" font-size="24" fill="#ffffff" fill-opacity="0.75">Domain, use cases, repositories and handlers &#8212; scaffolded</text>
+  <text x="72" y="462" font-family="Liberation Sans, Arial, sans-serif" font-size="24" fill="#ffffff" fill-opacity="0.75">with best practices baked in, so you can ship the logic that matters.</text>
+
+  <!-- Badges -->
+  <g font-family="Liberation Sans, Arial, sans-serif" font-size="18" font-weight="600">
+    <rect x="72" y="500" width="168" height="42" rx="10" fill="#00ADD8" fill-opacity="0.14" stroke="#00ADD8" stroke-width="1.5"/>
+    <text x="156" y="527" fill="#00D9FF" text-anchor="middle">Clean Architecture</text>
+
+    <rect x="252" y="500" width="140" height="42" rx="10" fill="#00ADD8" fill-opacity="0.14" stroke="#00ADD8" stroke-width="1.5"/>
+    <text x="322" y="527" fill="#00D9FF" text-anchor="middle">Zero Config</text>
+
+    <rect x="404" y="500" width="180" height="42" rx="10" fill="#00ADD8" fill-opacity="0.14" stroke="#00ADD8" stroke-width="1.5"/>
+    <text x="494" y="527" fill="#00D9FF" text-anchor="middle">Production Ready</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="72" y="588" font-family="Liberation Sans, Arial, sans-serif" font-size="20" fill="#ffffff" fill-opacity="0.45">sazardev.github.io/goca</text>
+  <text x="1128" y="588" font-family="Liberation Sans, Arial, sans-serif" font-size="20" fill="#ffffff" fill-opacity="0.45" text-anchor="end">v1.22.0 &#183; MIT License</text>
+</svg>

@@ -1,0 +1,78 @@
+<svg width="1200" height="800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8f7fb"/>
+    </linearGradient>
+    <radialGradient id="glowRight" cx="80%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#bgGrad)"/>
+  <rect width="1200" height="800" fill="url(#glowRight)"/>
+
+  <!-- Brand lockup -->
+  <circle cx="66" cy="56" r="22" fill="#00ADD8"/>
+  <rect x="56" y="48" width="20" height="2.6" rx="1" fill="#ffffff" fill-opacity="0.9"/>
+  <rect x="56" y="53" width="20" height="2.6" rx="1" fill="#ffffff" fill-opacity="0.7"/>
+  <rect x="56" y="58" width="20" height="2.6" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="56" y="63" width="20" height="2.6" rx="1" fill="#ffffff" fill-opacity="0.3"/>
+  <text x="98" y="64" font-family="Liberation Sans, Arial, sans-serif" font-size="24" font-weight="bold" fill="#0f172a">Goca</text>
+
+  <!-- Title -->
+  <text x="600" y="120" font-family="Liberation Sans, Arial, sans-serif" font-size="42" font-weight="bold" fill="#0f172a" text-anchor="middle">Stop mixing layers.</text>
+  <text x="600" y="158" font-family="Liberation Sans, Arial, sans-serif" font-size="24" fill="#475569" text-anchor="middle">Clean Architecture, generated automatically &#8212; not hand-rolled under deadline.</text>
+
+  <!-- LEFT: Without Goca -->
+  <rect x="60" y="200" width="520" height="540" rx="18" fill="#fff5f5" stroke="#e11d48" stroke-opacity="0.35" stroke-width="1.5"/>
+  <text x="90" y="248" font-family="Liberation Sans, Arial, sans-serif" font-size="24" font-weight="bold" fill="#e11d48">&#10007; Without Goca</text>
+  <text x="90" y="280" font-family="Liberation Sans, Arial, sans-serif" font-size="18" fill="#334155">order_controller.go &#8212; everything in one file</text>
+
+  <g font-family="Liberation Mono, monospace" font-size="17" fill="#9f1239">
+    <text x="90" y="330">func CreateOrder(w, r *Request) {</text>
+    <text x="110" y="358" fill="#e11d48">// HTTP decoding + SQL + business rules,</text>
+    <text x="110" y="382" fill="#e11d48">// all tangled in the handler</text>
+    <text x="110" y="414">db.Query("INSERT INTO orders...")</text>
+    <text x="110" y="442">if order.Total &gt; 10000 { ... }</text>
+    <text x="110" y="470">smtp.Send(order.Email, ...)</text>
+    <text x="90" y="498">}</text>
+  </g>
+
+  <g font-family="Liberation Sans, Arial, sans-serif" font-size="17" fill="#9f1239">
+    <text x="90" y="560">&#8226; Fat Controller &#8212; business logic in the handler</text>
+    <text x="90" y="594">&#8226; God Object &#8212; one struct doing everything</text>
+    <text x="90" y="628">&#8226; Direct DB access from request code</text>
+    <text x="90" y="662">&#8226; Anemic domain &#8212; entities with no behavior</text>
+    <text x="90" y="696">&#8226; No tests &#8212; too tangled to isolate</text>
+  </g>
+
+  <!-- RIGHT: With Goca -->
+  <rect x="620" y="200" width="520" height="540" rx="18" fill="#eefaff" stroke="#00ADD8" stroke-width="1.5"/>
+  <text x="650" y="248" font-family="Liberation Sans, Arial, sans-serif" font-size="24" font-weight="bold" fill="#00758F">&#10003; With Goca</text>
+  <text x="650" y="280" font-family="Liberation Sans, Arial, sans-serif" font-size="18" fill="#334155">goca feature Order &#8212; four clear layers</text>
+
+  <!-- layered bars diagram -->
+  <g>
+    <rect x="650" y="320" width="460" height="46" rx="8" fill="#00ADD8" fill-opacity="0.9"/>
+    <text x="670" y="350" font-family="Liberation Sans, Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">Handler &#8212; HTTP / gRPC / CLI</text>
+
+    <rect x="650" y="376" width="460" height="46" rx="8" fill="#00ADD8" fill-opacity="0.7"/>
+    <text x="670" y="406" font-family="Liberation Sans, Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">Repository &#8212; persistence</text>
+
+    <rect x="650" y="432" width="460" height="46" rx="8" fill="#00ADD8" fill-opacity="0.5"/>
+    <text x="670" y="462" font-family="Liberation Sans, Arial, sans-serif" font-size="18" font-weight="600" fill="#0f172a">Use Case &#8212; business rules</text>
+
+    <rect x="650" y="488" width="460" height="46" rx="8" fill="#00ADD8" fill-opacity="0.3"/>
+    <text x="670" y="518" font-family="Liberation Sans, Arial, sans-serif" font-size="18" font-weight="600" fill="#0f172a">Domain &#8212; pure entities</text>
+  </g>
+
+  <g font-family="Liberation Sans, Arial, sans-serif" font-size="17" fill="#00758F">
+    <text x="650" y="580">&#8226; Dependencies point inward, always</text>
+    <text x="650" y="614">&#8226; Each layer has one reason to change</text>
+    <text x="650" y="648">&#8226; Interfaces at every boundary</text>
+    <text x="650" y="682">&#8226; Integration tests scaffolded with it</text>
+    <text x="650" y="716">&#8226; Ready in the time it took to read this</text>
+  </g>
+</svg>

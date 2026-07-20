@@ -1,0 +1,54 @@
+<svg width="1280" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8f7fb"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="15%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wordmark" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00758F"/>
+      <stop offset="100%" stop-color="#00ADD8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="400" fill="url(#bgGrad)"/>
+  <rect width="1280" height="400" fill="url(#glow)"/>
+
+  <!-- Logo mark -->
+  <circle cx="150" cy="180" r="64" fill="#00ADD8" fill-opacity="0.08"/>
+  <circle cx="150" cy="180" r="50" fill="#00ADD8"/>
+  <rect x="122" y="160" width="56" height="6" rx="2" fill="#ffffff" fill-opacity="0.9"/>
+  <rect x="122" y="172" width="56" height="6" rx="2" fill="#ffffff" fill-opacity="0.7"/>
+  <rect x="122" y="184" width="56" height="6" rx="2" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="122" y="196" width="56" height="6" rx="2" fill="#ffffff" fill-opacity="0.3"/>
+
+  <!-- Wordmark + tagline -->
+  <text x="250" y="165" font-family="Liberation Sans, Arial, sans-serif" font-size="72" font-weight="bold" fill="url(#wordmark)">Goca</text>
+  <text x="252" y="205" font-family="Liberation Sans, Arial, sans-serif" font-size="26" font-weight="600" fill="#00758F">Go Clean Architecture Code Generator</text>
+  <text x="252" y="238" font-family="Liberation Sans, Arial, sans-serif" font-size="19" fill="#334155">Build production-ready Go applications, one clean layer at a time.</text>
+
+  <!-- Badges -->
+  <g font-family="Liberation Sans, Arial, sans-serif" font-size="16" font-weight="600">
+    <rect x="252" y="264" width="150" height="36" rx="9" fill="#00ADD8" fill-opacity="0.10" stroke="#00ADD8" stroke-width="1.2"/>
+    <text x="327" y="287" fill="#00758F" text-anchor="middle">Go 1.25+</text>
+
+    <rect x="414" y="264" width="140" height="36" rx="9" fill="#00ADD8" fill-opacity="0.10" stroke="#00ADD8" stroke-width="1.2"/>
+    <text x="484" y="287" fill="#00758F" text-anchor="middle">MIT License</text>
+
+    <rect x="566" y="264" width="190" height="36" rx="9" fill="#00ADD8" fill-opacity="0.10" stroke="#00ADD8" stroke-width="1.2"/>
+    <text x="661" y="287" fill="#00758F" text-anchor="middle">Production Ready</text>
+  </g>
+
+  <!-- Decorative layered bars, large right side -->
+  <g opacity="0.9">
+    <rect x="920" y="150" width="290" height="20" rx="6" fill="#00ADD8" fill-opacity="0.9"/>
+    <rect x="950" y="180" width="290" height="20" rx="6" fill="#00ADD8" fill-opacity="0.7"/>
+    <rect x="920" y="210" width="290" height="20" rx="6" fill="#00ADD8" fill-opacity="0.5"/>
+    <rect x="950" y="240" width="290" height="20" rx="6" fill="#00ADD8" fill-opacity="0.3"/>
+  </g>
+
+  <text x="1180" y="352" font-family="Liberation Sans, Arial, sans-serif" font-size="18" fill="#334155" fill-opacity="0.6" text-anchor="end">sazardev.github.io/goca</text>
+</svg>

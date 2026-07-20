@@ -1,0 +1,28 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8f7fb"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="22%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <g opacity="1"><circle cx="66" cy="56" r="22" fill="#00ADD8"/><rect x="55.9" y="47.2" width="20.2" height="2.6" rx="1.5" fill="#ffffff" fill-opacity="0.9"/><rect x="55.9" y="50.2" width="20.2" height="2.6" rx="1.5" fill="#ffffff" fill-opacity="0.7"/><rect x="55.9" y="53.1" width="20.2" height="2.6" rx="1.5" fill="#ffffff" fill-opacity="0.5"/><rect x="55.9" y="56.1" width="20.2" height="2.6" rx="1.5" fill="#ffffff" fill-opacity="0.3"/>
+  <text x="106" y="64.32" font-family="Liberation Sans, Arial, sans-serif" font-size="26" font-weight="bold" fill="#0f172a">Goca</text></g>
+  <g opacity="1"><rect x="969" y="40" width="171" height="36" rx="18" fill="#00ADD8" fill-opacity="0.1" stroke="#00ADD8" stroke-width="1.3"/>
+  <text x="1054.5" y="62.8" font-family="Liberation Sans, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="0.5" fill="#00758F" text-anchor="middle">HANDLER LAYER</text></g>
+  <g opacity="1"><circle cx="190" cy="350" r="110" fill="#00ADD8" fill-opacity="0.1" stroke="#00ADD8" stroke-width="2"/>
+  <circle cx="190" cy="350" r="85" fill="#00ADD8"/>
+  <g transform="translate(143.3,303.3) scale(3.896)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.79 17 5 19 5a1 1 0 0 1 1 1z"/></g></g>
+  <text x="360" y="260" font-family="Liberation Sans, Arial, sans-serif" font-size="44" font-weight="bold" fill="#0f172a">CORS, logging,</text>
+  <text x="360" y="316" font-family="Liberation Sans, Arial, sans-serif" font-size="44" font-weight="bold" fill="#00758F">recovery — done.</text>
+  <text x="360" y="372" font-family="Liberation Sans, Arial, sans-serif" font-size="21" fill="#334155" fill-opacity="1">Standard HTTP middleware, generated as</text>
+  <text x="360" y="404" font-family="Liberation Sans, Arial, sans-serif" font-size="21" fill="#334155" fill-opacity="1">a reusable package.</text>
+  <g opacity="1"><rect x="360" y="460" width="780" height="64" rx="14" fill="#0f172a" fill-opacity="1" stroke="#00ADD8" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="384" y="498.4" font-family="Liberation Mono, monospace" font-size="20" fill="#00D9FF" text-anchor="start">$ goca middleware auth --types &quot;cors,logging,recovery&quot;</text></g>
+  <text x="1140" y="592" font-family="Liberation Sans, Arial, sans-serif" font-size="17" fill="#334155" fill-opacity="0.6" text-anchor="end">sazardev.github.io/goca</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bgGrad)"/>
+  <rect width="1080" height="1080" fill="url(#glow)"/>
+
+  <!-- Brand lockup -->
+  <circle cx="88" cy="86" r="26" fill="#00ADD8"/>
+  <rect x="76" y="76" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.9"/>
+  <rect x="76" y="82" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.7"/>
+  <rect x="76" y="88" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="76" y="94" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.3"/>
+  <text x="126" y="96" font-family="Liberation Sans, Arial, sans-serif" font-size="32" font-weight="bold" fill="#ffffff">Goca</text>
+
+  <!-- Icon badge -->
+  <circle cx="540" cy="430" r="120" fill="#00ADD8" fill-opacity="0.12" stroke="#00ADD8" stroke-width="2"/>
+  <circle cx="540" cy="430" r="90" fill="#00ADD8"/>
+  <g transform="translate(492,382) scale(4)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m7.5 4.27 9 5.15"/>
+    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+    <path d="m3.3 7 8.7 5 8.7-5"/>
+    <path d="M12 22V12"/>
+  </g>
+
+  <!-- Headline -->
+  <text x="540" y="612" font-family="Liberation Sans, Arial, sans-serif" font-size="58" font-weight="bold" fill="#ffffff" text-anchor="middle">Idea to feature</text>
+  <text x="540" y="678" font-family="Liberation Sans, Arial, sans-serif" font-size="58" font-weight="bold" fill="#00D9FF" text-anchor="middle">in seconds.</text>
+
+  <!-- Subtext -->
+  <text x="540" y="738" font-family="Liberation Sans, Arial, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72" text-anchor="middle">One command scaffolds domain, use case,</text>
+  <text x="540" y="772" font-family="Liberation Sans, Arial, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72" text-anchor="middle">repository and handler &#8212; fully wired.</text>
+
+  <!-- Command chip -->
+  <rect x="110" y="850" width="860" height="72" rx="14" fill="#000000" fill-opacity="0.35" stroke="#00ADD8" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="540" y="895" font-family="Liberation Mono, monospace" font-size="24" fill="#00D9FF" text-anchor="middle">$ goca feature Order --fields "id:string,total:float64"</text>
+
+  <text x="540" y="1010" font-family="Liberation Sans, Arial, sans-serif" font-size="22" fill="#ffffff" fill-opacity="0.4" text-anchor="middle">sazardev.github.io/goca</text>
+</svg>

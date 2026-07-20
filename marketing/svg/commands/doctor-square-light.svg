@@ -1,0 +1,28 @@
+<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8f7fb"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bgGrad)"/>
+  <rect width="1080" height="1080" fill="url(#glow)"/>
+  <g opacity="1"><circle cx="88" cy="86" r="26" fill="#00ADD8"/><rect x="76.0" y="75.6" width="23.9" height="3.1" rx="1.5" fill="#ffffff" fill-opacity="0.9"/><rect x="76.0" y="79.1" width="23.9" height="3.1" rx="1.5" fill="#ffffff" fill-opacity="0.7"/><rect x="76.0" y="82.6" width="23.9" height="3.1" rx="1.5" fill="#ffffff" fill-opacity="0.5"/><rect x="76.0" y="86.1" width="23.9" height="3.1" rx="1.5" fill="#ffffff" fill-opacity="0.3"/>
+  <text x="132" y="96.24" font-family="Liberation Sans, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f172a">Goca</text></g>
+  <g opacity="1"><rect x="825" y="62" width="165" height="44" rx="22" fill="#00ADD8" fill-opacity="0.1" stroke="#00ADD8" stroke-width="1.3"/>
+  <text x="907.5" y="89.44" font-family="Liberation Sans, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="0.5" fill="#00758F" text-anchor="middle">DIAGNOSTICS</text></g>
+  <g opacity="1"><circle cx="540" cy="430" r="120" fill="#00ADD8" fill-opacity="0.1" stroke="#00ADD8" stroke-width="2"/>
+  <circle cx="540" cy="430" r="90" fill="#00ADD8"/>
+  <g transform="translate(490.5,380.5) scale(4.125)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></g></g>
+  <text x="540" y="612" font-family="Liberation Sans, Arial, sans-serif" font-size="58" font-weight="bold" fill="#0f172a" text-anchor="middle">Is your project</text>
+  <text x="540" y="678" font-family="Liberation Sans, Arial, sans-serif" font-size="58" font-weight="bold" fill="#00758F" text-anchor="middle">actually clean?</text>
+  <text x="540" y="738" font-family="Liberation Sans, Arial, sans-serif" font-size="27" fill="#334155" fill-opacity="1" text-anchor="middle">Diagnoses structure issues against Clean</text>
+  <text x="540" y="772" font-family="Liberation Sans, Arial, sans-serif" font-size="27" fill="#334155" fill-opacity="1" text-anchor="middle">Architecture rules — and can fix them.</text>
+  <g opacity="1"><rect x="90" y="850" width="900" height="72" rx="14" fill="#0f172a" fill-opacity="1" stroke="#00ADD8" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="540" y="893.68" font-family="Liberation Mono, monospace" font-size="24" fill="#00D9FF" text-anchor="middle">$ goca doctor --fix</text></g>
+  <text x="540" y="1010" font-family="Liberation Sans, Arial, sans-serif" font-size="22" fill="#334155" fill-opacity="0.6" text-anchor="middle">sazardev.github.io/goca</text>
+</svg>

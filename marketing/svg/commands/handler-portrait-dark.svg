@@ -1,0 +1,29 @@
+<svg width="1080" height="1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="28%" r="45%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#bgGrad)"/>
+  <rect width="1080" height="1920" fill="url(#glow)"/>
+  <g opacity="1"><circle cx="90" cy="170" r="28" fill="#00ADD8"/><rect x="77.1" y="158.8" width="25.8" height="3.4" rx="1.5" fill="#ffffff" fill-opacity="0.9"/><rect x="77.1" y="162.6" width="25.8" height="3.4" rx="1.5" fill="#ffffff" fill-opacity="0.7"/><rect x="77.1" y="166.4" width="25.8" height="3.4" rx="1.5" fill="#ffffff" fill-opacity="0.5"/><rect x="77.1" y="170.1" width="25.8" height="3.4" rx="1.5" fill="#ffffff" fill-opacity="0.3"/>
+  <text x="136" y="180.88" font-family="Liberation Sans, Arial, sans-serif" font-size="34" font-weight="bold" fill="#ffffff">Goca</text></g>
+  <g opacity="1"><rect x="794" y="148" width="196" height="46" rx="23" fill="#00ADD8" fill-opacity="0.14" stroke="#00ADD8" stroke-width="1.3"/>
+  <text x="892" y="176.76" font-family="Liberation Sans, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="0.5" fill="#00D9FF" text-anchor="middle">HANDLER LAYER</text></g>
+  <g opacity="1"><circle cx="540" cy="560" r="140" fill="#00ADD8" fill-opacity="0.12" stroke="#00ADD8" stroke-width="2"/>
+  <circle cx="540" cy="560" r="105" fill="#00ADD8"/>
+  <g transform="translate(482.3,502.3) scale(4.813)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></g></g>
+  <text x="540" y="792" font-family="Liberation Sans, Arial, sans-serif" font-size="66" font-weight="bold" fill="#ffffff" text-anchor="middle">One entity,</text>
+  <text x="540" y="866" font-family="Liberation Sans, Arial, sans-serif" font-size="66" font-weight="bold" fill="#00D9FF" text-anchor="middle">any protocol.</text>
+  <text x="540" y="928" font-family="Liberation Sans, Arial, sans-serif" font-size="30" fill="#ffffff" fill-opacity="0.72" text-anchor="middle">HTTP, gRPC, CLI, worker or SOAP handlers</text>
+  <text x="540" y="966" font-family="Liberation Sans, Arial, sans-serif" font-size="30" fill="#ffffff" fill-opacity="0.72" text-anchor="middle">— same use case underneath.</text>
+  <g opacity="1"><rect x="90" y="1040" width="900" height="80" rx="14" fill="#000000" fill-opacity="0.35" stroke="#00ADD8" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="540" y="1088.32" font-family="Liberation Mono, monospace" font-size="26" fill="#00D9FF" text-anchor="middle">$ goca handler User --type http --middleware</text></g>
+  <path d="M525 1740 L540 1720 L555 1740" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="540" y="1800" font-family="Liberation Sans, Arial, sans-serif" font-size="28" fill="#ffffff" fill-opacity="0.5" text-anchor="middle">sazardev.github.io/goca</text>
+</svg>

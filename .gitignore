@@ -61,3 +61,7 @@ temp*/
 /docs/node_modules
 .github/copilot-instructions.md
 .aider*
+
+# Regenerable video build cache (large PNG/SVG frame sequences) — see marketing/render-video.sh
+/marketing/video/frames-svg
+/marketing/video/frames-png

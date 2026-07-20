@@ -1,0 +1,46 @@
+<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e8f7fb"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#00ADD8" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#00ADD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bgGrad)"/>
+  <rect width="1080" height="1080" fill="url(#glow)"/>
+
+  <!-- Brand lockup -->
+  <circle cx="88" cy="86" r="26" fill="#00ADD8"/>
+  <rect x="76" y="76" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.9"/>
+  <rect x="76" y="82" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.7"/>
+  <rect x="76" y="88" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.5"/>
+  <rect x="76" y="94" width="24" height="3.2" rx="1" fill="#ffffff" fill-opacity="0.3"/>
+  <text x="126" y="96" font-family="Liberation Sans, Arial, sans-serif" font-size="32" font-weight="bold" fill="#0f172a">Goca</text>
+
+  <!-- Icon badge -->
+  <circle cx="540" cy="430" r="120" fill="#00ADD8" fill-opacity="0.10" stroke="#00ADD8" stroke-width="2"/>
+  <circle cx="540" cy="430" r="90" fill="#00ADD8"/>
+  <g transform="translate(492,382) scale(4)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <circle cx="12" cy="12" r="6"/>
+    <circle cx="12" cy="12" r="2"/>
+  </g>
+
+  <!-- Headline -->
+  <text x="540" y="612" font-family="Liberation Sans, Arial, sans-serif" font-size="58" font-weight="bold" fill="#0f172a" text-anchor="middle">Anti-patterns</text>
+  <text x="540" y="678" font-family="Liberation Sans, Arial, sans-serif" font-size="58" font-weight="bold" fill="#00758F" text-anchor="middle">blocked by design.</text>
+
+  <!-- Subtext -->
+  <text x="540" y="738" font-family="Liberation Sans, Arial, sans-serif" font-size="27" fill="#334155" text-anchor="middle">No Fat Controllers, no God Objects,</text>
+  <text x="540" y="772" font-family="Liberation Sans, Arial, sans-serif" font-size="27" fill="#334155" text-anchor="middle">no infrastructure leaking into your domain.</text>
+
+  <!-- Command chip -->
+  <rect x="200" y="850" width="680" height="72" rx="14" fill="#0f172a" stroke="#00ADD8" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="540" y="895" font-family="Liberation Mono, monospace" font-size="24" fill="#00D9FF" text-anchor="middle">$ goca validate ./internal</text>
+
+  <text x="540" y="1010" font-family="Liberation Sans, Arial, sans-serif" font-size="22" fill="#334155" fill-opacity="0.6" text-anchor="middle">sazardev.github.io/goca</text>
+</svg>
